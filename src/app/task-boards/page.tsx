@@ -3,6 +3,26 @@
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
+// Define task types
+type BaseTask = {
+  id: number;
+  task: string;
+  status: string;
+  priority: string;
+  assignee: string;
+  dueDate: string;
+}
+
+type TodoTask = BaseTask & {
+  completedDate?: undefined;
+}
+
+type CompletedTask = BaseTask & {
+  completedDate: string;
+}
+
+type Task = TodoTask | CompletedTask;
+
 // Sample task data
 const taskBoards = {
   technicalSEO: [
@@ -11,24 +31,24 @@ const taskBoards = {
     { id: 3, task: 'Optimize site speed (Core Web Vitals)', status: 'in-progress', priority: 'high', assignee: 'John Doe', dueDate: '2025-04-12' },
     { id: 4, task: 'Fix duplicate content issues', status: 'todo', priority: 'medium', assignee: 'Jane Smith', dueDate: '2025-04-20' },
     { id: 5, task: 'Implement hreflang tags for international pages', status: 'todo', priority: 'medium', assignee: 'John Doe', dueDate: '2025-04-25' },
-    { id: 6, task: 'Fix mobile usability issues', status: 'completed', priority: 'high', assignee: 'Jane Smith', completedDate: '2025-04-01' },
-    { id: 7, task: 'Implement canonical tags', status: 'completed', priority: 'medium', assignee: 'John Doe', completedDate: '2025-03-28' },
+    { id: 6, task: 'Fix mobile usability issues', status: 'completed', priority: 'high', assignee: 'Jane Smith', completedDate: '2025-04-01', dueDate: '2025-04-01' },
+    { id: 7, task: 'Implement canonical tags', status: 'completed', priority: 'medium', assignee: 'John Doe', completedDate: '2025-03-28', dueDate: '2025-03-28' },
   ],
   cro: [
     { id: 1, task: 'A/B test homepage hero section', status: 'in-progress', priority: 'high', assignee: 'Jane Smith', dueDate: '2025-04-15' },
     { id: 2, task: 'Optimize product page CTAs', status: 'todo', priority: 'high', assignee: 'John Doe', dueDate: '2025-04-18' },
     { id: 3, task: 'Improve checkout flow', status: 'todo', priority: 'high', assignee: 'Jane Smith', dueDate: '2025-04-22' },
     { id: 4, task: 'Implement exit-intent popups', status: 'in-progress', priority: 'medium', assignee: 'John Doe', dueDate: '2025-04-12' },
-    { id: 5, task: 'Optimize mobile forms', status: 'completed', priority: 'high', assignee: 'Jane Smith', completedDate: '2025-04-02' },
+    { id: 5, task: 'Optimize mobile forms', status: 'completed', priority: 'high', assignee: 'Jane Smith', completedDate: '2025-04-02', dueDate: '2025-04-02' },
     { id: 6, task: 'Reduce cart abandonment rate', status: 'todo', priority: 'high', assignee: 'John Doe', dueDate: '2025-04-28' },
   ],
   contentStrategy: [
     { id: 1, task: 'Develop Q2 content calendar', status: 'in-progress', priority: 'high', assignee: 'Jane Smith', dueDate: '2025-04-10' },
-    { id: 2, task: 'Conduct keyword gap analysis', status: 'completed', priority: 'high', assignee: 'John Doe', completedDate: '2025-04-01' },
+    { id: 2, task: 'Conduct keyword gap analysis', status: 'completed', priority: 'high', assignee: 'John Doe', completedDate: '2025-04-01', dueDate: '2025-04-01' },
     { id: 3, task: 'Create content briefs for top 10 keywords', status: 'in-progress', priority: 'high', assignee: 'Jane Smith', dueDate: '2025-04-15' },
     { id: 4, task: 'Update outdated blog content', status: 'todo', priority: 'medium', assignee: 'John Doe', dueDate: '2025-04-20' },
     { id: 5, task: 'Develop link building strategy', status: 'todo', priority: 'high', assignee: 'Jane Smith', dueDate: '2025-04-25' },
-    { id: 6, task: 'Create content style guide', status: 'completed', priority: 'medium', assignee: 'John Doe', completedDate: '2025-03-28' },
+    { id: 6, task: 'Create content style guide', status: 'completed', priority: 'medium', assignee: 'John Doe', completedDate: '2025-03-28', dueDate: '2025-03-28' },
   ]
 };
 
@@ -67,7 +87,7 @@ function TaskCard({
   task, 
   onStatusChange 
 }: { 
-  task: any; 
+  task: Task; 
   onStatusChange: (id: number, status: string) => void; 
 }) {
   return (
@@ -77,18 +97,17 @@ function TaskCard({
         <PriorityBadge priority={task.priority} />
       </div>
       
-      <div className="grid grid-cols-2 gap-2 mb-4">
+      <div className="mb-3">
         <div className="text-sm text-mediumGray">
           <span className="font-medium">Assignee:</span> {task.assignee}
         </div>
-        
         {task.status !== 'completed' ? (
           <div className="text-sm text-mediumGray">
-            <span className="font-medium">Due:</span> {new Date(task.dueDate).toLocaleDateString()}
+            <span className="font-medium">Due:</span> {task.dueDate}
           </div>
         ) : (
           <div className="text-sm text-mediumGray">
-            <span className="font-medium">Completed:</span> {new Date(task.completedDate).toLocaleDateString()}
+            <span className="font-medium">Completed:</span> {task.completedDate}
           </div>
         )}
       </div>
@@ -143,7 +162,7 @@ function TaskColumn({
   onStatusChange 
 }: { 
   title: string; 
-  tasks: any[]; 
+  tasks: Task[]; 
   status: string; 
   onStatusChange: (id: number, status: string) => void; 
 }) {
@@ -184,7 +203,7 @@ function AddTaskModal({
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
-  onAdd: (task: any) => void; 
+  onAdd: (task: Task) => void; 
   boardType: string; 
 }) {
   const [taskData, setTaskData] = useState({
@@ -289,8 +308,8 @@ function AddTaskModal({
 }
 
 export default function TaskBoards() {
-  const [activeBoard, setActiveBoard] = useState('technicalSEO');
   const [boards, setBoards] = useState(taskBoards);
+  const [activeBoard, setActiveBoard] = useState('technicalSEO');
   const [addTaskModal, setAddTaskModal] = useState(false);
   
   const handleStatusChange = (id: number, newStatus: string) => {
@@ -299,18 +318,39 @@ export default function TaskBoards() {
       const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task => task.id === id);
       
       if (taskIndex !== -1) {
-        newBoards[activeBoard as keyof typeof boards][taskIndex] = {
-          ...newBoards[activeBoard as keyof typeof boards][taskIndex],
-          status: newStatus,
-          ...(newStatus === 'completed' ? { completedDate: new Date().toISOString().split('T')[0] } : {})
-        };
+        const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+        
+        if (newStatus === 'completed') {
+          // When moving to completed, add completedDate
+          const updatedTask: CompletedTask = {
+            id: currentTask.id,
+            task: currentTask.task,
+            status: newStatus,
+            priority: currentTask.priority,
+            assignee: currentTask.assignee,
+            completedDate: new Date().toISOString().split('T')[0],
+            dueDate: currentTask.dueDate
+          };
+          newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+        } else {
+          // When moving to todo or in-progress
+          const updatedTask: TodoTask = {
+            id: currentTask.id,
+            task: currentTask.task,
+            status: newStatus,
+            priority: currentTask.priority,
+            assignee: currentTask.assignee,
+            dueDate: currentTask.dueDate
+          };
+          newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+        }
       }
       
       return newBoards;
     });
   };
   
-  const handleAddTask = (task: any) => {
+  const handleAddTask = (task: Task) => {
     setBoards(prev => {
       const newBoards = { ...prev };
       newBoards[activeBoard as keyof typeof boards] = [
