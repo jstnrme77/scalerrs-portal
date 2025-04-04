@@ -1,15 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #3B82F6; /* Brighter blue for better contrast */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Theme variables */
+:root {
+  --primary: #5E72E4;
+  --background: #ffffff;
+  --foreground: #333333;
+  --dark-background: #12131C;
+  --dark-foreground: #ffffff;
+}
+
+/* Dark mode variables */
+.dark {
+  --background: #12131C;
+  --foreground: #ffffff;
+}
+
+/* Dark mode background with Group 35634.png image */
+.dark body {
+  background-color: var(--background) !important;
+  background-image: url('/images/Group 35634.png') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  color: var(--foreground) !important;
+}
+
+/* Add blue glow effects in corners for dark mode */
+.dark .blue-glow-top-left::before {
+  content: "";
+  position: fixed;
+  top: -150px;
+  left: -150px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: rgba(94, 114, 228, 0.25);
+  filter: blur(100px);
+  z-index: -1;
+}
+
+.dark .blue-glow-bottom-right::after {
+  content: "";
+  position: fixed;
+  bottom: -150px;
+  right: -150px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: rgba(94, 114, 228, 0.25);
+  filter: blur(100px);
+  z-index: -1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +70,98 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-family);
+}
+
+/* Light mode text color fixes */
+.text-dark {
+  color: #12131C !important;
+}
+
+.text-mediumGray {
+  color: #4F515E !important;
+}
+
+.text-darkGray {
+  color: #333333 !important;
+}
+
+/* Sidebar specific light mode fixes */
+.bg-white {
+  background-color: #ffffff !important;
+}
+
+.border-lightGray {
+  border-color: #e5e7eb !important;
+}
+
+/* Primary color for active items */
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+.text-primary {
+  color: var(--primary) !important;
+}
+
+/* Button styles */
+button {
+  border-radius: 8px !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+button:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* Box and container styles */
+.bg-white, 
+.bg-lightGray, 
+.bg-dark, 
+.bg-darkGray,
+div[class*="bg-"] {
+  border-radius: 8px !important;
+}
+
+/* Card-like elements */
+[class*="card"],
+[class*="box"],
+[class*="container"],
+.p-4, .p-6, .p-8 {
+  border-radius: 8px !important;
+}
+
+/* Force dark mode styles */
+.dark body {
+  background-color: #12131C !important;
+  background-image: url('/images/Group 35634.png') !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  color: #ffffff !important;
+}
+
+.dark .bg-white {
+  background-color: #181D27 !important;
+}
+
+.dark .text-dark {
+  color: white !important;
+}
+
+.dark .text-darkGray {
+  color: #e5e7eb !important;
+}
+
+.dark .text-mediumGray {
+  color: #a0a0a0 !important;
+}
+
+.dark .border-lightGray {
+  border-color: #4F515E !important;
+}
+
+/* Additional dark mode overrides */
+.dark .bg-lightGray {
+  background-color: #181D27 !important;
 }
