@@ -2,7 +2,9 @@
 const nextConfig = {
   output: 'export',
   // Configure for GitHub Pages - modify this to match your repository name
-  basePath: process.env.NODE_ENV === 'production' ? '/scalerrs-portal' : '',
+  basePath: '/scalerrs-portal',
+  assetPrefix: '/scalerrs-portal/',
+  trailingSlash: true,
   images: {
     unoptimized: true,
   },
