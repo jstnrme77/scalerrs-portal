@@ -1,8 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggleWrapper from '@/components/ThemeToggleWrapper';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
+  // Redirect to the home page within the dashboard layout
+  redirect('/home');
+  
+  // The code below will not be executed due to the redirect
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-white to-lightGray dark:from-dark dark:to-darkGray">
       {/* Header with theme toggle */}
