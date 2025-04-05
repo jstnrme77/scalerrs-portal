@@ -122,13 +122,13 @@ function ApprovalItem({
         <div className="flex space-x-2">
           <button 
             onClick={() => onApprove(item.id)}
-            className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-scalerrs hover:bg-green-700 transition-colors"
+            className="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-scalerrs hover:bg-green-200 transition-colors"
           >
             Approve
           </button>
           <button 
             onClick={() => onReject(item.id)}
-            className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-scalerrs hover:bg-red-700 transition-colors"
+            className="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-scalerrs hover:bg-red-200 transition-colors"
           >
             Reject
           </button>

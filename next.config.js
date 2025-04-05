@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  // Only use static export in production
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   // Configure for GitHub Pages - modify this to match your repository name
-  basePath: '/scalerrs-portal',
-  assetPrefix: '/scalerrs-portal/',
+  basePath: process.env.NODE_ENV === 'production' ? '/scalerrs-portal' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/scalerrs-portal/' : '',
   trailingSlash: true,
   images: {
     unoptimized: true,

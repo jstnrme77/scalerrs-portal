@@ -128,7 +128,7 @@ function TaskCard({
           <>
             <button 
               onClick={() => onStatusChange(task.id, 'completed')}
-              className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-scalerrs hover:bg-green-700 transition-colors"
+              className="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-scalerrs hover:bg-green-700 transition-colors"
             >
               Complete
             </button>

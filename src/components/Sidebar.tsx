@@ -39,7 +39,7 @@ const TaskIcon = () => (
 
 const ContentIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 002 2h2a2 2 0 002-2V7m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
   </svg>
 );
 
@@ -62,13 +62,56 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const toggleSidebar = () => {
+    const newExpandedState = !isExpanded;
+    setIsExpanded(newExpandedState);
+    
+    // Dispatch custom event for DashboardLayout to listen to
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('sidebarToggle', { 
+          detail: { expanded: newExpandedState } 
+        })
+      );
+    }
+  };
 
   return (
-    <div className="flex flex-col w-64 bg-white dark:bg-dark h-screen fixed left-0 top-0 border-r border-lightGray dark:border-darkGray">
-      <div className="flex items-center justify-center h-16 border-b border-lightGray dark:border-darkGray">
-        <h1 className="text-2xl font-bold text-dark dark:text-white">
-          <span className="text-primary">Scalerrs</span> Portal
-        </h1>
+    <div 
+      className={`flex flex-col ${isExpanded ? 'w-64' : 'w-20'} bg-white dark:bg-dark h-screen fixed left-0 top-0 border-r border-lightGray dark:border-darkGray transition-all duration-300 ease-in-out z-10`}
+    >
+      <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'} h-16 border-b border-lightGray dark:border-darkGray overflow-hidden px-4`}>
+        {isExpanded ? (
+          <>
+            <h1 className="text-2xl font-bold text-dark dark:text-white">
+              <span>Scalerrs</span><span className="text-primary text-3xl">.</span> Portal
+            </h1>
+            <button 
+              onClick={toggleSidebar}
+              className="text-mediumGray hover:text-dark dark:hover:text-white transition-colors"
+              title="Collapse Sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            </button>
+          </>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-primary">S</h1>
+            <button 
+              onClick={toggleSidebar}
+              className="absolute right-3 text-mediumGray hover:text-dark dark:hover:text-white transition-colors"
+              title="Expand Sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
       <div className="flex flex-col flex-grow p-4 overflow-y-auto">
         <nav className="flex-1 space-y-2">
@@ -78,33 +121,42 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                className={`group flex items-center ${isExpanded ? 'px-4' : 'justify-center'} py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary text-white dark:text-white'
-                    : 'text-darkGray dark:text-lightGray hover:bg-lightGray dark:hover:bg-darkGray'
+                    ? 'bg-primary text-white dark:text-white shadow-md'
+                    : 'text-darkGray dark:text-lightGray hover:bg-primary/10 hover:text-primary dark:hover:bg-[#9ea8fb] dark:hover:text-white hover:border-l-4 hover:border-[#5e72e4] hover:shadow-sm'
                 }`}
+                title={item.name}
               >
-                <span className="mr-3">
+                <span className={`${isExpanded ? "mr-3" : ""} transition-transform duration-200 group-hover:scale-110`}>
                   <item.icon />
                 </span>
-                {item.name}
+                {isExpanded && <span className="transition-colors duration-200">{item.name}</span>}
               </Link>
             );
           })}
         </nav>
       </div>
       <div className="p-4 border-t border-lightGray dark:border-darkGray">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
+        <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'}`}>
+          {isExpanded ? (
+            <>
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+                  U
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-dark dark:text-white">User Name</p>
+                  <p className="text-xs text-mediumGray dark:text-gray-400">user@company.com</p>
+                </div>
+              </div>
+              <ThemeToggleWrapper />
+            </>
+          ) : (
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
               U
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-dark dark:text-white">User Name</p>
-              <p className="text-xs text-mediumGray dark:text-gray-400">user@company.com</p>
-            </div>
-          </div>
-          <ThemeToggleWrapper />
+          )}
         </div>
       </div>
     </div>
