@@ -1,39 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
-/* Light theme variables */
 :root {
-  --background: #FFFFFF;
-  --foreground: #12131C;
-  --card: #FFFFFF;
-  --card-foreground: #12131C;
-  --border: #F5F5F9;
-  --primary: #9EA8FB;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F5F5F9;
-  --secondary-foreground: #4F515E;
-  --accent: #FCDC94;
-  --accent-foreground: #12131C;
-  --muted: #F5F5F9;
-  --muted-foreground: #4F515E;
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #3B82F6; /* Brighter blue for better contrast */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-/* Dark theme variables */
+/* Theme variables */
+:root {
+  --primary: #5E72E4;
+  --background: #ffffff;
+  --foreground: #333333;
+  --dark-background: #12131C;
+  --dark-foreground: #ffffff;
+}
+
+/* Dark mode variables */
 .dark {
   --background: #12131C;
-  --foreground: #FFFFFF;
-  --card: #181D27;
-  --card-foreground: #FFFFFF;
-  --border: #4F515E;
-  --primary: #9EA8FB;
-  --primary-foreground: #FFFFFF;
-  --secondary: #181D27;
-  --secondary-foreground: #a0a0a0;
-  --accent: #FCDC94;
-  --accent-foreground: #12131C;
-  --muted: #181D27;
-  --muted-foreground: #a0a0a0;
+  --foreground: #ffffff;
 }
 
 /* Dark mode background with Group 35634.png image */
@@ -128,9 +115,9 @@ button:hover {
 }
 
 /* Box and container styles */
-.bg-white,
-.bg-lightGray,
-.bg-dark,
+.bg-white, 
+.bg-lightGray, 
+.bg-dark, 
 .bg-darkGray,
 div[class*="bg-"] {
   border-radius: 8px !important;
