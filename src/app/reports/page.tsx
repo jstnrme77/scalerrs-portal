@@ -374,7 +374,7 @@ const dateOptions = {
     { value: 'q1-2024', label: 'Q1 2024 (Jan-Mar)' },
     { value: 'q4-2023', label: 'Q4 2023 (Oct-Dec)' },
     { value: 'q3-2023', label: 'Q3 2023 (Jul-Sep)' },
-  ],
+  ]
 };
 
 export default function Reports() {
@@ -788,14 +788,194 @@ export default function Reports() {
                     <h3 className="text-xl font-bold text-dark mb-2">{selectedDate.label} Strategy & Performance Review</h3>
                     <p className="text-mediumGray">Comprehensive quarterly analysis of your SEO campaign performance, strategic achievements, and recommendations for the next quarter.</p>
                   </div>
+
+                  {/* Performance Summary & Strategic Wins */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                      <h4 className="font-medium text-dark mb-3">Performance Summary</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-mediumGray">Organic Traffic</span>
+                            <span className="text-sm font-medium text-dark">45.5K (+32.4% QoQ)</span>
+                          </div>
+                          <div className="w-full bg-lightGray rounded-full h-1.5">
+                            <div className="bg-primary h-1.5 rounded-full" style={{ width: '78%' }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-mediumGray">Keyword Rankings</span>
+                            <span className="text-sm font-medium text-dark">324 (+86 QoQ)</span>
+                          </div>
+                          <div className="w-full bg-lightGray rounded-full h-1.5">
+                            <div className="bg-gold h-1.5 rounded-full" style={{ width: '65%' }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-mediumGray">Conversion Rate</span>
+                            <span className="text-sm font-medium text-dark">2.8% (+0.6% QoQ)</span>
+                          </div>
+                          <div className="w-full bg-lightGray rounded-full h-1.5">
+                            <div className="bg-lavender h-1.5 rounded-full" style={{ width: '70%' }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-mediumGray">Leads Generated</span>
+                            <span className="text-sm font-medium text-dark">950 (+42.3% QoQ)</span>
+                          </div>
+                          <div className="w-full bg-lightGray rounded-full h-1.5">
+                            <div className="bg-primary h-1.5 rounded-full" style={{ width: '85%' }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm text-mediumGray">Revenue Impact</span>
+                            <span className="text-sm font-medium text-dark">$125K (+38.2% QoQ)</span>
+                          </div>
+                          <div className="w-full bg-lightGray rounded-full h-1.5">
+                            <div className="bg-gold h-1.5 rounded-full" style={{ width: '72%' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                      <h4 className="font-medium text-dark mb-3">Strategic Wins</h4>
+                      <ul className="list-disc pl-5 text-mediumGray space-y-2">
+                        <li>Completed full technical SEO audit and implemented 85% of recommendations</li>
+                        <li>Launched new content hub targeting high-value industry topics</li>
+                        <li>Secured 45 high-quality backlinks from industry publications</li>
+                        <li>Improved site-wide page load speed by 35%</li>
+                        <li>Implemented structured data across all product and service pages</li>
+                        <li>Developed comprehensive competitor gap analysis</li>
+                        <li>Optimized conversion funnels resulting in 0.6% CR improvement</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Performance Visualization */}
+                  <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                    <h4 className="font-medium text-dark mb-3">Quarterly Performance Visualization</h4>
+                    <div className="h-80">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={[
+                            { name: 'Q1', traffic: 45500, leads: 950, revenue: 125 },
+                            { name: 'Q4', traffic: 34000, leads: 670, revenue: 90 },
+                            { name: 'Q3', traffic: 28000, leads: 520, revenue: 75 },
+                            { name: 'Q2', traffic: 22000, leads: 410, revenue: 62 },
+                          ]}
+                          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                          <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                          <YAxis yAxisId="revenue" orientation="right" stroke="#ffc658" hide />
+                          <Tooltip />
+                          <Legend />
+                          <Bar yAxisId="left" dataKey="traffic" name="Organic Traffic" fill="#8884d8" />
+                          <Bar yAxisId="right" dataKey="leads" name="Leads Generated" fill="#82ca9d" />
+                          <Bar yAxisId="revenue" dataKey="revenue" name="Revenue (K$)" fill="#ffc658" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Competitive Analysis */}
+                  <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                    <h4 className="font-medium text-dark mb-3">Competitive Analysis</h4>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-lightGray">
+                        <thead>
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Competitor</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Traffic</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Keywords</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Backlinks</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Content</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-lightGray">
+                          <tr>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-dark">Your Company</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">45.5K</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">324</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">1,245</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">86 pages</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-dark">Competitor A</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">62.3K</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">412</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">2,156</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">124 pages</td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-dark">Competitor B</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">38.7K</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">286</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">985</td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">72 pages</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Strategic Recommendations */}
+                  <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                    <h4 className="font-medium text-dark mb-3">Next Quarter Strategic Recommendations</h4>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        <h5 className="font-medium text-dark mb-1">Content Gap Opportunity</h5>
+                        <p className="text-sm text-mediumGray">Develop 15 new in-depth guides targeting competitor content gaps in the middle and bottom of the funnel.</p>
+                      </div>
+
+                      <div className="p-3 bg-gold/10 rounded-lg">
+                        <h5 className="font-medium text-dark mb-1">Technical SEO Enhancement</h5>
+                        <p className="text-sm text-mediumGray">Implement advanced schema markup and improve Core Web Vitals scores across all key landing pages.</p>
+                      </div>
+
+                      <div className="p-3 bg-lavender/10 rounded-lg">
+                        <h5 className="font-medium text-dark mb-1">Conversion Rate Optimization</h5>
+                        <p className="text-sm text-mediumGray">Conduct comprehensive A/B testing on top landing pages to improve conversion rates by at least 0.5%.</p>
+                      </div>
+
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        <h5 className="font-medium text-dark mb-1">Link Building Strategy</h5>
+                        <p className="text-sm text-mediumGray">Focus on acquiring 50+ high-quality backlinks from industry publications and partner websites.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Additional Service Recommendations */}
+                  <div className="bg-primary/20 p-5 rounded-lg">
+                    <h4 className="font-medium text-dark mb-2">Additional Service Recommendations</h4>
+                    <p className="text-mediumGray mb-3">Based on our analysis, we recommend the following additional services to accelerate your growth:</p>
+                    <ul className="list-disc pl-5 text-mediumGray">
+                      <li>Conversion Rate Optimization (CRO) package to improve lead generation</li>
+                      <li>Expanded content creation to target competitive keywords</li>
+                      <li>Advanced competitor analysis and monitoring</li>
+                    </ul>
+                  </div>
                 </div>
               )}
+            </div>
+          </div>
 
-              <div className="bg-lightGray p-4 rounded-scalerrs mt-6">
-                <p className="text-sm text-mediumGray">
-                  <strong>Note:</strong> Reports provide a structured, decision-ready interface that combines performance insights, deliverable updates, and next-step clarity.
-                </p>
-              </div>
+          <div className="bg-lightGray p-4 rounded-scalerrs">
+            <p className="text-sm text-mediumGray">
+              <strong>Note:</strong> Reports provide a structured, decision-ready interface that combines performance insights, deliverable updates, and next-step clarity.
+            </p>
+          </div>
         </>
       )}
     </DashboardLayout>
