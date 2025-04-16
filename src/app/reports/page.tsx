@@ -801,5 +801,3 @@ export default function Reports() {
     </DashboardLayout>
   );
 }
-
-export default Reports;
