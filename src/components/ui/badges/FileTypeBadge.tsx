@@ -12,9 +12,10 @@ type FileTypeBadgeProps = {
  * A badge component for displaying file types
  */
 export default function FileTypeBadge({ type, className = '' }: FileTypeBadgeProps) {
-  let bgColor = '';
-  let textColor = '';
-  
+  let variant = 'secondary';
+  let bgColor;
+  let textColor;
+
   switch (type) {
     case 'PDF':
       bgColor = 'bg-red-100';
@@ -32,17 +33,26 @@ export default function FileTypeBadge({ type, className = '' }: FileTypeBadgePro
       bgColor = 'bg-purple-100';
       textColor = 'text-purple-800';
       break;
+    case 'ZIP':
+      bgColor = 'bg-indigo-100';
+      textColor = 'text-indigo-800';
+      break;
+    case 'PPTX':
+      bgColor = 'bg-orange-100';
+      textColor = 'text-orange-800';
+      break;
     default:
-      bgColor = 'bg-lightGray';
-      textColor = 'text-mediumGray';
+      variant = 'secondary';
   }
-  
+
   return (
-    <Badge 
-      label={type} 
-      bgColor={bgColor} 
-      textColor={textColor} 
+    <Badge
+      variant={variant}
+      bgColor={bgColor}
+      textColor={textColor}
       className={className}
-    />
+    >
+      {type}
+    </Badge>
   );
 }

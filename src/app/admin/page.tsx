@@ -2,45 +2,30 @@
 
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import AdminAgreements from './AdminAgreements';
-import AdminTeam from './AdminTeam';
+import AdminAgreement from './AdminAgreement';
 import AdminResources from './AdminResources';
 import AdminAccess from './AdminAccess';
-import AdminOnboarding from './AdminOnboarding';
-import EditAccessModal from './EditAccessModal';
-import AddTeamMemberModal from './AddTeamMemberModal';
 import ChangePasswordModal from './ChangePasswordModal';
-import { TeamMember } from '@/components/ui/cards';
 
 // Sample admin data
 const adminData = {
-  agreements: [
-    { id: 1, name: 'Master Services Agreement', type: 'Contract', lastUpdated: '2025-01-15', size: '1.2 MB' },
-    { id: 2, name: 'SEO Campaign Scope of Work', type: 'Scope', lastUpdated: '2025-01-20', size: '850 KB' },
-    { id: 3, name: 'Campaign Strategy Document', type: 'Strategy', lastUpdated: '2025-01-25', size: '620 KB' },
-    { id: 4, name: 'Content Guidelines', type: 'Guidelines', lastUpdated: '2025-01-30', size: '780 KB' },
-    { id: 5, name: 'Campaign Kickoff Presentation', type: 'Presentation', lastUpdated: '2025-02-05', size: '1.5 MB' },
-  ],
-  team: [
-    { id: 1, name: 'Sarah Johnson', email: 'sarah@agency.com', role: 'Account Manager', type: 'Agency', phone: '+1 (555) 123-4567', access: 'Admin' },
-    { id: 2, name: 'Michael Chen', email: 'michael.c@agency.com', role: 'SEO Specialist', type: 'Agency', phone: '+1 (555) 234-5678', access: 'Admin' },
-    { id: 3, name: 'Jessica Williams', email: 'jessica.w@agency.com', role: 'Content Strategist', type: 'Agency', phone: '+1 (555) 345-6789', access: 'Admin' },
-    { id: 4, name: 'David Miller', email: 'david.m@agency.com', role: 'Technical SEO', type: 'Agency', phone: '+1 (555) 456-7890', access: 'Admin' },
-    { id: 5, name: 'Robert Smith', email: 'robert.s@client.com', role: 'Marketing Director', type: 'Client', phone: '+1 (555) 567-8901', access: 'Viewer' },
-    { id: 6, name: 'Emily Davis', email: 'emily.d@client.com', role: 'Content Manager', type: 'Client', phone: '+1 (555) 678-9012', access: 'Viewer' },
+  agreement: [
+    { id: 1, name: 'Signed contract', type: 'PDF', lastUpdated: '2025-01-15', size: '1.2 MB', uploadedBy: 'Scalerrs', editable: false },
+    { id: 2, name: 'Client onboarding form', type: 'PDF', lastUpdated: '2025-01-20', size: '850 KB', uploadedBy: 'Scalerrs', editable: false },
   ],
   access: [
-    { id: 1, service: 'Google Analytics', username: 'client@example.com', password: '••••••••••' },
-    { id: 2, service: 'Google Search Console', username: 'client@example.com', password: '••••••••••' },
-    { id: 3, service: 'WordPress Admin', username: 'admin', password: '••••••••••' },
-    { id: 4, service: 'Ahrefs', username: 'client_account', password: '••••••••••' },
+    { id: 1, service: 'Google Analytics', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-15', uploadedBy: 'Client', editable: true },
+    { id: 2, service: 'Google Search Console', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-16', uploadedBy: 'Client', editable: true },
+    { id: 3, service: 'WordPress Admin', username: 'admin', password: '••••••••••', notes: 'Production site', lastUpdated: '2025-01-17', uploadedBy: 'Client', editable: true },
+    { id: 4, service: 'Ahrefs', username: 'client_account', password: '••••••••••', notes: '', lastUpdated: '2025-01-18', uploadedBy: 'Scalerrs', editable: true },
+    { id: 5, service: 'Frase', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-19', uploadedBy: 'Scalerrs', editable: true },
   ],
   resources: [
-    { id: 1, name: 'SEO Best Practices Guide', type: 'PDF', category: 'Education', lastUpdated: '2025-03-20', size: '2.4 MB' },
-    { id: 2, name: 'Content Brief Template', type: 'DOCX', category: 'Template', lastUpdated: '2025-02-15', size: '450 KB' },
-    { id: 3, name: 'Keyword Research Methodology', type: 'PDF', category: 'Education', lastUpdated: '2025-03-05', size: '1.8 MB' },
-    { id: 4, name: 'Technical SEO Audit Checklist', type: 'XLSX', category: 'Template', lastUpdated: '2025-03-12', size: '680 KB' },
-    { id: 6, name: 'Scalerrs Onboarding Video', type: 'MP4', category: 'Education', lastUpdated: '2025-01-30', size: '24.5 MB' },
+    { id: 1, name: 'Brand guidelines', type: 'PDF', lastUpdated: '2025-03-20', size: '2.4 MB', uploadedBy: 'Client', editable: true },
+    { id: 2, name: 'Tone of voice guide', type: 'DOCX', lastUpdated: '2025-02-15', size: '450 KB', uploadedBy: 'Client', editable: true },
+    { id: 3, name: 'Example blog post', type: 'PDF', lastUpdated: '2025-03-05', size: '1.8 MB', uploadedBy: 'Scalerrs', editable: true },
+    { id: 4, name: 'Product screenshots', type: 'ZIP', lastUpdated: '2025-03-12', size: '680 KB', uploadedBy: 'Client', editable: true },
+    { id: 5, name: 'Visual brand assets', type: 'ZIP', lastUpdated: '2025-01-30', size: '24.5 MB', uploadedBy: 'Client', editable: true },
   ],
   settings: {
     companyName: 'Acme Corp',
@@ -51,92 +36,67 @@ const adminData = {
     contactPhone: '(555) 123-4567',
     startDate: '2025-01-01',
     packageType: 'Enterprise SEO',
-    reportFrequency: 'Weekly',
-    notificationPreferences: ['Email', 'Portal'],
+    renewalDate: '2026-01-01',
+    planName: 'Enterprise',
+    showUpgradePrompt: true
   },
-  onboarding: {
-    completed: false,
-    lastUpdated: '2025-01-05',
-  }
+  missingAccess: true
 };
 
 export default function Admin() {
-  const [activeTab, setActiveTab] = useState('agreements');
+  const [activeTab, setActiveTab] = useState('agreement');
   const [data, setData] = useState(adminData);
-  const [editModal, setEditModal] = useState({ isOpen: false, memberId: null as number | null });
-  const [addMemberModal, setAddMemberModal] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [passwordModal, setPasswordModal] = useState({ isOpen: false, accessId: null as number | null });
   const [selectedAccess, setSelectedAccess] = useState<any | null>(null);
-  const [onboardingData, setOnboardingData] = useState({
-    businessName: '',
-    website: '',
-    industry: '',
-    competitors: '',
-    targetAudience: '',
-    goals: '',
-    existingKeywords: '',
-    contentStrategy: '',
-    technicalIssues: '',
-    analytics: {
-      googleAnalytics: false,
-      googleSearchConsole: false,
-      ahrefs: false,
-      semrush: false,
-      other: ''
-    },
-    additionalNotes: ''
-  });
-  
-  const handleEditAccess = (id: number) => {
-    setEditModal({ isOpen: true, memberId: id });
-    setSelectedMember(data.team.find(member => member.id === id) || null);
-  };
-  
-  const handleSaveAccess = (id: number, access: string) => {
-    setData(prev => {
-      const newData = { ...prev };
-      const memberIndex = newData.team.findIndex(member => member.id === id);
-      
-      if (memberIndex !== -1) {
-        newData.team[memberIndex] = {
-          ...newData.team[memberIndex],
-          access
-        };
-      }
-      
-      return newData;
-    });
-  };
-  
-  const handleAddMember = (member: Omit<TeamMember, 'id'> & { id?: number }) => {
-    setData(prev => {
-      return {
-        ...prev,
-        team: [...prev.team, member as TeamMember]
-      };
-    });
-    
-    setAddMemberModal(false);
-  };
-  
+
   const handleChangePassword = (id: number) => {
     const accessItem = data.access.find(item => item.id === id);
     setSelectedAccess(accessItem || null);
     setPasswordModal({ isOpen: true, accessId: id });
   };
-  
+
   const handleSavePassword = (id: number, newPassword: string) => {
     // Update the password in the data
     setData(prevData => ({
       ...prevData,
-      access: prevData.access.map(item => 
-        item.id === id ? { ...item, password: '••••••••••' } : item
+      access: prevData.access.map(item =>
+        item.id === id ? {
+          ...item,
+          password: '••••••••••',
+          lastUpdated: new Date().toISOString().split('T')[0]
+        } : item
       )
     }));
-    
+
     // In a real application, you would send this to an API
     console.log(`Password updated for service ID ${id}`);
+  };
+
+  const handleAddAccess = (newAccess: any) => {
+    setData(prevData => ({
+      ...prevData,
+      access: [...prevData.access, {
+        ...newAccess,
+        id: Math.max(...prevData.access.map(item => item.id)) + 1,
+        password: '••••••••••',
+        lastUpdated: new Date().toISOString().split('T')[0],
+        uploadedBy: 'Client',
+        editable: true
+      }]
+    }));
+  };
+
+  const handleUploadResource = (newResource: any) => {
+    setData(prevData => ({
+      ...prevData,
+      resources: [...prevData.resources, {
+        ...newResource,
+        id: Math.max(...prevData.resources.map(item => item.id)) + 1,
+        lastUpdated: new Date().toISOString().split('T')[0],
+        uploadedBy: 'Client',
+        editable: true
+      }]
+    }));
   };
 
   return (
@@ -145,104 +105,79 @@ export default function Admin() {
         <h1 className="text-2xl font-bold text-dark">Admin</h1>
         <p className="text-mediumGray">Manage your campaign settings and resources</p>
       </div>
-      
+
+      {data.missingAccess && (
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-scalerrs">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                ⚠️ Missing CMS access — please complete setup in the Access & Logins tab.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-scalerrs shadow-sm border border-lightGray mb-8">
         <div className="flex border-b border-lightGray overflow-x-auto">
-          <button 
-            className={`px-6 py-3 text-sm font-medium ${activeTab === 'agreements' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveTab('agreements')}
+          <button
+            className={`px-6 py-3 text-sm font-medium ${activeTab === 'agreement' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
+            onClick={() => setActiveTab('agreement')}
           >
-            Agreements
+            Agreement
           </button>
-          <button 
+          <button
             className={`px-6 py-3 text-sm font-medium ${activeTab === 'access' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
             onClick={() => setActiveTab('access')}
           >
-            Access & Passwords
+            Access & Logins
           </button>
-          <button 
-            className={`px-6 py-3 text-sm font-medium ${activeTab === 'team' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveTab('team')}
-          >
-            Team
-          </button>
-          <button 
+          <button
             className={`px-6 py-3 text-sm font-medium ${activeTab === 'resources' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
             onClick={() => setActiveTab('resources')}
           >
             Resources
           </button>
-          <button 
-            className={`px-6 py-3 text-sm font-medium ${activeTab === 'onboarding' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveTab('onboarding')}
-          >
-            Onboarding
-          </button>
         </div>
-        
+
         <div className="p-6">
-          {activeTab === 'agreements' && (
-            <AdminAgreements 
-              agreements={data.agreements}
-              onUpload={() => console.log('Upload agreement')}
+          {activeTab === 'agreement' && (
+            <AdminAgreement
+              agreements={data.agreement}
+              settings={data.settings}
               onView={(id) => console.log(`View agreement ${id}`)}
               onDownload={(id) => console.log(`Download agreement ${id}`)}
             />
           )}
-          
+
           {activeTab === 'access' && (
-            <AdminAccess 
+            <AdminAccess
               accessItems={data.access}
-              onAddAccess={() => console.log('Add new access')}
+              onAddAccess={handleAddAccess}
               onChangePassword={handleChangePassword}
               onCopyLogin={(id) => console.log(`Copy login info for ${id}`)}
               onGoToService={(id) => console.log(`Go to service ${id}`)}
             />
           )}
-          
-          {activeTab === 'team' && (
-            <AdminTeam 
-              team={data.team}
-              onAddMember={() => setAddMemberModal(true)}
-              onEditAccess={handleEditAccess}
-            />
-          )}
-          
+
           {activeTab === 'resources' && (
-            <AdminResources 
+            <AdminResources
               resources={data.resources}
-              onUpload={() => console.log('Upload resource')}
+              onUpload={handleUploadResource}
               onView={(id) => console.log(`View resource ${id}`)}
               onDownload={(id) => console.log(`Download resource ${id}`)}
-            />
-          )}
-          
-          {activeTab === 'onboarding' && (
-            <AdminOnboarding 
-              data={onboardingData}
-              onChange={setOnboardingData}
-              onSaveDraft={() => console.log('Save onboarding as draft')}
-              onSubmit={() => console.log('Submit onboarding')}
             />
           )}
         </div>
       </div>
 
       {/* Modals */}
-      <EditAccessModal 
-        isOpen={editModal.isOpen}
-        member={selectedMember}
-        onClose={() => setEditModal({ isOpen: false, memberId: null })}
-        onSave={handleSaveAccess}
-      />
-
-      <AddTeamMemberModal 
-        isOpen={addMemberModal}
-        onClose={() => setAddMemberModal(false)}
-        onAdd={handleAddMember}
-      />
-
-      <ChangePasswordModal 
+      <ChangePasswordModal
         isOpen={passwordModal.isOpen}
         accessItem={selectedAccess}
         onClose={() => setPasswordModal({ isOpen: false, accessId: null })}
