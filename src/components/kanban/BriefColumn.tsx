@@ -12,13 +12,13 @@ interface BriefColumnProps {
   onStatusChange: (id: number, newStatus: BriefStatus) => void;
 }
 
-export default function BriefColumn({ 
+export default function BriefColumn({
   title,
-  status, 
-  briefs, 
-  selectedMonth, 
-  bgColor, 
-  onStatusChange 
+  status,
+  briefs,
+  selectedMonth,
+  bgColor,
+  onStatusChange
 }: BriefColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.BRIEF_CARD,
@@ -31,8 +31,8 @@ export default function BriefColumn({
   }));
 
   return (
-    <div 
-      ref={drop} 
+    <div
+      ref={drop as any}
       className={`${bgColor} p-4 rounded-lg shadow-sm border border-lightGray ${isOver ? 'ring-2 ring-primary' : ''}`}
     >
       <h3 className="text-md font-medium text-dark mb-4 flex items-center">
@@ -41,16 +41,16 @@ export default function BriefColumn({
           {briefs.length}
         </span>
       </h3>
-      
+
       <div className="space-y-3">
         {briefs.map((brief) => (
-          <BriefCard 
-            key={brief.id} 
-            brief={brief} 
+          <BriefCard
+            key={brief.id}
+            brief={brief}
             selectedMonth={selectedMonth}
           />
         ))}
-        
+
         {briefs.length === 0 && (
           <div className="bg-white p-4 rounded-lg border border-dashed border-lightGray text-center">
             <p className="text-sm text-mediumGray">No briefs</p>

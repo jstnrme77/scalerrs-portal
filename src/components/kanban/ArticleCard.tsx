@@ -16,8 +16,8 @@ export default function ArticleCard({ article }: ArticleCardProps) {
   }));
 
   return (
-    <div 
-      ref={drag} 
+    <div
+      ref={drag as any}
       className={`bg-white p-4 rounded-lg border border-lightGray shadow-sm ${isDragging ? 'opacity-50' : ''}`}
       style={{ cursor: 'move' }}
     >
@@ -28,18 +28,18 @@ export default function ArticleCard({ article }: ArticleCardProps) {
       <div className="flex justify-between items-center mb-2">
         <span className="text-xs bg-[#e9ecef] px-2 py-1 rounded text-mediumGray">{article.wordCount} words</span>
         {article.status === 'Live' && article.articleUrl ? (
-          <a 
-            href={article.articleUrl} 
-            target="_blank" 
+          <a
+            href={article.articleUrl}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline"
           >
             View Article
           </a>
         ) : (
-          <a 
-            href={article.docLink} 
-            target="_blank" 
+          <a
+            href={article.docLink}
+            target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-primary hover:underline"
           >

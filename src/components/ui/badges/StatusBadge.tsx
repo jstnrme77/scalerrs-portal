@@ -16,7 +16,7 @@ type StatusBadgeProps = {
 export default function StatusBadge({ status, className = '' }: StatusBadgeProps) {
   let bgColor = '';
   let textColor = '';
-  
+
   switch (status) {
     case 'Not Started':
       bgColor = 'bg-gray-100';
@@ -38,13 +38,14 @@ export default function StatusBadge({ status, className = '' }: StatusBadgeProps
       bgColor = 'bg-lightGray';
       textColor = 'text-mediumGray';
   }
-  
+
   return (
-    <Badge 
-      label={status} 
-      bgColor={bgColor} 
-      textColor={textColor} 
+    <Badge
+      bgColor={bgColor}
+      textColor={textColor}
       className={className}
-    />
+    >
+      {status}
+    </Badge>
   );
 }

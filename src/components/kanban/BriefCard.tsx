@@ -17,8 +17,8 @@ export default function BriefCard({ brief, selectedMonth }: BriefCardProps) {
   }));
 
   return (
-    <div 
-      ref={drag} 
+    <div
+      ref={drag as any}
       className={`bg-white p-4 rounded-lg border border-lightGray shadow-sm ${isDragging ? 'opacity-50' : ''}`}
       style={{ cursor: 'move' }}
     >
@@ -28,9 +28,9 @@ export default function BriefCard({ brief, selectedMonth }: BriefCardProps) {
       </div>
       <div className="flex justify-between items-center mb-2">
         <span className="text-xs bg-[#e9ecef] px-2 py-1 rounded text-mediumGray">{selectedMonth}</span>
-        <a 
-          href={brief.docLink} 
-          target="_blank" 
+        <a
+          href={brief.docLink}
+          target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-primary hover:underline"
         >

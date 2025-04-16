@@ -7,58 +7,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { ChevronDown } from 'lucide-react';
 import BriefColumn from '@/components/kanban/BriefColumn';
 import ArticleColumn from '@/components/kanban/ArticleColumn';
-import { Brief, BriefStatus, Article, ArticleStatus } from '@/types';
-
-// Define types for our data
-type Month = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December';
-type ContentTab = 'briefs' | 'articles';
-type MainTab = 'content' | 'backlinks';
-
-// Brief statuses
-type BriefStatus = 'In Progress' | 'Needs Input' | 'Review Brief' | 'Brief Approved';
-
-// Article statuses
-type ArticleStatus = 'In Production' | 'Review Draft' | 'Draft Approved' | 'To Be Published' | 'Live';
-
-// Backlink statuses
-type BacklinkStatus = 'Live' | 'Scheduled' | 'Rejected';
-
-// Brief type
-type Brief = {
-  id: number;
-  title: string;
-  seoStrategist: string;
-  dueDate: string;
-  docLink: string;
-  month: Month;
-  status: BriefStatus;
-};
-
-// Article type
-type Article = {
-  id: number;
-  title: string;
-  writer: string;
-  wordCount: number;
-  dueDate: string;
-  docLink: string;
-  articleUrl?: string;
-  month: Month;
-  status: ArticleStatus;
-};
-
-// Backlink type
-type Backlink = {
-  id: number;
-  domain: string;
-  dr: number;
-  linkType: 'Guest Post' | 'Directory' | 'Niche Edit';
-  targetPage: string;
-  status: BacklinkStatus;
-  wentLiveOn?: string;
-  month: Month;
-  notes?: string;
-};
+import { Brief, BriefStatus, Article, ArticleStatus, BacklinkStatus, Month, ContentTab, MainTab, Backlink } from '@/types';
 
 // Sample data for briefs
 const briefs: Brief[] = [

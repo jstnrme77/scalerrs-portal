@@ -11,12 +11,12 @@ interface ArticleColumnProps {
   onStatusChange: (id: number, newStatus: ArticleStatus) => void;
 }
 
-export default function ArticleColumn({ 
+export default function ArticleColumn({
   title,
-  status, 
-  articles, 
-  bgColor, 
-  onStatusChange 
+  status,
+  articles,
+  bgColor,
+  onStatusChange
 }: ArticleColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.ARTICLE_CARD,
@@ -29,8 +29,8 @@ export default function ArticleColumn({
   }));
 
   return (
-    <div 
-      ref={drop} 
+    <div
+      ref={drop as any}
       className={`${bgColor} p-4 rounded-lg shadow-sm border border-lightGray ${isOver ? 'ring-2 ring-primary' : ''}`}
     >
       <h3 className="text-md font-medium text-dark mb-4 flex items-center">
@@ -39,15 +39,15 @@ export default function ArticleColumn({
           {articles.length}
         </span>
       </h3>
-      
+
       <div className="space-y-3">
         {articles.map((article) => (
-          <ArticleCard 
-            key={article.id} 
+          <ArticleCard
+            key={article.id}
             article={article}
           />
         ))}
-        
+
         {articles.length === 0 && (
           <div className="bg-white p-4 rounded-lg border border-dashed border-lightGray text-center">
             <p className="text-sm text-mediumGray">No articles</p>

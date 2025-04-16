@@ -16,7 +16,7 @@ type PriorityBadgeProps = {
 export default function PriorityBadge({ priority, className = '' }: PriorityBadgeProps) {
   let bgColor = '';
   let textColor = '';
-  
+
   switch (priority) {
     case 'High':
       bgColor = 'bg-red-100';
@@ -34,13 +34,14 @@ export default function PriorityBadge({ priority, className = '' }: PriorityBadg
       bgColor = 'bg-lightGray';
       textColor = 'text-mediumGray';
   }
-  
+
   return (
-    <Badge 
-      label={priority} 
-      bgColor={bgColor} 
-      textColor={textColor} 
+    <Badge
+      bgColor={bgColor}
+      textColor={textColor}
       className={className}
-    />
+    >
+      {priority}
+    </Badge>
   );
 }

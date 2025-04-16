@@ -16,7 +16,7 @@ type AccessBadgeProps = {
 export default function AccessBadge({ access, className = '' }: AccessBadgeProps) {
   let bgColor = '';
   let textColor = '';
-  
+
   switch (access) {
     case 'Admin':
       bgColor = 'bg-primary/10';
@@ -34,13 +34,14 @@ export default function AccessBadge({ access, className = '' }: AccessBadgeProps
       bgColor = 'bg-lightGray';
       textColor = 'text-mediumGray';
   }
-  
+
   return (
-    <Badge 
-      label={access} 
-      bgColor={bgColor} 
-      textColor={textColor} 
+    <Badge
+      bgColor={bgColor}
+      textColor={textColor}
       className={className}
-    />
+    >
+      {access}
+    </Badge>
   );
 }

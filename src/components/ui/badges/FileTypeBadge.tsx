@@ -12,7 +12,7 @@ type FileTypeBadgeProps = {
  * A badge component for displaying file types
  */
 export default function FileTypeBadge({ type, className = '' }: FileTypeBadgeProps) {
-  let variant = 'secondary';
+  let variant: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'light' = 'secondary';
   let bgColor;
   let textColor;
 
