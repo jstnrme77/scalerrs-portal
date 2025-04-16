@@ -17,14 +17,14 @@ export default function DashboardLayout({
     };
 
     window.addEventListener('sidebarToggle' as any, handleSidebarChange);
-    
+
     return () => {
       window.removeEventListener('sidebarToggle' as any, handleSidebarChange);
     };
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-lightGray dark:bg-dark">
+    <div className="flex min-h-screen bg-[#F5F5F5] dark:bg-dark">
       <Sidebar />
       <main className={`flex-1 p-6 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
         {children}
