@@ -15,6 +15,8 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  // Disable SWC for compatibility with Bolt
+  swcMinify: false,
 }
 
 module.exports = nextConfig

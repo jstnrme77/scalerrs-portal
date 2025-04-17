@@ -1,0 +1,5 @@
+{
+  "start": "next start",
+  "build": "next build",
+  "dev": "NODE_OPTIONS='--no-experimental-fetch' next dev"
+}
