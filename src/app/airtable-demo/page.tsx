@@ -39,6 +39,15 @@ export default function AirtableDemoPage() {
   const [loadingComments, setLoadingComments] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debugMode, setDebugMode] = useState(false);
+  const [usingMockData, setUsingMockData] = useState(false);
+
+  // Check if we're using mock data due to Airtable connection issues
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hasAirtableIssues = localStorage.getItem('airtable-connection-issues') === 'true';
+      setUsingMockData(hasAirtableIssues);
+    }
+  }, []);
 
   // Fetch tasks
   useEffect(() => {
@@ -178,13 +187,37 @@ export default function AirtableDemoPage() {
     <DashboardLayout>
       <div className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Airtable Integration Demo</h1>
-          <button
-            onClick={() => setDebugMode(!debugMode)}
-            className="px-3 py-1 text-sm bg-primary/20 hover:bg-primary/30 text-primary-foreground dark:bg-primary/30 dark:hover:bg-primary/40 rounded-md transition-colors"
-          >
-            {debugMode ? 'Hide Debug Info' : 'Show Debug Info'}
-          </button>
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold">Airtable Integration Demo</h1>
+            {usingMockData && (
+              <span className="ml-3 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100 rounded-full">
+                Using Mock Data
+              </span>
+            )}
+          </div>
+          <div className="flex space-x-2">
+            {usingMockData && (
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('airtable-connection-issues');
+                    setUsingMockData(false);
+                    // Reload the page to try connecting to Airtable again
+                    window.location.reload();
+                  }
+                }}
+                className="px-3 py-1 text-sm bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition-colors"
+              >
+                Reset Airtable Connection
+              </button>
+            )}
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className="px-3 py-1 text-sm bg-primary/20 hover:bg-primary/30 text-primary-foreground dark:bg-primary/30 dark:hover:bg-primary/40 rounded-md transition-colors"
+            >
+              {debugMode ? 'Hide Debug Info' : 'Show Debug Info'}
+            </button>
+          </div>
         </div>
 
         {error && (

@@ -15,11 +15,16 @@ const shouldUseMockData = () => {
     process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
     (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true');
 
-  console.log('Environment mode:', process.env.NODE_ENV);
-  console.log('Using mock data:', useMockData);
+  // Check if we're on Netlify and having issues with Airtable
+  const isNetlifyWithAirtableIssues =
+    isNetlify() &&
+    localStorage.getItem('airtable-connection-issues') === 'true';
 
-  // Only use mock data if explicitly enabled
-  return useMockData;
+  console.log('Environment mode:', process.env.NODE_ENV);
+  console.log('Using mock data:', useMockData || isNetlifyWithAirtableIssues);
+
+  // Use mock data if explicitly enabled or if we're on Netlify with Airtable issues
+  return useMockData || isNetlifyWithAirtableIssues;
 };
 
 // Function to determine if we're on Netlify
@@ -57,7 +62,7 @@ export async function fetchTasks() {
 
     // Add a timeout to the fetch request
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout - increased for Airtable API
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -71,7 +76,15 @@ export async function fetchTasks() {
 
     if (!response.ok) {
       console.error(`API request failed with status ${response.status}`);
-      throw new Error(`API request failed with status ${response.status}`);
+      // Try to get more detailed error information
+      try {
+        const errorData = await response.json();
+        console.error('API error response:', errorData);
+        throw new Error(`API request failed with status ${response.status}: ${JSON.stringify(errorData)}`);
+      } catch (parseError) {
+        // If we can't parse the error response, just throw the status
+        throw new Error(`API request failed with status ${response.status}`);
+      }
     }
 
     const data = await response.json();
@@ -85,6 +98,13 @@ export async function fetchTasks() {
     return data.tasks;
   } catch (error) {
     console.error('Error fetching tasks:', error);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (isNetlify() && isBrowser) {
+      console.log('Setting airtable-connection-issues flag in localStorage');
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
     // Fall back to mock data if the API call fails
     console.log('Falling back to mock tasks data');
     return mockTasks;
@@ -214,6 +234,13 @@ export async function fetchComments(taskId: string) {
     return data.comments;
   } catch (error) {
     console.error('Error fetching comments:', error);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (isNetlify() && isBrowser) {
+      console.log('Setting airtable-connection-issues flag in localStorage');
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
     // Fall back to mock data
     console.log('Falling back to mock comments data for task:', taskId);
     return mockComments.filter(c => c.Task.includes(taskId));
