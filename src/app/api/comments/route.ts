@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addComment, getCommentsByTask } from '@/lib/airtable';
 
-// Configure for static export
-// Using static instead of dynamic for GitHub Pages compatibility
-export const dynamic = 'error';
-export const runtime = 'edge';
+// Configure for Netlify deployment
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {

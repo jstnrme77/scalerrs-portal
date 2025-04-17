@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static export for production builds
-  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
-  // Configure for GitHub Pages - modify this to match your repository name
-  basePath: process.env.NODE_ENV === 'production' ? '/scalerrs-portal' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/scalerrs-portal/' : '',
-  trailingSlash: true,
+  // Disable static export for Netlify to allow API routes to work
+  // output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+
+  // Only use these settings for GitHub Pages, not for Netlify
+  basePath: process.env.DEPLOY_TARGET === 'github' ? '/scalerrs-portal' : '',
+  assetPrefix: process.env.DEPLOY_TARGET === 'github' ? '/scalerrs-portal/' : '',
+  trailingSlash: process.env.DEPLOY_TARGET === 'github',
   images: {
     unoptimized: true,
   },
