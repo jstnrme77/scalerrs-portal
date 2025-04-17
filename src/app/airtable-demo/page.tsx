@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import Input from '@/components/ui/forms/Input';
 import Button from '@/components/ui/forms/Button';
+import { fetchTasks, fetchComments, updateTaskStatus as updateTask, addComment as addTaskComment } from '@/lib/client-api';
 
 interface Task {
   id: string;
@@ -31,16 +32,10 @@ export default function AirtableDemoPage() {
 
   // Fetch tasks
   useEffect(() => {
-    const fetchTasks = async () => {
+    const getTasks = async () => {
       try {
-        const response = await fetch('/api/tasks');
-        const data = await response.json();
-
-        if (response.ok) {
-          setTasks(data.tasks);
-        } else {
-          setError(data.error || 'Failed to fetch tasks');
-        }
+        const data = await fetchTasks();
+        setTasks(data);
       } catch (err) {
         console.error('Error fetching tasks:', err);
         setError('An error occurred while fetching tasks');
@@ -49,7 +44,7 @@ export default function AirtableDemoPage() {
       }
     };
 
-    fetchTasks();
+    getTasks();
   }, []);
 
   // Fetch comments when a task is selected
@@ -59,53 +54,32 @@ export default function AirtableDemoPage() {
       return;
     }
 
-    const fetchComments = async () => {
+    const getComments = async () => {
       try {
-        const response = await fetch(`/api/comments?taskId=${selectedTask.id}`);
-        const data = await response.json();
-
-        if (response.ok) {
-          setComments(data.comments);
-        } else {
-          setError(data.error || 'Failed to fetch comments');
-        }
+        const data = await fetchComments(selectedTask.id);
+        setComments(data);
       } catch (err) {
         console.error('Error fetching comments:', err);
         setError('An error occurred while fetching comments');
       }
     };
 
-    fetchComments();
+    getComments();
   }, [selectedTask]);
 
   // Update task status
   const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
-      const response = await fetch('/api/tasks', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          taskId,
-          status: newStatus,
-        }),
-      });
+      const updatedTask = await updateTask(taskId, newStatus);
 
-      const data = await response.json();
+      // Update tasks list
+      setTasks(tasks.map(task =>
+        task.id === taskId ? { ...task, Status: newStatus } : task
+      ));
 
-      if (response.ok) {
-        // Update tasks list
-        setTasks(tasks.map(task =>
-          task.id === taskId ? { ...task, Status: newStatus } : task
-        ));
-
-        // Update selected task if it's the one being updated
-        if (selectedTask && selectedTask.id === taskId) {
-          setSelectedTask({ ...selectedTask, Status: newStatus });
-        }
-      } else {
-        setError(data.error || 'Failed to update task status');
+      // Update selected task if it's the one being updated
+      if (selectedTask && selectedTask.id === taskId) {
+        setSelectedTask({ ...selectedTask, Status: newStatus });
       }
     } catch (err) {
       console.error('Error updating task status:', err);
@@ -120,35 +94,11 @@ export default function AirtableDemoPage() {
     }
 
     try {
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          taskId: selectedTask.id,
-          userId: user.id,
-          comment: newComment,
-        }),
-      });
+      const newCommentData = await addTaskComment(selectedTask.id, user.id, newComment);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Add new comment to the list
-        setComments([...comments, data.comment]);
-        setNewComment('');
-      } else {
-        // Display more detailed error message
-        const errorMessage = data.details
-          ? `${data.error}: ${data.details}`
-          : (data.error || 'Failed to add comment');
-
-        setError(errorMessage);
-
-        // Log detailed error for debugging
-        console.error('Error response:', data);
-      }
+      // Add new comment to the list
+      setComments([...comments, newCommentData]);
+      setNewComment('');
     } catch (err) {
       console.error('Error adding comment:', err);
       setError('An error occurred while adding comment');

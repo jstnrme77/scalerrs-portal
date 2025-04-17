@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  functions = "netlify/functions"
 
 [build.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
@@ -8,9 +9,32 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Handle API routes - redirect to Netlify Functions
+[[redirects]]
+  from = "/api/tasks"
+  to = "/.netlify/functions/get-tasks"
+  status = 200
+
+[[redirects]]
+  from = "/api/comments"
+  to = "/.netlify/functions/get-comments"
+  status = 200
+  query = {taskId = ":taskId"}
+
+[[redirects]]
+  from = "/api/comments"
+  to = "/.netlify/functions/add-comment"
+  status = 200
+  method = "POST"
+
+[[redirects]]
+  from = "/api/tasks"
+  to = "/.netlify/functions/update-task"
+  status = 200
+  method = "PATCH"
+
+# Handle all other routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
-  conditions = {Role = ["anonymous"]}
