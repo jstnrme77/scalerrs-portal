@@ -26,6 +26,9 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_AIRTABLE_API_KEY: ${{ secrets.NEXT_PUBLIC_AIRTABLE_API_KEY }}
+      NEXT_PUBLIC_AIRTABLE_BASE_ID: ${{ secrets.NEXT_PUBLIC_AIRTABLE_BASE_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
