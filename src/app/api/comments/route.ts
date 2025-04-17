@@ -17,7 +17,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('API route: Fetching comments for task ID:', taskId);
     const comments = await getCommentsByTask(taskId);
+    console.log(`API route: Found ${comments.length} comments for task ${taskId}`);
+
+    // Log the comments to help debug
+    if (comments.length > 0) {
+      console.log('API route: First comment:', comments[0]);
+    }
+
     return NextResponse.json({ comments });
   } catch (error) {
     console.error('Error fetching comments:', error);

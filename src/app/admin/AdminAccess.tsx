@@ -64,7 +64,7 @@ export default function AdminAccess({
         </Button>
       </div>
 
-      <div className="overflow-x-auto mb-4">
+      <div className="card overflow-x-auto mb-4 bg-white" style={{ color: '#353233' }}>
         <table className="min-w-full divide-y divide-lightGray">
           <thead className="bg-gray-50">
             <tr>

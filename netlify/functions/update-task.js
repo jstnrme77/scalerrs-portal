@@ -36,8 +36,8 @@ exports.handler = async function(event, context) {
   }
 
   // Initialize Airtable with API key from environment variables
-  const apiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-  const baseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const baseId = process.env.AIRTABLE_BASE_ID;
 
   if (!apiKey || !baseId) {
     return {

@@ -463,9 +463,9 @@ function TaskCard({
   onStatusChange: (id: number, status: TaskStatus) => void;
 }) {
   return (
-    <div className="bg-white p-4 rounded-scalerrs border border-lightGray shadow-sm">
+    <div className="card bg-white p-4 rounded-scalerrs border border-lightGray shadow-sm" style={{ color: '#353233' }}>
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-dark">{task.task}</h3>
+        <h3 className="text-md font-medium text-text-light dark:text-text-dark">{task.task}</h3>
         <div className="flex space-x-2">
           <PriorityBadge priority={task.priority} />
           <StatusBadge status={task.status} />
@@ -473,14 +473,14 @@ function TaskCard({
       </div>
 
       <div className="mb-3">
-        <div className="text-sm text-mediumGray">
+        <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Assigned to:</span> {task.assignedTo}
         </div>
-        <div className="text-sm text-mediumGray">
+        <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Logged:</span> {task.dateLogged}
         </div>
         {task.status === 'Done' && task.completedDate && (
-          <div className="text-sm text-mediumGray">
+          <div className="text-sm text-mediumGray dark:text-gray-300">
             <span className="font-medium">Completed:</span> {task.completedDate}
           </div>
         )}
@@ -488,19 +488,19 @@ function TaskCard({
 
       <div className="flex items-center space-x-3 mb-3">
         <div>
-          <span className="text-xs text-mediumGray block mb-1">Impact</span>
+          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-1">Impact</span>
           <ImpactBadge impact={task.impact} />
         </div>
         <div>
-          <span className="text-xs text-mediumGray block mb-1">Effort</span>
+          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-1">Effort</span>
           <EffortBadge effort={task.effort} />
         </div>
       </div>
 
       {task.notes && (
         <div className="mb-3">
-          <div className="text-xs text-mediumGray mb-1">Notes</div>
-          <p className="text-sm text-dark bg-lightGray/30 p-2 rounded">{task.notes}</p>
+          <div className="text-xs text-mediumGray dark:text-gray-300 mb-1">Notes</div>
+          <p className="text-sm text-text-light dark:text-text-dark bg-lightGray/30 dark:bg-darkGray/30 p-2 rounded">{task.notes}</p>
         </div>
       )}
 
@@ -598,10 +598,10 @@ function TaskTable({
   const completedTasks = tasks.filter(task => task.status === 'Done').length;
 
   return (
-    <div className="bg-white rounded-scalerrs border border-lightGray overflow-hidden">
+    <div className="card bg-white rounded-scalerrs border border-lightGray overflow-hidden" style={{ color: '#353233' }}>
       {/* Summary header */}
       <div className="bg-lightGray p-3 border-b border-lightGray">
-        <p className="text-sm font-medium text-dark">
+        <p className="text-sm font-medium text-text-light dark:text-text-dark">
           {completedTasks} of {totalTasks} tasks completed this month
         </p>
       </div>
@@ -611,27 +611,27 @@ function TaskTable({
         <table className="w-full">
           <thead>
             <tr className="bg-lightGray/50 border-b border-lightGray">
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Task</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Assigned to</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Date Logged</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Priority</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Impact</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Effort</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Comments</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Task</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Assigned to</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Date Logged</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Priority</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Impact</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Effort</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Comments</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-lightGray">
             {sortedTasks.map((task) => (
               <React.Fragment key={task.id}>
                 <tr className="hover:bg-lightGray/20 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
-                  <td className="px-4 py-3 text-sm text-dark">{task.task}</td>
+                  <td className="px-4 py-3 text-sm text-text-light dark:text-text-dark">{task.task}</td>
                   <td className="px-4 py-3 text-sm">
                     <StatusBadge status={task.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-dark">{task.assignedTo}</td>
-                  <td className="px-4 py-3 text-sm text-dark">{task.dateLogged}</td>
+                  <td className="px-4 py-3 text-sm text-text-light dark:text-text-dark">{task.assignedTo}</td>
+                  <td className="px-4 py-3 text-sm text-text-light dark:text-text-dark">{task.dateLogged}</td>
                   <td className="px-4 py-3 text-sm">
                     <PriorityBadge priority={task.priority} />
                   </td>
@@ -642,7 +642,7 @@ function TaskTable({
                     <EffortBadge effort={task.effort} />
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-lightGray text-mediumGray">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-lightGray dark:bg-darkGray text-mediumGray dark:text-gray-300">
                       {task.comments.length}
                     </span>
                   </td>

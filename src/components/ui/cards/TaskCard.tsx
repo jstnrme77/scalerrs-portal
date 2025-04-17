@@ -39,36 +39,36 @@ export default function TaskCard({
   return (
     <Card className={`${className}`}>
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-dark">{task.name}</h3>
+        <h3 className="text-md font-medium text-text-light dark:text-text-dark">{task.name}</h3>
         <StatusBadge status={task.status} />
       </div>
 
       <div className="space-y-2 mb-4">
-        <div className="text-sm text-mediumGray">
+        <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Assigned to:</span> {task.assignedTo}
         </div>
 
-        <div className="text-sm text-mediumGray">
+        <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Due:</span> {new Date(task.dueDate).toLocaleDateString()}
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-mediumGray">Priority:</span>
+          <span className="text-sm font-medium text-mediumGray dark:text-gray-300">Priority:</span>
           <PriorityBadge priority={task.priority} />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="text-sm text-mediumGray">
+          <div className="text-sm text-mediumGray dark:text-gray-300">
             <span className="font-medium">Impact:</span> {task.impact}
           </div>
 
-          <div className="text-sm text-mediumGray">
+          <div className="text-sm text-mediumGray dark:text-gray-300">
             <span className="font-medium">Effort:</span> {task.effort}
           </div>
         </div>
 
         {task.comments && (
-          <div className="text-sm text-mediumGray">
+          <div className="text-sm text-mediumGray dark:text-gray-300">
             <span className="font-medium">Comments:</span> {task.comments}
           </div>
         )}
@@ -92,7 +92,7 @@ export default function TaskCard({
 
         {onStatusChange && (
           <select
-            className="text-xs border border-lightGray rounded-scalerrs p-1 focus:outline-none focus:ring-1 focus:ring-primary"
+            className="text-xs border border-lightGray dark:border-container rounded-scalerrs p-1 focus:outline-none focus:ring-1 focus:ring-primary dark:bg-darkGray dark:text-gray-300"
             value={task.status}
             onChange={(e) => onStatusChange(task.id, e.target.value as TaskStatus)}
           >

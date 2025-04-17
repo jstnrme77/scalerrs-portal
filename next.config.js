@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable static export for Netlify to allow API routes to work
-  // output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  // Make server-side environment variables available to the client
+  env: {
+    AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY,
+    AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID,
+    NEXT_PUBLIC_USE_MOCK_DATA: 'false',
+  },
+  // For Netlify, we don't want static export
+  // This ensures API routes work properly
+  output: undefined,
 
   // Only use these settings for GitHub Pages, not for Netlify
   basePath: process.env.DEPLOY_TARGET === 'github' ? '/scalerrs-portal' : '',

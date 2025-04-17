@@ -7,14 +7,21 @@ export function themeScript() {
     (function() {
       try {
         // Check for saved theme preference or use system preference
-        const savedTheme = localStorage.getItem('theme');
+        // Try both theme keys for backward compatibility
+        const savedTheme = localStorage.getItem('theme') || localStorage.getItem('scalerrs-theme');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
+
         // Apply dark mode if needed
         if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
           document.documentElement.classList.add('dark');
+          // Ensure both theme keys are set
+          localStorage.setItem('theme', 'dark');
+          localStorage.setItem('scalerrs-theme', 'dark');
         } else {
           document.documentElement.classList.remove('dark');
+          // Ensure both theme keys are set
+          localStorage.setItem('theme', 'light');
+          localStorage.setItem('scalerrs-theme', 'light');
         }
       } catch (e) {
         // Fail gracefully if localStorage is not available

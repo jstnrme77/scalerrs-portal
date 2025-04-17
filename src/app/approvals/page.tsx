@@ -95,7 +95,7 @@ function ApprovalItem({
   onRequestChanges: (id: number) => void;
 }) {
   return (
-    <div className="bg-white p-4 rounded-lg border border-lightGray">
+    <div className="card bg-white p-4 rounded-lg border border-lightGray" style={{ color: '#353233' }}>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
         <h3 className="text-md font-medium text-dark">{item.item}</h3>
         <StatusBadge status={item.status} />
@@ -237,7 +237,7 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
   const categoriesCount = Object.values(counts).filter(count => count > 0).length;
 
   return (
-    <div className="bg-[#FFF8E1] p-4 rounded-lg mb-6 border border-[#FFE082]">
+    <div className="card bg-[#FFF8E1] p-4 rounded-lg mb-6 border border-[#FFE082]" style={{ color: '#353233' }}>
       <p className="font-medium">You have {totalCount} items awaiting your review across {categoriesCount} categories</p>
       <div className="text-sm mt-1">
         Jump to: {' '}

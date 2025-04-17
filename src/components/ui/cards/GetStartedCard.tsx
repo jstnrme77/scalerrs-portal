@@ -25,10 +25,11 @@ export default function GetStartedCard({
   return (
     <div
       className={cn(
-        "flex flex-col items-center p-6 rounded-lg h-full min-h-[280px]",
+        "card flex flex-col items-center p-6 rounded-lg h-full min-h-[280px]",
         bgColor,
         className
       )}
+      style={{ color: '#353233' }}
     >
       <h2 className="text-xl font-semibold mb-6 text-center">{title}</h2>
 
@@ -78,10 +79,11 @@ export function GuideCard({
   return (
     <div
       className={cn(
-        "p-6 rounded-lg h-full min-h-[280px] flex flex-col",
+        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col",
         bgColor,
         className
       )}
+      style={{ color: '#353233' }}
     >
       <h2 className="text-xl font-semibold mb-4">{title}</h2>
       <div className="space-y-4 flex-grow">
@@ -134,10 +136,11 @@ export function QuickLinksCard({
   return (
     <div
       className={cn(
-        "p-6 rounded-lg h-full min-h-[280px]",
+        "card p-6 rounded-lg h-full min-h-[280px]",
         bgColor,
         className
       )}
+      style={{ color: '#353233' }}
     >
       <h2 className="text-xl font-semibold mb-4">{title}</h2>
       <div className="flex justify-center space-x-8 py-4">
@@ -183,10 +186,11 @@ export function ChecklistCard({
   return (
     <div
       className={cn(
-        "p-6 rounded-lg h-full min-h-[280px] flex flex-col",
+        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col",
         bgColor,
         className
       )}
+      style={{ color: '#353233' }}
     >
       <h2 className="text-xl font-semibold mb-4">{title}</h2>
 

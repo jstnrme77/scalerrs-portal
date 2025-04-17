@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import Input from '@/components/ui/forms/Input';
 import Button from '@/components/ui/forms/Button';
 import { fetchTasks, fetchComments, updateTaskStatus as updateTask, addComment as addTaskComment } from '@/lib/client-api';
+import { mockTasks, mockComments } from '@/lib/mock-data';
 
 interface Task {
   id: string;
@@ -28,17 +29,32 @@ export default function AirtableDemoPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingComments, setLoadingComments] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
 
   // Fetch tasks
   useEffect(() => {
     const getTasks = async () => {
       try {
+        setLoading(true);
+        console.log('Fetching tasks...');
         const data = await fetchTasks();
-        setTasks(data);
+        console.log('Tasks fetched:', data);
+        if (data && Array.isArray(data)) {
+          setTasks(data);
+          setError(null);
+        } else {
+          console.warn('No tasks data returned or invalid format');
+          setError('Using mock data - API returned invalid data format');
+          // Use mock data as fallback
+          setTasks(mockTasks);
+        }
       } catch (err) {
         console.error('Error fetching tasks:', err);
-        setError('An error occurred while fetching tasks');
+        setError('An error occurred while fetching tasks. Using mock data.');
+        // Use mock data as fallback
+        setTasks(mockTasks);
       } finally {
         setLoading(false);
       }
@@ -56,11 +72,57 @@ export default function AirtableDemoPage() {
 
     const getComments = async () => {
       try {
+        // Show loading state for comments
+        setLoadingComments(true);
+        setComments([]);
+
+        console.log('Fetching comments for task:', selectedTask.id);
+
+        // Log the task ID format to help debug
+        console.log('Task ID type:', typeof selectedTask.id);
+        console.log('Task ID value:', selectedTask.id);
+
         const data = await fetchComments(selectedTask.id);
-        setComments(data);
+        console.log('Comments fetched:', data);
+
+        // If we got data but it's empty, log a more specific message
+        if (data && Array.isArray(data) && data.length === 0) {
+          console.log('No comments found for this task. This could be due to:');
+          console.log('1. No comments exist for this task');
+          console.log('2. Task ID format mismatch between Airtable and our app');
+          console.log('3. Field name mismatch in the Airtable schema');
+        }
+
+        if (data && Array.isArray(data)) {
+          if (data.length === 0) {
+            console.log('No comments found for this task');
+          } else {
+            console.log(`Found ${data.length} comments for task ${selectedTask.id}`);
+            // Log the first comment to help debug
+            if (data.length > 0) {
+              console.log('First comment:', data[0]);
+            }
+          }
+
+          setComments(data);
+          setError(null);
+          setLoadingComments(false);
+        } else {
+          console.warn('No comments data returned or invalid format');
+          // Use mock comments as fallback
+          const mockTaskComments = mockComments.filter(c => c.Task.includes(selectedTask.id));
+          console.log('Using mock comments as fallback:', mockTaskComments);
+          setComments(mockTaskComments);
+          setLoadingComments(false);
+        }
       } catch (err) {
         console.error('Error fetching comments:', err);
-        setError('An error occurred while fetching comments');
+        setError('An error occurred while fetching comments. Using mock data.');
+        // Use mock comments as fallback
+        const mockTaskComments = mockComments.filter(c => c.Task.includes(selectedTask.id));
+        console.log('Using mock comments as fallback after error:', mockTaskComments);
+        setComments(mockTaskComments);
+        setLoadingComments(false);
       }
     };
 
@@ -108,7 +170,15 @@ export default function AirtableDemoPage() {
   return (
     <DashboardLayout>
       <div className="container mx-auto py-6 px-4">
-        <h1 className="text-2xl font-bold mb-6">Airtable Integration Demo</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Airtable Integration Demo</h1>
+          <button
+            onClick={() => setDebugMode(!debugMode)}
+            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors"
+          >
+            {debugMode ? 'Hide Debug Info' : 'Show Debug Info'}
+          </button>
+        </div>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -119,6 +189,67 @@ export default function AirtableDemoPage() {
             >
               &times;
             </button>
+          </div>
+        )}
+
+        {/* Debug panel - only shown when debug mode is enabled */}
+        {debugMode && (
+          <div className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-4 rounded-md mb-4">
+            <h2 className="text-lg font-semibold mb-2">Debug Information</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-md font-medium mb-1">Tasks ({tasks.length})</h3>
+                <div className="max-h-40 overflow-y-auto bg-white dark:bg-gray-900 p-2 rounded border border-gray-300 dark:border-gray-700">
+                  <pre className="text-xs">
+                    {JSON.stringify(tasks, null, 2)}
+                  </pre>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-md font-medium mb-1">Selected Task</h3>
+                <div className="max-h-40 overflow-y-auto bg-white dark:bg-gray-900 p-2 rounded border border-gray-300 dark:border-gray-700">
+                  <pre className="text-xs">
+                    {selectedTask ? JSON.stringify(selectedTask, null, 2) : 'No task selected'}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <h3 className="text-md font-medium mb-1">Comments ({comments.length})</h3>
+                <div className="max-h-40 overflow-y-auto bg-white dark:bg-gray-900 p-2 rounded border border-gray-300 dark:border-gray-700">
+                  <pre className="text-xs">
+                    {JSON.stringify(comments, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <button
+                onClick={() => {
+                  if (selectedTask) {
+                    // Force refresh comments
+                    setLoadingComments(true);
+                    fetchComments(selectedTask.id).then(data => {
+                      console.log('Manually refreshed comments:', data);
+                      if (data && Array.isArray(data)) {
+                        setComments(data);
+                      }
+                      setLoadingComments(false);
+                    }).catch(err => {
+                      console.error('Error refreshing comments:', err);
+                      setLoadingComments(false);
+                    });
+                  }
+                }}
+                className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                disabled={!selectedTask || loadingComments}
+              >
+                {loadingComments ? 'Refreshing...' : 'Refresh Comments'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -139,10 +270,10 @@ export default function AirtableDemoPage() {
                   {tasks.map(task => (
                     <li
                       key={task.id}
-                      className={`p-3 rounded-md cursor-pointer ${
+                      className={`p-3 rounded-md cursor-pointer border transition-all duration-200 ${
                         selectedTask?.id === task.id
-                          ? 'bg-primary/20'
-                          : 'hover:bg-lightGray dark:hover:bg-gray-800'
+                          ? 'bg-primary/20 border-primary'
+                          : 'border-lightGray hover:bg-primary/10 hover:border-primary hover:shadow-md dark:border-gray-700 dark:hover:bg-primary/20'
                       }`}
                       onClick={() => setSelectedTask(task)}
                     >
@@ -205,16 +336,57 @@ export default function AirtableDemoPage() {
                     <h3 className="text-lg font-medium mb-2">Comments</h3>
 
                     <div className="mb-4 max-h-60 overflow-y-auto">
-                      {comments.length === 0 ? (
+                      {loadingComments ? (
+                        <div className="flex justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+                        </div>
+                      ) : comments.length === 0 ? (
                         <p className="text-mediumGray">No comments yet</p>
                       ) : (
                         <ul className="space-y-3">
                           {comments.map(comment => (
-                            <li key={comment.id} className="bg-lightGray dark:bg-gray-800 p-3 rounded-md">
-                              <p className="text-sm">{comment.Comment}</p>
-                              <p className="text-xs text-mediumGray mt-1">
-                                {new Date(comment.CreatedAt).toLocaleString()}
+                            <li key={comment.id} className="p-3 rounded-md border border-lightGray bg-primary/5 dark:border-gray-700 dark:bg-primary/10">
+                              {/* Display the title if available */}
+                              {comment.Title && (
+                                <p className="text-sm font-medium mb-1">{comment.Title}</p>
+                              )}
+
+                              {/* Display the comment text */}
+                              <p className="text-sm">
+                                {comment.Comment || 'No comment text'}
                               </p>
+
+                              {/* Display the date */}
+                              <p className="text-xs text-mediumGray mt-1">
+                                {(comment.CreatedAt || comment['Created Time'])
+                                  ? new Date(comment.CreatedAt || comment['Created Time']).toLocaleString()
+                                  : 'No date available'}
+                              </p>
+
+                              {/* Display the user */}
+                              {comment.User && (
+                                <p className="text-xs text-primary mt-1">
+                                  By: {(() => {
+                                    if (Array.isArray(comment.User) && comment.User.length > 0) {
+                                      // For linked records, this will be a record ID
+                                      // In a real app, you'd fetch the user details
+                                      return `User ${comment.User[0]}`;
+                                    }
+                                    if (typeof comment.User === 'string') return comment.User;
+                                    return 'Unknown user';
+                                  })()}
+                                </p>
+                              )}
+
+                              {/* Debug info - shown when debug mode is enabled */}
+                              {debugMode && (
+                                <details className="mt-2 text-xs text-mediumGray">
+                                  <summary>Debug Info</summary>
+                                  <pre className="whitespace-pre-wrap overflow-x-auto">
+                                    {JSON.stringify(comment, null, 2)}
+                                  </pre>
+                                </details>
+                              )}
                             </li>
                           ))}
                         </ul>

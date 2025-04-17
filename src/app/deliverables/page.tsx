@@ -218,18 +218,18 @@ function MonthSelector({ selectedMonth, onChange }: { selectedMonth: string; onC
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-40 px-4 py-2 text-sm font-medium text-dark bg-white border border-lightGray rounded-lg hover:bg-lightGray"
+        className="card flex items-center justify-between w-40 px-4 py-2 text-sm font-medium bg-white border border-lightGray rounded-lg hover:bg-lightGray" style={{ color: '#353233' }}
       >
         {selectedMonth}
         <ChevronDown className="ml-2 h-4 w-4" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white border border-lightGray rounded-lg shadow-lg z-10">
+        <div className="card absolute right-0 mt-2 w-40 bg-white border border-lightGray rounded-lg shadow-lg z-10" style={{ color: '#353233' }}>
           {months.map((month) => (
             <button
               key={month}
-              className="block w-full text-left px-4 py-2 text-sm hover:bg-lightGray"
+              className="block w-full text-left px-4 py-2 text-sm hover:bg-lightGray" style={{ color: '#353233' }}
               onClick={() => {
                 onChange(month);
                 setIsOpen(false);
@@ -484,7 +484,7 @@ export default function Deliverables() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Notes</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-lightGray">
+                <tbody className="card bg-white divide-y divide-lightGray" style={{ color: '#353233' }}>
                   {filteredBacklinks.map((backlink) => (
                     <tr key={backlink.id} className="hover:bg-lightGray">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">{backlink.domain}</td>

@@ -87,19 +87,19 @@ const sampleReportContent = {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-scalerrs border border-lightGray">
+        <div className="card bg-white p-4 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
           <h4 className="font-medium text-dark mb-2">Organic Traffic</h4>
           <p className="text-3xl font-bold text-primary">45.5K</p>
           <p className="text-sm text-green-600">+12.3% vs. February</p>
         </div>
 
-        <div className="bg-white p-4 rounded-scalerrs border border-lightGray">
+        <div className="card bg-white p-4 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
           <h4 className="font-medium text-dark mb-2">Keyword Rankings</h4>
           <p className="text-3xl font-bold text-gold">324</p>
           <p className="text-sm text-green-600">+28 new keywords in top 10</p>
         </div>
 
-        <div className="bg-white p-4 rounded-scalerrs border border-lightGray">
+        <div className="card bg-white p-4 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
           <h4 className="font-medium text-dark mb-2">Leads Generated</h4>
           <p className="text-3xl font-bold text-lavender">320</p>
           <p className="text-sm text-green-600">+15.2% vs. February</p>
@@ -151,7 +151,7 @@ const sampleReportContent = {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-5 rounded-scalerrs border border-lightGray">
+        <div className="card bg-white p-5 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
           <h4 className="font-medium text-dark mb-3">Q1 Performance Summary</h4>
           <div className="space-y-3">
             <div>
@@ -206,7 +206,7 @@ const sampleReportContent = {
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-scalerrs border border-lightGray">
+        <div className="card bg-white p-5 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
           <h4 className="font-medium text-dark mb-3">Q1 Strategic Achievements</h4>
           <ul className="list-disc pl-5 text-mediumGray space-y-2">
             <li>Completed full technical SEO audit and implemented 85% of recommendations</li>
@@ -220,7 +220,7 @@ const sampleReportContent = {
         </div>
       </div>
 
-      <div className="bg-white p-5 rounded-scalerrs border border-lightGray">
+      <div className="card bg-white p-5 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
         <h4 className="font-medium text-dark mb-3">Competitive Analysis</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-lightGray">
@@ -260,7 +260,7 @@ const sampleReportContent = {
         </div>
       </div>
 
-      <div className="bg-white p-5 rounded-scalerrs border border-lightGray">
+      <div className="card bg-white p-5 rounded-scalerrs border border-lightGray" style={{ color: '#353233' }}>
         <h4 className="font-medium text-dark mb-3">Q2 2025 Strategic Recommendations</h4>
         <div className="space-y-4">
           <div className="p-3 bg-primary/10 rounded-scalerrs">
@@ -302,8 +302,9 @@ const sampleReportContent = {
 function ReportCard({ report, onClick }: { report: any; onClick: () => void }) {
   return (
     <div
-      className="bg-white p-4 rounded-scalerrs border border-lightGray hover:border-primary cursor-pointer transition-colors"
+      className="card bg-white p-4 rounded-scalerrs border border-lightGray hover:border-primary cursor-pointer transition-colors"
       onClick={onClick}
+      style={{ color: '#353233' }}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -418,7 +419,7 @@ export default function Reports() {
             Back to Reports
           </button>
 
-          <div className="bg-white p-6 rounded-scalerrs shadow-sm border border-lightGray">
+          <div className="card bg-white p-6 rounded-scalerrs shadow-sm border border-lightGray" style={{ color: '#353233' }}>
             {sampleReportContent[selectedReport as keyof typeof sampleReportContent]}
           </div>
         </div>
@@ -478,13 +479,13 @@ export default function Reports() {
               {activeTab === 'weekly' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Timeframe Covered */}
-                  <div className="bg-white p-4 rounded-lg border border-lightGray shadow-sm">
+                  <div className="card bg-white p-4 rounded-lg border border-lightGray shadow-sm" style={{ color: '#353233' }}>
                     <h3 className="text-lg font-medium text-dark mb-2">Timeframe Covered</h3>
                     <p className="text-mediumGray">{selectedDate.label}</p>
                   </div>
 
                   {/* What We Did */}
-                  <div className="bg-white p-4 rounded-lg border border-lightGray shadow-sm">
+                  <div className="card bg-white p-4 rounded-lg border border-lightGray shadow-sm" style={{ color: '#353233' }}>
                     <h3 className="text-lg font-medium text-dark mb-2">What We Did</h3>
                     <ul className="list-disc pl-5 text-mediumGray space-y-1">
                       <li>Briefed 4 product-led blog articles</li>
@@ -495,7 +496,7 @@ export default function Reports() {
                   </div>
 
                   {/* Deliverables Progress */}
-                  <div className="bg-white p-4 rounded-lg border border-lightGray shadow-sm">
+                  <div className="card bg-white p-4 rounded-lg border border-lightGray shadow-sm" style={{ color: '#353233' }}>
                     <h3 className="text-lg font-medium text-dark mb-2">Deliverables Progress</h3>
                     <div className="space-y-3">
                       <div>
@@ -530,7 +531,7 @@ export default function Reports() {
                   </div>
 
                   {/* Next Steps + Requests */}
-                  <div className="bg-white p-4 rounded-lg border border-lightGray shadow-sm">
+                  <div className="card bg-white p-4 rounded-lg border border-lightGray shadow-sm" style={{ color: '#353233' }}>
                     <h3 className="text-lg font-medium text-dark mb-2">Next Steps + Requests</h3>
                     <ul className="list-disc pl-5 text-mediumGray space-y-1">
                       <li>Finish brief for "Enterprise AI Tools"</li>
@@ -540,7 +541,7 @@ export default function Reports() {
                   </div>
 
                   {/* Quick Links */}
-                  <div className="bg-white p-4 rounded-lg border border-lightGray shadow-sm md:col-span-2">
+                  <div className="card bg-white p-4 rounded-lg border border-lightGray shadow-sm md:col-span-2" style={{ color: '#353233' }}>
                     <h3 className="text-lg font-medium text-dark mb-2">Links to Dashboards or Docs</h3>
                     <div className="space-y-2">
                       <a href="#" className="text-primary hover:underline block">Content Performance Dashboard</a>
@@ -554,7 +555,7 @@ export default function Reports() {
               {activeTab === 'monthly' && (
                 <div className="space-y-6">
                   {/* Executive Summary */}
-                  <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+                  <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm" style={{ color: '#353233' }}>
                     <h3 className="text-xl font-bold text-dark mb-3">Executive Summary</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div className="bg-primary/10 p-4 rounded-lg">

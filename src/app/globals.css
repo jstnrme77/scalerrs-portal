@@ -2,45 +2,50 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base theme colors from Figma */
   --primary: #9EA8FB; /* periwinkle blue */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --brand-1: #9EA8FB;
+  --brand-2: #99A9FF;
+  --brand-accent: #EADCFF;
+  --brand-yellow: #FFE4A6;
+
+  /* Light mode */
+  --background: #FFFFFF;
+  --foreground: #353233; /* Specific light mode text color */
+  --container-bg: #FFFFFF;
+  --container-border: #F5F5F9;
+
+  /* Grays */
   --light-gray: #F5F5F9;
   --medium-gray: #4F515E;
   --dark-gray: #181D27;
   --dark: #12131C;
-  --border-radius: 16px;
 
-  /* Figma colors */
-  --brand-1: #9EA8FB;
-  --brand-2: #99A9FF;
-  --brand-accent: #EADCFF;
-  --brand-yellow: #FFF9DB;
+  /* Card colors */
   --card-yellow: #FFF9DB;
   --card-blue: #E8EAF6;
   --card-purple: #EDE7F6;
-  --theme-dark-text: #FFFFFF;
-  --theme-dark-bg: #12131C;
-  --theme-dark-container: #353233;
-  --theme-light-text: #353233;
-  --theme-light-bg: #FFFFFF;
-  --button-text: #FFFFFF;
-}
 
-/* Theme variables */
-:root {
-  --primary: #9EA8FB;
-  --background: #ffffff;
-  --foreground: #333333;
-  --dark-background: #12131C;
-  --dark-foreground: #ffffff;
+  /* UI elements */
+  --border-radius: 16px;
+  --border-radius-sm: 8px;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  /* Sidebar */
+  --sidebar-bg: #12131C;
+  --sidebar-text: #353233;
+  --sidebar-active: #2A2A3C;
+  --sidebar-border: #353233;
+  --sidebar-hover: rgba(154, 168, 251, 0.1);
+  --sidebar-active-border: #9EA8FB;
 }
 
 /* Dark mode variables */
 .dark {
   --background: #12131C;
-  --foreground: #ffffff;
+  --foreground: #FFFFFF; /* Specific dark mode text color */
+  --container-bg: #181D27;
+  --container-border: #353233;
 }
 
 /* Dark mode background with Group 35634.png image */
@@ -93,9 +98,91 @@ body {
   font-family: var(--font-family);
 }
 
+/* Global text color enforcement */
+p, h1, h2, h3, h4, h5, h6, span, div, a, button, input, select, textarea, label {
+  color: #353233 !important;
+}
+
+.dark p, .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark span, .dark div, .dark a, .dark button, .dark input, .dark select, .dark textarea, .dark label {
+  color: #FFFFFF !important;
+}
+
+/* Override for card elements in dark mode */
+.dark .card p, .dark .card h1, .dark .card h2, .dark .card h3, .dark .card h4, .dark .card h5, .dark .card h6,
+.dark .card span, .dark .card div, .dark .card a, .dark .card button, .dark .card input, .dark .card select,
+.dark .card textarea, .dark .card label,
+.dark .bg-[\#FFF9DB] p, .dark .bg-[\#F8E8FF] p, .dark .bg-[\#FFF8E1] p, .dark .bg-[\#E8F5E9] p, .dark .bg-[\#E3F2FD] p,
+.dark .bg-[\#FFF9DB] h1, .dark .bg-[\#F8E8FF] h1, .dark .bg-[\#FFF8E1] h1, .dark .bg-[\#E8F5E9] h1, .dark .bg-[\#E3F2FD] h1,
+.dark .bg-[\#FFF9DB] h2, .dark .bg-[\#F8E8FF] h2, .dark .bg-[\#FFF8E1] h2, .dark .bg-[\#E8F5E9] h2, .dark .bg-[\#E3F2FD] h2,
+.dark .bg-[\#FFF9DB] h3, .dark .bg-[\#F8E8FF] h3, .dark .bg-[\#FFF8E1] h3, .dark .bg-[\#E8F5E9] h3, .dark .bg-[\#E3F2FD] h3,
+.dark .bg-[\#FFF9DB] span, .dark .bg-[\#F8E8FF] span, .dark .bg-[\#FFF8E1] span, .dark .bg-[\#E8F5E9] span, .dark .bg-[\#E3F2FD] span,
+.dark .bg-[\#FFF9DB] div, .dark .bg-[\#F8E8FF] div, .dark .bg-[\#FFF8E1] div, .dark .bg-[\#E8F5E9] div, .dark .bg-[\#E3F2FD] div {
+  color: #353233 !important;
+}
+
+/* Force text colors for all elements */
+:root {
+  --text-color: #353233;
+}
+
+.dark {
+  --text-color: #FFFFFF;
+}
+
+* {
+  color: var(--text-color);
+}
+
+/* Exceptions for specific elements */
+.text-primary, .text-primary *, a.text-primary, button.text-primary {
+  color: var(--primary) !important;
+}
+
+.dark .text-primary, .dark .text-primary *, .dark a.text-primary, .dark button.text-primary {
+  color: var(--primary) !important;
+}
+
+/* Sidebar text color overrides */
+.bg-sidebar-bg, .bg-sidebar-bg *, .bg-sidebar-active, .bg-sidebar-active * {
+  color: #FFFFFF !important;
+}
+
+/* Ensure sidebar text remains white in dark mode */
+.dark .bg-sidebar-bg, .dark .bg-sidebar-bg *, .dark .bg-sidebar-active, .dark .bg-sidebar-active * {
+  color: #FFFFFF !important;
+}
+
+/* Sidebar text color for specific elements */
+.sidebar-nav-link, .sidebar-nav-link * {
+  color: #353233 !important;
+}
+
+/* Ensure sidebar logo text is correct in dark mode */
+.dark .sidebar-nav-link, .dark .sidebar-nav-link * {
+  color: #353233 !important;
+}
+
+/* Logo text color */
+.logo-text, .logo-text * {
+  color: #353233 !important;
+}
+
+/* Exceptions for white text */
+.text-white, .text-white *, a.text-white, button.text-white, .bg-primary *, .bg-primary button, .bg-primary a {
+  color: white !important;
+}
+
+/* Exceptions for specific UI elements */
+.bg-[\#FFF9DB] *, .bg-[\#F8E8FF] *, .bg-[\#FFF8E1] *, .bg-[\#E8F5E9] *, .bg-[\#E3F2FD] * {
+  color: #353233 !important;
+}
+
+/* Dark mode card overrides - keep same background colors as light mode */
+/* We're keeping the original background colors in dark mode for better readability */
+
 /* Light mode text color fixes */
 .text-dark {
-  color: #12131C !important;
+  color: #353233 !important; /* Updated to match specified light mode text color */
 }
 
 .text-mediumGray {
@@ -103,7 +190,16 @@ body {
 }
 
 .text-darkGray {
-  color: #333333 !important;
+  color: #353233 !important; /* Updated to match specified light mode text color */
+}
+
+/* Additional text color enforcement */
+.text-black {
+  color: #353233 !important;
+}
+
+.dark .text-black {
+  color: #FFFFFF !important;
 }
 
 /* Sidebar specific light mode fixes */
@@ -187,24 +283,24 @@ button:hover {
 
 /* Page container styles */
 .page-container {
-  background-color: #ffffff;
-  border-radius: 16px;
+  background-color: var(--container-bg);
+  border-radius: var(--border-radius);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid #F5F5F9;
+  border: 1px solid var(--container-border);
 }
 
 .dark .page-container {
-  background-color: #181D27;
-  border-color: #4F515E;
+  background-color: var(--container-bg);
+  border-color: var(--container-border);
 }
 
 .page-container-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #F5F5F9;
+  border-bottom: 1px solid var(--container-border);
 }
 
 .dark .page-container-header {
-  border-color: #4F515E;
+  border-color: var(--container-border);
 }
 
 .page-container-body {
@@ -213,16 +309,16 @@ button:hover {
 
 .page-container-footer {
   padding: 1.5rem;
-  border-top: 1px solid #F5F5F9;
+  border-top: 1px solid var(--container-border);
 }
 
 .dark .page-container-footer {
-  border-color: #4F515E;
+  border-color: var(--container-border);
 }
 
 .page-container-tabs {
   padding: 1rem;
-  border-bottom: 1px solid #F5F5F9;
+  border-bottom: 1px solid var(--container-border);
   overflow-x: auto;
 }
 
@@ -232,7 +328,7 @@ button:hover {
 }
 
 .dark .page-container-tabs {
-  border-color: #4F515E;
+  border-color: var(--container-border);
 }
 
 /* Box and container styles */
@@ -271,24 +367,25 @@ div[class*="bg-"] {
 
 /* Force dark mode styles */
 .dark body {
-  background-color: #12131C !important;
+  background-color: var(--background) !important;
   background-image: url('/images/Group 35634.png') !important;
   background-size: cover !important;
   background-position: center center !important;
   background-attachment: fixed !important;
-  color: #ffffff !important;
+  color: var(--foreground) !important;
 }
 
+/* Keep white backgrounds in dark mode for better readability */
 .dark .bg-white {
-  background-color: #181D27 !important;
+  background-color: white !important;
 }
 
 .dark .text-dark {
-  color: white !important;
+  color: #FFFFFF !important; /* Updated to match specified dark mode text color */
 }
 
 .dark .text-darkGray {
-  color: #e5e7eb !important;
+  color: #FFFFFF !important; /* Updated to match specified dark mode text color */
 }
 
 .dark .text-mediumGray {
@@ -296,12 +393,12 @@ div[class*="bg-"] {
 }
 
 .dark .border-lightGray {
-  border-color: #4F515E !important;
+  border-color: var(--container-border) !important;
 }
 
 /* Additional dark mode overrides */
 .dark .bg-lightGray {
-  background-color: #181D27 !important;
+  background-color: var(--container-bg) !important;
 }
 
 /* Logo styling */

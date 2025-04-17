@@ -34,21 +34,21 @@ export default function DocumentCard({
   return (
     <Card className={className}>
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-dark">{document.name}</h3>
+        <h3 className="text-md font-medium text-text-light dark:text-text-dark">{document.name}</h3>
         <FileTypeBadge type={document.type} />
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="text-sm text-mediumGray">
+        <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Updated:</span> {new Date(document.lastUpdated).toLocaleDateString()}
         </div>
 
-        <div className="text-sm text-mediumGray">
+        <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Size:</span> {document.size}
         </div>
 
         {'category' in document && document.category && (
-          <div className="text-sm text-mediumGray">
+          <div className="text-sm text-mediumGray dark:text-gray-300">
             <span className="font-medium">Category:</span> {document.category}
           </div>
         )}

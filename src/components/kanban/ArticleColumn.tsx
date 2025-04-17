@@ -31,11 +31,12 @@ export default function ArticleColumn({
   return (
     <div
       ref={drop as any}
-      className={`${bgColor} p-4 rounded-lg shadow-sm border border-lightGray ${isOver ? 'ring-2 ring-primary' : ''}`}
+      className={`card ${bgColor} p-4 rounded-lg shadow-sm border border-lightGray ${isOver ? 'ring-2 ring-primary' : ''}`}
+      style={{ color: '#353233' }}
     >
-      <h3 className="text-md font-medium text-dark mb-4 flex items-center">
+      <h3 className="text-md font-medium text-text-light dark:text-text-dark mb-4 flex items-center">
         {title}
-        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-white rounded-full text-mediumGray">
+        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-white dark:bg-darkGray rounded-full text-mediumGray dark:text-gray-300">
           {articles.length}
         </span>
       </h3>
@@ -49,8 +50,8 @@ export default function ArticleColumn({
         ))}
 
         {articles.length === 0 && (
-          <div className="bg-white p-4 rounded-lg border border-dashed border-lightGray text-center">
-            <p className="text-sm text-mediumGray">No articles</p>
+          <div className="bg-white dark:bg-container p-4 rounded-lg border border-dashed border-lightGray dark:border-container text-center">
+            <p className="text-sm text-mediumGray dark:text-gray-300">No articles</p>
           </div>
         )}
       </div>

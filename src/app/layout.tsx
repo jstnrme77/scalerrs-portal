@@ -19,7 +19,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
       </head>
-      <body className="bg-white dark:bg-dark text-dark dark:text-white blue-glow-top-left blue-glow-bottom-right" suppressHydrationWarning>
+      <body className="bg-white dark:bg-dark text-text-light dark:text-text-dark blue-glow-top-left blue-glow-bottom-right" suppressHydrationWarning>
         <ThemeProvider attribute="class" enableSystem defaultTheme="system">
           <AuthProvider>
             {children}
