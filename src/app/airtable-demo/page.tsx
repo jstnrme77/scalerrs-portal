@@ -174,7 +174,7 @@ export default function AirtableDemoPage() {
           <h1 className="text-2xl font-bold">Airtable Integration Demo</h1>
           <button
             onClick={() => setDebugMode(!debugMode)}
-            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors"
+            className="px-3 py-1 text-sm bg-primary/20 hover:bg-primary/30 text-primary-foreground dark:bg-primary/30 dark:hover:bg-primary/40 rounded-md transition-colors"
           >
             {debugMode ? 'Hide Debug Info' : 'Show Debug Info'}
           </button>
@@ -194,13 +194,13 @@ export default function AirtableDemoPage() {
 
         {/* Debug panel - only shown when debug mode is enabled */}
         {debugMode && (
-          <div className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 p-4 rounded-md mb-4">
+          <div className="bg-white dark:bg-darkGray border border-lightGray dark:border-gray-700 p-4 rounded-scalerrs shadow-sm mb-4">
             <h2 className="text-lg font-semibold mb-2">Debug Information</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-md font-medium mb-1">Tasks ({tasks.length})</h3>
-                <div className="max-h-40 overflow-y-auto bg-white dark:bg-gray-900 p-2 rounded border border-gray-300 dark:border-gray-700">
+                <div className="max-h-40 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md border border-lightGray dark:border-gray-700">
                   <pre className="text-xs">
                     {JSON.stringify(tasks, null, 2)}
                   </pre>
@@ -209,7 +209,7 @@ export default function AirtableDemoPage() {
 
               <div>
                 <h3 className="text-md font-medium mb-1">Selected Task</h3>
-                <div className="max-h-40 overflow-y-auto bg-white dark:bg-gray-900 p-2 rounded border border-gray-300 dark:border-gray-700">
+                <div className="max-h-40 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md border border-lightGray dark:border-gray-700">
                   <pre className="text-xs">
                     {selectedTask ? JSON.stringify(selectedTask, null, 2) : 'No task selected'}
                   </pre>
@@ -218,7 +218,7 @@ export default function AirtableDemoPage() {
 
               <div className="md:col-span-2">
                 <h3 className="text-md font-medium mb-1">Comments ({comments.length})</h3>
-                <div className="max-h-40 overflow-y-auto bg-white dark:bg-gray-900 p-2 rounded border border-gray-300 dark:border-gray-700">
+                <div className="max-h-40 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-2 rounded-md border border-lightGray dark:border-gray-700">
                   <pre className="text-xs">
                     {JSON.stringify(comments, null, 2)}
                   </pre>
@@ -244,7 +244,7 @@ export default function AirtableDemoPage() {
                     });
                   }
                 }}
-                className="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                className="px-3 py-1 text-sm bg-primary hover:bg-primary/80 text-white rounded-md transition-colors"
                 disabled={!selectedTask || loadingComments}
               >
                 {loadingComments ? 'Refreshing...' : 'Refresh Comments'}
