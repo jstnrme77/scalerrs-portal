@@ -7,7 +7,7 @@ import Image from 'next/image';
 export default function GetStartedPage() {
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto">
+      <div className="container mx-auto py-6 px-4">
         <h1 className="text-4xl font-bold mb-2">Get Started</h1>
         <p className="text-lg text-gray-600 mb-8">Help clients get set up quickly, and learn how to use the portal.</p>
 
