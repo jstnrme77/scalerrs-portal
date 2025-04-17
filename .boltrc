@@ -1,5 +1,5 @@
 {
-  "start": "next start",
-  "build": "next build",
-  "dev": "NODE_OPTIONS='--no-experimental-fetch' next dev"
+  "start": "NEXT_DISABLE_SWC=1 NEXT_IGNORE_MISSING_SWC=1 NODE_OPTIONS=\"--no-addons\" next start",
+  "build": "NEXT_DISABLE_SWC=1 NEXT_IGNORE_MISSING_SWC=1 NODE_OPTIONS=\"--no-addons\" next build",
+  "dev": "NEXT_DISABLE_SWC=1 NEXT_IGNORE_MISSING_SWC=1 NODE_OPTIONS=\"--no-addons\" next dev"
 }

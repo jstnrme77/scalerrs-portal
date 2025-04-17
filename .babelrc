@@ -1,6 +1,10 @@
 {
   "presets": [
-    "next/babel"
+    ["next/babel", {
+      "preset-env": {},
+      "preset-react": {},
+      "preset-typescript": {}
+    }]
   ],
   "plugins": []
 }

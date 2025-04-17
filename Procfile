@@ -1,0 +1,1 @@
+web: NEXT_DISABLE_SWC=1 NEXT_IGNORE_MISSING_SWC=1 NODE_OPTIONS="--no-addons" next start

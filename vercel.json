@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_DISABLE_SWC": "1",
+    "NODE_OPTIONS": "--no-addons"
+  }
+}
