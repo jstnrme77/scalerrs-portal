@@ -2,6 +2,15 @@
 const Airtable = require('airtable');
 
 exports.handler = async function(event, context) {
+  // Check if the method is allowed
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({
+        error: 'Method not allowed'
+      })
+    };
+  }
   // Get comment data from request body
   let data;
   try {
@@ -14,9 +23,9 @@ exports.handler = async function(event, context) {
       })
     };
   }
-  
+
   const { taskId, userId, comment } = data;
-  
+
   if (!taskId || !userId || !comment) {
     return {
       statusCode: 400,
@@ -25,11 +34,11 @@ exports.handler = async function(event, context) {
       })
     };
   }
-  
+
   // Initialize Airtable with API key from environment variables
   const apiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-  
+
   if (!apiKey || !baseId) {
     return {
       statusCode: 500,
@@ -38,19 +47,19 @@ exports.handler = async function(event, context) {
       })
     };
   }
-  
+
   try {
     // Initialize Airtable
     const airtable = new Airtable({ apiKey });
     const base = airtable.base(baseId);
-    
+
     // First, verify that the task exists
     const taskRecords = await base('Tasks')
       .select({
         filterByFormula: `RECORD_ID() = '${taskId}'`
       })
       .all();
-    
+
     if (taskRecords.length === 0) {
       return {
         statusCode: 404,
@@ -59,7 +68,7 @@ exports.handler = async function(event, context) {
         })
       };
     }
-    
+
     // Create the comment
     const newComment = await base('Comments').create({
       Title: `Comment on task ${taskId}`,
@@ -67,7 +76,7 @@ exports.handler = async function(event, context) {
       User: [userId],
       Comment: comment
     });
-    
+
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -79,7 +88,7 @@ exports.handler = async function(event, context) {
     };
   } catch (error) {
     console.error('Error adding comment to Airtable:', error);
-    
+
     return {
       statusCode: 500,
       body: JSON.stringify({

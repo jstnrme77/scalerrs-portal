@@ -1,5 +1,5 @@
 // Client-side API utility with fallbacks to mock data
-import { mockTasks, mockComments, mockUsers } from './mock-data';
+import { mockTasks, mockComments, mockUsers } from '@/lib/mock-data';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';

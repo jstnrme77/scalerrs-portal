@@ -31,7 +31,7 @@
   from = "/api/tasks"
   to = "/.netlify/functions/update-task"
   status = 200
-  method = "PATCH"
+  methods = ["PATCH", "PUT"]
 
 # Handle all other routes
 [[redirects]]
