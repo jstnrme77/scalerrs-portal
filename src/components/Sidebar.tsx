@@ -151,8 +151,8 @@ export default function Sidebar() {
       <div className={`flex items-center ${isExpanded ? 'justify-center' : 'justify-center'} h-16 border-b border-gray-700 overflow-hidden px-4 relative`}>
         {isExpanded ? (
           <>
-            <h1 className="text-2xl font-bold text-white">
-              <span>scalerrs</span>
+            <h1 className="text-2xl font-bold text-white text-center">
+              <span style={{ fontWeight: 900 }}>Scalerrs</span><span className="h-3 w-3 rounded-full bg-[#9EA8FB] inline-block ml-1 align-top mt-1"></span>
             </h1>
             <button
               onClick={toggleSidebar}
@@ -166,7 +166,9 @@ export default function Sidebar() {
           </>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-white">s</h1>
+            <h1 className="text-2xl font-bold text-white text-center">
+              <span style={{ fontWeight: 900 }}>S</span><span className="h-3 w-3 rounded-full bg-[#9EA8FB] inline-block ml-1 align-top mt-1"></span>
+            </h1>
             <button
               onClick={toggleSidebar}
               className="absolute right-3 text-gray-400 hover:text-white transition-colors"
