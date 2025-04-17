@@ -1,0 +1,6 @@
+# Netlify redirects file
+# Handle API routes
+/api/*  /.netlify/functions/nextjs-server/api/:splat  200
+
+# Handle all other routes - SPA fallback
+/*  /index.html  200
