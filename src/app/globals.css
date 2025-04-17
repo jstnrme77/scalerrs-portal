@@ -11,6 +11,21 @@
   --dark-gray: #181D27;
   --dark: #12131C;
   --border-radius: 16px;
+
+  /* Figma colors */
+  --brand-1: #9EA8FB;
+  --brand-2: #99A9FF;
+  --brand-accent: #EADCFF;
+  --brand-yellow: #FFF9DB;
+  --card-yellow: #FFF9DB;
+  --card-blue: #E8EAF6;
+  --card-purple: #EDE7F6;
+  --theme-dark-text: #FFFFFF;
+  --theme-dark-bg: #12131C;
+  --theme-dark-container: #353233;
+  --theme-light-text: #353233;
+  --theme-light-bg: #FFFFFF;
+  --button-text: #FFFFFF;
 }
 
 /* Theme variables */
@@ -227,6 +242,23 @@ button:hover {
 .bg-darkGray,
 div[class*="bg-"] {
   border-radius: 8px !important;
+}
+
+/* Card background colors */
+.bg-card-yellow {
+  background-color: var(--card-yellow);
+}
+
+.bg-card-blue {
+  background-color: var(--card-blue);
+}
+
+.bg-card-purple {
+  background-color: var(--card-purple);
+}
+
+.bg-brand-1-icon {
+  background-color: var(--brand-1);
 }
 
 /* Card-like elements */
