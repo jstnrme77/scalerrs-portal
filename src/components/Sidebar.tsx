@@ -152,7 +152,7 @@ export default function Sidebar() {
         {isExpanded ? (
           <>
             <h1 className="text-2xl font-bold text-white text-center">
-              <span style={{ fontWeight: 900 }}>Scalerrs</span><span className="h-3 w-3 rounded-full bg-[#9EA8FB] inline-block ml-1 align-top mt-1"></span>
+              <span style={{ fontWeight: 700, fontSize: '30px', fontFamily: 'Roboto', letterSpacing: '0.1rem' }}>Scalerrs</span><span style={{ color: '#9EA8FB', fontSize: '40px', marginLeft: '0.5px' }}>.</span>
             </h1>
             <button
               onClick={toggleSidebar}
@@ -167,7 +167,7 @@ export default function Sidebar() {
         ) : (
           <>
             <h1 className="text-2xl font-bold text-white text-center">
-              <span style={{ fontWeight: 900 }}>S</span><span className="h-3 w-3 rounded-full bg-[#9EA8FB] inline-block ml-1 align-top mt-1"></span>
+              <span style={{ fontWeight: 900 }}>S</span><span style={{ color: '#9EA8FB', fontSize: '28px', marginLeft: '1px' }}>.</span>
             </h1>
             <button
               onClick={toggleSidebar}
