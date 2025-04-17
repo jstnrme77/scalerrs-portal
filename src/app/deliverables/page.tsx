@@ -304,7 +304,7 @@ export default function Deliverables() {
               { id: 'backlinks', label: 'Backlinks' }
             ]}
             activeTab={mainTab}
-            onChange={setMainTab}
+            onChange={(tabId) => setMainTab(tabId as MainTab)}
             variant="primary"
           />
         </PageContainerTabs>
@@ -320,7 +320,7 @@ export default function Deliverables() {
                   { id: 'articles', label: 'Articles' }
                 ]}
                 activeTab={contentTab}
-                onChange={setContentTab}
+                onChange={(tabId) => setContentTab(tabId as ContentTab)}
                 variant="secondary"
               />
             </PageContainerTabs>

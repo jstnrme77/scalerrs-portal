@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTasks, updateTaskStatus } from '@/lib/airtable';
 
+// Configure for static export
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const tasks = await getTasks();
@@ -17,14 +21,14 @@ export async function GET() {
 export async function PATCH(request: NextRequest) {
   try {
     const { taskId, status } = await request.json();
-    
+
     if (!taskId || !status) {
       return NextResponse.json(
         { error: 'Task ID and status are required' },
         { status: 400 }
       );
     }
-    
+
     const updatedTask = await updateTaskStatus(taskId, status);
     return NextResponse.json({ task: updatedTask });
   } catch (error) {

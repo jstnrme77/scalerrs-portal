@@ -63,9 +63,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // For demo purposes, we'll accept any password
       // In a real app, you'd have a password field in Airtable and verify it here
 
-      // Save user to state and localStorage
-      setUser(user);
-      localStorage.setItem('scalerrs-user', JSON.stringify(user));
+      // Use type assertion to treat the user object as User type
+      // This assumes the Airtable record has the expected fields
+      const typedUser = user as unknown as User;
+
+      setUser(typedUser);
+      localStorage.setItem('scalerrs-user', JSON.stringify(typedUser));
       return true;
     } catch (err) {
       console.error('Login error:', err);
