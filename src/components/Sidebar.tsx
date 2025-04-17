@@ -148,11 +148,11 @@ export default function Sidebar() {
     <div
       className={`flex flex-col ${isExpanded ? 'w-64' : 'w-20'} bg-[#1E1E2D] text-white h-screen fixed left-0 top-0 border-r border-gray-700 transition-all duration-300 ease-in-out z-10`}
     >
-      <div className={`flex items-center ${isExpanded ? 'justify-center' : 'justify-center'} h-16 border-b border-gray-700 overflow-hidden px-4 relative`}>
+      <div className="h-16 border-b border-gray-700 overflow-hidden px-4 relative logo-container">
         {isExpanded ? (
           <>
             <h1 className="text-2xl font-bold text-white text-center">
-              <span style={{ fontWeight: 700, fontSize: '30px', fontFamily: 'Roboto', letterSpacing: '0.1rem' }}>Scalerrs</span><span style={{ color: '#9EA8FB', fontSize: '40px', marginLeft: '0.5px' }}>.</span>
+              <span className="logo-text text-[30px]">Scalerrs</span><span className="logo-dot text-[40px] inline-block">.</span>
             </h1>
             <button
               onClick={toggleSidebar}
@@ -167,7 +167,7 @@ export default function Sidebar() {
         ) : (
           <>
             <h1 className="text-2xl font-bold text-white text-center">
-              <span style={{ fontWeight: 900 }}>S</span><span style={{ color: '#9EA8FB', fontSize: '28px', marginLeft: '1px' }}>.</span>
+              <span className="font-roboto font-black">S</span><span className="logo-dot text-[28px] inline-block">.</span>
             </h1>
             <button
               onClick={toggleSidebar}

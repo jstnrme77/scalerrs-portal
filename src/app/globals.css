@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@400;700;900&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -302,4 +302,25 @@ div[class*="bg-"] {
 /* Additional dark mode overrides */
 .dark .bg-lightGray {
   background-color: #181D27 !important;
+}
+
+/* Logo styling */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-text {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.1rem;
+}
+
+.logo-dot {
+  color: #9EA8FB;
+  display: inline-block;
+  position: relative;
+  top: 3px; /* Adjusted to move the dot lower */
+  margin-left: -2px; /* Bring the dot slightly closer to the text */
 }
