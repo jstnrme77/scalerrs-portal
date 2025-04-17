@@ -10,6 +10,10 @@ type AccessItem = {
   service: string;
   username: string;
   password: string;
+  notes?: string;
+  lastUpdated?: string;
+  uploadedBy?: string;
+  editable?: boolean;
 };
 
 type ChangePasswordModalProps = {
@@ -29,24 +33,24 @@ export default function ChangePasswordModal({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate passwords
     if (newPassword.length < 8) {
       setError('Password must be at least 8 characters long');
       return;
     }
-    
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
+
     // Save the new password
     onSave(accessItem?.id || 0, newPassword);
-    
+
     // Reset form
     setNewPassword('');
     setConfirmPassword('');
@@ -54,9 +58,9 @@ export default function ChangePasswordModal({
     setError('');
     onClose();
   };
-  
+
   if (!isOpen || !accessItem) return null;
-  
+
   return (
     <Modal
       isOpen={isOpen}
@@ -71,18 +75,18 @@ export default function ChangePasswordModal({
             disabled
             className="bg-gray-50"
           />
-          
+
           <div>
             <label className="block text-sm font-medium text-mediumGray mb-1">New Password</label>
             <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"} 
+              <input
+                type={showPassword ? "text" : "password"}
                 className="w-full border border-lightGray rounded-scalerrs p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-primary"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
               />
-              <button 
+              <button
                 type="button"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 text-mediumGray"
                 onClick={() => setShowPassword(!showPassword)}
@@ -100,7 +104,7 @@ export default function ChangePasswordModal({
               </button>
             </div>
           </div>
-          
+
           <Input
             label="Confirm Password"
             type={showPassword ? "text" : "password"}
@@ -108,22 +112,22 @@ export default function ChangePasswordModal({
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password"
           />
-          
+
           {error && (
             <div className="text-red-500 text-sm">{error}</div>
           )}
         </div>
-        
+
         <div className="flex justify-end space-x-3 mt-6">
-          <Button 
-            type="button" 
+          <Button
+            type="button"
             variant="secondary"
             onClick={onClose}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             variant="primary"
           >
             Update Password

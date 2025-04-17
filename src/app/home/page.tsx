@@ -56,12 +56,20 @@ export default function Home() {
           <h1 className="text-4xl font-bold mb-2">{greeting}, {clientName}</h1>
           <p className="text-mediumGray">Welcome back. Here's where campaign stands this week.</p>
         </div>
-        <Link href="/help" className="flex items-center text-primary hover:underline">
-          <span>HELP</span>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
-        </Link>
+        <div className="flex space-x-4">
+          <Link href="/get-started" className="flex items-center text-[#F06292] hover:underline">
+            <span>GET STARTED</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </Link>
+          <Link href="/help" className="flex items-center text-primary hover:underline">
+            <span>HELP</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
+        </div>
       </div>
 
       {/* Campaign status summary */}
@@ -164,6 +172,19 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Get Started Guide */}
+        <div className="bg-[#FFECF0] p-6 rounded-lg flex flex-col h-full">
+          <h2 className="text-xl font-semibold mb-4">New to Scalerrs?</h2>
+          <p className="mb-2">Get set up quickly with our onboarding resources and guides.</p>
+          <p className="mb-1">• Watch the portal walkthrough</p>
+          <p className="mb-1">• Complete onboarding forms</p>
+          <p className="mb-1">• Review campaign roadmap</p>
+          <div className="mt-auto pt-4">
+            <Link href="/get-started" className="inline-block px-4 py-2 bg-white text-[#F06292] border border-[#F06292] rounded-md hover:bg-[#FFECF0]/50 transition-colors">
+              Get Started
+            </Link>
+          </div>
+        </div>
 
       </div>
     </div>

@@ -15,8 +15,16 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  // Disable SWC for compatibility with Bolt
-  swcMinify: false,
+  // Configure webpack for compatibility with Bolt
+  webpack: (config, { isServer }) => {
+    // Force using Babel for JS/TS files
+    config.module.rules.push({
+      test: /\.(js|jsx|ts|tsx)$/,
+      use: 'babel-loader',
+      exclude: /node_modules/,
+    });
+    return config;
+  },
 }
 
 module.exports = nextConfig
