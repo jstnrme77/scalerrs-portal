@@ -186,7 +186,7 @@ export async function fetchComments(taskId: string) {
 
     // Add a timeout to the fetch request
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout - increased for Airtable API
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -198,7 +198,15 @@ export async function fetchComments(taskId: string) {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      // Try to get more detailed error information
+      try {
+        const errorData = await response.json();
+        console.error('API error response:', errorData);
+        throw new Error(`API request failed with status ${response.status}: ${JSON.stringify(errorData)}`);
+      } catch (parseError) {
+        // If we can't parse the error response, just throw the status
+        throw new Error(`API request failed with status ${response.status}`);
+      }
     }
 
     const data = await response.json();

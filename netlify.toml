@@ -5,6 +5,11 @@
 
 [build.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # These are placeholders - actual values should be set in Netlify UI
+  AIRTABLE_API_KEY = "placeholder"
+  AIRTABLE_BASE_ID = "placeholder"
+  NEXT_PUBLIC_AIRTABLE_API_KEY = "placeholder"
+  NEXT_PUBLIC_AIRTABLE_BASE_ID = "placeholder"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

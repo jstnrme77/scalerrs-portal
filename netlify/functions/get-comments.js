@@ -16,14 +16,30 @@ exports.handler = async function(event, context) {
   }
 
   // Initialize Airtable with API key from environment variables
-  const apiKey = process.env.AIRTABLE_API_KEY;
-  const baseId = process.env.AIRTABLE_BASE_ID;
+  // Try both naming conventions for environment variables
+  const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+  const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+
+  // Log environment variables (without exposing full API key)
+  console.log('Environment check:');
+  console.log('AIRTABLE_API_KEY available:', process.env.AIRTABLE_API_KEY ? `Yes (starts with ${process.env.AIRTABLE_API_KEY.substring(0, 3)}...)` : 'No');
+  console.log('NEXT_PUBLIC_AIRTABLE_API_KEY available:', process.env.NEXT_PUBLIC_AIRTABLE_API_KEY ? `Yes (starts with ${process.env.NEXT_PUBLIC_AIRTABLE_API_KEY.substring(0, 3)}...)` : 'No');
+  console.log('AIRTABLE_BASE_ID available:', process.env.AIRTABLE_BASE_ID ? `Yes (${process.env.AIRTABLE_BASE_ID})` : 'No');
+  console.log('NEXT_PUBLIC_AIRTABLE_BASE_ID available:', process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID ? `Yes (${process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID})` : 'No');
+  console.log('Using API Key:', apiKey ? `Yes (starts with ${apiKey.substring(0, 3)}...)` : 'No');
+  console.log('Using Base ID:', baseId || 'None');
 
   if (!apiKey || !baseId) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: 'Airtable API key or Base ID not configured'
+        error: 'Airtable API key or Base ID not configured',
+        envVars: {
+          AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY ? 'Set' : 'Not set',
+          NEXT_PUBLIC_AIRTABLE_API_KEY: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY ? 'Set' : 'Not set',
+          AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID ? 'Set' : 'Not set',
+          NEXT_PUBLIC_AIRTABLE_BASE_ID: process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID ? 'Set' : 'Not set'
+        }
       })
     };
   }
@@ -120,12 +136,23 @@ exports.handler = async function(event, context) {
     };
   } catch (error) {
     console.error('Error fetching comments from Airtable:', error);
+    console.error('Error stack:', error.stack);
 
+    // Try to get more detailed error information
+    let errorDetails = error.message;
+    if (error.response) {
+      console.error('Airtable API response error:', error.response);
+      errorDetails = `${error.message} - API response: ${JSON.stringify(error.response)}`;
+    }
+
+    // Return a more detailed error response
     return {
       statusCode: 500,
       body: JSON.stringify({
         error: 'Failed to fetch comments from Airtable',
-        details: error.message
+        details: errorDetails,
+        taskId: taskId,
+        timestamp: new Date().toISOString()
       })
     };
   }
