@@ -10,16 +10,23 @@ import { mockTasks, mockComments } from '@/lib/mock-data';
 
 interface Task {
   id: string;
-  Name: string;
+  Name?: string;  // Make Name optional
+  Title?: string; // Add Title as an alternative
   Status: string;
   Description?: string;
+  AssignedTo?: string[];
+  Priority?: string;
 }
 
 interface Comment {
   id: string;
+  Title?: string;     // Add Title field
   Comment: string;
   CreatedAt: string;
   User: string[];
+  Task?: string[];    // Add Task field
+  'Created Time'?: string; // Add Created Time field from Airtable
+  [key: string]: any; // Allow any additional fields
 }
 
 export default function AirtableDemoPage() {
@@ -278,7 +285,7 @@ export default function AirtableDemoPage() {
                       onClick={() => setSelectedTask(task)}
                     >
                       <div className="flex justify-between items-center">
-                        <span className="font-medium">{task.Name}</span>
+                        <span className="font-medium">{task.Name || task.Title}</span>
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           task.Status === 'Completed'
                             ? 'bg-green-100 text-green-800'
@@ -299,7 +306,7 @@ export default function AirtableDemoPage() {
             <div className="bg-white dark:bg-darkGray rounded-scalerrs shadow p-4 md:col-span-2">
               {selectedTask ? (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">{selectedTask.Name}</h2>
+                  <h2 className="text-xl font-semibold mb-4">{selectedTask.Name || selectedTask.Title}</h2>
 
                   {selectedTask.Description && (
                     <p className="text-mediumGray mb-4">{selectedTask.Description}</p>
@@ -358,9 +365,19 @@ export default function AirtableDemoPage() {
 
                               {/* Display the date */}
                               <p className="text-xs text-mediumGray mt-1">
-                                {(comment.CreatedAt || comment['Created Time'])
-                                  ? new Date(comment.CreatedAt || comment['Created Time']).toLocaleString()
-                                  : 'No date available'}
+                                {(() => {
+                                  // Safely handle date conversion with proper type checking
+                                  const dateValue = comment.CreatedAt || comment['Created Time'];
+                                  if (dateValue) {
+                                    try {
+                                      return new Date(dateValue).toLocaleString();
+                                    } catch (e) {
+                                      console.error('Error parsing date:', dateValue, e);
+                                      return 'Invalid date';
+                                    }
+                                  }
+                                  return 'No date available';
+                                })()}
                               </p>
 
                               {/* Display the user */}

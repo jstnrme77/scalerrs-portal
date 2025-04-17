@@ -21,6 +21,7 @@ export const mockTasks = [
   {
     id: 'task1',
     Title: 'Sample Task 1',
+    Name: 'Sample Task 1',  // Add Name field to match interface
     Description: 'This is a sample task',
     Status: 'In Progress',
     AssignedTo: ['rec123'],
@@ -29,6 +30,7 @@ export const mockTasks = [
   {
     id: 'task2',
     Title: 'Sample Task 2',
+    Name: 'Sample Task 2',  // Add Name field to match interface
     Description: 'Another sample task',
     Status: 'Completed',
     AssignedTo: ['rec456'],

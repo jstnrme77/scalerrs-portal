@@ -109,6 +109,11 @@ export default function Sidebar() {
 
   // Function to check if a nav item is active
   const isNavItemActive = (href: string) => {
+    // If pathname is null, nothing is active
+    if (pathname === null) {
+      return false;
+    }
+
     // Special case for home
     if (href === '/home') {
       return pathname === '/' || pathname === '/home';
@@ -244,7 +249,7 @@ export default function Sidebar() {
       </div>
       {/* Debug indicator - only visible in development */}
       <div className="px-4 py-2 text-xs text-gray-500 border-t border-sidebar-border">
-        Current path: {pathname}
+        Current path: {pathname || 'No path'}
       </div>
     </div>
   );

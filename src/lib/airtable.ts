@@ -102,10 +102,24 @@ export async function getTasks() {
     const records = await base(TABLES.TASKS).select().all();
     console.log(`Successfully fetched ${records.length} tasks from Airtable`);
 
-    return records.map((record: any) => ({
-      id: record.id,
-      ...record.fields,
-    }));
+    return records.map((record: any) => {
+      const fields = record.fields;
+
+      // Ensure we have consistent field names
+      // If the record has Title but not Name, add Name as an alias
+      if (fields.Title && !fields.Name) {
+        fields.Name = fields.Title;
+      }
+      // If the record has Name but not Title, add Title as an alias
+      else if (fields.Name && !fields.Title) {
+        fields.Title = fields.Name;
+      }
+
+      return {
+        id: record.id,
+        ...fields,
+      };
+    });
   } catch (error) {
     console.error('Error fetching tasks from Airtable:', error);
     // Fall back to mock data
@@ -246,7 +260,7 @@ export async function getCommentsByTask(taskId: string) {
       console.log('No comments found with first approach, trying alternative...');
 
       // Try getting all comments and filtering manually
-      const allTaskComments = allComments.filter(record => {
+      const allTaskComments = allComments.filter((record: any) => {
         const taskField = record.fields.Task;
 
         // Log the task field to help debug
@@ -264,7 +278,7 @@ export async function getCommentsByTask(taskId: string) {
       console.log(`Found ${allTaskComments.length} comments with manual filtering`);
 
       if (allTaskComments.length > 0) {
-        return allTaskComments.map(record => ({
+        return allTaskComments.map((record: any) => ({
           id: record.id,
           ...record.fields,
           // Ensure we have the expected fields
@@ -318,6 +332,6 @@ export async function getCommentsByTask(taskId: string) {
     console.error('Error fetching comments from Airtable:', error);
     // Fall back to mock data
     console.log('Falling back to mock comments data for task:', taskId);
-    return mockComments.filter(comment => comment.Task.includes(taskId));
+    return mockComments.filter((comment: any) => comment.Task.includes(taskId));
   }
 }
