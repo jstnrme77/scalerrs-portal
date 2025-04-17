@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
+import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 
 // Sample approval data
 const approvalItems = {
@@ -505,73 +507,57 @@ export default function Approvals() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-grow">
           {/* Tab Navigation */}
-          <div className="border-b border-lightGray mb-6">
-            <div className="flex overflow-x-auto">
-              <button
-                className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${activeTab === 'keywords' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => setActiveTab('keywords')}
-              >
-                Keyword Plans
-              </button>
-              <button
-                className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${activeTab === 'briefs' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => setActiveTab('briefs')}
-              >
-                Briefs
-              </button>
-              <button
-                className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${activeTab === 'articles' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => setActiveTab('articles')}
-              >
-                Articles
-              </button>
-              <button
-                className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${activeTab === 'backlinks' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => setActiveTab('backlinks')}
-              >
-                Link Lists
-              </button>
-              <button
-                className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${activeTab === 'quickwins' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => setActiveTab('quickwins')}
-              >
-                Quick Wins
-              </button>
-            </div>
-          </div>
-
-          {/* Tab-level header */}
-          <div className="bg-white p-4 rounded-lg border border-lightGray mb-4 flex justify-between items-center">
-            <div>
-              <p className="font-medium">You have {tabReviewCount} item{tabReviewCount !== 1 ? 's' : ''} to review in this section</p>
-            </div>
-
-            {tabReviewCount > 0 && (
-              <div className="flex space-x-2">
-                <button className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-scalerrs hover:bg-primary/80 transition-colors">
-                  Approve All
-                </button>
-                <button className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors">
-                  Request Changes
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Table View */}
-          <div className="bg-white rounded-lg border border-lightGray overflow-hidden mb-6">
-            {filteredItems.length > 0 ? (
-              <ApprovalTable
-                items={filteredItems}
-                onApprove={handleApprove}
-                onRequestChanges={handleRequestChanges}
+          <PageContainer className="mb-6">
+            <PageContainerTabs>
+              <TabNavigation
+                tabs={[
+                  { id: 'keywords', label: 'Keyword Plans' },
+                  { id: 'briefs', label: 'Briefs' },
+                  { id: 'articles', label: 'Articles' },
+                  { id: 'backlinks', label: 'Link Lists' },
+                  { id: 'quickwins', label: 'Quick Wins' }
+                ]}
+                activeTab={activeTab}
+                onChange={setActiveTab}
+                variant="primary"
+                containerClassName="overflow-x-auto"
               />
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-mediumGray">No items found in this section.</p>
+            </PageContainerTabs>
+            <PageContainerBody>
+              {/* Tab-level header */}
+              <div className="mb-4 flex justify-between items-center">
+                <div>
+                  <p className="font-medium">You have {tabReviewCount} item{tabReviewCount !== 1 ? 's' : ''} to review in this section</p>
+                </div>
+
+                {tabReviewCount > 0 && (
+                  <div className="flex space-x-2">
+                    <button className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-scalerrs hover:bg-primary/80 transition-colors">
+                      Approve All
+                    </button>
+                    <button className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors">
+                      Request Changes
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* Table View */}
+              <div className="overflow-hidden">
+                {filteredItems.length > 0 ? (
+                  <ApprovalTable
+                    items={filteredItems}
+                    onApprove={handleApprove}
+                    onRequestChanges={handleRequestChanges}
+                  />
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-mediumGray">No items found in this section.</p>
+                  </div>
+                )}
+              </div>
+            </PageContainerBody>
+          </PageContainer>
         </div>
 
         {/* Sidebar Summary Panel (Desktop Only) */}

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ChevronDown } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import TabNavigation from '@/components/ui/navigation/TabNavigation';
+import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 
 // Sample report data
 const reports = {
@@ -456,31 +458,23 @@ export default function Reports() {
             </div>
           </div>
 
-          <div className="bg-white rounded-scalerrs shadow-sm border border-lightGray mb-8">
+          <PageContainer className="mb-8">
             {/* Tab Navigation */}
-            <div className="flex border-b border-lightGray">
-              <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'weekly' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => handleTabChange('weekly')}
-              >
-                Weekly
-              </button>
-              <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'monthly' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => handleTabChange('monthly')}
-              >
-                Monthly
-              </button>
-              <button
-                className={`px-6 py-3 text-sm font-medium ${activeTab === 'quarterly' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                onClick={() => handleTabChange('quarterly')}
-              >
-                Quarterly
-              </button>
-            </div>
+            <PageContainerTabs>
+              <TabNavigation
+                tabs={[
+                  { id: 'weekly', label: 'Weekly' },
+                  { id: 'monthly', label: 'Monthly' },
+                  { id: 'quarterly', label: 'Quarterly' }
+                ]}
+                activeTab={activeTab}
+                onChange={handleTabChange}
+                variant="primary"
+              />
+            </PageContainerTabs>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <PageContainerBody>
               {activeTab === 'weekly' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Timeframe Covered */}
@@ -968,8 +962,8 @@ export default function Reports() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+            </PageContainerBody>
+          </PageContainer>
 
           <div className="bg-lightGray p-4 rounded-scalerrs">
             <p className="text-sm text-mediumGray">

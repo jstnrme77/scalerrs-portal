@@ -6,6 +6,8 @@ import AdminAgreement from './AdminAgreement';
 import AdminResources from './AdminResources';
 import AdminAccess from './AdminAccess';
 import ChangePasswordModal from './ChangePasswordModal';
+import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
+import PageContainer, { PageContainerHeader, PageContainerBody } from '@/components/ui/layout/PageContainer';
 
 // Sample admin data
 const adminData = {
@@ -123,29 +125,20 @@ export default function Admin() {
         </div>
       )}
 
-      <div className="bg-white rounded-scalerrs shadow-sm border border-lightGray mb-8">
-        <div className="flex border-b border-lightGray overflow-x-auto">
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeTab === 'agreement' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveTab('agreement')}
-          >
-            Agreement
-          </button>
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeTab === 'access' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveTab('access')}
-          >
-            Access & Logins
-          </button>
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeTab === 'resources' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveTab('resources')}
-          >
-            Resources
-          </button>
-        </div>
+      <PageContainer className="mb-8">
+        <TabNavigation
+          tabs={[
+            { id: 'agreement', label: 'Agreement' },
+            { id: 'access', label: 'Access & Logins' },
+            { id: 'resources', label: 'Resources' }
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          variant="primary"
+          containerClassName="overflow-x-auto"
+        />
 
-        <div className="p-6">
+        <PageContainerBody>
           {activeTab === 'agreement' && (
             <AdminAgreement
               agreements={data.agreement}
@@ -173,8 +166,8 @@ export default function Admin() {
               onDownload={(id) => console.log(`Download resource ${id}`)}
             />
           )}
-        </div>
-      </div>
+        </PageContainerBody>
+      </PageContainer>
 
       {/* Modals */}
       <ChangePasswordModal

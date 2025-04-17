@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
+import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 
 // Define task types
 type TaskStatus = 'Not Started' | 'In Progress' | 'Blocked' | 'Done';
@@ -1017,35 +1019,26 @@ export default function TaskBoards() {
         </button>
       </div>
 
-      <div className="bg-white rounded-scalerrs shadow-sm border border-lightGray mb-6">
-        <div className="flex border-b border-lightGray">
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeBoard === 'cro' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveBoard('cro')}
-          >
-            CRO
-          </button>
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeBoard === 'technicalSEO' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveBoard('technicalSEO')}
-          >
-            Technical SEO
-          </button>
-          {showStrategyTab && (
-            <button
-              className={`px-6 py-3 text-sm font-medium ${activeBoard === 'strategyAdHoc' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-              onClick={() => setActiveBoard('strategyAdHoc')}
-            >
-              Strategy / Ad Hoc
-            </button>
-          )}
-        </div>
-      </div>
-
-      <TaskTable
-        tasks={currentTasks}
-        onStatusChange={handleStatusChange}
-      />
+      <PageContainer className="mb-6">
+        <PageContainerTabs>
+          <TabNavigation
+            tabs={[
+              { id: 'cro', label: 'CRO' },
+              { id: 'technicalSEO', label: 'Technical SEO' },
+              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', disabled: !showStrategyTab }
+            ]}
+            activeTab={activeBoard}
+            onChange={setActiveBoard}
+            variant="primary"
+          />
+        </PageContainerTabs>
+        <PageContainerBody>
+          <TaskTable
+            tasks={currentTasks}
+            onStatusChange={handleStatusChange}
+          />
+        </PageContainerBody>
+      </PageContainer>
 
       <div className="bg-lightGray p-4 rounded-scalerrs mt-8">
         <p className="text-sm text-mediumGray">

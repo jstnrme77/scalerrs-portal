@@ -8,6 +8,8 @@ import { ChevronDown } from 'lucide-react';
 import BriefColumn from '@/components/kanban/BriefColumn';
 import ArticleColumn from '@/components/kanban/ArticleColumn';
 import { Brief, BriefStatus, Article, ArticleStatus, BacklinkStatus, Month, ContentTab, MainTab, Backlink } from '@/types';
+import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
+import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 
 // Sample data for briefs
 const briefs: Brief[] = [
@@ -293,194 +295,182 @@ export default function Deliverables() {
         <MonthSelector selectedMonth={selectedMonth} onChange={setSelectedMonth} />
       </div>
 
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="border-b border-lightGray">
-          <div className="flex">
-            <button
-              className={`px-6 py-3 text-sm font-medium ${mainTab === 'content' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-              onClick={() => setMainTab('content')}
-            >
-              Content
-            </button>
-            <button
-              className={`px-6 py-3 text-sm font-medium ${mainTab === 'backlinks' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-              onClick={() => setMainTab('backlinks')}
-            >
-              Backlinks
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Main Tab Navigation */}
+      <PageContainer className="mb-6">
+        <PageContainerTabs>
+          <TabNavigation
+            tabs={[
+              { id: 'content', label: 'Content' },
+              { id: 'backlinks', label: 'Backlinks' }
+            ]}
+            activeTab={mainTab}
+            onChange={setMainTab}
+            variant="primary"
+          />
+        </PageContainerTabs>
 
-      {/* Content Tab */}
-      {mainTab === 'content' && (
-        <div>
-          {/* Content Sub-tabs */}
-          <div className="mb-6">
-            <div className="border-b border-lightGray">
-              <div className="flex">
-                <button
-                  className={`px-6 py-3 text-sm font-medium ${contentTab === 'briefs' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                  onClick={() => setContentTab('briefs')}
-                >
-                  Briefs
-                </button>
-                <button
-                  className={`px-6 py-3 text-sm font-medium ${contentTab === 'articles' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-                  onClick={() => setContentTab('articles')}
-                >
-                  Articles
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Content Tab */}
+        {mainTab === 'content' && (
+          <div>
+            {/* Content Sub-tabs */}
+            <PageContainerTabs className="border-t-0">
+              <TabNavigation
+                tabs={[
+                  { id: 'briefs', label: 'Briefs' },
+                  { id: 'articles', label: 'Articles' }
+                ]}
+                activeTab={contentTab}
+                onChange={setContentTab}
+                variant="secondary"
+              />
+            </PageContainerTabs>
 
-          {/* Progress Bar for Briefs */}
-          {contentTab === 'briefs' && (
+            <PageContainerBody>
+              {/* Progress Bar for Briefs */}
+              {contentTab === 'briefs' && (
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-dark mb-2">
+                    {selectedMonth}: {briefsApproved} of {filteredBriefs.length} briefs approved ({briefsProgress}%)
+                  </p>
+                  <div className="w-full bg-lightGray rounded-full h-2.5">
+                    <div
+                      className="bg-primary h-2.5 rounded-full"
+                      style={{ width: `${briefsProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Progress Bar for Articles */}
+              {contentTab === 'articles' && (
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-dark mb-2">
+                    {selectedMonth}: {articlesLive} of {filteredArticles.length} articles delivered ({articlesProgress}%)
+                  </p>
+                  <div className="w-full bg-lightGray rounded-full h-2.5">
+                    <div
+                      className="bg-primary h-2.5 rounded-full"
+                      style={{ width: `${articlesProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Briefs Kanban View */}
+              {contentTab === 'briefs' && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+                  {/* In Progress Column */}
+                  <BriefColumn
+                    title="In Progress"
+                    status="In Progress"
+                    briefs={filteredBriefs.filter(brief => brief.status === 'In Progress')}
+                    selectedMonth={selectedMonth}
+                    bgColor="bg-[#f8f9fa]"
+                    onStatusChange={handleBriefStatusChange}
+                  />
+
+                  {/* Needs Input Column */}
+                  <BriefColumn
+                    title="Needs Input"
+                    status="Needs Input"
+                    briefs={filteredBriefs.filter(brief => brief.status === 'Needs Input')}
+                    selectedMonth={selectedMonth}
+                    bgColor="bg-[#fff3cd]"
+                    onStatusChange={handleBriefStatusChange}
+                  />
+
+                  {/* Review Brief Column */}
+                  <BriefColumn
+                    title="Review Brief"
+                    status="Review Brief"
+                    briefs={filteredBriefs.filter(brief => brief.status === 'Review Brief')}
+                    selectedMonth={selectedMonth}
+                    bgColor="bg-[#cfe2ff]"
+                    onStatusChange={handleBriefStatusChange}
+                  />
+
+                  {/* Brief Approved Column */}
+                  <BriefColumn
+                    title="Brief Approved"
+                    status="Brief Approved"
+                    briefs={filteredBriefs.filter(brief => brief.status === 'Brief Approved')}
+                    selectedMonth={selectedMonth}
+                    bgColor="bg-[#d1e7dd]"
+                    onStatusChange={handleBriefStatusChange}
+                  />
+                </div>
+              )}
+
+              {/* Articles Kanban View */}
+              {contentTab === 'articles' && (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-6">
+                  {/* In Production Column */}
+                  <ArticleColumn
+                    title="In Production"
+                    status="In Production"
+                    articles={filteredArticles.filter(article => article.status === 'In Production')}
+                    bgColor="bg-[#f8f9fa]"
+                    onStatusChange={handleArticleStatusChange}
+                  />
+
+                  {/* Review Draft Column */}
+                  <ArticleColumn
+                    title="Review Draft"
+                    status="Review Draft"
+                    articles={filteredArticles.filter(article => article.status === 'Review Draft')}
+                    bgColor="bg-[#fff3cd]"
+                    onStatusChange={handleArticleStatusChange}
+                  />
+
+                  {/* Draft Approved Column */}
+                  <ArticleColumn
+                    title="Draft Approved"
+                    status="Draft Approved"
+                    articles={filteredArticles.filter(article => article.status === 'Draft Approved')}
+                    bgColor="bg-[#cfe2ff]"
+                    onStatusChange={handleArticleStatusChange}
+                  />
+
+                  {/* To Be Published Column */}
+                  <ArticleColumn
+                    title="To Be Published"
+                    status="To Be Published"
+                    articles={filteredArticles.filter(article => article.status === 'To Be Published')}
+                    bgColor="bg-[#e2e3e5]"
+                    onStatusChange={handleArticleStatusChange}
+                  />
+
+                  {/* Live Column */}
+                  <ArticleColumn
+                    title="Live"
+                    status="Live"
+                    articles={filteredArticles.filter(article => article.status === 'Live')}
+                    bgColor="bg-[#d1e7dd]"
+                    onStatusChange={handleArticleStatusChange}
+                  />
+                </div>
+              )}
+            </PageContainerBody>
+          </div>
+        )}
+
+        {/* Backlinks Tab */}
+        {mainTab === 'backlinks' && (
+          <PageContainerBody>
+            {/* Progress Bar for Backlinks */}
             <div className="mb-6">
               <p className="text-sm font-medium text-dark mb-2">
-                {selectedMonth}: {briefsApproved} of {filteredBriefs.length} briefs approved ({briefsProgress}%)
+                {selectedMonth}: {backlinksLive} links live ({backlinksProgress}%)
               </p>
               <div className="w-full bg-lightGray rounded-full h-2.5">
                 <div
                   className="bg-primary h-2.5 rounded-full"
-                  style={{ width: `${briefsProgress}%` }}
+                  style={{ width: `${backlinksProgress}%` }}
                 ></div>
               </div>
             </div>
-          )}
 
-          {/* Progress Bar for Articles */}
-          {contentTab === 'articles' && (
-            <div className="mb-6">
-              <p className="text-sm font-medium text-dark mb-2">
-                {selectedMonth}: {articlesLive} of {filteredArticles.length} articles delivered ({articlesProgress}%)
-              </p>
-              <div className="w-full bg-lightGray rounded-full h-2.5">
-                <div
-                  className="bg-primary h-2.5 rounded-full"
-                  style={{ width: `${articlesProgress}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-
-          {/* Briefs Kanban View */}
-          {contentTab === 'briefs' && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {/* In Progress Column */}
-              <BriefColumn
-                title="In Progress"
-                status="In Progress"
-                briefs={filteredBriefs.filter(brief => brief.status === 'In Progress')}
-                selectedMonth={selectedMonth}
-                bgColor="bg-[#f8f9fa]"
-                onStatusChange={handleBriefStatusChange}
-              />
-
-              {/* Needs Input Column */}
-              <BriefColumn
-                title="Needs Input"
-                status="Needs Input"
-                briefs={filteredBriefs.filter(brief => brief.status === 'Needs Input')}
-                selectedMonth={selectedMonth}
-                bgColor="bg-[#fff3cd]"
-                onStatusChange={handleBriefStatusChange}
-              />
-
-              {/* Review Brief Column */}
-              <BriefColumn
-                title="Review Brief"
-                status="Review Brief"
-                briefs={filteredBriefs.filter(brief => brief.status === 'Review Brief')}
-                selectedMonth={selectedMonth}
-                bgColor="bg-[#cfe2ff]"
-                onStatusChange={handleBriefStatusChange}
-              />
-
-              {/* Brief Approved Column */}
-              <BriefColumn
-                title="Brief Approved"
-                status="Brief Approved"
-                briefs={filteredBriefs.filter(brief => brief.status === 'Brief Approved')}
-                selectedMonth={selectedMonth}
-                bgColor="bg-[#d1e7dd]"
-                onStatusChange={handleBriefStatusChange}
-              />
-            </div>
-          )}
-
-          {/* Articles Kanban View */}
-          {contentTab === 'articles' && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              {/* In Production Column */}
-              <ArticleColumn
-                title="In Production"
-                status="In Production"
-                articles={filteredArticles.filter(article => article.status === 'In Production')}
-                bgColor="bg-[#f8f9fa]"
-                onStatusChange={handleArticleStatusChange}
-              />
-
-              {/* Review Draft Column */}
-              <ArticleColumn
-                title="Review Draft"
-                status="Review Draft"
-                articles={filteredArticles.filter(article => article.status === 'Review Draft')}
-                bgColor="bg-[#fff3cd]"
-                onStatusChange={handleArticleStatusChange}
-              />
-
-              {/* Draft Approved Column */}
-              <ArticleColumn
-                title="Draft Approved"
-                status="Draft Approved"
-                articles={filteredArticles.filter(article => article.status === 'Draft Approved')}
-                bgColor="bg-[#cfe2ff]"
-                onStatusChange={handleArticleStatusChange}
-              />
-
-              {/* To Be Published Column */}
-              <ArticleColumn
-                title="To Be Published"
-                status="To Be Published"
-                articles={filteredArticles.filter(article => article.status === 'To Be Published')}
-                bgColor="bg-[#e2e3e5]"
-                onStatusChange={handleArticleStatusChange}
-              />
-
-              {/* Live Column */}
-              <ArticleColumn
-                title="Live"
-                status="Live"
-                articles={filteredArticles.filter(article => article.status === 'Live')}
-                bgColor="bg-[#d1e7dd]"
-                onStatusChange={handleArticleStatusChange}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Backlinks Tab */}
-      {mainTab === 'backlinks' && (
-        <div>
-          {/* Progress Bar for Backlinks */}
-          <div className="mb-6">
-            <p className="text-sm font-medium text-dark mb-2">
-              {selectedMonth}: {backlinksLive} links live ({backlinksProgress}%)
-            </p>
-            <div className="w-full bg-lightGray rounded-full h-2.5">
-              <div
-                className="bg-primary h-2.5 rounded-full"
-                style={{ width: `${backlinksProgress}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Backlinks Table */}
-          <div className="bg-white p-6 rounded-scalerrs shadow-sm border border-lightGray">
+            {/* Backlinks Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-lightGray">
                 <thead>
@@ -526,38 +516,40 @@ export default function Deliverables() {
                 </tbody>
               </table>
             </div>
-          </div>
 
-          {/* Filter Controls */}
-          <div className="mt-4 flex flex-wrap gap-4">
-            <div>
-              <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
-              <select
-                className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                // onChange handler would be added here
-              >
-                <option value="all">All Statuses</option>
-                <option value="Live">Live</option>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
+            {/* Filter Controls */}
+            <div className="mt-4 flex flex-wrap gap-4">
+              <div>
+                <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
+                <select
+                  className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                  // onChange handler would be added here
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="Live">Live</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
-              <select
-                className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                // onChange handler would be added here
-              >
-                <option value="all">All DR</option>
-                <option value="50+">DR 50+</option>
-                <option value="60+">DR 60+</option>
-                <option value="70+">DR 70+</option>
-              </select>
+              <div>
+                <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
+                <select
+                  className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                  // onChange handler would be added here
+                >
+                  <option value="all">All DR</option>
+                  <option value="50+">DR 50+</option>
+                  <option value="60+">DR 60+</option>
+                  <option value="70+">DR 70+</option>
+                </select>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </PageContainerBody>
+        )}
+      </PageContainer>
+
+
     </DashboardLayout>
     </DndProvider>
   );

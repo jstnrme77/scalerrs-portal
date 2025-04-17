@@ -2,7 +2,9 @@
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { useState } from 'react';
-import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import TabNavigation from '@/components/ui/navigation/TabNavigation';
+import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 
 // Chart colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -217,31 +219,20 @@ function KpiDashboard() {
       </div>
 
       {/* KPI Dashboard Tabs */}
-      <div className="bg-white rounded-lg border border-lightGray mb-6">
-        <div className="flex border-b border-lightGray">
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeKpiTab === 'summary' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveKpiTab('summary')}
-          >
-            KPI Summary
-          </button>
-          <button
-            className={`px-6 py-3 text-sm font-medium ${activeKpiTab === 'forecasting' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-            onClick={() => setActiveKpiTab('forecasting')}
-          >
-            Forecasting Model
-          </button>
-          {kpiData.pageTypeBreakdown.enabled && (
-            <button
-              className={`px-6 py-3 text-sm font-medium ${activeKpiTab === 'breakdown' ? 'text-primary border-b-2 border-primary' : 'text-mediumGray hover:text-dark'}`}
-              onClick={() => setActiveKpiTab('breakdown')}
-            >
-              Breakdown by Page Type
-            </button>
-          )}
-        </div>
-
-        <div className="p-6">
+      <PageContainer className="mb-6">
+        <PageContainerTabs>
+          <TabNavigation
+            tabs={[
+              { id: 'summary', label: 'KPI Summary' },
+              { id: 'forecasting', label: 'Forecasting Model' },
+              { id: 'breakdown', label: 'Breakdown by Page Type', disabled: !kpiData.pageTypeBreakdown.enabled }
+            ]}
+            activeTab={activeKpiTab}
+            onChange={setActiveKpiTab}
+            variant="primary"
+          />
+        </PageContainerTabs>
+        <PageContainerBody>
           {/* KPI Summary Tab */}
           {activeKpiTab === 'summary' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -710,8 +701,8 @@ function KpiDashboard() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </PageContainerBody>
+      </PageContainer>
     </DashboardLayout>
   );
 }
