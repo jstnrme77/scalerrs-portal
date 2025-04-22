@@ -4,12 +4,13 @@
 
 ### UI Implementation
 - ✅ Created responsive sidebar with collapsible functionality
-- ✅ Implemented dark/light mode toggle
+- ✅ Implemented dark/light mode toggle (temporarily disabled)
 - ✅ Built dashboard layout with main content area
 - ✅ Created reusable UI components (buttons, cards, tabs)
 - ✅ Implemented page containers with consistent styling
 - ✅ Added proper webfonts for Scalerrs logo
 - ✅ Adjusted logo dot positioning for better visual appearance
+- ✅ Fixed logo color to use Tailwind classes instead of hardcoded values
 
 ### Pages
 - ✅ Home page with overview cards
@@ -46,6 +47,11 @@
 - 🔄 Enhancing real-time data synchronization
 - 🔄 Implementing more robust error handling
 
+### Bug Fixes & Optimizations
+- ✅ Fixed TypeScript null checks for pathname in Sidebar component
+- ✅ Resolved Netlify build errors related to type safety
+- 🔄 Improving type safety throughout the application
+
 ## Upcoming Tasks
 
 ### Performance Optimization
@@ -62,3 +68,6 @@
 - The project is currently on track with all major features implemented
 - Focus is now on refinement, optimization, and additional features
 - All pages are functional with proper styling and interactions
+- Theme switching has been temporarily disabled as requested
+- Fixed critical TypeScript errors that were preventing Netlify deployment
+- Using Tailwind classes for colors instead of hardcoded values for better maintainability
