@@ -9,6 +9,7 @@ interface GetStartedCardProps {
   buttonText: string;
   buttonColor: string;
   icon: React.ReactNode;
+  description?: string;
   onClick?: () => void;
   className?: string;
 }
@@ -19,23 +20,26 @@ export default function GetStartedCard({
   buttonText,
   buttonColor,
   icon,
+  description,
   onClick,
   className,
 }: GetStartedCardProps) {
   return (
     <div
       className={cn(
-        "card flex flex-col items-center p-6 rounded-lg h-full min-h-[280px]",
-        bgColor,
+        "card flex flex-col p-6 rounded-lg h-full min-h-[280px] bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
     >
-      <h2 className="text-xl font-semibold mb-6 text-center">{title}</h2>
-
-      <div className="flex justify-center items-center flex-grow mb-6">
+      <div className="flex items-start mb-4">
         {icon}
+        <h2 className="text-xl font-semibold ml-3">{title}</h2>
       </div>
+
+      {description && (
+        <p className="text-gray-600 mb-6 flex-grow">{description}</p>
+      )}
 
       <button
         onClick={onClick}
@@ -63,6 +67,7 @@ export function GuideCard({
   items,
   className,
   buttonText,
+  description,
   onClick,
 }: {
   title: string;
@@ -74,18 +79,30 @@ export function GuideCard({
   }[];
   className?: string;
   buttonText?: string;
+  description?: string;
   onClick?: () => void;
 }) {
   return (
     <div
       className={cn(
-        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col",
-        bgColor,
+        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
     >
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
+      <div className="flex items-start mb-4">
+        <div className="w-12 h-12 bg-[#e8eeff] rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#9ea8fb]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold ml-3">{title}</h2>
+      </div>
+
+      {description && (
+        <p className="text-gray-600 mb-4">{description}</p>
+      )}
+
       <div className="space-y-4 flex-grow">
         {items.map((item, index) => (
           <div key={index} className="flex items-center">
@@ -170,6 +187,7 @@ export function ChecklistCard({
   completedTasks,
   totalTasks,
   buttonText,
+  description,
   onClick,
   className,
 }: {
@@ -178,6 +196,7 @@ export function ChecklistCard({
   completedTasks: number;
   totalTasks: number;
   buttonText: string;
+  description?: string;
   onClick?: () => void;
   className?: string;
 }) {
@@ -186,16 +205,26 @@ export function ChecklistCard({
   return (
     <div
       className={cn(
-        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col",
-        bgColor,
+        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
     >
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
+      <div className="flex items-start mb-4">
+        <div className="w-12 h-12 bg-[#e8eeff] rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#9ea8fb]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold ml-3">{title}</h2>
+      </div>
+
+      {description && (
+        <p className="text-gray-600 mb-4">{description}</p>
+      )}
 
       <div className="flex-grow flex flex-col justify-center items-center mb-6">
-        <div className="relative w-32 h-32 mb-4">
+        <div className="relative w-24 h-24 mb-4">
           <svg className="w-full h-full" viewBox="0 0 100 100">
             {/* Background circle */}
             <circle
@@ -224,9 +253,6 @@ export function ChecklistCard({
             {completedTasks}/{totalTasks}
           </div>
         </div>
-        <p className="text-center text-gray-600">
-          {completedTasks} of {totalTasks} tasks completed
-        </p>
       </div>
 
       <button
