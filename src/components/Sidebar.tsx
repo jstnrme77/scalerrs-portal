@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import ThemeToggleWrapper from './ThemeToggleWrapper';
+// import ThemeToggleWrapper from './ThemeToggleWrapper';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -109,11 +109,6 @@ export default function Sidebar() {
 
   // Function to check if a nav item is active
   const isNavItemActive = (href: string) => {
-    // If pathname is null, nothing is active
-    if (pathname === null) {
-      return false;
-    }
-
     // Special case for home
     if (href === '/home') {
       return pathname === '/' || pathname === '/home';
@@ -151,17 +146,17 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`flex flex-col ${isExpanded ? 'w-64' : 'w-20'} bg-sidebar-bg text-sidebar-text h-screen fixed left-0 top-0 border-r border-sidebar-border transition-all duration-300 ease-in-out z-10`}
+      className={`flex flex-col ${isExpanded ? 'w-64' : 'w-20'} bg-[#1E1E2D] text-white h-screen fixed left-0 top-0 border-r border-gray-700 transition-all duration-300 ease-in-out z-10`}
     >
-      <div className="h-16 border-b border-sidebar-border overflow-hidden px-4 relative logo-container flex items-center justify-center text-center">
+      <div className={`flex items-center ${isExpanded ? 'justify-center' : 'justify-center'} h-16 border-b border-gray-700 overflow-hidden px-4 relative`}>
         {isExpanded ? (
           <>
-            <h1 className="text-2xl font-bold text-center sidebar-nav-link">
-              <span className="logo-text text-[30px]" style={{ color: '#353233' }}>Scalerrs</span><span className="logo-dot text-primary text-[40px] inline-block ml-1 relative top-1">.</span>
+            <h1 className="text-2xl font-bold text-white text-center">
+              <span style={{ fontWeight: 700, fontSize: '30px', fontFamily: 'Roboto', letterSpacing: '0.1rem' }}>Scalerrs</span><span className="text-primary" style={{ fontSize: '40px', marginLeft: '0.5px' }}>.</span>
             </h1>
             <button
               onClick={toggleSidebar}
-              className="text-gray-400 hover:text-text-light transition-colors absolute right-4"
+              className="text-gray-400 hover:text-white transition-colors absolute right-4"
               title="Collapse Sidebar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,12 +166,12 @@ export default function Sidebar() {
           </>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-center sidebar-nav-link">
-              <span className="font-roboto font-black" style={{ color: '#353233' }}>S</span><span className="logo-dot text-primary text-[28px] inline-block ml-1 relative top-1">.</span>
+            <h1 className="text-2xl font-bold text-white text-center">
+              <span style={{ fontWeight: 900 }}>S</span><span className="text-primary" style={{ fontSize: '28px', marginLeft: '1px' }}>.</span>
             </h1>
             <button
               onClick={toggleSidebar}
-              className="absolute right-3 text-gray-400 hover:text-text-light transition-colors"
+              className="absolute right-3 text-gray-400 hover:text-white transition-colors"
               title="Expand Sidebar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,10 +190,10 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`sidebar-nav-link group flex items-center ${isExpanded ? 'px-4' : 'justify-center'} py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`group flex items-center ${isExpanded ? 'px-4' : 'justify-center'} py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                   isActive
-                    ? 'bg-sidebar-active text-text-light shadow-md border-l-4 border-sidebar-active-border'
-                    : 'text-gray-300 hover:bg-sidebar-hover hover:text-text-light hover:border-l-4 hover:border-sidebar-active-border hover:shadow-sm'
+                    ? 'bg-[#2A2A3C] text-white shadow-md border-l-4 border-[#5e72e4]'
+                    : 'text-gray-300 hover:bg-[#2A2A3C] hover:text-white hover:border-l-4 hover:border-[#5e72e4] hover:shadow-sm'
                 }`}
                 title={item.name}
               >
@@ -211,16 +206,16 @@ export default function Sidebar() {
           })}
         </nav>
       </div>
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="p-4 border-t border-gray-700">
         <div className={`flex items-center ${isExpanded ? 'justify-between' : 'justify-center'}`}>
           {isExpanded ? (
             <>
-              <div className="flex items-center sidebar-nav-link">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-[#5e72e4] flex items-center justify-center text-white">
                   {user ? user.Name.charAt(0) : 'U'}
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-text-light">{user ? user.Name : 'User Name'}</p>
+                  <p className="text-sm font-medium text-white">{user ? user.Name : 'User Name'}</p>
                   <p className="text-xs text-gray-400">{user ? user.Email : 'user@company.com'}</p>
                 </div>
               </div>
@@ -230,26 +225,26 @@ export default function Sidebar() {
                     logout();
                     router.push('/login');
                   }}
-                  className="text-gray-400 hover:text-text-light transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                   title="Logout"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                 </button>
-                <ThemeToggleWrapper />
+                {/* Theme toggle disabled */}
               </div>
             </>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-full bg-[#5e72e4] flex items-center justify-center text-white">
               {user ? user.Name.charAt(0) : 'U'}
             </div>
           )}
         </div>
       </div>
       {/* Debug indicator - only visible in development */}
-      <div className="px-4 py-2 text-xs text-gray-500 border-t border-sidebar-border">
-        Current path: {pathname || 'No path'}
+      <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-700">
+        Current path: {pathname}
       </div>
     </div>
   );

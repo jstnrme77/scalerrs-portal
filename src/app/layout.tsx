@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { ThemeProvider } from 'next-themes'
+// import { ThemeProvider } from 'next-themes' - Theme switching disabled
 import { AuthProvider } from '@/context/AuthContext'
-import { themeScript } from './theme-script'
+// import { themeScript } from './theme-script' - Theme switching disabled
 
 export const metadata: Metadata = {
   title: 'Scalerrs Client Portal',
@@ -17,14 +17,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript() }} />
+        {/* Theme script disabled */}
       </head>
-      <body className="bg-white dark:bg-dark text-text-light dark:text-text-dark blue-glow-top-left blue-glow-bottom-right" suppressHydrationWarning>
-        <ThemeProvider attribute="class" enableSystem defaultTheme="system">
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+      <body className="bg-white text-text-light blue-glow-top-left blue-glow-bottom-right" suppressHydrationWarning>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
