@@ -169,9 +169,27 @@ const dateOptions = [
   { value: 'yearly', label: 'Yearly View' },
 ];
 
+// Year projection data for forecasting model
+const yearlyProjectionData = [
+  { month: 'Jan', current: 8000, target: 8000, required: 8000 },
+  { month: 'Feb', current: 9000, target: 9500, required: 9200 },
+  { month: 'Mar', current: 10000, target: 11000, required: 10500 },
+  { month: 'Apr', current: 11000, target: 12500, required: 12000 },
+  { month: 'May', current: 12000, target: 14000, required: 13500 },
+  { month: 'Jun', current: 13000, target: 15500, required: 15000 },
+  { month: 'Jul', current: 14000, target: 17000, required: 16500 },
+  { month: 'Aug', current: 15000, target: 18500, required: 18000 },
+  { month: 'Sep', current: 16000, target: 20000, required: 19500 },
+  { month: 'Oct', current: 17000, target: 21500, required: 21000 },
+  { month: 'Nov', current: 18000, target: 23000, required: 22500 },
+  { month: 'Dec', current: 19000, target: 24500, required: 24000 },
+];
+
 function KpiDashboard() {
   const [activeKpiTab, setActiveKpiTab] = useState('summary'); // 'summary', 'forecasting', or 'breakdown'
   const [selectedDateView, setSelectedDateView] = useState(dateOptions[0]);
+  const [showRequiredAdjustments, setShowRequiredAdjustments] = useState(true);
+  const [timeFrameFilter, setTimeFrameFilter] = useState('6months'); // '3months', '6months', '12months'
 
   return (
     <DashboardLayout>
@@ -201,7 +219,30 @@ function KpiDashboard() {
       </div>
 
       {/* Date Filter */}
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <span className="text-sm font-medium text-dark">Time Frame:</span>
+          <div className="inline-flex rounded-md shadow-sm">
+            <button
+              onClick={() => setTimeFrameFilter('3months')}
+              className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '3months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} rounded-l-md border border-gray-300`}
+            >
+              3 Months
+            </button>
+            <button
+              onClick={() => setTimeFrameFilter('6months')}
+              className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '6months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border-t border-b border-gray-300`}
+            >
+              6 Months
+            </button>
+            <button
+              onClick={() => setTimeFrameFilter('12months')}
+              className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '12months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} rounded-r-md border border-gray-300`}
+            >
+              Full Year
+            </button>
+          </div>
+        </div>
         <div className="inline-flex rounded-md shadow-sm">
           {dateOptions.map((option) => (
             <button
@@ -235,223 +276,260 @@ function KpiDashboard() {
         <PageContainerBody>
           {/* KPI Summary Tab */}
           {activeKpiTab === 'summary' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {kpiData.summary.kpiCards.map((card, index) => (
-                <div key={index} className="bg-white p-5 rounded-lg border border-lightGray shadow-sm relative group">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center">
-                      <h4 className="text-sm font-medium text-dark">{card.title}</h4>
-                      <div className="relative ml-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-mediumGray cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div className="absolute left-0 bottom-full mb-2 w-48 bg-dark text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                          {card.tooltip}
+            <div className="space-y-6">
+              {/* Progress Bar at the top - more prominent */}
+              <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                <h4 className="font-medium text-dark mb-3">Overall KPI Progress</h4>
+                <div className="relative pt-1">
+                  <div className="flex mb-2 items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-blue-100">
+                        {kpiData.summary.status === 'success' ? 'On Track' : kpiData.summary.status === 'warning' ? 'At Risk' : 'Off Track'}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold inline-block text-primary">
+                        {kpiData.summary.currentProgress}% of Q2 Goal
+                      </span>
+                    </div>
+                  </div>
+                  <div className="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-blue-100">
+                    <div
+                      style={{ width: `${kpiData.summary.currentProgress}%` }}
+                      className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center rounded-full ${kpiData.summary.status === 'success' ? 'bg-green-500' : kpiData.summary.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'}`}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-mediumGray">
+                    <span>Current Progress</span>
+                    <span>Annual Projection: {kpiData.summary.annualProjection}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stacked KPI Cards */}
+              <div className="grid grid-cols-1 gap-6">
+                {kpiData.summary.kpiCards.map((card, index) => (
+                  <div key={index} className="bg-white p-5 rounded-lg border border-lightGray shadow-sm relative group">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center">
+                        <h4 className="text-base font-medium text-dark">{card.title}</h4>
+                        <div className="relative ml-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-mediumGray cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div className="absolute left-0 bottom-full mb-2 w-48 bg-dark text-white text-xs rounded p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                            {card.tooltip}
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`flex items-center text-sm ${card.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+                        {card.trend === 'up' ? (
+                          <span>↑ {card.delta}%</span>
+                        ) : (
+                          <span>↓ {card.delta}%</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Current and Projected Metrics Side by Side */}
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <div className="text-xs text-mediumGray mb-1">Current</div>
+                        <div className="text-2xl font-bold text-dark">
+                          {card.unit === '$' && '$'}{card.current.toLocaleString()}{card.unit === '%' && '%'}
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <div className="text-xs text-mediumGray mb-1">Target</div>
+                        <div className="text-2xl font-bold text-dark">
+                          {card.unit === '$' && '$'}{card.target.toLocaleString()}{card.unit === '%' && '%'}
                         </div>
                       </div>
                     </div>
-                    <div className={`flex items-center text-xs ${card.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                      {card.trend === 'up' ? (
-                        <span>↑ {card.delta}%</span>
-                      ) : (
-                        <span>↓ {card.delta}%</span>
-                      )}
+
+                    {/* Gap Analysis */}
+                    <div className="bg-amber-50 p-3 rounded-lg mb-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-mediumGray">Gap to close:</span>
+                        <span className="font-medium text-dark">{Math.round((card.target - card.current) / card.target * 100)}%</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-lightGray rounded-full h-2.5">
+                      <div
+                        className={`h-2.5 rounded-full ${card.color === 'blue' ? 'bg-blue-500' : card.color === 'green' ? 'bg-green-500' : card.color === 'purple' ? 'bg-purple-500' : 'bg-amber-500'}`}
+                        style={{ width: `${(card.current / card.target) * 100}%` }}
+                      ></div>
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-dark mb-2">
-                    {card.unit === '$' && '$'}{card.current.toLocaleString()}{card.unit === '%' && '%'}
-                  </div>
-                  <div className="flex items-center text-xs text-mediumGray mb-2">
-                    <span className="mr-1">Target:</span>
-                    <span>{card.unit === '$' && '$'}{card.target.toLocaleString()}{card.unit === '%' && '%'}</span>
-                  </div>
-                  <div className="w-full bg-lightGray rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full ${card.color === 'blue' ? 'bg-blue-500' : card.color === 'green' ? 'bg-green-500' : card.color === 'purple' ? 'bg-purple-500' : 'bg-amber-500'}`}
-                      style={{ width: `${(card.current / card.target) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
           {/* Forecasting Model Tab */}
           {activeKpiTab === 'forecasting' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Card 1 - Forecast Based on Current Resources */}
+            <div className="space-y-6">
+              {/* Main Visualization Chart - Full Year Projection */}
               <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-                <h4 className="font-medium text-dark mb-3">Forecast Based on Current Resources</h4>
-                <div className="space-y-4">
-                  {/* Projected Outcomes */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h5 className="font-medium text-dark mb-2">Projected Outcomes</h5>
-                    <ul className="space-y-2 text-sm text-mediumGray">
-                      <li className="flex justify-between">
-                        <span>Total Forecasted Traffic:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.currentResources.projectedTraffic.toLocaleString()}</span>
-                      </li>
-                      <li className="flex justify-between">
-                        <span>Forecasted Leads:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.currentResources.projectedLeads}</span>
-                      </li>
-                      <li className="flex justify-between">
-                        <span>% of Target:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.currentResources.targetPercentage}%</span>
-                      </li>
-                    </ul>
-                    <p className="mt-2 text-xs text-mediumGray">Expected to reach {kpiData.forecasting.currentResources.targetPercentage}% of Q3 traffic goal at current pacing</p>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-medium text-dark">Traffic Projection Visualization</h4>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span className="text-xs text-mediumGray mr-3">Current</span>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-xs text-mediumGray mr-3">Target</span>
+                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <span className="text-xs text-mediumGray">Required</span>
                   </div>
-
-                  {/* Deliverable Breakdown */}
-                  <div>
-                    <h5 className="font-medium text-dark mb-2">Deliverable Breakdown</h5>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="p-3 bg-blue-50 rounded-lg text-center">
-                        <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.briefs}</div>
-                        <div className="text-xs text-mediumGray">Briefs/month</div>
-                      </div>
-                      <div className="p-3 bg-green-50 rounded-lg text-center">
-                        <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.backlinks}</div>
-                        <div className="text-xs text-mediumGray">Backlinks/month</div>
-                      </div>
-                      <div className="p-3 bg-purple-50 rounded-lg text-center">
-                        <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.techFixes}</div>
-                        <div className="text-xs text-mediumGray">Tech fixes</div>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-xs text-mediumGray flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>Assumes avg 500 visits/post, 1.7% CVR, DR 60 = +2 positions</span>
-                    </div>
-                  </div>
-
-                  {/* Visual Pacing Bar */}
-                  <div>
-                    <h5 className="font-medium text-dark mb-2">Progress Toward Goal</h5>
-                    <div className="relative pt-1">
-                      <div className="flex mb-2 items-center justify-between">
-                        <div>
-                          <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-amber-600 bg-amber-200">
-                            At Risk
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-xs font-semibold inline-block text-amber-600">
-                            {kpiData.forecasting.currentResources.targetPercentage}%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-amber-200">
-                        <div style={{ width: `${kpiData.forecasting.currentResources.targetPercentage}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-amber-500"></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-mediumGray">
-                        <span>Current Forecast</span>
-                        <span>Target</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Timeline Estimate */}
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-mediumGray">At this pace, you're projected to reach these outcomes by <span className="font-medium text-dark">{kpiData.forecasting.currentResources.timeline}</span>.</p>
-                  </div>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={timeFrameFilter === '3months'
+                        ? yearlyProjectionData.slice(0, 3)
+                        : timeFrameFilter === '6months'
+                          ? yearlyProjectionData.slice(0, 6)
+                          : yearlyProjectionData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value) => value.toLocaleString()} />
+                      <Legend />
+                      <Line type="monotone" dataKey="current" name="Current Trajectory" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                      <Line type="monotone" dataKey="target" name="KPI Goal" stroke="#22c55e" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                      <Line type="monotone" dataKey="required" name="Required Output" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-2 text-xs text-mediumGray flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Projections based on current growth rate and historical performance</span>
                 </div>
               </div>
 
-              {/* Card 2 - Forecast Based on Agreed KPI Targets */}
-              <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-                <h4 className="font-medium text-dark mb-3">To Reach Agreed KPIs</h4>
-                <p className="text-sm text-mediumGray mb-4">What would need to change to stay aligned with your campaign goals.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Card 1 - Forecast Based on Current Resources */}
+                <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                  <h4 className="font-medium text-dark mb-3">Current Forecast</h4>
+                  <div className="space-y-4">
+                    {/* Projected Outcomes */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h5 className="font-medium text-dark mb-2">Projected Outcomes</h5>
+                      <ul className="space-y-2 text-sm text-mediumGray">
+                        <li className="flex justify-between">
+                          <span>Total Forecasted Traffic:</span>
+                          <span className="font-medium text-dark">{kpiData.forecasting.currentResources.projectedTraffic.toLocaleString()}</span>
+                        </li>
+                        <li className="flex justify-between">
+                          <span>Forecasted Leads:</span>
+                          <span className="font-medium text-dark">{kpiData.forecasting.currentResources.projectedLeads}</span>
+                        </li>
+                        <li className="flex justify-between">
+                          <span>% of Target:</span>
+                          <span className="font-medium text-dark">{kpiData.forecasting.currentResources.targetPercentage}%</span>
+                        </li>
+                      </ul>
+                    </div>
 
-                <div className="space-y-4">
-                  {/* Target KPI Summary */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h5 className="font-medium text-dark mb-2">Target KPI Summary</h5>
-                    <ul className="space-y-2 text-sm text-mediumGray">
-                      <li className="flex justify-between">
-                        <span>Target Traffic:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.targetTraffic.toLocaleString()}</span>
-                      </li>
-                      <li className="flex justify-between">
-                        <span>Target Leads:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.targetLeads}</span>
-                      </li>
-                      <li className="flex justify-between">
-                        <span>End Date:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.endDate}</span>
-                      </li>
-                    </ul>
+                    {/* Deliverable Breakdown */}
+                    <div>
+                      <h5 className="font-medium text-dark mb-2">Current Monthly Deliverables</h5>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="p-3 bg-blue-50 rounded-lg text-center">
+                          <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.briefs}</div>
+                          <div className="text-xs text-mediumGray">Briefs</div>
+                        </div>
+                        <div className="p-3 bg-green-50 rounded-lg text-center">
+                          <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.backlinks}</div>
+                          <div className="text-xs text-mediumGray">Backlinks</div>
+                        </div>
+                        <div className="p-3 bg-purple-50 rounded-lg text-center">
+                          <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.techFixes}</div>
+                          <div className="text-xs text-mediumGray">Tech fixes</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timeline Estimate */}
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-mediumGray">At this pace, you're projected to reach these outcomes by <span className="font-medium text-dark">{kpiData.forecasting.currentResources.timeline}</span>.</p>
+                    </div>
                   </div>
+                </div>
 
-                  {/* Gap Analysis */}
-                  <div className="p-4 bg-amber-50 rounded-lg">
-                    <h5 className="font-medium text-dark mb-2">Gap Analysis</h5>
+                {/* Card 2 - Target KPIs and Gap Analysis */}
+                <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
+                  <h4 className="font-medium text-dark mb-3">Target KPIs</h4>
+                  <div className="space-y-4">
+                    {/* Target KPI Summary */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h5 className="font-medium text-dark mb-2">Agreed Targets</h5>
+                      <ul className="space-y-2 text-sm text-mediumGray">
+                        <li className="flex justify-between">
+                          <span>Target Traffic:</span>
+                          <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.targetTraffic.toLocaleString()}</span>
+                        </li>
+                        <li className="flex justify-between">
+                          <span>Target Leads:</span>
+                          <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.targetLeads}</span>
+                        </li>
+                        <li className="flex justify-between">
+                          <span>End Date:</span>
+                          <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.endDate}</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Gap Analysis */}
+                    <div className="p-4 bg-amber-50 rounded-lg">
+                      <h5 className="font-medium text-dark mb-2">Gap Analysis</h5>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-mediumGray">Gap to close:</span>
+                        <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.gap.percentage}%</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-sm text-mediumGray">Estimated shortfall:</span>
+                        <span className="font-medium text-dark">~{kpiData.forecasting.agreedTargets.gap.shortfall.toLocaleString()} visits</span>
+                      </div>
+                    </div>
+
+                    {/* Toggle for Required Adjustments */}
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-mediumGray">Gap to close:</span>
-                      <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.gap.percentage}%</span>
+                      <h5 className="font-medium text-dark">Required Adjustments</h5>
+                      <button
+                        onClick={() => setShowRequiredAdjustments(!showRequiredAdjustments)}
+                        className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-mediumGray"
+                      >
+                        {showRequiredAdjustments ? 'Hide' : 'Show'}
+                      </button>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-sm text-mediumGray">Estimated shortfall:</span>
-                      <span className="font-medium text-dark">~{kpiData.forecasting.agreedTargets.gap.shortfall.toLocaleString()} visits</span>
-                    </div>
-                  </div>
 
-                  {/* Required Adjustments */}
-                  <div>
-                    <h5 className="font-medium text-dark mb-2">Required Adjustments</h5>
-                    <div className="space-y-2">
-                      <div className="flex justify-between p-2 bg-gray-50 rounded">
-                        <span className="text-sm text-mediumGray">Deliverables:</span>
-                        <span className="font-medium text-dark">+{kpiData.forecasting.agreedTargets.requiredAdjustments.content} briefs / month</span>
+                    {/* Required Adjustments - Collapsible */}
+                    {showRequiredAdjustments && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm text-mediumGray">Deliverables:</span>
+                          <span className="font-medium text-dark">+{kpiData.forecasting.agreedTargets.requiredAdjustments.content} briefs / month</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm text-mediumGray">Timeline:</span>
+                          <span className="font-medium text-dark">+{kpiData.forecasting.agreedTargets.requiredAdjustments.timeline} months</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm text-mediumGray">Conversion Rate:</span>
+                          <span className="font-medium text-dark">↑ from {kpiData.forecasting.agreedTargets.requiredAdjustments.conversionRate.current}% → {kpiData.forecasting.agreedTargets.requiredAdjustments.conversionRate.required}%</span>
+                        </div>
+                        <div className="mt-2 text-xs text-mediumGray">
+                          <p className="italic">Note: These adjustments are manually entered and can be updated based on strategic discussions.</p>
+                        </div>
                       </div>
-                      <div className="flex justify-between p-2 bg-gray-50 rounded">
-                        <span className="text-sm text-mediumGray">Timeline:</span>
-                        <span className="font-medium text-dark">+{kpiData.forecasting.agreedTargets.requiredAdjustments.timeline} months</span>
-                      </div>
-                      <div className="flex justify-between p-2 bg-gray-50 rounded">
-                        <span className="text-sm text-mediumGray">Conversion Rate:</span>
-                        <span className="font-medium text-dark">↑ from {kpiData.forecasting.agreedTargets.requiredAdjustments.conversionRate.current}% → {kpiData.forecasting.agreedTargets.requiredAdjustments.conversionRate.required}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Visual Comparison Chart */}
-                  <div>
-                    <h5 className="font-medium text-dark mb-2">Trajectory Comparison</h5>
-                    <div className="h-40">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={[
-                            { month: 'Apr', current: 8000, target: 8000, required: 8000 },
-                            { month: 'May', current: 10000, target: 12000, required: 11000 },
-                            { month: 'Jun', current: 12000, target: 16000, required: 14000 },
-                            { month: 'Jul', current: 13500, target: 19000, required: 17000 },
-                            { month: 'Aug', current: 14500, target: 22000, required: 20000 },
-                          ]}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="month" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="current" name="Current Trajectory" stroke="#8884d8" />
-                          <Line type="monotone" dataKey="target" name="KPI Goal" stroke="#82ca9d" />
-                          <Line type="monotone" dataKey="required" name="Required Output" stroke="#ffc658" strokeDasharray="5 5" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  {/* Internal Tooltip */}
-                  <div className="mt-2 text-xs text-mediumGray flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>This assumes content starts compounding 45 days post-publish</span>
+                    )}
                   </div>
                 </div>
               </div>
