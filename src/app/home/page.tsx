@@ -3,9 +3,8 @@
 import Link from 'next/link';
 
 export default function Home() {
-
   return (
-    <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-6">
+    <>
       <div className="space-y-4">
         <p className="text-lg text-[#12131C] dark:text-gray-300">Welcome back. Here's where campaign stands this week.</p>
 
@@ -143,6 +142,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </>
   );
 }

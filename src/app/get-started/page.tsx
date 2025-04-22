@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export default function GetStartedPage() {
   return (
-      <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-6">
+    <>
         <div className="space-y-4">
           <h1 className="text-2xl font-bold text-[#12131C]">Get Started</h1>
           <p className="text-lg text-[#12131C]">Help clients get set up quickly, and learn how to use the portal.</p>
@@ -207,6 +207,7 @@ export default function GetStartedPage() {
             </button>
           </div>
         </div>
-      </main>
+
+    </>
   );
 }

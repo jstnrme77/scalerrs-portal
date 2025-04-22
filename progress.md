@@ -48,6 +48,7 @@
 - ✅ Updated notification icons to use exclamation points in circles
 - ✅ Reorganized UI navigation elements for better usability
 - ✅ Removed TopNavBar space from all pages except the home page
+- ✅ Standardized padding across all pages to match the Get Started page
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -86,3 +87,4 @@
 - Updated notification icons to use exclamation points in circles for better visibility
 - Reorganized navigation elements to improve usability and information architecture
 - Modified the DashboardLayout component to conditionally show TopNavBar space only on the home page
+- Created a PageWrapper component to standardize padding across all pages

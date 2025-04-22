@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import TopNavBar from './TopNavBar';
 import ProtectedRoute from './ProtectedRoute';
+import PageWrapper from './PageWrapper';
 import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
@@ -33,9 +34,11 @@ export default function DashboardLayout({
       <div className="flex min-h-screen bg-lightGray dark:bg-dark">
         <Sidebar />
         <TopNavBar sidebarExpanded={sidebarExpanded} />
-        <main className={`flex-1 ${isHomePage ? 'pt-20' : 'pt-0'} px-6 pb-6 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
-          {children}
-        </main>
+        <div className={`flex-1 ${isHomePage ? 'pt-20' : 'pt-0'} transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
+          <PageWrapper>
+            {children}
+          </PageWrapper>
+        </div>
       </div>
     </ProtectedRoute>
   );
