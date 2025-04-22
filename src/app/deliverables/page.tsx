@@ -314,90 +314,108 @@ export default function Deliverables() {
           <div>
             {/* Content Sub-tabs */}
             <PageContainerTabs className="border-t-0">
-              <TabNavigation
-                tabs={[
-                  { id: 'briefs', label: 'Briefs' },
-                  { id: 'articles', label: 'Articles' }
-                ]}
-                activeTab={contentTab}
-                onChange={(tabId) => setContentTab(tabId as ContentTab)}
-                variant="secondary"
-              />
+              <div className="flex justify-between items-center w-full">
+                <TabNavigation
+                  tabs={[
+                    { id: 'briefs', label: 'Briefs' },
+                    { id: 'articles', label: 'Articles' }
+                  ]}
+                  activeTab={contentTab}
+                  onChange={(tabId) => setContentTab(tabId as ContentTab)}
+                  variant="secondary"
+                />
+                <div className="flex items-center">
+                  <button className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-1.5 mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Show only my tasks
+                  </button>
+                  <button className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                    Inbox
+                  </button>
+                </div>
+              </div>
             </PageContainerTabs>
 
             <PageContainerBody>
-              {/* Progress Bar for Briefs */}
+              {/* Briefs View */}
               {contentTab === 'briefs' && (
-                <div className="mb-6">
-                  <p className="text-sm font-medium text-dark mb-2">
-                    {selectedMonth}: {briefsApproved} of {filteredBriefs.length} briefs approved ({briefsProgress}%)
-                  </p>
-                  <div className="w-full bg-lightGray rounded-full h-2.5">
-                    <div
-                      className="bg-primary h-2.5 rounded-full"
-                      style={{ width: `${briefsProgress}%` }}
-                    ></div>
+                <div>
+                  {/* Status Summary */}
+                  <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                      <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center mr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium">2 drafts need your decision</p>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-2">
+                      <p className="text-sm text-gray-600 mb-1">
+                        {selectedMonth}: {briefsApproved} of {filteredBriefs.length} briefs approved ({briefsProgress}%)
+                      </p>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className="bg-primary h-1.5 rounded-full"
+                          style={{ width: `${briefsProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Progress Bar for Articles */}
-              {contentTab === 'articles' && (
-                <div className="mb-6">
-                  <p className="text-sm font-medium text-dark mb-2">
-                    {selectedMonth}: {articlesLive} of {filteredArticles.length} articles delivered ({articlesProgress}%)
-                  </p>
-                  <div className="w-full bg-lightGray rounded-full h-2.5">
-                    <div
-                      className="bg-primary h-2.5 rounded-full"
-                      style={{ width: `${articlesProgress}%` }}
-                    ></div>
+                  {/* Kanban Board */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {/* Needs Your Review Column */}
+                    <BriefColumn
+                      title="Needs Your Review"
+                      status="Review Brief"
+                      briefs={filteredBriefs.filter(brief => brief.status === 'Review Brief')}
+                      selectedMonth={selectedMonth}
+                      bgColor="bg-[#f9f0ff]"
+                      onStatusChange={handleBriefStatusChange}
+                      count={2}
+                    />
+
+                    {/* In Progress Column */}
+                    <BriefColumn
+                      title="In Progress"
+                      status="In Progress"
+                      briefs={filteredBriefs.filter(brief => brief.status === 'In Progress')}
+                      selectedMonth={selectedMonth}
+                      bgColor="bg-[#f0f4ff]"
+                      onStatusChange={handleBriefStatusChange}
+                      count={1}
+                    />
+
+                    {/* Needs Input Column */}
+                    <BriefColumn
+                      title="Needs Input"
+                      status="Needs Input"
+                      briefs={filteredBriefs.filter(brief => brief.status === 'Needs Input')}
+                      selectedMonth={selectedMonth}
+                      bgColor="bg-white"
+                      onStatusChange={handleBriefStatusChange}
+                      count={0}
+                    />
+
+                    {/* Brief Approved Column */}
+                    <BriefColumn
+                      title="Brief Approved"
+                      status="Brief Approved"
+                      briefs={filteredBriefs.filter(brief => brief.status === 'Brief Approved')}
+                      selectedMonth={selectedMonth}
+                      bgColor="bg-[#f0fff4]"
+                      onStatusChange={handleBriefStatusChange}
+                      count={3}
+                    />
                   </div>
-                </div>
-              )}
-
-              {/* Briefs Kanban View */}
-              {contentTab === 'briefs' && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-                  {/* In Progress Column */}
-                  <BriefColumn
-                    title="In Progress"
-                    status="In Progress"
-                    briefs={filteredBriefs.filter(brief => brief.status === 'In Progress')}
-                    selectedMonth={selectedMonth}
-                    bgColor="bg-[#f8f9fa]"
-                    onStatusChange={handleBriefStatusChange}
-                  />
-
-                  {/* Needs Input Column */}
-                  <BriefColumn
-                    title="Needs Input"
-                    status="Needs Input"
-                    briefs={filteredBriefs.filter(brief => brief.status === 'Needs Input')}
-                    selectedMonth={selectedMonth}
-                    bgColor="bg-[#fff3cd]"
-                    onStatusChange={handleBriefStatusChange}
-                  />
-
-                  {/* Review Brief Column */}
-                  <BriefColumn
-                    title="Review Brief"
-                    status="Review Brief"
-                    briefs={filteredBriefs.filter(brief => brief.status === 'Review Brief')}
-                    selectedMonth={selectedMonth}
-                    bgColor="bg-[#cfe2ff]"
-                    onStatusChange={handleBriefStatusChange}
-                  />
-
-                  {/* Brief Approved Column */}
-                  <BriefColumn
-                    title="Brief Approved"
-                    status="Brief Approved"
-                    briefs={filteredBriefs.filter(brief => brief.status === 'Brief Approved')}
-                    selectedMonth={selectedMonth}
-                    bgColor="bg-[#d1e7dd]"
-                    onStatusChange={handleBriefStatusChange}
-                  />
                 </div>
               )}
 

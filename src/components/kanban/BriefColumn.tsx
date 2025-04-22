@@ -9,6 +9,7 @@ interface BriefColumnProps {
   briefs: Brief[];
   selectedMonth: string;
   bgColor: string;
+  count?: number;
   onStatusChange: (id: number, newStatus: BriefStatus) => void;
 }
 
@@ -18,6 +19,7 @@ export default function BriefColumn({
   briefs,
   selectedMonth,
   bgColor,
+  count,
   onStatusChange
 }: BriefColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
@@ -33,16 +35,18 @@ export default function BriefColumn({
   return (
     <div
       ref={drop as any}
-      className={`${bgColor} p-4 rounded-lg shadow-sm border border-lightGray ${isOver ? 'ring-2 ring-primary' : ''}`}
+      className={`bg-white p-0 rounded-lg ${isOver ? 'ring-1 ring-primary' : ''}`}
     >
-      <h3 className="text-md font-medium text-dark mb-4 flex items-center">
-        {title}
-        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-white rounded-full text-mediumGray">
-          {briefs.length}
+      <div className={`flex items-center justify-between px-3 py-2 border-b border-gray-100 ${bgColor}`}>
+        <h3 className="text-sm font-medium text-gray-700 flex items-center">
+          {title}
+        </h3>
+        <span className="px-1.5 py-0.5 text-xs font-medium bg-white bg-opacity-60 rounded text-gray-700">
+          {count !== undefined ? count : briefs.length}
         </span>
-      </h3>
+      </div>
 
-      <div className="space-y-3">
+      <div className="p-3 space-y-3">
         {briefs.map((brief) => (
           <BriefCard
             key={brief.id}
@@ -52,8 +56,8 @@ export default function BriefColumn({
         ))}
 
         {briefs.length === 0 && (
-          <div className="bg-white p-4 rounded-lg border border-dashed border-lightGray text-center">
-            <p className="text-sm text-mediumGray">No briefs</p>
+          <div className="p-4 text-center">
+            <p className="text-sm text-gray-400">No items</p>
           </div>
         )}
       </div>
