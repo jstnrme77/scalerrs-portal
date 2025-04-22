@@ -1,11 +1,11 @@
 'use client';
 
-import DashboardLayoutNoTopNav from '@/components/DashboardLayoutNoTopNav';
+import DashboardLayout from '@/components/DashboardLayout';
 
 export default function GetStartedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardLayoutNoTopNav>{children}</DashboardLayoutNoTopNav>;
+  return <DashboardLayout>{children}</DashboardLayout>;
 }
