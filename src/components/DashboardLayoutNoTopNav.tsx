@@ -5,7 +5,7 @@ import Sidebar from './Sidebar';
 import TopNavBar from './TopNavBar';
 import ProtectedRoute from './ProtectedRoute';
 
-export default function DashboardLayout({
+export default function DashboardLayoutNoTopNav({
   children,
 }: {
   children: React.ReactNode;
@@ -29,8 +29,8 @@ export default function DashboardLayout({
     <ProtectedRoute>
       <div className="flex min-h-screen bg-lightGray dark:bg-dark">
         <Sidebar />
-        <TopNavBar sidebarExpanded={sidebarExpanded} />
-        <main className={`flex-1 pt-20 px-6 pb-6 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
+        {/* TopNavBar is not included here */}
+        <main className={`flex-1 pt-0 px-6 pb-6 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
           {children}
         </main>
       </div>

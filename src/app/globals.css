@@ -401,6 +401,16 @@ div[class*="bg-"] {
   background-color: var(--container-bg) !important;
 }
 
+/* TopNavBar styling */
+.fixed.top-0 {
+  border-radius: 0 !important;
+}
+
+.fixed.top-0 a,
+.fixed.top-0 button {
+  border-radius: 0 !important;
+}
+
 /* Logo styling */
 .logo-container {
   display: flex;

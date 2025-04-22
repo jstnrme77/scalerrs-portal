@@ -47,6 +47,7 @@
 - ✅ Improved spacing between containers and cards in UI elements
 - ✅ Updated notification icons to use exclamation points in circles
 - ✅ Reorganized UI navigation elements for better usability
+- ✅ Removed TopNavBar space from Get Started page
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -84,3 +85,4 @@
 - Improved spacing and layout of UI elements for better visual hierarchy
 - Updated notification icons to use exclamation points in circles for better visibility
 - Reorganized navigation elements to improve usability and information architecture
+- Created a specialized layout component for the Get Started page that removes the TopNavBar space

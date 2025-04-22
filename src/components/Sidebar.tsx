@@ -193,7 +193,7 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center ${isExpanded ? 'px-4' : 'justify-center'} py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`group flex items-center ${isExpanded ? 'px-4' : 'justify-center'} py-3 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'bg-[#2A2A3C] text-white shadow-md border-l-4 border-[#5e72e4]'
                     : 'text-gray-300 hover:bg-[#2A2A3C] hover:text-white hover:border-l-4 hover:border-[#5e72e4] hover:shadow-sm'
@@ -214,7 +214,7 @@ export default function Sidebar() {
           {isExpanded ? (
             <>
               <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-[#5e72e4] flex items-center justify-center text-white">
+                <div className="w-8 h-8 bg-[#5e72e4] flex items-center justify-center text-white">
                   {user ? user.Name.charAt(0) : 'U'}
                 </div>
                 <div className="ml-3">
@@ -239,7 +239,7 @@ export default function Sidebar() {
               </div>
             </>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-[#5e72e4] flex items-center justify-center text-white">
+            <div className="w-8 h-8 bg-[#5e72e4] flex items-center justify-center text-white">
               {user ? user.Name.charAt(0) : 'U'}
             </div>
           )}
