@@ -35,18 +35,18 @@ export default function BriefColumn({
   return (
     <div
       ref={drop as any}
-      className={`bg-white p-0 rounded-lg ${isOver ? 'ring-1 ring-primary' : ''}`}
+      className={`w-full rounded-lg ${isOver ? 'ring-2 ring-primary' : ''}`}
     >
-      <div className={`flex items-center justify-between px-3 py-2 border-b border-gray-100 ${bgColor}`}>
-        <h3 className="text-sm font-medium text-gray-700 flex items-center">
+      <div className={`flex items-center justify-between px-3 py-2 ${bgColor} rounded-t-lg`}>
+        <h3 className="text-sm font-medium">
           {title}
         </h3>
-        <span className="px-1.5 py-0.5 text-xs font-medium bg-white bg-opacity-60 rounded text-gray-700">
+        <span className="px-2 py-0.5 text-xs font-medium bg-white bg-opacity-60 rounded">
           {count !== undefined ? count : briefs.length}
         </span>
       </div>
 
-      <div className="p-3 space-y-3">
+      <div className="bg-white rounded-b-lg p-0 mt-3 space-y-1">
         {briefs.map((brief) => (
           <BriefCard
             key={brief.id}
@@ -57,7 +57,7 @@ export default function BriefColumn({
 
         {briefs.length === 0 && (
           <div className="p-4 text-center">
-            <p className="text-sm text-gray-400">No items</p>
+            <p className="text-sm text-gray-500">No items currently need {status.toLowerCase()}</p>
           </div>
         )}
       </div>
