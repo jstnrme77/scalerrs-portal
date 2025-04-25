@@ -145,21 +145,55 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange }: Brie
         </div>
       )}
 
-      {/* View Document link */}
-      {brief.DocumentLink && (
-        <div className="mt-3 text-center">
-          <a
-            href={brief.DocumentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-xs text-primary hover:underline"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            View Document
-          </a>
+      {/* Document links */}
+      <div className="mt-3 flex flex-col space-y-2">
+        {brief.DocumentLink && (
+          <div className="text-center">
+            <a
+              href={brief.DocumentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-xs text-primary hover:underline"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Document
+            </a>
+          </div>
+        )}
+
+        {brief['FraseDocumentLink'] && (
+          <div className="text-center">
+            <a
+              href={brief['FraseDocumentLink']}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-xs text-primary hover:underline"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Frase Document
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* Target Keywords */}
+      {brief['TargetKeywords'] && (
+        <div className="mt-3">
+          <div className="text-xs text-gray-500 mb-1">Target Keywords:</div>
+          <div className="text-xs text-gray-700">{brief['TargetKeywords']}</div>
+        </div>
+      )}
+
+      {/* Word Count Target */}
+      {brief['WordCountTarget'] && brief['WordCountTarget'] > 0 && (
+        <div className="mt-2">
+          <div className="text-xs text-gray-500">Word Count Target: <span className="text-gray-700">{brief['WordCountTarget']}</span></div>
         </div>
       )}
     </div>

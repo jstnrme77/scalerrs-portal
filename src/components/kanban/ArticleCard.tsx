@@ -24,7 +24,8 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
   }));
 
   // Check if the article is overdue
-  const isOverdue = article.DueDate ? new Date(article.DueDate) < new Date() : false;
+  const dueDate = article.DueDate || article['Due Date'];
+  const isOverdue = dueDate ? new Date(dueDate as string) < new Date() : false;
 
   // Use the exact colors from the screenshot
   let cardBgColor = '';
@@ -57,13 +58,15 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
       <h4 className="font-medium text-gray-800 mb-2">{article.Title}</h4>
 
       <div className="flex items-center text-xs text-gray-500 mb-2">
-        <span className="mr-1">Due {article.DueDate ? `${getMonthAbbreviation(new Date(article.DueDate).getMonth())} ${new Date(article.DueDate).getDate()}` : 'No date'}</span>
+        <span className="mr-1">Due {dueDate ?
+          `${getMonthAbbreviation(new Date(dueDate as string).getMonth())} ${new Date(dueDate as string).getDate()}`
+          : 'No date'}</span>
         <span className="text-xs text-gray-400 mr-1">•</span>
         <span className="text-xs text-primary">{selectedMonth}</span>
-        {article.WordCount && (
+        {(article.WordCount || article['Word Count']) && (
           <>
             <span className="text-xs text-gray-400 mr-1">•</span>
-            <span className="text-xs text-gray-500">{article.WordCount} words</span>
+            <span className="text-xs text-gray-500">{article.WordCount || article['Word Count']} words</span>
           </>
         )}
       </div>
@@ -71,18 +74,42 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
       <div className="flex flex-col gap-y-1 mb-3">
         <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-1">Writer:</span>
-          <span className="text-xs text-gray-700 truncate">Alex Johnson</span>
+          <span className="text-xs text-gray-700 truncate">
+            {article['Content Writer'] || article.Writer || 'Unassigned'}
+          </span>
         </div>
 
         <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-1">Editor:</span>
-          <span className="text-xs text-gray-700 truncate">Jane Doe</span>
+          <span className="text-xs text-gray-700 truncate">
+            {article['Content Editor'] || article.Editor || 'Unassigned'}
+          </span>
         </div>
+
+        {article['SEO Specialist'] && (
+          <div className="flex items-center">
+            <span className="text-xs text-gray-500 mr-1">SEO Specialist:</span>
+            <span className="text-xs text-gray-700 truncate">
+              {article['SEO Specialist']}
+            </span>
+          </div>
+        )}
 
         <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-1">Client:</span>
-          <span className="text-xs text-gray-700 truncate">Example Client</span>
+          <span className="text-xs text-gray-700 truncate">
+            {typeof article.Client === 'string' ? article.Client : 'Example Client'}
+          </span>
         </div>
+
+        {article['Content Optimization Score'] !== undefined && article['Content Optimization Score'] > 0 && (
+          <div className="flex items-center">
+            <span className="text-xs text-gray-500 mr-1">Optimization Score:</span>
+            <span className="text-xs text-gray-700 truncate">
+              {article['Content Optimization Score']}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Action buttons */}
@@ -121,9 +148,9 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
 
       {/* View Document/Article link */}
       <div className="mt-3 text-center">
-        {article.Status === 'Live' && article.ArticleURL ? (
+        {article.Status === 'Live' && (article.ArticleURL || article['Article URL']) ? (
           <a
-            href={article.ArticleURL}
+            href={article.ArticleURL || article['Article URL']}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-xs text-primary hover:underline"
@@ -134,9 +161,9 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
             </svg>
             View Article
           </a>
-        ) : article.DocumentLink ? (
+        ) : (article.DocumentLink || article['Document Link']) ? (
           <a
-            href={article.DocumentLink}
+            href={article.DocumentLink || article['Document Link']}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-xs text-primary hover:underline"

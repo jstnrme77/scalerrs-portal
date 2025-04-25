@@ -216,11 +216,11 @@ export default function DeliverablePage() {
       // Apply DR filter if not 'all'
       if (drFilter !== 'all') {
         if (drFilter === '50+') {
-          filtered = filtered.filter(backlink => backlink.DomainRating >= 50);
+          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 50);
         } else if (drFilter === '60+') {
-          filtered = filtered.filter(backlink => backlink.DomainRating >= 60);
+          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 60);
         } else if (drFilter === '70+') {
-          filtered = filtered.filter(backlink => backlink.DomainRating >= 70);
+          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 70);
         }
       }
 
@@ -557,13 +557,13 @@ export default function DeliverablePage() {
                               className={`grid grid-cols-7 text-sm hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
                               style={{ color: '#353233' }}
                             >
-                              <div className="px-4 py-4 font-medium text-dark">{backlink.Domain || 'Unknown Domain'}</div>
+                              <div className="px-4 py-4 font-medium text-dark">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
                               <div className="px-4 py-4">
                                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
-                                  {backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A'}
+                                  {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
                                 </span>
                               </div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink.LinkType || 'Unknown Type'}</div>
+                              <div className="px-4 py-4 text-mediumGray">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</div>
                               <div className="px-4 py-4 text-mediumGray">
                                 {(() => {
                                   // Get the target URL from the appropriate field
@@ -626,7 +626,7 @@ export default function DeliverablePage() {
                                 </span>
                               </div>
                               <div className="px-4 py-4 text-mediumGray">
-                                {backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+                                {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
                               </div>
                               <div className="px-4 py-4 text-mediumGray">{backlink.Notes || '—'}</div>
                             </div>

@@ -331,35 +331,13 @@ export const mockKPIMetrics = [
 // Mock URL performance
 export const mockURLPerformance = [
   {
-    id: 'recuglQOmIA7uOPVV',
-    URLPath: '/case-studies/ecommerce-seo',
-    PageTitle: 'E-commerce SEO Case Study',
+    id: 'url1',
+    URLPath: '/blog/sample-post',
+    PageTitle: 'Sample Blog Post',
     Clicks: 1200,
     Impressions: 15000,
     CTR: 8.0,
     AveragePosition: 3.5,
-    Client: ['rec456'],
-    Date: '2023-01-31'
-  },
-  {
-    id: 'recLfpjRgPARNMzhW',
-    URLPath: '/services/technical-seo',
-    PageTitle: 'Technical SEO Services',
-    Clicks: 980,
-    Impressions: 12000,
-    CTR: 8.2,
-    AveragePosition: 4.1,
-    Client: ['rec456'],
-    Date: '2023-01-31'
-  },
-  {
-    id: 'recvE5COdz7yJhVqs',
-    URLPath: '/blog/seo-strategy-2024',
-    PageTitle: 'SEO Strategy Guide for 2024',
-    Clicks: 1500,
-    Impressions: 18000,
-    CTR: 8.3,
-    AveragePosition: 2.8,
     Client: ['rec456'],
     Date: '2023-01-31'
   }
@@ -378,5 +356,64 @@ export const mockKeywordPerformance = [
     URL: '/blog/sample-post',
     Client: ['rec456'],
     Date: '2023-01-31'
+  }
+];
+
+// Mock Monthly Projections
+// This data is used when Airtable connection is not available
+export const mockMonthlyProjections = [
+  {
+    id: 'proj1',
+    Month: 'May',
+    Year: '2025',
+    'Current Trajectory': 15000,
+    'KPI Goal/Target': 18000,
+    'Required Trajectory': 16500,
+    Client: ['rec456']
+  },
+  {
+    id: 'proj2',
+    Month: 'June',
+    Year: '2025',
+    'Current Trajectory': 16500,
+    'KPI Goal/Target': 19000,
+    'Required Trajectory': 18000,
+    Client: ['rec456']
+  },
+  {
+    id: 'proj3',
+    Month: 'July',
+    Year: '2025',
+    'Current Trajectory': 18000,
+    'KPI Goal/Target': 20000,
+    'Required Trajectory': 19500,
+    Client: ['rec456']
+  },
+  {
+    id: 'proj4',
+    Month: 'August',
+    Year: '2025',
+    'Current Trajectory': 19500,
+    'KPI Goal/Target': 21000,
+    'Required Trajectory': 21000,
+    Client: ['rec456']
+  },
+  {
+    id: 'proj5',
+    Month: 'September',
+    Year: '2025',
+    'Current Trajectory': 21000,
+    'KPI Goal/Target': 22000,
+    'Required Trajectory': 22500,
+    Client: ['rec456']
+  },
+  {
+    id: 'proj6',
+    Month: 'October',
+    Year: '2025',
+    'Current Trajectory': 22500,
+    'KPI Goal/Target': 23000,
+    'Required Trajectory': 24000,
+    Client: ['rec456']
   }
 ];

@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
-import { fetchKPIMetrics, fetchURLPerformance, fetchKeywordPerformance } from '@/lib/client-api';
-import { mockKPIMetrics, mockURLPerformance, mockKeywordPerformance } from '@/lib/mock-data';
+import { fetchKPIMetrics, fetchURLPerformance, fetchKeywordPerformance, fetchMonthlyProjections } from '@/lib/client-api';
+import { mockKPIMetrics, mockURLPerformance, mockKeywordPerformance, mockMonthlyProjections } from '@/lib/mock-data';
 
 // Chart colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -199,6 +199,7 @@ function KpiDashboard() {
   const [kpiMetricsData, setKpiMetricsData] = useState<any[]>([]);
   const [urlPerformanceData, setUrlPerformanceData] = useState<any[]>([]);
   const [keywordPerformanceData, setKeywordPerformanceData] = useState<any[]>([]);
+  const [monthlyProjectionsData, setMonthlyProjectionsData] = useState<any[]>([]);
   const [processedData, setProcessedData] = useState(kpiData); // Start with sample data, will be updated
   const [usingMockData, setUsingMockData] = useState(false); // Flag to indicate if we're using mock data
 
@@ -215,6 +216,7 @@ function KpiDashboard() {
         let kpiMetrics = [];
         let urlPerformance = [];
         let keywordPerformance = [];
+        let monthlyProjections = [];
         let hasErrors = false;
         let errorMessages = [];
 
@@ -266,9 +268,22 @@ function KpiDashboard() {
           keywordPerformance = mockKeywordPerformance;
         }
 
+        try {
+          console.log('Fetching monthly projections...');
+          monthlyProjections = await fetchMonthlyProjections();
+          console.log('Monthly projections fetched successfully:', monthlyProjections.length, 'records');
+          setMonthlyProjectionsData(monthlyProjections);
+        } catch (projErr: any) {
+          console.error('Error fetching monthly projections:', projErr);
+          errorMessages.push(`Monthly projections: ${projErr.message || 'Unknown error'}`);
+          hasErrors = true;
+          // Use mock data as fallback
+          monthlyProjections = mockMonthlyProjections;
+        }
+
         // Process the data to match our dashboard structure
         console.log('Processing data for dashboard...');
-        const processedData = processAirtableData(kpiMetrics, urlPerformance, keywordPerformance);
+        const processedData = processAirtableData(kpiMetrics, urlPerformance, keywordPerformance, monthlyProjections);
         setProcessedData(processedData);
 
         // Set error message if any of the fetches failed
@@ -299,7 +314,7 @@ function KpiDashboard() {
   }, []);
 
   // Process Airtable data into the format needed for the dashboard
-  const processAirtableData = (kpiMetrics: any[], urlPerformance: any[], keywordPerformance: any[]) => {
+  const processAirtableData = (kpiMetrics: any[], urlPerformance: any[], keywordPerformance: any[], monthlyProjections: any[]) => {
     // Create a deep copy of the sample data structure to maintain the same format
     const processedData = JSON.parse(JSON.stringify(kpiData));
 
@@ -465,6 +480,55 @@ function KpiDashboard() {
         if (avgPositionChange > 0) {
           // If positions are improving, slightly increase the projected traffic
           yearlyData.projectedTraffic = Math.round(yearlyData.projectedTraffic * (1 + (avgPositionChange / 100)));
+        }
+      }
+    }
+
+    // Process Monthly Projections data for the yearly projection chart
+    if (monthlyProjections.length > 0) {
+      console.log('Processing monthly projections data:', monthlyProjections);
+
+      // Map the monthly projections to the yearly projection data format
+      const mappedProjections = monthlyProjections.map((projection: any) => {
+        // Get the month and year
+        const month = projection.Month || '';
+        const year = projection.Year || '';
+
+        // Get the values
+        const current = projection['Current Trajectory'] || 0;
+        const target = projection['KPI Goal/Target'] || 0;
+        const required = projection['Required Trajectory'] || 0;
+
+        return {
+          month: `${month}`,
+          current,
+          target,
+          required
+        };
+      });
+
+      // Sort the projections by year and month
+      mappedProjections.sort((a: any, b: any) => {
+        if (a.year !== b.year) {
+          return parseInt(a.year) - parseInt(b.year);
+        }
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months.indexOf(a.month) - months.indexOf(b.month);
+      });
+
+      // Update the yearly projection data if we have valid projections
+      if (mappedProjections.length > 0) {
+        console.log('Updating yearly projection data with:', mappedProjections);
+
+        // Replace the sample data with the actual data
+        // Only replace if we have enough data, otherwise keep some of the sample data
+        if (mappedProjections.length >= 12) {
+          // We have a full year of data
+          yearlyProjectionData.splice(0, 12, ...mappedProjections.slice(0, 12));
+        } else {
+          // We have partial data, replace what we have
+          yearlyProjectionData.splice(0, mappedProjections.length, ...mappedProjections);
         }
       }
     }

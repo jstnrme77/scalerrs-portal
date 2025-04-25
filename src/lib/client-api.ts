@@ -8,7 +8,8 @@ import {
   mockBacklinks,
   mockKPIMetrics,
   mockURLPerformance,
-  mockKeywordPerformance
+  mockKeywordPerformance,
+  mockMonthlyProjections
 } from '@/lib/mock-data';
 
 // Check if we're in a browser environment
@@ -1004,6 +1005,87 @@ export async function fetchURLPerformance() {
     // Fall back to mock data
     console.log('Falling back to mock URL performance data');
     return mockURLPerformance;
+  }
+}
+
+// Monthly Projections API
+export async function fetchMonthlyProjections() {
+  // Use mock data if explicitly enabled
+  if (shouldUseMockData()) {
+    console.log('Using mock monthly projections data');
+    return mockMonthlyProjections;
+  }
+
+  try {
+    // Check if we're in a browser environment
+    const isBrowser = typeof window !== 'undefined';
+
+    // In production, use Netlify Functions
+    if (isBrowser && process.env.NODE_ENV === 'production') {
+      console.log('Fetching monthly projections from Netlify Function');
+      const response = await fetch('/.netlify/functions/get-monthly-projections');
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch monthly projections: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Monthly projections data received:', data);
+      return data.monthlyProjections;
+    }
+
+    // In development, try to fetch directly from Airtable
+    if (isBrowser && process.env.NODE_ENV === 'development') {
+      console.log('Fetching monthly projections directly from Airtable (development mode)');
+
+      try {
+        // Import the getMonthlyProjections function directly
+        const { getMonthlyProjections } = await import('@/lib/airtable/index');
+        const monthlyProjections = await getMonthlyProjections();
+        console.log('Monthly projections fetched successfully:', monthlyProjections);
+        return monthlyProjections;
+      } catch (airtableError: any) {
+        console.error('Error fetching directly from Airtable:', airtableError);
+
+        // If we get an authorization error, fall back to mock data
+        if (airtableError.message && airtableError.message.includes('authorized')) {
+          console.error('Authorization error with Airtable. Check your API key and permissions.');
+
+          // Set a flag in localStorage to indicate Airtable connection issues
+          if (isBrowser) {
+            localStorage.setItem('airtable-connection-issues', 'true');
+          }
+
+          return mockMonthlyProjections;
+        }
+
+        // Re-throw other errors to be caught by the outer catch
+        throw airtableError;
+      }
+    }
+
+    // Server-side rendering or static generation
+    console.log('Fetching monthly projections from API route');
+    const response = await fetch('/api/monthly-projections');
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch monthly projections: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Monthly projections data received:', data);
+    return data.monthlyProjections;
+  } catch (error) {
+    console.error('Error fetching monthly projections:', error);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
+    // Fall back to mock data
+    console.log('Falling back to mock monthly projections data');
+    return mockMonthlyProjections;
   }
 }
 

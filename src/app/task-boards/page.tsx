@@ -5,43 +5,28 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { fetchTasks, fetchComments, addComment, updateTaskStatus } from '@/lib/client-api';
+import MonthlyProjectionsBoard from '@/components/task-boards/monthly-projections-board';
+// Import task types from our types file
+import {
+  Task,
+  TaskStatus,
+  TaskPriority,
+  TaskEffort,
+  ActiveTask,
+  CompletedTask,
+  AirtableTask,
+  mapAirtableTaskToTask,
+  TaskComment
+} from '@/types/task';
 
-// Define task types
-type TaskStatus = 'Not Started' | 'In Progress' | 'Blocked' | 'Done';
-type TaskPriority = 'High' | 'Medium' | 'Low';
-type TaskEffort = 'S' | 'M' | 'L';
-
+// Define Comment type for this page
 type Comment = {
-  id: number;
+  id: number | string;
   author: string;
   text: string;
   timestamp: string;
   replies?: Comment[];
 };
-
-type BaseTask = {
-  id: number;
-  task: string;
-  status: TaskStatus;
-  assignedTo: string;
-  dateLogged: string;
-  priority: TaskPriority;
-  impact: number; // 1-5
-  effort: TaskEffort;
-  comments: Comment[];
-  notes?: string;
-  referenceLinks?: string[];
-}
-
-type ActiveTask = BaseTask & {
-  completedDate?: undefined;
-}
-
-type CompletedTask = BaseTask & {
-  completedDate: string;
-}
-
-type Task = ActiveTask | CompletedTask;
 
 // Sample task data
 const taskBoards: Record<string, Task[]> = {
@@ -365,7 +350,7 @@ function CommentItem({ comment }: { comment: Comment }) {
 }
 
 // Comments Section Component
-function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: number }) {
+function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: number | string }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -528,7 +513,7 @@ function TaskCard({
   onStatusChange
 }: {
   task: Task;
-  onStatusChange: (id: number, status: TaskStatus) => void;
+  onStatusChange: (id: number | string, status: TaskStatus) => void;
 }) {
   return (
     <div className="card bg-white p-4 rounded-scalerrs border border-lightGray shadow-sm" style={{ color: '#353233' }}>
@@ -629,9 +614,9 @@ function TaskTable({
   onStatusChange
 }: {
   tasks: Task[];
-  onStatusChange: (id: number, status: TaskStatus) => void;
+  onStatusChange: (id: number | string, status: TaskStatus) => void;
 }) {
-  const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
+  const [expandedTaskId, setExpandedTaskId] = useState<number | string | null>(null);
 
   // Sort tasks: 1st by Status, 2nd by Priority, 3rd by Date Logged
   const sortedTasks = [...tasks].sort((a, b) => {
@@ -847,12 +832,23 @@ function AddTaskModal({
   onAdd: (task: Task) => void;
   boardType: string;
 }) {
-  const [taskData, setTaskData] = useState({
+  // Define a type for the form data
+  type TaskFormData = {
+    task: string;
+    priority: TaskPriority;
+    assignedTo: string;
+    impact: number;
+    effort: TaskEffort;
+    notes: string;
+    referenceLinks: string; // String for the form, will be converted to string[] when submitting
+  };
+
+  const [taskData, setTaskData] = useState<TaskFormData>({
     task: '',
-    priority: 'Medium' as TaskPriority,
+    priority: 'Medium',
     assignedTo: '',
     impact: 3,
-    effort: 'M' as TaskEffort,
+    effort: 'M',
     notes: '',
     referenceLinks: ''
   });
@@ -867,14 +863,22 @@ function AddTaskModal({
         ? taskData.referenceLinks.split('\n').filter(link => link.trim() !== '')
         : undefined;
 
-      onAdd({
-        ...taskData,
+      // Create a task object with the correct type
+      const newTask: Task = {
+        task: taskData.task,
+        priority: taskData.priority,
+        assignedTo: taskData.assignedTo,
+        impact: taskData.impact,
+        effort: taskData.effort,
+        notes: taskData.notes,
         id: Date.now(),
         status: 'Not Started',
         dateLogged: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         comments: [],
-        referenceLinks
-      });
+        referenceLinks: referenceLinks
+      };
+
+      onAdd(newTask);
 
       // Reset form
       setTaskData({
@@ -1017,7 +1021,8 @@ export default function TaskBoards() {
   const [boards, setBoards] = useState<Record<string, Task[]>>({
     technicalSEO: [],
     cro: [],
-    strategyAdHoc: []
+    strategyAdHoc: [],
+    projections: []
   });
   const [activeBoard, setActiveBoard] = useState('technicalSEO');
   const [addTaskModal, setAddTaskModal] = useState(false);
@@ -1031,72 +1036,64 @@ export default function TaskBoards() {
         setLoading(true);
         setError(null);
 
+        console.log('Fetching tasks from Airtable...');
         // Fetch tasks from Airtable
         const tasksData = await fetchTasks();
+        console.log(`Fetched ${tasksData.length} tasks from Airtable`);
 
         // Organize tasks by board
         const organizedTasks: Record<string, Task[]> = {
           technicalSEO: [],
           cro: [],
-          strategyAdHoc: []
+          strategyAdHoc: [],
+          projections: []
         };
 
         // Map Airtable tasks to our Task type
-        tasksData.forEach((task: any) => {
-          const boardType = task.Category || 'technicalSEO';
+        tasksData.forEach((task: AirtableTask) => {
+          console.log('Processing task:', task.id, task.Title || task.Name);
 
-          let mappedTask: Task;
+          // Use our mapping function to convert Airtable task to our Task type
+          const mappedTask = mapAirtableTaskToTask(task);
 
-          if (task.CompletedDate) {
-            // Create a CompletedTask if we have a completion date
-            mappedTask = {
-              id: task.id,
-              task: task.Title || task.Name || 'Untitled Task',
-              status: (task.Status as TaskStatus) || 'Not Started',
-              assignedTo: task.AssignedTo?.[0] || 'Unassigned',
-              dateLogged: task.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-              priority: (task.Priority as TaskPriority) || 'Medium',
-              impact: task.Impact || 3,
-              effort: (task.Effort as TaskEffort) || 'M',
-              comments: [],
-              notes: task.Notes || '',
-              referenceLinks: task.ReferenceLinks ? [task.ReferenceLinks] : [],
-              completedDate: task.CompletedDate
-            } as CompletedTask;
-          } else {
-            // Create an ActiveTask if no completion date
-            mappedTask = {
-              id: task.id,
-              task: task.Title || task.Name || 'Untitled Task',
-              status: (task.Status as TaskStatus) || 'Not Started',
-              assignedTo: task.AssignedTo?.[0] || 'Unassigned',
-              dateLogged: task.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-              priority: (task.Priority as TaskPriority) || 'Medium',
-              impact: task.Impact || 3,
-              effort: (task.Effort as TaskEffort) || 'M',
-              comments: [],
-              notes: task.Notes || '',
-              referenceLinks: task.ReferenceLinks ? [task.ReferenceLinks] : []
-            } as ActiveTask;
-          }
+          // Determine which board this task belongs to
+          const category = task.Category || task.Type || '';
 
-          if (boardType === 'Technical SEO') {
+          if (category.includes('Technical') || category.includes('SEO')) {
             organizedTasks.technicalSEO.push(mappedTask);
-          } else if (boardType === 'CRO') {
+          } else if (category.includes('CRO') || category.includes('Conversion')) {
             organizedTasks.cro.push(mappedTask);
-          } else if (boardType === 'Strategy' || boardType === 'Ad Hoc') {
+          } else if (category.includes('Strategy') || category.includes('Ad Hoc')) {
             organizedTasks.strategyAdHoc.push(mappedTask);
           } else {
+            // Default to Technical SEO if no category is specified
             organizedTasks.technicalSEO.push(mappedTask);
           }
         });
 
-        setBoards(organizedTasks);
+        console.log('Organized tasks:', {
+          technicalSEO: organizedTasks.technicalSEO.length,
+          cro: organizedTasks.cro.length,
+          strategyAdHoc: organizedTasks.strategyAdHoc.length
+        });
+
+        // If we have no tasks, fall back to sample data
+        if (
+          organizedTasks.technicalSEO.length === 0 &&
+          organizedTasks.cro.length === 0 &&
+          organizedTasks.strategyAdHoc.length === 0
+        ) {
+          console.log('No tasks found in Airtable, using sample data');
+          setBoards(taskBoards);
+        } else {
+          setBoards(organizedTasks);
+        }
       } catch (err: any) {
         console.error('Error fetching tasks:', err);
         setError(`An error occurred while fetching tasks: ${err.message}`);
 
         // Fall back to sample data
+        console.log('Error occurred, falling back to sample data');
         setBoards(taskBoards);
       } finally {
         setLoading(false);
@@ -1109,15 +1106,19 @@ export default function TaskBoards() {
   // Check if Strategy/Ad Hoc tab should be visible
   const showStrategyTab = boards.strategyAdHoc && boards.strategyAdHoc.length > 0;
 
-  const handleStatusChange = async (id: number, newStatus: TaskStatus) => {
+  const handleStatusChange = async (id: number | string, newStatus: TaskStatus) => {
     try {
+      console.log(`Updating task ${id} status to ${newStatus}`);
       // Update task status in Airtable
       await updateTaskStatus(id.toString(), newStatus);
+      console.log(`Task ${id} status updated successfully`);
 
       // Update local state
       setBoards(prev => {
         const newBoards = { ...prev };
-        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task => task.id === id);
+        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+          task.id === id || task.id.toString() === id.toString()
+        );
 
         if (taskIndex !== -1) {
           const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
@@ -1139,6 +1140,8 @@ export default function TaskBoards() {
             } as ActiveTask;
             newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
           }
+        } else {
+          console.warn(`Task with ID ${id} not found in ${activeBoard} board`);
         }
 
         return newBoards;
@@ -1149,7 +1152,9 @@ export default function TaskBoards() {
       // Update local state anyway for better UX
       setBoards(prev => {
         const newBoards = { ...prev };
-        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task => task.id === id);
+        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+          task.id === id || task.id.toString() === id.toString()
+        );
 
         if (taskIndex !== -1) {
           const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
@@ -1171,6 +1176,8 @@ export default function TaskBoards() {
             } as ActiveTask;
             newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
           }
+        } else {
+          console.warn(`Task with ID ${id} not found in ${activeBoard} board`);
         }
 
         return newBoards;
@@ -1219,15 +1226,17 @@ export default function TaskBoards() {
           <p className="text-mediumGray">Collaborate on action items with clear priorities and ownership</p>
         </div>
 
-        <button
-          onClick={() => setAddTaskModal(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Task
-        </button>
+        {activeBoard !== 'projections' && (
+          <button
+            onClick={() => setAddTaskModal(true)}
+            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Task
+          </button>
+        )}
       </div>
 
       <PageContainer>
@@ -1236,7 +1245,8 @@ export default function TaskBoards() {
             tabs={[
               { id: 'cro', label: 'CRO' },
               { id: 'technicalSEO', label: 'Technical SEO' },
-              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', disabled: !showStrategyTab }
+              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', disabled: !showStrategyTab },
+              { id: 'projections', label: 'Monthly Projections' }
             ]}
             activeTab={activeBoard}
             onTabChange={setActiveBoard}
@@ -1244,7 +1254,9 @@ export default function TaskBoards() {
           />
         </PageContainerTabs>
         <PageContainerBody>
-          {loading ? (
+          {activeBoard === 'projections' ? (
+            <MonthlyProjectionsBoard />
+          ) : loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
