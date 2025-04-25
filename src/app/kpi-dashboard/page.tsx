@@ -1,10 +1,12 @@
 'use client';
 
 import DashboardLayout from '@/components/DashboardLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
+import { fetchKPIMetrics, fetchURLPerformance, fetchKeywordPerformance } from '@/lib/client-api';
+import { mockKPIMetrics, mockURLPerformance, mockKeywordPerformance } from '@/lib/mock-data';
 
 // Chart colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
@@ -191,6 +193,285 @@ function KpiDashboard() {
   const [showRequiredAdjustments, setShowRequiredAdjustments] = useState(true);
   const [timeFrameFilter, setTimeFrameFilter] = useState('6months'); // '3months', '6months', '12months'
 
+  // State for Airtable data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [kpiMetricsData, setKpiMetricsData] = useState<any[]>([]);
+  const [urlPerformanceData, setUrlPerformanceData] = useState<any[]>([]);
+  const [keywordPerformanceData, setKeywordPerformanceData] = useState<any[]>([]);
+  const [processedData, setProcessedData] = useState(kpiData); // Start with sample data, will be updated
+  const [usingMockData, setUsingMockData] = useState(false); // Flag to indicate if we're using mock data
+
+  // Fetch data from Airtable
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log('Starting to fetch KPI dashboard data...');
+
+        // Fetch each data type separately to better handle errors
+        let kpiMetrics = [];
+        let urlPerformance = [];
+        let keywordPerformance = [];
+        let hasErrors = false;
+        let errorMessages = [];
+
+        try {
+          console.log('Fetching KPI metrics...');
+          kpiMetrics = await fetchKPIMetrics();
+          console.log('KPI metrics fetched successfully:', kpiMetrics.length, 'records');
+
+          // Check if we got mock data
+          const isMockData = kpiMetrics.some(metric => metric.id && metric.id.startsWith('kpi'));
+          if (isMockData) {
+            console.log('Received mock KPI metrics data');
+            setUsingMockData(true);
+          }
+
+          setKpiMetricsData(kpiMetrics);
+        } catch (kpiErr: any) {
+          console.error('Error fetching KPI metrics:', kpiErr);
+          errorMessages.push(`KPI metrics: ${kpiErr.message || 'Unknown error'}`);
+          hasErrors = true;
+          // Use mock data as fallback
+          kpiMetrics = mockKPIMetrics;
+          setUsingMockData(true);
+        }
+
+        try {
+          console.log('Fetching URL performance...');
+          urlPerformance = await fetchURLPerformance();
+          console.log('URL performance fetched successfully:', urlPerformance.length, 'records');
+          setUrlPerformanceData(urlPerformance);
+        } catch (urlErr: any) {
+          console.error('Error fetching URL performance:', urlErr);
+          errorMessages.push(`URL performance: ${urlErr.message || 'Unknown error'}`);
+          hasErrors = true;
+          // Use mock data as fallback
+          urlPerformance = mockURLPerformance;
+        }
+
+        try {
+          console.log('Fetching keyword performance...');
+          keywordPerformance = await fetchKeywordPerformance();
+          console.log('Keyword performance fetched successfully:', keywordPerformance.length, 'records');
+          setKeywordPerformanceData(keywordPerformance);
+        } catch (kwErr: any) {
+          console.error('Error fetching keyword performance:', kwErr);
+          errorMessages.push(`Keyword performance: ${kwErr.message || 'Unknown error'}`);
+          hasErrors = true;
+          // Use mock data as fallback
+          keywordPerformance = mockKeywordPerformance;
+        }
+
+        // Process the data to match our dashboard structure
+        console.log('Processing data for dashboard...');
+        const processedData = processAirtableData(kpiMetrics, urlPerformance, keywordPerformance);
+        setProcessedData(processedData);
+
+        // Set error message if any of the fetches failed
+        if (hasErrors) {
+          // Check if all errors are authorization errors
+          const allAuthErrors = errorMessages.every(msg => msg.includes('authorized') || msg.includes('403'));
+
+          if (allAuthErrors) {
+            setError(`Authorization error: Your Airtable token doesn't have the necessary permissions. Using sample data as fallback.`);
+            // Force using mock data
+            setUsingMockData(true);
+          } else {
+            setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Using sample data as fallback.`);
+          }
+        }
+      } catch (err: any) {
+        console.error('Error in KPI dashboard data fetching:', err);
+        setError(`An error occurred while fetching KPI data: ${err.message || 'Unknown error'}`);
+
+        // Keep using the sample data if there's an error
+        setProcessedData(kpiData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Process Airtable data into the format needed for the dashboard
+  const processAirtableData = (kpiMetrics: any[], urlPerformance: any[], keywordPerformance: any[]) => {
+    // Create a deep copy of the sample data structure to maintain the same format
+    const processedData = JSON.parse(JSON.stringify(kpiData));
+
+    // Process KPI Metrics for the summary cards
+    if (kpiMetrics.length > 0) {
+      // Map KPI metrics to summary cards
+      const kpiCards = processedData.summary.kpiCards;
+
+      // Define the mapping between Airtable metric names and card titles
+      const metricMapping: Record<string, string> = {
+        // Original mappings
+        'Organic Clicks': 'Organic Clicks',
+        'Conversion Rate': 'Conversion Rate',
+        'Estimated Leads': 'Estimated Leads',
+        'SQLs': 'SQLs',
+        'Revenue Impact': 'Revenue Impact',
+        'Traffic Growth YoY': 'Traffic Growth YoY',
+        'MoM Performance': 'MoM Performance',
+
+        // Additional mappings from your Airtable schema
+        'Organic Traffic': 'Organic Clicks',
+        'Lead Generation': 'Estimated Leads',
+        'Traffic': 'Organic Clicks',
+        'Leads': 'Estimated Leads',
+        'Conversion': 'Conversion Rate'
+      };
+
+      // Update each card with real data if available
+      kpiMetrics.forEach((metric: any) => {
+        // Log the metric to see what fields are available
+        console.log('Processing metric:', metric);
+
+        // Find the corresponding card title for this metric
+        // Try different field names that might contain the metric name
+        const metricName = metric.MetricName || metric['Metric Name'] || '';
+        console.log('Metric name found:', metricName);
+
+        const cardTitle = metricMapping[metricName];
+        if (!cardTitle) {
+          console.log(`No mapping found for metric: ${metricName}`);
+          return; // Skip if no mapping found
+        }
+
+        const cardIndex = kpiCards.findIndex((card: any) =>
+          card.title === cardTitle
+        );
+
+        if (cardIndex !== -1) {
+          // Update the card with data from Airtable
+          // Try different field names that might contain the values
+          const currentValue = metric.CurrentValue || metric['Current Value'] || 0;
+          const targetValue = metric.Goal || metric['Target Value'] || metric.TargetValue || 0;
+          const previousValue = metric.PreviousValue || metric['Previous Value'] || 0;
+          const changePercentage = metric.ChangePercentage || metric['Delta/Change'] || 0;
+          const unit = metric.Unit || '';
+
+          kpiCards[cardIndex].current = currentValue || kpiCards[cardIndex].current;
+          kpiCards[cardIndex].target = targetValue || kpiCards[cardIndex].target;
+
+          // Set the unit if available
+          if (unit) {
+            kpiCards[cardIndex].unit = unit;
+          }
+
+          // Use the change percentage from Airtable if available
+          if (changePercentage) {
+            kpiCards[cardIndex].delta = parseFloat(changePercentage.toString().replace('%', '')).toFixed(1);
+            kpiCards[cardIndex].trend = parseFloat(changePercentage) >= 0 ? 'up' : 'down';
+          }
+          // Otherwise calculate delta if both current and previous values exist
+          else if (currentValue && previousValue) {
+            const delta = ((currentValue - previousValue) / previousValue) * 100;
+            kpiCards[cardIndex].delta = parseFloat(delta.toFixed(1));
+            kpiCards[cardIndex].trend = delta >= 0 ? 'up' : 'down';
+          }
+
+          console.log(`Updated KPI card for ${cardTitle}:`, kpiCards[cardIndex]);
+        } else {
+          console.log(`No matching card found for metric: ${metricName}`);
+        }
+      });
+
+      // Calculate overall progress
+      const totalCurrent = kpiCards.reduce((sum: number, card: any) => sum + (card.current / card.target), 0);
+      const progressPercentage = Math.round((totalCurrent / kpiCards.length) * 100);
+
+      processedData.summary.currentProgress = progressPercentage;
+      processedData.summary.status = progressPercentage >= 80 ? 'success' : progressPercentage >= 60 ? 'warning' : 'danger';
+
+      console.log('Processed KPI data:', processedData.summary);
+    }
+
+    // Process URL Performance data for the page type breakdown
+    if (urlPerformance.length > 0) {
+      // Group URLs by page type (if available in the data)
+      const blogPages = urlPerformance.filter((url: any) => url.PageType === 'Blog' || url.URLPath?.includes('/blog'));
+      const featurePages = urlPerformance.filter((url: any) => url.PageType === 'Feature' || url.URLPath?.includes('/features'));
+      const solutionPages = urlPerformance.filter((url: any) => url.PageType === 'Solution' || url.URLPath?.includes('/solutions'));
+      const highIntentPages = urlPerformance.filter((url: any) => url.PageType === 'High-Intent' || url.URLPath?.includes('/demo') || url.URLPath?.includes('/contact'));
+
+      // Update page type overview with real data
+      if (blogPages.length > 0) {
+        const totalClicks = blogPages.reduce((sum: number, page: any) => sum + (page.Clicks || 0), 0);
+        processedData.pageTypeBreakdown.overview.blog.clicks = totalClicks;
+      }
+
+      if (featurePages.length > 0) {
+        const totalClicks = featurePages.reduce((sum: number, page: any) => sum + (page.Clicks || 0), 0);
+        processedData.pageTypeBreakdown.overview.feature.clicks = totalClicks;
+      }
+
+      if (solutionPages.length > 0) {
+        const totalTraffic = solutionPages.reduce((sum: number, page: any) => sum + (page.Impressions || 0), 0);
+        processedData.pageTypeBreakdown.overview.solution.traffic = totalTraffic;
+      }
+
+      if (highIntentPages.length > 0) {
+        const totalTraffic = highIntentPages.reduce((sum: number, page: any) => sum + (page.Impressions || 0), 0);
+        processedData.pageTypeBreakdown.overview.highIntent.traffic = totalTraffic;
+      }
+
+      // Find top and bottom performers
+      const sortedByClicks = [...urlPerformance].sort((a, b) => (b.Clicks || 0) - (a.Clicks || 0));
+      const sortedByPosition = [...urlPerformance].sort((a, b) => (a.AveragePosition || 100) - (b.AveragePosition || 100));
+
+      if (sortedByClicks.length > 0) {
+        // Update top performers
+        if (sortedByClicks[0]) {
+          processedData.pageTypeBreakdown.performers.top[0] = {
+            url: sortedByClicks[0].URLPath || '/unknown',
+            metric: 'Traffic',
+            value: sortedByClicks[0].Clicks || 0,
+            change: 15, // Placeholder as we don't have historical data
+            tag: 'Top Performer'
+          };
+        }
+
+        // Update bottom performers
+        if (sortedByClicks[sortedByClicks.length - 1]) {
+          processedData.pageTypeBreakdown.performers.bottom[0] = {
+            url: sortedByClicks[sortedByClicks.length - 1].URLPath || '/unknown',
+            metric: 'Traffic',
+            value: sortedByClicks[sortedByClicks.length - 1].Clicks || 0,
+            change: -12, // Placeholder
+            tag: 'Needs Refresh'
+          };
+        }
+      }
+    }
+
+    // Process Keyword Performance data for forecasting
+    if (keywordPerformance.length > 0) {
+      // Calculate average position improvement
+      const positionChanges = keywordPerformance
+        .filter((kw: any) => kw.PositionChange)
+        .map((kw: any) => kw.PositionChange);
+
+      if (positionChanges.length > 0) {
+        const avgPositionChange = positionChanges.reduce((sum: number, change: number) => sum + change, 0) / positionChanges.length;
+
+        // Use this to adjust the forecasting model
+        const yearlyData = processedData.forecasting.currentResources;
+        if (avgPositionChange > 0) {
+          // If positions are improving, slightly increase the projected traffic
+          yearlyData.projectedTraffic = Math.round(yearlyData.projectedTraffic * (1 + (avgPositionChange / 100)));
+        }
+      }
+    }
+
+    return processedData;
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-6">
@@ -198,82 +479,148 @@ function KpiDashboard() {
         <p className="text-mediumGray">Visualise performance against strategic targets and identify potential shortfalls early</p>
       </div>
 
-      {/* Header Overview */}
-      <div className={`p-6 rounded-lg mb-6 ${kpiData.summary.status === 'success' ? 'bg-green-100' : kpiData.summary.status === 'warning' ? 'bg-amber-100' : 'bg-red-100'}`}>
-        <div className="flex items-start">
-          <div className="mr-4 mt-1">
-            {kpiData.summary.status === 'success' ? (
-              <span className="text-2xl">📈</span>
-            ) : kpiData.summary.status === 'warning' ? (
-              <span className="text-2xl">⚠️</span>
-            ) : (
-              <span className="text-2xl">🔻</span>
-            )}
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-dark mb-2">Performance Overview</h3>
-            <p className="text-mediumGray mb-1">You're currently hitting {kpiData.summary.currentProgress}% of your Q2 goal.</p>
-            <p className="text-mediumGray">Based on current output, you'll reach ~{kpiData.summary.annualProjection}% of the annual target.</p>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <span className="ml-3 text-mediumGray">Loading KPI data...</span>
+        </div>
+      ) : error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+          <div className="flex items-start">
+            <div className="mr-2">
+              <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <strong className="font-bold">Data Connection Issue: </strong>
+              <span className="block sm:inline">{error}</span>
+              <p className="mt-2 text-sm">
+                The dashboard is currently displaying sample data. To fix this issue:
+              </p>
+              <ul className="list-disc list-inside mt-1 text-sm">
+                <li>Check that your Airtable base has the required tables (KPI Metrics, URL Performance, Keyword Performance)</li>
+                <li>Verify that your Airtable personal access token has the correct scopes: data.records:read, data.records:write, schema.bases:read</li>
+                <li>Ensure that the tables have the correct field names as specified in the documentation</li>
+              </ul>
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-sm font-medium text-yellow-800">
+                  Note: You can continue using the dashboard with sample data. All functionality will work, but the data will not reflect your actual metrics.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Mock Data Banner */}
+          {usingMockData && !error && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded relative mb-6" role="alert">
+              <div className="flex items-start">
+                <div className="mr-2">
+                  <svg className="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <strong className="font-bold">Using Sample Data: </strong>
+                  <span className="block sm:inline">The dashboard is currently displaying sample data instead of your actual Airtable data.</span>
+                  <p className="mt-2 text-sm">
+                    To connect your real data, please create the following tables in your Airtable base:
+                  </p>
+                  <ul className="list-disc list-inside mt-1 text-sm">
+                    <li>KPI Metrics - for tracking key performance indicators</li>
+                    <li>URL Performance - for tracking page performance</li>
+                    <li>Keyword Performance - for tracking keyword rankings</li>
+                  </ul>
+                  <p className="mt-2 text-sm">
+                    See the documentation in <code>docs/airtable-schema.md</code> for the required fields.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-      {/* Date Filter */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-dark">Time Frame:</span>
-          <div className="inline-flex rounded-md shadow-sm">
-            <button
-              onClick={() => setTimeFrameFilter('3months')}
-              className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '3months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} rounded-l-md border border-gray-300`}
-            >
-              3 Months
-            </button>
-            <button
-              onClick={() => setTimeFrameFilter('6months')}
-              className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '6months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border-t border-b border-gray-300`}
-            >
-              6 Months
-            </button>
-            <button
-              onClick={() => setTimeFrameFilter('12months')}
-              className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '12months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} rounded-r-md border border-gray-300`}
-            >
-              Full Year
-            </button>
+          {/* Header Overview */}
+          <div className={`p-6 rounded-lg mb-6 ${processedData.summary.status === 'success' ? 'bg-green-100' : processedData.summary.status === 'warning' ? 'bg-amber-100' : 'bg-red-100'}`}>
+            <div className="flex items-start">
+              <div className="mr-4 mt-1">
+                {processedData.summary.status === 'success' ? (
+                  <span className="text-2xl">📈</span>
+                ) : processedData.summary.status === 'warning' ? (
+                  <span className="text-2xl">⚠️</span>
+                ) : (
+                  <span className="text-2xl">🔻</span>
+                )}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-dark mb-2">Performance Overview</h3>
+                <p className="text-mediumGray mb-1">You're currently hitting {processedData.summary.currentProgress}% of your Q2 goal.</p>
+                <p className="text-mediumGray">Based on current output, you'll reach ~{processedData.summary.annualProjection}% of the annual target.</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="inline-flex rounded-md shadow-sm">
-          {dateOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setSelectedDateView(option)}
-              className={`px-4 py-2 text-sm font-medium ${selectedDateView.value === option.value
-                ? 'bg-primary text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-                } ${option.value === 'monthly' ? 'rounded-l-md' : ''} ${option.value === 'yearly' ? 'rounded-r-md' : ''} border border-gray-300`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
+        </>
+      )}
 
-      {/* KPI Dashboard Tabs */}
-      <PageContainer className="mb-6">
-        <PageContainerTabs>
-          <TabNavigation
-            tabs={[
-              { id: 'summary', label: 'KPI Summary' },
-              { id: 'forecasting', label: 'Forecasting Model' },
-              { id: 'breakdown', label: 'Breakdown by Page Type', disabled: !kpiData.pageTypeBreakdown.enabled }
-            ]}
-            activeTab={activeKpiTab}
-            onChange={setActiveKpiTab}
-            variant="primary"
-          />
-        </PageContainerTabs>
-        <PageContainerBody>
+      {!loading && (
+        <>
+          {/* Date Filter */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-dark">Time Frame:</span>
+              <div className="inline-flex rounded-md shadow-sm">
+                <button
+                  onClick={() => setTimeFrameFilter('3months')}
+                  className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '3months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} rounded-l-md border border-gray-300`}
+                >
+                  3 Months
+                </button>
+                <button
+                  onClick={() => setTimeFrameFilter('6months')}
+                  className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '6months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border-t border-b border-gray-300`}
+                >
+                  6 Months
+                </button>
+                <button
+                  onClick={() => setTimeFrameFilter('12months')}
+                  className={`px-4 py-2 text-sm font-medium ${timeFrameFilter === '12months' ? 'bg-primary text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} rounded-r-md border border-gray-300`}
+                >
+                  Full Year
+                </button>
+              </div>
+            </div>
+            <div className="inline-flex rounded-md shadow-sm">
+              {dateOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSelectedDateView(option)}
+                  className={`px-4 py-2 text-sm font-medium ${selectedDateView.value === option.value
+                    ? 'bg-primary text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    } ${option.value === 'monthly' ? 'rounded-l-md' : ''} ${option.value === 'yearly' ? 'rounded-r-md' : ''} border border-gray-300`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KPI Dashboard Tabs */}
+          <PageContainer>
+            <PageContainerTabs>
+              <TabNavigation
+                tabs={[
+                  { id: 'summary', label: 'KPI Summary' },
+                  { id: 'forecasting', label: 'Forecasting Model' },
+                  { id: 'breakdown', label: 'Breakdown by Page Type', disabled: !processedData.pageTypeBreakdown.enabled }
+                ]}
+                activeTab={activeKpiTab}
+                onTabChange={setActiveKpiTab}
+                variant="primary"
+              />
+            </PageContainerTabs>
+            <PageContainerBody>
           {/* KPI Summary Tab */}
           {activeKpiTab === 'summary' && (
             <div className="space-y-6">
@@ -284,31 +631,31 @@ function KpiDashboard() {
                   <div className="flex mb-2 items-center justify-between">
                     <div>
                       <span className="text-sm font-semibold inline-block py-1 px-2 uppercase rounded-full text-primary bg-blue-100">
-                        {kpiData.summary.status === 'success' ? 'On Track' : kpiData.summary.status === 'warning' ? 'At Risk' : 'Off Track'}
+                        {processedData.summary.status === 'success' ? 'On Track' : processedData.summary.status === 'warning' ? 'At Risk' : 'Off Track'}
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-semibold inline-block text-primary">
-                        {kpiData.summary.currentProgress}% of Q2 Goal
+                        {processedData.summary.currentProgress}% of Q2 Goal
                       </span>
                     </div>
                   </div>
                   <div className="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-blue-100">
                     <div
-                      style={{ width: `${kpiData.summary.currentProgress}%` }}
-                      className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center rounded-full ${kpiData.summary.status === 'success' ? 'bg-green-500' : kpiData.summary.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'}`}
+                      style={{ width: `${processedData.summary.currentProgress}%` }}
+                      className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center rounded-full ${processedData.summary.status === 'success' ? 'bg-green-500' : processedData.summary.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'}`}
                     ></div>
                   </div>
                   <div className="flex justify-between text-xs text-mediumGray">
                     <span>Current Progress</span>
-                    <span>Annual Projection: {kpiData.summary.annualProjection}%</span>
+                    <span>Annual Projection: {processedData.summary.annualProjection}%</span>
                   </div>
                 </div>
               </div>
 
               {/* Stacked KPI Cards */}
               <div className="grid grid-cols-1 gap-6">
-                {kpiData.summary.kpiCards.map((card, index) => (
+                {processedData.summary.kpiCards.map((card, index) => (
                   <div key={index} className="bg-white p-5 rounded-lg border border-lightGray shadow-sm relative group">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center">
@@ -424,15 +771,15 @@ function KpiDashboard() {
                       <ul className="space-y-2 text-sm text-mediumGray">
                         <li className="flex justify-between">
                           <span>Total Forecasted Traffic:</span>
-                          <span className="font-medium text-dark">{kpiData.forecasting.currentResources.projectedTraffic.toLocaleString()}</span>
+                          <span className="font-medium text-dark">{processedData.forecasting.currentResources.projectedTraffic.toLocaleString()}</span>
                         </li>
                         <li className="flex justify-between">
                           <span>Forecasted Leads:</span>
-                          <span className="font-medium text-dark">{kpiData.forecasting.currentResources.projectedLeads}</span>
+                          <span className="font-medium text-dark">{processedData.forecasting.currentResources.projectedLeads}</span>
                         </li>
                         <li className="flex justify-between">
                           <span>% of Target:</span>
-                          <span className="font-medium text-dark">{kpiData.forecasting.currentResources.targetPercentage}%</span>
+                          <span className="font-medium text-dark">{processedData.forecasting.currentResources.targetPercentage}%</span>
                         </li>
                       </ul>
                     </div>
@@ -442,15 +789,15 @@ function KpiDashboard() {
                       <h5 className="font-medium text-dark mb-2">Current Monthly Deliverables</h5>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="p-3 bg-blue-50 rounded-lg text-center">
-                          <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.briefs}</div>
+                          <div className="text-lg font-bold text-dark">{processedData.forecasting.currentResources.deliverables.briefs}</div>
                           <div className="text-xs text-mediumGray">Briefs</div>
                         </div>
                         <div className="p-3 bg-green-50 rounded-lg text-center">
-                          <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.backlinks}</div>
+                          <div className="text-lg font-bold text-dark">{processedData.forecasting.currentResources.deliverables.backlinks}</div>
                           <div className="text-xs text-mediumGray">Backlinks</div>
                         </div>
                         <div className="p-3 bg-purple-50 rounded-lg text-center">
-                          <div className="text-lg font-bold text-dark">{kpiData.forecasting.currentResources.deliverables.techFixes}</div>
+                          <div className="text-lg font-bold text-dark">{processedData.forecasting.currentResources.deliverables.techFixes}</div>
                           <div className="text-xs text-mediumGray">Tech fixes</div>
                         </div>
                       </div>
@@ -458,7 +805,7 @@ function KpiDashboard() {
 
                     {/* Timeline Estimate */}
                     <div className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-mediumGray">At this pace, you're projected to reach these outcomes by <span className="font-medium text-dark">{kpiData.forecasting.currentResources.timeline}</span>.</p>
+                      <p className="text-sm text-mediumGray">At this pace, you're projected to reach these outcomes by <span className="font-medium text-dark">{processedData.forecasting.currentResources.timeline}</span>.</p>
                     </div>
                   </div>
                 </div>
@@ -473,15 +820,15 @@ function KpiDashboard() {
                       <ul className="space-y-2 text-sm text-mediumGray">
                         <li className="flex justify-between">
                           <span>Target Traffic:</span>
-                          <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.targetTraffic.toLocaleString()}</span>
+                          <span className="font-medium text-dark">{processedData.forecasting.agreedTargets.targetTraffic.toLocaleString()}</span>
                         </li>
                         <li className="flex justify-between">
                           <span>Target Leads:</span>
-                          <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.targetLeads}</span>
+                          <span className="font-medium text-dark">{processedData.forecasting.agreedTargets.targetLeads}</span>
                         </li>
                         <li className="flex justify-between">
                           <span>End Date:</span>
-                          <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.endDate}</span>
+                          <span className="font-medium text-dark">{processedData.forecasting.agreedTargets.endDate}</span>
                         </li>
                       </ul>
                     </div>
@@ -491,11 +838,11 @@ function KpiDashboard() {
                       <h5 className="font-medium text-dark mb-2">Gap Analysis</h5>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-mediumGray">Gap to close:</span>
-                        <span className="font-medium text-dark">{kpiData.forecasting.agreedTargets.gap.percentage}%</span>
+                        <span className="font-medium text-dark">{processedData.forecasting.agreedTargets.gap.percentage}%</span>
                       </div>
                       <div className="flex justify-between items-center mt-1">
                         <span className="text-sm text-mediumGray">Estimated shortfall:</span>
-                        <span className="font-medium text-dark">~{kpiData.forecasting.agreedTargets.gap.shortfall.toLocaleString()} visits</span>
+                        <span className="font-medium text-dark">~{processedData.forecasting.agreedTargets.gap.shortfall.toLocaleString()} visits</span>
                       </div>
                     </div>
 
@@ -515,15 +862,15 @@ function KpiDashboard() {
                       <div className="space-y-2">
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span className="text-sm text-mediumGray">Deliverables:</span>
-                          <span className="font-medium text-dark">+{kpiData.forecasting.agreedTargets.requiredAdjustments.content} briefs / month</span>
+                          <span className="font-medium text-dark">+{processedData.forecasting.agreedTargets.requiredAdjustments.content} briefs / month</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span className="text-sm text-mediumGray">Timeline:</span>
-                          <span className="font-medium text-dark">+{kpiData.forecasting.agreedTargets.requiredAdjustments.timeline} months</span>
+                          <span className="font-medium text-dark">+{processedData.forecasting.agreedTargets.requiredAdjustments.timeline} months</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span className="text-sm text-mediumGray">Conversion Rate:</span>
-                          <span className="font-medium text-dark">↑ from {kpiData.forecasting.agreedTargets.requiredAdjustments.conversionRate.current}% → {kpiData.forecasting.agreedTargets.requiredAdjustments.conversionRate.required}%</span>
+                          <span className="font-medium text-dark">↑ from {processedData.forecasting.agreedTargets.requiredAdjustments.conversionRate.current}% → {processedData.forecasting.agreedTargets.requiredAdjustments.conversionRate.required}%</span>
                         </div>
                         <div className="mt-2 text-xs text-mediumGray">
                           <p className="italic">Note: These adjustments are manually entered and can be updated based on strategic discussions.</p>
@@ -577,15 +924,15 @@ function KpiDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Organic Clicks:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.blog.clicks.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.blog.clicks.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Conversion Rate:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.blog.conversionRate}%</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.blog.conversionRate}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Leads Captured:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.blog.leads}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.blog.leads}</span>
                     </div>
                   </div>
                 </div>
@@ -595,15 +942,15 @@ function KpiDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Clicks:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.feature.clicks.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.feature.clicks.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Engagement Rate:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.feature.engagementRate}%</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.feature.engagementRate}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Assisted Conversions:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.feature.assistedConversions}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.feature.assistedConversions}</span>
                     </div>
                   </div>
                 </div>
@@ -613,15 +960,15 @@ function KpiDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Traffic Volume:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.solution.traffic.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.solution.traffic.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Conversion Rate:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.solution.conversionRate}%</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.solution.conversionRate}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Avg Time on Page:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.solution.timeOnPage}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.solution.timeOnPage}</span>
                     </div>
                   </div>
                 </div>
@@ -631,15 +978,15 @@ function KpiDashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Traffic Volume:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.highIntent.traffic.toLocaleString()}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.highIntent.traffic.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Conversion Rate:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.highIntent.conversionRate}%</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.highIntent.conversionRate}%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-xs text-mediumGray">Leads:</span>
-                      <span className="text-sm font-medium text-dark">{kpiData.pageTypeBreakdown.overview.highIntent.leads}</span>
+                      <span className="text-sm font-medium text-dark">{processedData.pageTypeBreakdown.overview.highIntent.leads}</span>
                     </div>
                   </div>
                 </div>
@@ -653,7 +1000,7 @@ function KpiDashboard() {
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={kpiData.pageTypeBreakdown.funnelStages}
+                          data={processedData.pageTypeBreakdown.funnelStages}
                           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
@@ -673,7 +1020,7 @@ function KpiDashboard() {
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={kpiData.pageTypeBreakdown.funnelStages}
+                            data={processedData.pageTypeBreakdown.funnelStages}
                             cx="50%"
                             cy="50%"
                             labelLine={false}
@@ -683,7 +1030,7 @@ function KpiDashboard() {
                             dataKey="pages"
                             nameKey="stage"
                           >
-                            {kpiData.pageTypeBreakdown.funnelStages.map((_, index) => (
+                            {processedData.pageTypeBreakdown.funnelStages.map((_, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
@@ -706,7 +1053,7 @@ function KpiDashboard() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-lightGray">
-                      {kpiData.pageTypeBreakdown.funnelStages.map((stage, index) => (
+                      {processedData.pageTypeBreakdown.funnelStages.map((stage, index) => (
                         <tr key={index}>
                           <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-dark">{stage.stage}</td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-mediumGray">{stage.pages}</td>
@@ -725,7 +1072,7 @@ function KpiDashboard() {
                 <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
                   <h4 className="font-medium text-dark mb-3">Top Performers</h4>
                   <div className="space-y-3">
-                    {kpiData.pageTypeBreakdown.performers.top.map((performer, index) => (
+                    {processedData.pageTypeBreakdown.performers.top.map((performer, index) => (
                       <div key={index} className="p-3 bg-green-50 rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
@@ -746,7 +1093,7 @@ function KpiDashboard() {
                 <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
                   <h4 className="font-medium text-dark mb-3">Underperforming Pages</h4>
                   <div className="space-y-3">
-                    {kpiData.pageTypeBreakdown.performers.bottom.map((performer, index) => (
+                    {processedData.pageTypeBreakdown.performers.bottom.map((performer, index) => (
                       <div key={index} className="p-3 bg-red-50 rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
@@ -769,7 +1116,7 @@ function KpiDashboard() {
               <div className="bg-blue-50 p-5 rounded-lg border border-blue-100">
                 <h4 className="font-medium text-dark mb-3">Bottleneck Insights</h4>
                 <ul className="space-y-2">
-                  {kpiData.pageTypeBreakdown.bottlenecks.map((bottleneck, index) => (
+                  {processedData.pageTypeBreakdown.bottlenecks.map((bottleneck, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-blue-500 mr-2">•</span>
                       <span className="text-sm text-mediumGray">{bottleneck}</span>
@@ -779,8 +1126,10 @@ function KpiDashboard() {
               </div>
             </div>
           )}
-        </PageContainerBody>
-      </PageContainer>
+            </PageContainerBody>
+          </PageContainer>
+        </>
+      )}
     </DashboardLayout>
   );
 }

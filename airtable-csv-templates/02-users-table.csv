@@ -1,0 +1,4 @@
+Name,Email,Role,Created At,Last Login,Client
+John Smith,john@scalerrs.com,Admin,2024-01-01T09:00:00,2024-04-01T14:30:00,Example Client
+Jane Doe,jane@example.com,Client,2024-01-15T10:30:00,2024-04-02T11:15:00,Example Client
+Alex Johnson,alex@scalerrs.com,Team Member,2024-02-01T08:45:00,2024-04-03T09:20:00,Example Client

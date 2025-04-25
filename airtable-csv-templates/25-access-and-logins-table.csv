@@ -1,0 +1,7 @@
+Platform Name,Client,URL,Username,Password,Notes
+Google Analytics,Example Client,https://analytics.google.com,example@client.com,[SECURE PASSWORD],Read-only access to main property
+Google Search Console,Example Client,https://search.google.com/search-console,example@client.com,[SECURE PASSWORD],Full access to all properties
+WordPress Admin,Example Client,https://example.com/wp-admin,seo_admin,[SECURE PASSWORD],Editor access - cannot install plugins
+Ahrefs,Example Client,https://ahrefs.com,scalerrs_team,[SECURE PASSWORD],Shared account - client added to our team
+SEMrush,Example Client,https://semrush.com,scalerrs_example,[SECURE PASSWORD],Client has their own account we can access
+Google Tag Manager,Example Client,https://tagmanager.google.com,example@client.com,[SECURE PASSWORD],Full access to container

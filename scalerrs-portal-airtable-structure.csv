@@ -1,0 +1,183 @@
+Table Name,Field Name,Field Type,Options/Description
+Users,Name,Single Line Text,User's full name
+Users,Email,Email,User's email address
+Users,Role,Single Select,"Admin, Client, Team Member"
+Users,Created At,Date & Time,When the user was created
+Users,Auth Provider ID,Single Line Text,ID from third-party auth provider (if used)
+Users,Last Login,Date & Time,When the user last logged in
+Tasks,Title,Single Line Text,Task title
+Tasks,Description,Long Text,Detailed description of the task
+Tasks,Status,Single Select,"To Do, In Progress, Completed, Blocked, Done"
+Tasks,Priority,Single Select,"High, Medium, Low"
+Tasks,Assigned To,Link to Users table,User assigned to the task
+Tasks,Created At,Date & Time,When the task was created
+Tasks,Impact,Number,Impact score (1-5)
+Tasks,Effort,Single Select,"S, M, L"
+Tasks,Completed Date,Date & Time,When the task was completed
+Tasks,Reference Links,Long Text,URLs to reference materials
+Tasks,Notes,Long Text,Additional notes about the task
+Tasks,Task Type,Single Select,"Technical SEO, CRO, Strategy/Ad Hoc"
+Comments,Title,Single Line Text,Comment title
+Comments,Comment Text,Long Text,The actual comment content
+Comments,Task,Link to Tasks table,Related task
+Comments,User,Link to Users table,User who made the comment
+Comments,Created At,Date & Time,When the comment was created
+Briefs,Title,Single Line Text,Brief title
+Briefs,SEO Strategist,Link to Users table,User who created the brief
+Briefs,Due Date,Date,When the brief is due
+Briefs,Document Link,URL,Link to the brief document
+Briefs,Month,Single Select,"January, February, March, April, May, June, July, August, September, October, November, December"
+Briefs,Status,Single Select,"In Progress, Needs Input, Review Brief, Brief Approved"
+Articles,Title,Single Line Text,Article title
+Articles,Writer,Link to Users table,User who wrote the article
+Articles,Word Count,Number,Number of words in the article
+Articles,Due Date,Date,When the article is due
+Articles,Document Link,URL,Link to the article document
+Articles,Article URL,URL,Link to the published article
+Articles,Month,Single Select,"January, February, March, April, May, June, July, August, September, October, November, December"
+Articles,Status,Single Select,"In Production, Review Draft, Draft Approved, To Be Published, Live"
+Articles,Brief,Link to Briefs table,Related brief
+Backlinks,Domain,Single Line Text,Domain name of the backlink source
+Backlinks,Domain Rating,Number,DR score of the domain
+Backlinks,Link Type,Single Select,"Guest Post, Directory, Niche Edit"
+Backlinks,Target Page,URL,Page receiving the backlink
+Backlinks,Status,Single Select,"Live, Scheduled, Rejected"
+Backlinks,Went Live On,Date,When the backlink went live
+Backlinks,Month,Single Select,"January, February, March, April, May, June, July, August, September, October, November, December"
+Backlinks,Notes,Long Text,Additional notes about the backlink
+Reports,Title,Single Line Text,Report title
+Reports,Date,Date,Date of the report
+Reports,Type,Single Select,"Weekly, Monthly, Quarterly"
+Reports,Content,Long Text,Report content
+Reports,Document Link,URL,Link to the report document
+Reports,Related Metrics,Link to KPI Metrics table,Related KPI metrics
+KPI Metrics,Metric Name,Single Line Text,"e.g., Organic Clicks, Conversion Rate, etc."
+KPI Metrics,Current Value,Number,Current value of the metric
+KPI Metrics,Target Value,Number,Target value of the metric
+KPI Metrics,Progress Percentage,Formula,"{Current Value}/{Target Value}*100"
+KPI Metrics,Delta/Change,Number,Percentage change
+KPI Metrics,Trend,Single Select,"Up, Down, Stable"
+KPI Metrics,Color,Single Select,"Blue, Green, Purple, Amber, etc."
+KPI Metrics,Unit,Single Line Text,"%, $, etc."
+KPI Metrics,Tooltip,Long Text,Description of the metric
+KPI Metrics,Date Recorded,Date,When the metric was recorded
+KPI Forecasting,Projected Traffic,Number,Projected traffic with current resources
+KPI Forecasting,Projected Leads,Number,Projected leads with current resources
+KPI Forecasting,Target Percentage,Number,Percentage of target achieved
+KPI Forecasting,Briefs Count,Number,Number of briefs planned
+KPI Forecasting,Backlinks Count,Number,Number of backlinks planned
+KPI Forecasting,Technical Fixes Count,Number,Number of technical fixes planned
+KPI Forecasting,Timeline/End Date,Date,Projected completion date
+KPI Forecasting,Target Traffic,Number,Target traffic goal
+KPI Forecasting,Target Leads,Number,Target leads goal
+KPI Forecasting,Gap Percentage,Formula,Percentage gap to target
+KPI Forecasting,Required Content Adjustment,Number,Additional briefs needed per month
+KPI Forecasting,Required Backlinks Adjustment,Number,Additional backlinks needed per month
+KPI Forecasting,Required Conversion Rate,Number,Required conversion rate to meet goals
+KPI Forecasting,Additional Timeline Months,Number,Additional months needed to reach goals
+Page Type Performance,Page Type,Single Select,"Blog, Feature, Solution, High Intent"
+Page Type Performance,Clicks/Traffic,Number,Number of clicks or traffic
+Page Type Performance,Conversion Rate,Number,Conversion rate percentage
+Page Type Performance,Leads,Number,Number of leads generated
+Page Type Performance,Engagement Rate,Number,Engagement rate percentage
+Page Type Performance,Assisted Conversions,Number,Number of assisted conversions
+Page Type Performance,Time on Page,Single Line Text,Average time on page (MM:SS)
+Page Type Performance,Date Recorded,Date,When the data was recorded
+Funnel Stage Performance,Stage,Single Select,"ToFU, MoFU, BoFU"
+Funnel Stage Performance,Pages Count,Number,Number of pages in this funnel stage
+Funnel Stage Performance,Traffic,Number,Total traffic to pages in this stage
+Funnel Stage Performance,Conversion Rate,Number,Average conversion rate for this stage
+Funnel Stage Performance,Leads,Number,Total leads from this funnel stage
+Funnel Stage Performance,Date Recorded,Date,When the data was recorded
+Page Performance,URL,URL,Page URL
+Page Performance,Metric Type,Single Select,"Traffic, Conversions, Time on Page, etc."
+Page Performance,Value,Single Line Text,Metric value (can be number or text)
+Page Performance,Change Percentage,Number,Percentage change
+Page Performance,Tag,Single Select,"Top Performer, Bottom Performer, Needs Refresh, Under Review"
+Page Performance,Date Recorded,Date,When the data was recorded
+Bottleneck Insights,Description,Long Text,Description of the bottleneck
+Bottleneck Insights,Related Page Type,Link to Page Type Performance table,Related page type
+Bottleneck Insights,Date Identified,Date,When the bottleneck was identified
+Bottleneck Insights,Status,Single Select,"Active, Resolved"
+Yearly Projections,Month,Single Line Text,Month name
+Yearly Projections,Current Trajectory,Number,Current projected value
+Yearly Projections,KPI Goal/Target,Number,Target value
+Yearly Projections,Required Trajectory,Number,Required value to meet annual goals
+Yearly Projections,Year,Number,Year (e.g., 2024)
+URL Performance,URL Path,Single Line Text,Path component of the URL
+URL Performance,Title,Single Line Text,Page title
+URL Performance,Current Rank,Number,Current search ranking
+URL Performance,Target Rank,Number,Target search ranking
+URL Performance,Traffic,Number,Current traffic to the URL
+URL Performance,Conversion Rate,Number,Conversion rate percentage
+URL Performance,Status,Single Select,"Optimizing, Monitoring, Planned"
+URL Performance,Page Type,Single Select,"Blog Post, Service Page, Case Study, etc."
+URL Performance,Last Updated,Date,When the data was last updated
+Keyword Performance,Keyword,Single Line Text,Target keyword
+Keyword Performance,Search Volume,Number,Monthly search volume
+Keyword Performance,Difficulty,Number,Keyword difficulty (1-100)
+Keyword Performance,Current Rank,Number,Current ranking position
+Keyword Performance,Target Rank,Number,Target ranking position
+Keyword Performance,Target Page,Link to URL Performance table,Page targeting this keyword
+Keyword Performance,Status,Single Select,"Improving, Stable, Declining, New Target"
+Keyword Performance,Last Updated,Date,When the data was last updated
+Uplift Potential,URL,Link to URL Performance table,Related URL
+Uplift Potential,Current Traffic,Number,Current traffic to the URL
+Uplift Potential,Potential Traffic,Number,Potential traffic if targets are met
+Uplift Potential,Uplift Percentage,Formula,"{(Potential Traffic - Current Traffic) / Current Traffic * 100}"
+Uplift Potential,Primary Keyword,Link to Keyword Performance table,Primary keyword for this URL
+Uplift Potential,Secondary Keywords Count,Number,Number of secondary keywords
+Uplift Potential,Priority,Single Select,"Critical, High, Medium, Low"
+Uplift Potential,Last Updated,Date,When the data was last updated
+Backlink Data,Source Domain,Single Line Text,Domain providing the backlink
+Backlink Data,Target URL,Link to URL Performance table,URL receiving the backlink
+Backlink Data,Domain Authority/Rating,Number,Domain authority or rating
+Backlink Data,Link Type,Single Select,"Guest Post, Directory, Niche Edit, etc."
+Backlink Data,Status,Single Select,"Live, Pending, Planned"
+Backlink Data,Date Acquired,Date,When the backlink was acquired
+Backlink Data,Anchor Text,Single Line Text,Anchor text of the backlink
+Backlink Data,Notes,Long Text,Additional notes about the backlink
+Monthly Planning,Month,Single Line Text,Month and year (e.g., "April 2024")
+Monthly Planning,Focus Keywords,Long Text,List of focus keywords for the month
+Monthly Planning,Content Pieces Planned,Number,Number of content pieces planned
+Monthly Planning,Backlinks Planned,Number,Number of backlinks planned
+Monthly Planning,Technical Fixes Planned,Number,Number of technical fixes planned
+Monthly Planning,Expected Traffic Increase,Single Line Text,Expected percentage increase in traffic
+Monthly Planning,Status,Single Select,"Planned, In Progress, Completed"
+Monthly Planning,Notes,Long Text,Additional notes about the monthly plan
+Onboarding Information,Business Name,Single Line Text,Client business name
+Onboarding Information,Website,URL,Client website
+Onboarding Information,Industry,Single Line Text,Client industry
+Onboarding Information,Competitors,Long Text,List of competitors
+Onboarding Information,Target Audience,Long Text,Description of target audience
+Onboarding Information,Goals,Long Text,Client goals
+Onboarding Information,Existing Keywords,Long Text,Existing keywords the client ranks for
+Onboarding Information,Content Strategy,Long Text,Content strategy notes
+Onboarding Information,Technical Issues,Long Text,Known technical issues
+Onboarding Information,Google Analytics,Checkbox,Whether Google Analytics is set up
+Onboarding Information,Google Search Console,Checkbox,Whether Google Search Console is set up
+Onboarding Information,Ahrefs,Checkbox,Whether Ahrefs is set up
+Onboarding Information,SEMrush,Checkbox,Whether SEMrush is set up
+Onboarding Information,Other Analytics,Single Line Text,Other analytics platforms
+Onboarding Information,Additional Notes,Long Text,Any additional notes
+Onboarding Information,Client,Link to Users table,Related client user
+Agreements,Title,Single Line Text,Agreement title
+Agreements,Start Date,Date,Agreement start date
+Agreements,End Date,Date,Agreement end date
+Agreements,Status,Single Select,"Active, Expired, Pending"
+Agreements,Document Link,URL or Attachment,Link to the agreement document
+Agreements,Client,Link to Users table,Related client user
+Agreements,Notes,Long Text,Additional notes about the agreement
+Access and Logins,Platform Name,Single Line Text,Name of the platform
+Access and Logins,URL,URL,URL of the platform
+Access and Logins,Username,Single Line Text,Username for the platform
+Access and Logins,Password,Single Line Text,Password (consider more secure storage)
+Access and Logins,Notes,Long Text,Additional notes about the access
+Access and Logins,Client,Link to Users table,Related client user
+Notifications,Type,Single Select,"Task, Brief, Article, System, etc."
+Notifications,Message,Long Text,Notification message
+Notifications,Related Record ID,Single Line Text,ID of related record
+Notifications,Related Table,Single Select,"Tasks, Briefs, Articles, etc."
+Notifications,Created At,Date & Time,When the notification was created
+Notifications,Read Status,Checkbox,Whether the notification has been read
+Notifications,User,Link to Users table,User who should receive the notification

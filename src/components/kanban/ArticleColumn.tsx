@@ -8,7 +8,8 @@ interface ArticleColumnProps {
   status: ArticleStatus;
   articles: Article[];
   bgColor: string;
-  onStatusChange: (id: number, newStatus: ArticleStatus) => void;
+  selectedMonth?: string;
+  onStatusChange: (id: string, newStatus: ArticleStatus) => void;
 }
 
 export default function ArticleColumn({
@@ -16,11 +17,12 @@ export default function ArticleColumn({
   status,
   articles,
   bgColor,
+  selectedMonth,
   onStatusChange
 }: ArticleColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.ARTICLE_CARD,
-    drop: (item: { id: number }) => {
+    drop: (item: { id: string }) => {
       onStatusChange(item.id, status);
     },
     collect: (monitor) => ({
@@ -31,27 +33,36 @@ export default function ArticleColumn({
   return (
     <div
       ref={drop as any}
-      className={`card ${bgColor} p-4 rounded-lg shadow-sm border border-lightGray ${isOver ? 'ring-2 ring-primary' : ''}`}
-      style={{ color: '#353233' }}
+      className={`w-full rounded-lg ${isOver ? 'ring-2 ring-primary' : ''}`}
     >
-      <h3 className="text-md font-medium text-text-light dark:text-text-dark mb-4 flex items-center">
-        {title}
-        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-white dark:bg-darkGray rounded-full text-mediumGray dark:text-gray-300">
+      <div className={`flex items-center justify-between px-3 py-2 ${bgColor} rounded-lg`}>
+        <h3 className="text-sm font-medium">
+          {title}
+        </h3>
+        <span className="px-2 py-0.5 text-xs font-medium bg-white bg-opacity-60 rounded">
           {articles.length}
         </span>
-      </h3>
+      </div>
 
-      <div className="space-y-3">
+      <div className="bg-white rounded-b-lg p-0 mt-3 space-y-1">
         {articles.map((article) => (
           <ArticleCard
             key={article.id}
             article={article}
+            selectedMonth={selectedMonth || ''}
+            onStatusChange={onStatusChange}
           />
         ))}
 
         {articles.length === 0 && (
-          <div className="bg-white dark:bg-container p-4 rounded-lg border border-dashed border-lightGray dark:border-container text-center">
-            <p className="text-sm text-mediumGray dark:text-gray-300">No articles</p>
+          <div className="p-4 text-center">
+            {status === 'Draft Approved' ? (
+              <p className="text-sm text-gray-500">No items currently need draft approved</p>
+            ) : status === 'To Be Published' ? (
+              <p className="text-sm text-gray-500">No items currently need to be published</p>
+            ) : (
+              <p className="text-sm text-gray-500">No items currently need {status.toLowerCase()}</p>
+            )}
           </div>
         )}
       </div>

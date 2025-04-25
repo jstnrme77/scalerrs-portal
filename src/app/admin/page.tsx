@@ -125,7 +125,7 @@ export default function Admin() {
         </div>
       )}
 
-      <PageContainer className="mb-8">
+      <PageContainer>
         <TabNavigation
           tabs={[
             { id: 'agreement', label: 'Agreement' },
@@ -133,7 +133,7 @@ export default function Admin() {
             { id: 'resources', label: 'Resources' }
           ]}
           activeTab={activeTab}
-          onChange={setActiveTab}
+          onTabChange={setActiveTab}
           variant="primary"
           containerClassName="overflow-x-auto"
         />

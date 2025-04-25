@@ -1,0 +1,6 @@
+Campaign Name,Client,Service,Month,Week,Start Date,End Date,Dependent On,Duration
+Technical SEO Audit - April,Example Client,Technical SEO Audit,April,Week 1,2024-04-01,2024-04-05,,5 days
+Content Strategy - April,Example Client,Content Strategy,April,Week 2,2024-04-08,2024-04-12,Technical SEO Audit - April,5 days
+Content Creation - April,Example Client,Content Creation,April,Week 3,2024-04-15,2024-04-19,Content Strategy - April,5 days
+Link Building - April,Example Client,Link Building,April,Week 4,2024-04-22,2024-04-26,,5 days
+Technical Implementation - April,Example Client,Technical Implementation,April,Week 4,2024-04-22,2024-04-30,Technical SEO Audit - April,7 days

@@ -12,8 +12,9 @@ export interface TabItem {
 export interface TabNavigationProps {
   tabs: TabItem[];
   activeTab: string;
-  onChange: (tabId: string) => void;
+  onTabChange: (tabId: string) => void;
   variant?: 'primary' | 'secondary';
+  size?: 'default' | 'small';
   className?: string;
   containerClassName?: string;
 }
@@ -24,8 +25,9 @@ export interface TabNavigationProps {
 export default function TabNavigation({
   tabs,
   activeTab,
-  onChange,
+  onTabChange,
   variant = 'primary',
+  size = 'default',
   className = '',
   containerClassName = '',
 }: TabNavigationProps) {
@@ -44,7 +46,7 @@ export default function TabNavigation({
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => onChange(tab.id)}
+            onClick={() => onTabChange(tab.id)}
             disabled={tab.disabled}
             className={cn(
               "tab-item",
@@ -52,6 +54,7 @@ export default function TabNavigation({
                 ? "tab-item-active"
                 : "tab-item-inactive",
               isPrimary ? "font-semibold" : "font-medium",
+              size === 'small' ? "text-sm py-2 px-4" : "py-3 px-6",
               tab.disabled && "opacity-50 cursor-not-allowed",
               className
             )}

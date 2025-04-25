@@ -1,0 +1,4 @@
+Metric Name,Client,KPI Type,KPI Timestamp,Month,Year,Quarter,Current Value,Target Value,Progress Percentage,Difference in KPI,Delta/Change,Trend,Color,Unit,KPI Status,1st Owner of KPI,2nd Owner of KPI,Notes
+Organic Traffic,Example Client,Traffic,2024-04-01T09:00:00,April,2024,Q2,12543,15000,83.62,2457,16.4,Up,Blue,visits,On Track,John Smith,Jane Doe,Traffic is increasing steadily
+Conversion Rate,Example Client,Conversion,2024-04-01T09:00:00,April,2024,Q2,3.2,4.0,80,0.8,20,Up,Green,%,On Track,John Smith,Jane Doe,Conversion rate is improving
+Lead Generation,Example Client,Leads,2024-04-01T09:00:00,April,2024,Q2,401,600,66.83,199,33.2,Up,Purple,leads,Needs Attention,John Smith,Jane Doe,Need to improve lead generation strategies

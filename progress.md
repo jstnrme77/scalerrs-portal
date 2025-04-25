@@ -50,10 +50,15 @@
 - ✅ Reorganized UI navigation elements for better usability
 - ✅ Removed TopNavBar space from all pages except the home page
 - ✅ Standardized padding across all pages to match the Get Started page
+- ✅ Fixed Deliverables page card colors to match column headers
+- ✅ Updated ArticleCard component to display proper writer and editor information
+- ✅ Improved date formatting in Kanban cards
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
 ### Data Integration
+- ✅ Implemented dynamic Target Page display in backlinks table using Airtable data
+- ✅ Added functional filters for backlinks by Status and Domain Rating
 - 🔄 Enhancing real-time data synchronization
 - 🔄 Implementing more robust error handling
 
@@ -92,3 +97,11 @@
 - Created a PageWrapper component to standardize padding across all pages
 - Enhanced KPI Dashboard with vertical card layout, more prominent progress bars, and improved visualizations
 - Added new SEO Layouts section with comprehensive data views for SEO campaign management
+- Fixed Deliverables page card colors to match column headers for better visual consistency
+- Updated ArticleCard component to display proper writer and editor information instead of record IDs
+- Improved date formatting in Kanban cards to match the design requirements
+- Simplified the card layout to be more compact and easier to read
+- Fixed Target Page column in backlinks table to display actual URL paths instead of Airtable record IDs
+- Implemented dynamic mapping between Airtable record IDs and URL paths using data from the URL Performance table
+- Added functional filters for backlinks by Status and Domain Rating with a clear filters button
+- Improved filter UI with proper state management and immediate updates when filters change

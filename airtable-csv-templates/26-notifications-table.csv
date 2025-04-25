@@ -1,0 +1,6 @@
+Notification ID,Type,Message,Related Record ID,Related Table,Created At,Read Status,User
+1,Task,New task assigned: Fix broken internal links,1,Tasks,2024-04-01T09:00:00,FALSE,John Smith
+2,Brief,Brief needs review: SEO Best Practices,2,Briefs,2024-04-02T10:30:00,TRUE,Jane Doe
+3,Article,Article ready for review: Local SEO Strategies,4,Articles,2024-04-03T14:15:00,FALSE,Alex Johnson
+4,System,Monthly report for March is due,3,Monthly Reports,2024-04-04T08:00:00,TRUE,John Smith
+5,Task,Task due tomorrow: Optimize meta descriptions,2,Tasks,2024-04-04T16:30:00,FALSE,Jane Doe

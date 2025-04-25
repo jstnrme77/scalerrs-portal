@@ -33,7 +33,7 @@ export default function DashboardLayout({
     <ProtectedRoute>
       <div className="flex min-h-screen bg-lightGray dark:bg-dark">
         <Sidebar />
-        <TopNavBar sidebarExpanded={sidebarExpanded} />
+        {isHomePage && <TopNavBar sidebarExpanded={sidebarExpanded} />}
         <div className={`flex-1 ${isHomePage ? 'pt-20' : 'pt-0'} transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
           <PageWrapper>
             {children}

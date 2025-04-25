@@ -10,7 +10,7 @@ interface BriefColumnProps {
   selectedMonth: string;
   bgColor: string;
   count?: number;
-  onStatusChange: (id: number, newStatus: BriefStatus) => void;
+  onStatusChange: (id: string, newStatus: BriefStatus) => void;
 }
 
 export default function BriefColumn({
@@ -24,7 +24,7 @@ export default function BriefColumn({
 }: BriefColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.BRIEF_CARD,
-    drop: (item: { id: number }) => {
+    drop: (item: { id: string }) => {
       onStatusChange(item.id, status);
     },
     collect: (monitor) => ({
@@ -52,6 +52,7 @@ export default function BriefColumn({
             key={brief.id}
             brief={brief}
             selectedMonth={selectedMonth}
+            onStatusChange={onStatusChange}
           />
         ))}
 

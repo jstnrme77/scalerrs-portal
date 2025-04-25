@@ -1,0 +1,17 @@
+Fix Deliverables page styling and enhance Backlinks tab
+
+- Fixed card colors to match column headers for better visual consistency
+- Updated ArticleCard component to display proper writer and editor information
+- Improved date formatting in Kanban cards to match design requirements
+- Simplified card layout to be more compact and easier to read
+- Enhanced Backlinks tab with progress bar showing completion percentage
+- Added "Went Live On" and "Notes" columns to the backlinks table
+- Improved Domain Rating display with badge styling
+- Added filter dropdowns for Status and DR
+- Fixed spacing and padding in the Backlinks table for better readability
+- Updated mock data with more realistic backlink information and notes
+- Updated progress tracking in progress.md
+
+These changes improve the visual consistency and readability of the Deliverables page,
+making it easier for users to track content progress through the workflow and monitor
+backlink performance.

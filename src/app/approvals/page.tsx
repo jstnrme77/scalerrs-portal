@@ -507,7 +507,7 @@ export default function Approvals() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-grow">
           {/* Tab Navigation */}
-          <PageContainer className="mb-6">
+          <PageContainer>
             <PageContainerTabs>
               <TabNavigation
                 tabs={[
@@ -518,7 +518,7 @@ export default function Approvals() {
                   { id: 'quickwins', label: 'Quick Wins' }
                 ]}
                 activeTab={activeTab}
-                onChange={setActiveTab}
+                onTabChange={setActiveTab}
                 variant="primary"
                 containerClassName="overflow-x-auto"
               />

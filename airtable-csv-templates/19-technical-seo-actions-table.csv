@@ -1,0 +1,6 @@
+Action Name,Client,Status,Who Is Responsible,Action Type,Notes By Scalerrs During Audit,Explication: Why?,Link To Data
+Fix Broken Internal Links,Example Client,To Do,John Smith,Technical & On Page SEO,Found 15 broken links on the blog section,Broken links waste crawl budget and create poor user experience,https://docs.google.com/spreadsheets/d/broken-links
+Implement Schema Markup,Example Client,In Progress,Jane Doe,Technical & On Page SEO,Missing FAQ and Product schema on key pages,Schema helps search engines understand content and can improve SERP features,https://docs.google.com/document/d/schema
+Optimize Site Speed,Example Client,To Do,Alex Johnson,Technical & On Page SEO,Page speed scores below 70 on mobile,Site speed is a ranking factor and affects user experience,https://pagespeed.web.dev/report
+Fix Duplicate Content,Example Client,Done,John Smith,Technical & On Page SEO,Category pages have duplicate meta descriptions,Duplicate content confuses search engines about which page to rank,https://docs.google.com/spreadsheets/d/duplicate
+Implement Hreflang Tags,Example Client,To Do,Jane Doe,International SEO,Missing proper language targeting for international pages,Hreflang helps target the right content to the right users based on language/region,https://docs.google.com/document/d/hreflang

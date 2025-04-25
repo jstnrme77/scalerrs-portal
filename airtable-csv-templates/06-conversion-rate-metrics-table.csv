@@ -1,0 +1,5 @@
+Metric ID,Client,Value,Metric Type,Signup Type,Growth Model,Page Type,URL
+1,Example Client,3.2,Conversion Rate,General Sign Up,SEO Growth Model 1,Blog,/blog/seo-strategy-2024
+2,Example Client,5.1,Conversion Rate,Demo Request,SEO Growth Model 2,Feature,/features/analytics
+3,Example Client,2.8,Conversion Rate,Newsletter,SEO Growth Model 1,Blog,/blog/local-seo-guide
+4,Example Client,7.5,Conversion Rate,Contact Form,SEO Growth Model 3,Solution,/solutions/enterprise

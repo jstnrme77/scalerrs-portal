@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
+import { fetchTasks, fetchComments, addComment, updateTaskStatus } from '@/lib/client-api';
 
 // Define task types
 type TaskStatus = 'Not Started' | 'In Progress' | 'Blocked' | 'Done';
@@ -364,14 +365,76 @@ function CommentItem({ comment }: { comment: Comment }) {
 }
 
 // Comments Section Component
-function CommentsSection({ comments }: { comments: Comment[] }) {
+function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: number }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [taskComments, setTaskComments] = useState<Comment[]>(comments);
 
-  const handleAddComment = () => {
-    // This would be implemented with actual functionality to add comments
-    console.log('Adding comment:', newComment);
-    setNewComment('');
+  // Fetch comments when expanded
+  useEffect(() => {
+    if (isExpanded) {
+      const fetchTaskComments = async () => {
+        try {
+          setLoading(true);
+          const commentsData = await fetchComments(taskId.toString());
+
+          // Map Airtable comments to our Comment type
+          const mappedComments: Comment[] = commentsData.map((comment: any) => ({
+            id: comment.id,
+            author: comment.User?.[0] || 'Anonymous',
+            text: comment.Comment || '',
+            timestamp: comment.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          }));
+
+          setTaskComments(mappedComments.length > 0 ? mappedComments : comments);
+        } catch (err) {
+          console.error('Error fetching comments:', err);
+          // Fall back to existing comments
+          setTaskComments(comments);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchTaskComments();
+    }
+  }, [isExpanded, taskId, comments]);
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+
+    try {
+      // Add comment to Airtable
+      const result = await addComment({
+        taskId: taskId.toString(),
+        comment: newComment
+      });
+
+      // Update local state
+      const newCommentObj: Comment = {
+        id: result.id || Date.now(),
+        author: 'You', // This would be the current user in a real app
+        text: newComment,
+        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      };
+
+      setTaskComments([...taskComments, newCommentObj]);
+      setNewComment('');
+    } catch (err) {
+      console.error('Error adding comment:', err);
+
+      // Still update UI for better UX
+      const newCommentObj: Comment = {
+        id: Date.now(),
+        author: 'You', // This would be the current user in a real app
+        text: newComment,
+        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      };
+
+      setTaskComments([...taskComments, newCommentObj]);
+      setNewComment('');
+    }
   };
 
   return (
@@ -383,14 +446,18 @@ function CommentsSection({ comments }: { comments: Comment[] }) {
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
         </svg>
-        {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
+        {taskComments.length} {taskComments.length === 1 ? 'Comment' : 'Comments'}
       </button>
 
       {isExpanded && (
         <div className="mt-2">
           <div className="bg-lightGray/30 p-3 rounded-md mb-2">
-            {comments.length > 0 ? (
-              comments.map((comment) => (
+            {loading ? (
+              <div className="flex justify-center items-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : taskComments.length > 0 ? (
+              taskComments.map((comment) => (
                 <CommentItem key={comment.id} comment={comment} />
               ))
             ) : (
@@ -408,10 +475,10 @@ function CommentsSection({ comments }: { comments: Comment[] }) {
             />
             <button
               onClick={handleAddComment}
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() || loading}
               className="bg-primary text-white px-3 py-2 rounded-r-md text-sm font-medium disabled:opacity-50"
             >
-              Post
+              {loading ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>
@@ -504,7 +571,7 @@ function TaskCard({
         </div>
       )}
 
-      <CommentsSection comments={task.comments} />
+      <CommentsSection comments={task.comments} taskId={task.id} />
 
       <div className="flex space-x-2 mt-3">
         {task.status === 'Not Started' && (
@@ -946,55 +1013,181 @@ function AddTaskModal({
 }
 
 export default function TaskBoards() {
-  const [boards, setBoards] = useState(taskBoards);
+  const [boards, setBoards] = useState<Record<string, Task[]>>({
+    technicalSEO: [],
+    cro: [],
+    strategyAdHoc: []
+  });
   const [activeBoard, setActiveBoard] = useState('technicalSEO');
   const [addTaskModal, setAddTaskModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch tasks from Airtable
+  useEffect(() => {
+    const fetchTasksData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch tasks from Airtable
+        const tasksData = await fetchTasks();
+
+        // Organize tasks by board
+        const organizedTasks: Record<string, Task[]> = {
+          technicalSEO: [],
+          cro: [],
+          strategyAdHoc: []
+        };
+
+        // Map Airtable tasks to our Task type
+        tasksData.forEach((task: any) => {
+          const boardType = task.Category || 'technicalSEO';
+
+          const mappedTask: Task = {
+            id: task.id,
+            task: task.Title || task.Name || 'Untitled Task',
+            status: (task.Status as TaskStatus) || 'Not Started',
+            assignedTo: task.AssignedTo?.[0] || 'Unassigned',
+            dateLogged: task.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            priority: (task.Priority as TaskPriority) || 'Medium',
+            impact: task.Impact || 3,
+            effort: (task.Effort as TaskEffort) || 'M',
+            comments: [],
+            notes: task.Notes || '',
+            referenceLinks: task.ReferenceLinks ? [task.ReferenceLinks] : []
+          };
+
+          if (task.CompletedDate) {
+            (mappedTask as CompletedTask).completedDate = task.CompletedDate;
+          }
+
+          if (boardType === 'Technical SEO') {
+            organizedTasks.technicalSEO.push(mappedTask);
+          } else if (boardType === 'CRO') {
+            organizedTasks.cro.push(mappedTask);
+          } else if (boardType === 'Strategy' || boardType === 'Ad Hoc') {
+            organizedTasks.strategyAdHoc.push(mappedTask);
+          } else {
+            organizedTasks.technicalSEO.push(mappedTask);
+          }
+        });
+
+        setBoards(organizedTasks);
+      } catch (err: any) {
+        console.error('Error fetching tasks:', err);
+        setError(`An error occurred while fetching tasks: ${err.message}`);
+
+        // Fall back to sample data
+        setBoards(taskBoards);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasksData();
+  }, []);
 
   // Check if Strategy/Ad Hoc tab should be visible
   const showStrategyTab = boards.strategyAdHoc && boards.strategyAdHoc.length > 0;
 
-  const handleStatusChange = (id: number, newStatus: TaskStatus) => {
-    setBoards(prev => {
-      const newBoards = { ...prev };
-      const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task => task.id === id);
+  const handleStatusChange = async (id: number, newStatus: TaskStatus) => {
+    try {
+      // Update task status in Airtable
+      await updateTaskStatus(id.toString(), newStatus);
 
-      if (taskIndex !== -1) {
-        const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+      // Update local state
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task => task.id === id);
 
-        if (newStatus === 'Done') {
-          // When moving to Done, add completedDate
-          const updatedTask = {
-            ...currentTask,
-            status: newStatus,
-            completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          } as CompletedTask;
-          newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
-        } else {
-          // When moving to other statuses
-          const updatedTask = {
-            ...currentTask,
-            status: newStatus,
-            completedDate: undefined
-          } as ActiveTask;
-          newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+        if (taskIndex !== -1) {
+          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+
+          if (newStatus === 'Done') {
+            // When moving to Done, add completedDate
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            } as CompletedTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          } else {
+            // When moving to other statuses
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: undefined
+            } as ActiveTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          }
         }
-      }
 
-      return newBoards;
-    });
+        return newBoards;
+      });
+    } catch (err) {
+      console.error('Error updating task status:', err);
+
+      // Update local state anyway for better UX
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task => task.id === id);
+
+        if (taskIndex !== -1) {
+          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+
+          if (newStatus === 'Done') {
+            // When moving to Done, add completedDate
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            } as CompletedTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          } else {
+            // When moving to other statuses
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: undefined
+            } as ActiveTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          }
+        }
+
+        return newBoards;
+      });
+    }
   };
 
-  const handleAddTask = (task: Task) => {
-    setBoards(prev => {
-      const newBoards = { ...prev };
-      newBoards[activeBoard as keyof typeof boards] = [
-        ...newBoards[activeBoard as keyof typeof boards],
-        task
-      ];
-      return newBoards;
-    });
+  const handleAddTask = async (task: Task) => {
+    try {
+      // In a real implementation, you would add the task to Airtable here
+      // For now, we'll just update the local state
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          task
+        ];
+        return newBoards;
+      });
 
-    setAddTaskModal(false);
+      setAddTaskModal(false);
+    } catch (err) {
+      console.error('Error adding task:', err);
+      // Still update the UI for better UX
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          task
+        ];
+        return newBoards;
+      });
+
+      setAddTaskModal(false);
+    }
   };
 
   // Get the current board's tasks
@@ -1019,7 +1212,7 @@ export default function TaskBoards() {
         </button>
       </div>
 
-      <PageContainer className="mb-6">
+      <PageContainer>
         <PageContainerTabs>
           <TabNavigation
             tabs={[
@@ -1028,15 +1221,26 @@ export default function TaskBoards() {
               { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', disabled: !showStrategyTab }
             ]}
             activeTab={activeBoard}
-            onChange={setActiveBoard}
+            onTabChange={setActiveBoard}
             variant="primary"
           />
         </PageContainerTabs>
         <PageContainerBody>
-          <TaskTable
-            tasks={currentTasks}
-            onStatusChange={handleStatusChange}
-          />
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+              <strong className="font-bold">Error: </strong>
+              <span className="block sm:inline">{error}</span>
+            </div>
+          ) : (
+            <TaskTable
+              tasks={currentTasks}
+              onStatusChange={handleStatusChange}
+            />
+          )}
         </PageContainerBody>
       </PageContainer>
 

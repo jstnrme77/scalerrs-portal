@@ -459,7 +459,7 @@ export default function Reports() {
             </div>
           </div>
 
-          <PageContainer className="mb-8">
+          <PageContainer>
             {/* Tab Navigation */}
             <PageContainerTabs>
               <TabNavigation
@@ -469,7 +469,7 @@ export default function Reports() {
                   { id: 'quarterly', label: 'Quarterly' }
                 ]}
                 activeTab={activeTab}
-                onChange={handleTabChange}
+                onTabChange={handleTabChange}
                 variant="primary"
               />
             </PageContainerTabs>

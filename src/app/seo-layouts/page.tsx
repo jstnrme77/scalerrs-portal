@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 
 // Sample SEO data for URLs
 const urlData = [
-  { 
-    id: 1, 
-    url: '/blog/seo-strategy-2024', 
+  {
+    id: 1,
+    url: '/blog/seo-strategy-2024',
     title: 'SEO Strategy Guide for 2024',
     currentRank: 8,
     targetRank: 3,
@@ -20,9 +20,9 @@ const urlData = [
     conversion: '2.4%',
     status: 'Optimizing'
   },
-  { 
-    id: 2, 
-    url: '/services/technical-seo', 
+  {
+    id: 2,
+    url: '/services/technical-seo',
     title: 'Technical SEO Services',
     currentRank: 12,
     targetRank: 5,
@@ -30,9 +30,9 @@ const urlData = [
     conversion: '3.1%',
     status: 'Monitoring'
   },
-  { 
-    id: 3, 
-    url: '/case-studies/ecommerce-seo', 
+  {
+    id: 3,
+    url: '/case-studies/ecommerce-seo',
     title: 'E-commerce SEO Case Study',
     currentRank: 6,
     targetRank: 1,
@@ -40,9 +40,9 @@ const urlData = [
     conversion: '4.2%',
     status: 'Optimizing'
   },
-  { 
-    id: 4, 
-    url: '/blog/local-seo-guide', 
+  {
+    id: 4,
+    url: '/blog/local-seo-guide',
     title: 'Complete Local SEO Guide',
     currentRank: 15,
     targetRank: 7,
@@ -50,9 +50,9 @@ const urlData = [
     conversion: '1.8%',
     status: 'Planned'
   },
-  { 
-    id: 5, 
-    url: '/services/content-marketing', 
+  {
+    id: 5,
+    url: '/services/content-marketing',
     title: 'Content Marketing Services',
     currentRank: 9,
     targetRank: 3,
@@ -260,7 +260,7 @@ export default function SEOLayoutsPage() {
         <p className="text-mediumGray">View your SEO campaign data in customizable table formats</p>
       </div>
 
-      <PageContainer className="mb-6">
+      <PageContainer>
         <PageContainerTabs>
           <TabNavigation
             tabs={[
@@ -271,7 +271,7 @@ export default function SEOLayoutsPage() {
               { id: 'planning', label: 'Monthly Planning' },
             ]}
             activeTab={activeTab}
-            onChange={setActiveTab}
+            onTabChange={setActiveTab}
             variant="primary"
           />
         </PageContainerTabs>
@@ -293,7 +293,7 @@ export default function SEOLayoutsPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -353,10 +353,10 @@ export default function SEOLayoutsPage() {
                         <TableCell>{url.conversion}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            url.status === 'Optimizing' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : url.status === 'Monitoring' 
-                                ? 'bg-green-100 text-green-800' 
+                            url.status === 'Optimizing'
+                              ? 'bg-blue-100 text-blue-800'
+                              : url.status === 'Monitoring'
+                                ? 'bg-green-100 text-green-800'
                                 : 'bg-amber-100 text-amber-800'
                           }`}>
                             {url.status}
@@ -387,7 +387,7 @@ export default function SEOLayoutsPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -445,11 +445,11 @@ export default function SEOLayoutsPage() {
                           <div className="flex items-center">
                             <span className="mr-2">{keyword.difficulty}</span>
                             <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                              <div 
+                              <div
                                 className={`h-1.5 rounded-full ${
-                                  keyword.difficulty > 70 ? 'bg-red-500' : 
+                                  keyword.difficulty > 70 ? 'bg-red-500' :
                                   keyword.difficulty > 50 ? 'bg-amber-500' : 'bg-green-500'
-                                }`} 
+                                }`}
                                 style={{ width: `${keyword.difficulty}%` }}
                               ></div>
                             </div>
@@ -460,10 +460,10 @@ export default function SEOLayoutsPage() {
                         <TableCell>{keyword.targetPage}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            keyword.status === 'Improving' 
-                              ? 'bg-green-100 text-green-800' 
-                              : keyword.status === 'Stable' 
-                                ? 'bg-blue-100 text-blue-800' 
+                            keyword.status === 'Improving'
+                              ? 'bg-green-100 text-green-800'
+                              : keyword.status === 'Stable'
+                                ? 'bg-blue-100 text-blue-800'
                                 : 'bg-purple-100 text-purple-800'
                           }`}>
                             {keyword.status}
@@ -494,7 +494,7 @@ export default function SEOLayoutsPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -551,7 +551,7 @@ export default function SEOLayoutsPage() {
                         <TableCell>{page.potentialTraffic.toLocaleString()}</TableCell>
                         <TableCell>
                           <span className={`font-medium ${
-                            page.upliftPercentage > 200 ? 'text-green-600' : 
+                            page.upliftPercentage > 200 ? 'text-green-600' :
                             page.upliftPercentage > 100 ? 'text-blue-600' : 'text-amber-600'
                           }`}>
                             +{page.upliftPercentage}%
@@ -561,10 +561,10 @@ export default function SEOLayoutsPage() {
                         <TableCell>{page.secondaryKeywords}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            page.priority === 'Critical' 
-                              ? 'bg-red-100 text-red-800' 
-                              : page.priority === 'High' 
-                                ? 'bg-amber-100 text-amber-800' 
+                            page.priority === 'Critical'
+                              ? 'bg-red-100 text-red-800'
+                              : page.priority === 'High'
+                                ? 'bg-amber-100 text-amber-800'
                                 : 'bg-blue-100 text-blue-800'
                           }`}>
                             {page.priority}
@@ -595,7 +595,7 @@ export default function SEOLayoutsPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -647,11 +647,11 @@ export default function SEOLayoutsPage() {
                           <div className="flex items-center">
                             <span className="mr-2">{link.domainRating}</span>
                             <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                              <div 
+                              <div
                                 className={`h-1.5 rounded-full ${
-                                  link.domainRating > 80 ? 'bg-green-500' : 
+                                  link.domainRating > 80 ? 'bg-green-500' :
                                   link.domainRating > 60 ? 'bg-blue-500' : 'bg-amber-500'
-                                }`} 
+                                }`}
                                 style={{ width: `${link.domainRating}%` }}
                               ></div>
                             </div>
@@ -660,8 +660,8 @@ export default function SEOLayoutsPage() {
                         <TableCell>{link.linkType}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            link.status === 'Live' 
-                              ? 'bg-green-100 text-green-800' 
+                            link.status === 'Live'
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-amber-100 text-amber-800'
                           }`}>
                             {link.status}
@@ -687,7 +687,7 @@ export default function SEOLayoutsPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
