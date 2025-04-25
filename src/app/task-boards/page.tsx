@@ -406,10 +406,11 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
 
     try {
       // Add comment to Airtable
-      const result = await addComment({
-        taskId: taskId.toString(),
-        comment: newComment
-      });
+      const result = await addComment(
+        taskId.toString(),
+        'current-user', // User ID - using a placeholder since we don't have real auth
+        newComment
+      );
 
       // Update local state
       const newCommentObj: Comment = {
@@ -1044,22 +1045,39 @@ export default function TaskBoards() {
         tasksData.forEach((task: any) => {
           const boardType = task.Category || 'technicalSEO';
 
-          const mappedTask: Task = {
-            id: task.id,
-            task: task.Title || task.Name || 'Untitled Task',
-            status: (task.Status as TaskStatus) || 'Not Started',
-            assignedTo: task.AssignedTo?.[0] || 'Unassigned',
-            dateLogged: task.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            priority: (task.Priority as TaskPriority) || 'Medium',
-            impact: task.Impact || 3,
-            effort: (task.Effort as TaskEffort) || 'M',
-            comments: [],
-            notes: task.Notes || '',
-            referenceLinks: task.ReferenceLinks ? [task.ReferenceLinks] : []
-          };
+          let mappedTask: Task;
 
           if (task.CompletedDate) {
-            (mappedTask as CompletedTask).completedDate = task.CompletedDate;
+            // Create a CompletedTask if we have a completion date
+            mappedTask = {
+              id: task.id,
+              task: task.Title || task.Name || 'Untitled Task',
+              status: (task.Status as TaskStatus) || 'Not Started',
+              assignedTo: task.AssignedTo?.[0] || 'Unassigned',
+              dateLogged: task.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+              priority: (task.Priority as TaskPriority) || 'Medium',
+              impact: task.Impact || 3,
+              effort: (task.Effort as TaskEffort) || 'M',
+              comments: [],
+              notes: task.Notes || '',
+              referenceLinks: task.ReferenceLinks ? [task.ReferenceLinks] : [],
+              completedDate: task.CompletedDate
+            } as CompletedTask;
+          } else {
+            // Create an ActiveTask if no completion date
+            mappedTask = {
+              id: task.id,
+              task: task.Title || task.Name || 'Untitled Task',
+              status: (task.Status as TaskStatus) || 'Not Started',
+              assignedTo: task.AssignedTo?.[0] || 'Unassigned',
+              dateLogged: task.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+              priority: (task.Priority as TaskPriority) || 'Medium',
+              impact: task.Impact || 3,
+              effort: (task.Effort as TaskEffort) || 'M',
+              comments: [],
+              notes: task.Notes || '',
+              referenceLinks: task.ReferenceLinks ? [task.ReferenceLinks] : []
+            } as ActiveTask;
           }
 
           if (boardType === 'Technical SEO') {

@@ -708,7 +708,7 @@ export async function fetchBacklinks() {
       }
 
       return backlinks;
-    } catch (airtableError) {
+    } catch (airtableError: any) {
       console.error('Error fetching directly from Airtable:', airtableError);
 
       // If we get an authorization error, fall back to mock data
@@ -857,7 +857,7 @@ export async function fetchKPIMetrics() {
       const kpiMetrics = await getKPIMetrics();
       console.log('KPI metrics fetched successfully:', kpiMetrics);
       return kpiMetrics;
-    } catch (airtableError) {
+    } catch (airtableError: any) {
       console.error('Error fetching directly from Airtable:', airtableError);
 
       // If we get an authorization error, fall back to mock data
@@ -945,7 +945,7 @@ export async function fetchURLPerformance() {
       const urlPerformance = await getURLPerformance();
       console.log('URL performance fetched successfully:', urlPerformance);
       return urlPerformance;
-    } catch (airtableError) {
+    } catch (airtableError: any) {
       console.error('Error fetching directly from Airtable:', airtableError);
 
       // If we get an authorization error, fall back to mock data
@@ -1033,7 +1033,7 @@ export async function fetchKeywordPerformance() {
       const keywordPerformance = await getKeywordPerformance();
       console.log('Keyword performance fetched successfully:', keywordPerformance);
       return keywordPerformance;
-    } catch (airtableError) {
+    } catch (airtableError: any) {
       console.error('Error fetching directly from Airtable:', airtableError);
 
       // If we get an authorization error, fall back to mock data

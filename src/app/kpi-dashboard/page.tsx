@@ -224,7 +224,7 @@ function KpiDashboard() {
           console.log('KPI metrics fetched successfully:', kpiMetrics.length, 'records');
 
           // Check if we got mock data
-          const isMockData = kpiMetrics.some(metric => metric.id && metric.id.startsWith('kpi'));
+          const isMockData = kpiMetrics.some((metric: any) => metric.id && metric.id.startsWith('kpi'));
           if (isMockData) {
             console.log('Received mock KPI metrics data');
             setUsingMockData(true);

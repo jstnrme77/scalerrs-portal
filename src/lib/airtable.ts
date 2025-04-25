@@ -432,7 +432,7 @@ export async function getBriefs() {
           console.log('Available tables in this base:', availableTables);
 
           // Check if our required tables exist
-          const briefsExists = availableTables.some(t =>
+          const briefsExists = availableTables.some((t: string) =>
             t === TABLES.BRIEFS ||
             t === TABLES.BRIEFS.toLowerCase() ||
             t === 'Briefs' ||
@@ -620,7 +620,7 @@ export async function getArticles() {
           console.log('Available tables in this base:', availableTables);
 
           // Check if our required tables exist
-          const articlesExists = availableTables.some(t =>
+          const articlesExists = availableTables.some((t: string) =>
             t === TABLES.ARTICLES ||
             t === TABLES.ARTICLES.toLowerCase() ||
             t === 'Articles' ||
@@ -832,7 +832,7 @@ export async function getBacklinks() {
           console.log('Available tables in this base:', availableTables);
 
           // Check if our required tables exist
-          const backlinksExists = availableTables.some(t =>
+          const backlinksExists = availableTables.some((t: string) =>
             t === TABLES.BACKLINKS ||
             t === TABLES.BACKLINKS.toLowerCase() ||
             t === 'Backlinks' ||
@@ -968,16 +968,12 @@ export async function getBacklinks() {
 
       // Return an object with our expected structure, using the fields we found
       // or empty values if we couldn't find a matching field
-      // Store the target URL value in both fields for compatibility
-      const targetUrlValue = targetField ? fields[targetField] : '';
-
       return {
         id: record.id,
         Domain: domainField ? fields[domainField] : '',
         DomainRating: ratingField ? fields[ratingField] : 0,
         LinkType: typeField ? fields[typeField] : '',
-        TargetPage: targetUrlValue,
-        "Target URL": targetUrlValue, // Add the field with the exact name from Airtable
+        TargetPage: targetField ? fields[targetField] : '',
         Status: statusField ? fields[statusField] : 'Pending',
         WentLiveOn: liveField ? fields[liveField] : '',
         Notes: notesField ? fields[notesField] : '',
@@ -1070,9 +1066,9 @@ export async function getKPIMetrics() {
           console.log('Available tables in this base:', availableTables);
 
           // Check if our required tables exist
-          const kpiMetricsExists = availableTables.some(t => t === TABLES.KPI_METRICS || t === TABLES.KPI_METRICS.toLowerCase() || t === 'KPI Metrics' || t === 'kpi metrics');
-          const urlPerformanceExists = availableTables.some(t => t === TABLES.URL_PERFORMANCE || t === TABLES.URL_PERFORMANCE.toLowerCase() || t === 'URL Performance' || t === 'url performance');
-          const keywordPerformanceExists = availableTables.some(t => t === TABLES.KEYWORD_PERFORMANCE || t === TABLES.KEYWORD_PERFORMANCE.toLowerCase() || t === 'Keyword Performance' || t === 'keyword performance');
+          const kpiMetricsExists = availableTables.some((t: string) => t === TABLES.KPI_METRICS || t === TABLES.KPI_METRICS.toLowerCase() || t === 'KPI Metrics' || t === 'kpi metrics');
+          const urlPerformanceExists = availableTables.some((t: string) => t === TABLES.URL_PERFORMANCE || t === TABLES.URL_PERFORMANCE.toLowerCase() || t === 'URL Performance' || t === 'url performance');
+          const keywordPerformanceExists = availableTables.some((t: string) => t === TABLES.KEYWORD_PERFORMANCE || t === TABLES.KEYWORD_PERFORMANCE.toLowerCase() || t === 'Keyword Performance' || t === 'keyword performance');
 
           console.log(`KPI Metrics table exists: ${kpiMetricsExists}`);
           console.log(`URL Performance table exists: ${urlPerformanceExists}`);
