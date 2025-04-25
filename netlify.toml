@@ -5,11 +5,12 @@
 
 [build.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
-  # These are placeholders - actual values should be set in Netlify UI
-  AIRTABLE_API_KEY = "placeholder"
-  AIRTABLE_BASE_ID = "placeholder"
-  NEXT_PUBLIC_AIRTABLE_API_KEY = "placeholder"
-  NEXT_PUBLIC_AIRTABLE_BASE_ID = "placeholder"
+  # Actual Airtable credentials
+  AIRTABLE_API_KEY = "patqy7ZJYDeMGRytK.c1b179191942edb6036729dd354759474477d71333d7031e70a2cc47c5b4e644"
+  AIRTABLE_BASE_ID = "appMRsu00KNlqAg3A"
+  NEXT_PUBLIC_AIRTABLE_API_KEY = "patqy7ZJYDeMGRytK.c1b179191942edb6036729dd354759474477d71333d7031e70a2cc47c5b4e644"
+  NEXT_PUBLIC_AIRTABLE_BASE_ID = "appMRsu00KNlqAg3A"
+  NEXT_PUBLIC_USE_MOCK_DATA = "false"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -37,6 +38,16 @@
   to = "/.netlify/functions/update-task"
   status = 200
   methods = ["PATCH", "PUT"]
+
+[[redirects]]
+  from = "/api/backlinks"
+  to = "/.netlify/functions/get-backlinks"
+  status = 200
+
+[[redirects]]
+  from = "/api/url-performance"
+  to = "/.netlify/functions/get-url-performance"
+  status = 200
 
 # Handle all other routes
 [[redirects]]

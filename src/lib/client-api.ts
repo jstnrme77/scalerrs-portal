@@ -684,51 +684,52 @@ export async function fetchBacklinks() {
   }
 
   try {
-    // Always use direct Airtable access for now to debug the issue
-    console.log('Using direct Airtable access for backlinks');
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for backlinks');
 
-    // Check if we have the public environment variables
-    const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-    const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+      // Check if we have the public environment variables
+      const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+      const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 
-    console.log('Public API Key exists:', !!publicApiKey);
-    console.log('Public Base ID exists:', !!publicBaseId);
+      console.log('Public API Key exists:', !!publicApiKey);
+      console.log('Public Base ID exists:', !!publicBaseId);
 
-    // Import the getBacklinks function directly
-    const { getBacklinks } = await import('@/lib/airtable');
+      // Import the getBacklinks function directly
+      const { getBacklinks } = await import('@/lib/airtable');
 
-    try {
-      const backlinks = await getBacklinks();
-      console.log('Backlinks fetched successfully, count:', backlinks.length);
+      try {
+        const backlinks = await getBacklinks();
+        console.log('Backlinks fetched successfully, count:', backlinks.length);
 
-      // Log the first backlink to see its structure
-      if (backlinks.length > 0) {
-        console.log('First backlink:', backlinks[0]);
-        console.log('First backlink fields:', Object.keys(backlinks[0]));
-      }
-
-      return backlinks;
-    } catch (airtableError: any) {
-      console.error('Error fetching directly from Airtable:', airtableError);
-
-      // If we get an authorization error, fall back to mock data
-      if (airtableError.message && airtableError.message.includes('authorized')) {
-        console.error('Authorization error with Airtable. Check your API key and permissions.');
-
-        // Set a flag in localStorage to indicate Airtable connection issues
-        if (isBrowser) {
-          localStorage.setItem('airtable-connection-issues', 'true');
+        // Log the first backlink to see its structure
+        if (backlinks.length > 0) {
+          console.log('First backlink:', backlinks[0]);
+          console.log('First backlink fields:', Object.keys(backlinks[0]));
         }
 
-        return mockBacklinks;
-      }
+        return backlinks;
+      } catch (airtableError: any) {
+        console.error('Error fetching directly from Airtable:', airtableError);
 
-      // Re-throw other errors to be caught by the outer catch
-      throw airtableError;
+        // If we get an authorization error, fall back to mock data
+        if (airtableError.message && airtableError.message.includes('authorized')) {
+          console.error('Authorization error with Airtable. Check your API key and permissions.');
+
+          // Set a flag in localStorage to indicate Airtable connection issues
+          if (isBrowser) {
+            localStorage.setItem('airtable-connection-issues', 'true');
+          }
+
+          return mockBacklinks;
+        }
+
+        // Re-throw other errors to be caught by the outer catch
+        throw airtableError;
+      }
     }
 
-    // In production, use the API routes (disabled for now)
-    /*
+    // In production, use the API routes
     const url = isNetlify()
       ? '/.netlify/functions/get-backlinks'
       : '/api/backlinks';
@@ -755,7 +756,6 @@ export async function fetchBacklinks() {
     const data = await response.json();
     console.log('Backlinks data received:', data);
     return data.backlinks;
-    */
   } catch (error) {
     console.error('Error fetching backlinks:', error);
 
@@ -840,44 +840,45 @@ export async function fetchKPIMetrics() {
   }
 
   try {
-    // Always use direct Airtable access for now to debug the issue
-    console.log('Using direct Airtable access for KPI metrics');
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for KPI metrics');
 
-    // Check if we have the public environment variables
-    const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-    const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+      // Check if we have the public environment variables
+      const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+      const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 
-    console.log('Public API Key exists:', !!publicApiKey);
-    console.log('Public Base ID exists:', !!publicBaseId);
+      console.log('Public API Key exists:', !!publicApiKey);
+      console.log('Public Base ID exists:', !!publicBaseId);
 
-    // Import the getKPIMetrics function directly
-    const { getKPIMetrics } = await import('@/lib/airtable');
+      // Import the getKPIMetrics function directly
+      const { getKPIMetrics } = await import('@/lib/airtable');
 
-    try {
-      const kpiMetrics = await getKPIMetrics();
-      console.log('KPI metrics fetched successfully:', kpiMetrics);
-      return kpiMetrics;
-    } catch (airtableError: any) {
-      console.error('Error fetching directly from Airtable:', airtableError);
+      try {
+        const kpiMetrics = await getKPIMetrics();
+        console.log('KPI metrics fetched successfully:', kpiMetrics);
+        return kpiMetrics;
+      } catch (airtableError: any) {
+        console.error('Error fetching directly from Airtable:', airtableError);
 
-      // If we get an authorization error, fall back to mock data
-      if (airtableError.message && airtableError.message.includes('authorized')) {
-        console.error('Authorization error with Airtable. Check your API key and permissions.');
+        // If we get an authorization error, fall back to mock data
+        if (airtableError.message && airtableError.message.includes('authorized')) {
+          console.error('Authorization error with Airtable. Check your API key and permissions.');
 
-        // Set a flag in localStorage to indicate Airtable connection issues
-        if (isBrowser) {
-          localStorage.setItem('airtable-connection-issues', 'true');
+          // Set a flag in localStorage to indicate Airtable connection issues
+          if (isBrowser) {
+            localStorage.setItem('airtable-connection-issues', 'true');
+          }
+
+          return mockKPIMetrics;
         }
 
-        return mockKPIMetrics;
+        // Re-throw other errors to be caught by the outer catch
+        throw airtableError;
       }
-
-      // Re-throw other errors to be caught by the outer catch
-      throw airtableError;
     }
 
-    // In production, use the API routes (disabled for now)
-    /*
+    // In production, use the API routes
     const url = isNetlify()
       ? '/.netlify/functions/get-kpi-metrics'
       : '/api/kpi-metrics';
@@ -904,7 +905,6 @@ export async function fetchKPIMetrics() {
     const data = await response.json();
     console.log('KPI metrics data received:', data);
     return data.kpiMetrics;
-    */
   } catch (error) {
     console.error('Error fetching KPI metrics:', error);
 
@@ -928,44 +928,45 @@ export async function fetchURLPerformance() {
   }
 
   try {
-    // Always use direct Airtable access for now to debug the issue
-    console.log('Using direct Airtable access for URL performance');
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for URL performance');
 
-    // Check if we have the public environment variables
-    const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-    const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+      // Check if we have the public environment variables
+      const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+      const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 
-    console.log('Public API Key exists:', !!publicApiKey);
-    console.log('Public Base ID exists:', !!publicBaseId);
+      console.log('Public API Key exists:', !!publicApiKey);
+      console.log('Public Base ID exists:', !!publicBaseId);
 
-    // Import the getURLPerformance function directly
-    const { getURLPerformance } = await import('@/lib/airtable');
+      // Import the getURLPerformance function directly
+      const { getURLPerformance } = await import('@/lib/airtable');
 
-    try {
-      const urlPerformance = await getURLPerformance();
-      console.log('URL performance fetched successfully:', urlPerformance);
-      return urlPerformance;
-    } catch (airtableError: any) {
-      console.error('Error fetching directly from Airtable:', airtableError);
+      try {
+        const urlPerformance = await getURLPerformance();
+        console.log('URL performance fetched successfully:', urlPerformance);
+        return urlPerformance;
+      } catch (airtableError: any) {
+        console.error('Error fetching directly from Airtable:', airtableError);
 
-      // If we get an authorization error, fall back to mock data
-      if (airtableError.message && airtableError.message.includes('authorized')) {
-        console.error('Authorization error with Airtable. Check your API key and permissions.');
+        // If we get an authorization error, fall back to mock data
+        if (airtableError.message && airtableError.message.includes('authorized')) {
+          console.error('Authorization error with Airtable. Check your API key and permissions.');
 
-        // Set a flag in localStorage to indicate Airtable connection issues
-        if (isBrowser) {
-          localStorage.setItem('airtable-connection-issues', 'true');
+          // Set a flag in localStorage to indicate Airtable connection issues
+          if (isBrowser) {
+            localStorage.setItem('airtable-connection-issues', 'true');
+          }
+
+          return mockURLPerformance;
         }
 
-        return mockURLPerformance;
+        // Re-throw other errors to be caught by the outer catch
+        throw airtableError;
       }
-
-      // Re-throw other errors to be caught by the outer catch
-      throw airtableError;
     }
 
-    // In production, use the API routes (disabled for now)
-    /*
+    // In production, use the API routes
     const url = isNetlify()
       ? '/.netlify/functions/get-url-performance'
       : '/api/url-performance';
@@ -992,7 +993,6 @@ export async function fetchURLPerformance() {
     const data = await response.json();
     console.log('URL performance data received:', data);
     return data.urlPerformance;
-    */
   } catch (error) {
     console.error('Error fetching URL performance:', error);
 
@@ -1016,44 +1016,45 @@ export async function fetchKeywordPerformance() {
   }
 
   try {
-    // Always use direct Airtable access for now to debug the issue
-    console.log('Using direct Airtable access for keyword performance');
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for keyword performance');
 
-    // Check if we have the public environment variables
-    const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-    const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+      // Check if we have the public environment variables
+      const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+      const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 
-    console.log('Public API Key exists:', !!publicApiKey);
-    console.log('Public Base ID exists:', !!publicBaseId);
+      console.log('Public API Key exists:', !!publicApiKey);
+      console.log('Public Base ID exists:', !!publicBaseId);
 
-    // Import the getKeywordPerformance function directly
-    const { getKeywordPerformance } = await import('@/lib/airtable');
+      // Import the getKeywordPerformance function directly
+      const { getKeywordPerformance } = await import('@/lib/airtable');
 
-    try {
-      const keywordPerformance = await getKeywordPerformance();
-      console.log('Keyword performance fetched successfully:', keywordPerformance);
-      return keywordPerformance;
-    } catch (airtableError: any) {
-      console.error('Error fetching directly from Airtable:', airtableError);
+      try {
+        const keywordPerformance = await getKeywordPerformance();
+        console.log('Keyword performance fetched successfully:', keywordPerformance);
+        return keywordPerformance;
+      } catch (airtableError: any) {
+        console.error('Error fetching directly from Airtable:', airtableError);
 
-      // If we get an authorization error, fall back to mock data
-      if (airtableError.message && airtableError.message.includes('authorized')) {
-        console.error('Authorization error with Airtable. Check your API key and permissions.');
+        // If we get an authorization error, fall back to mock data
+        if (airtableError.message && airtableError.message.includes('authorized')) {
+          console.error('Authorization error with Airtable. Check your API key and permissions.');
 
-        // Set a flag in localStorage to indicate Airtable connection issues
-        if (isBrowser) {
-          localStorage.setItem('airtable-connection-issues', 'true');
+          // Set a flag in localStorage to indicate Airtable connection issues
+          if (isBrowser) {
+            localStorage.setItem('airtable-connection-issues', 'true');
+          }
+
+          return mockKeywordPerformance;
         }
 
-        return mockKeywordPerformance;
+        // Re-throw other errors to be caught by the outer catch
+        throw airtableError;
       }
-
-      // Re-throw other errors to be caught by the outer catch
-      throw airtableError;
     }
 
-    // In production, use the API routes (disabled for now)
-    /*
+    // In production, use the API routes
     const url = isNetlify()
       ? '/.netlify/functions/get-keyword-performance'
       : '/api/keyword-performance';
@@ -1080,7 +1081,6 @@ export async function fetchKeywordPerformance() {
     const data = await response.json();
     console.log('Keyword performance data received:', data);
     return data.keywordPerformance;
-    */
   } catch (error) {
     console.error('Error fetching keyword performance:', error);
 
