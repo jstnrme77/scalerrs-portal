@@ -83,36 +83,36 @@ const sampleReportContent = {
   weekly: (
     <div className="space-y-6">
       {/* Timeframe Covered */}
-      <div className="bg-primary/10 p-3 rounded-lg">
-        <h3 className="text-lg font-medium text-dark">April 22-28, 2025</h3>
+      <div className="bg-primary/10 p-4 rounded-lg">
+        <h3 className="text-xl font-medium text-dark">April 22-28, 2025</h3>
       </div>
 
       {/* What We Did */}
-      <div className="card bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-3">What We Did</h4>
-        
+      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">What We Did</h4>
+
         <div className="space-y-4">
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Content</h5>
-            <ul className="list-disc pl-5 text-mediumGray">
+            <h5 className="text-base font-medium text-dark mb-3">Content</h5>
+            <ul className="list-disc pl-6 text-base text-mediumGray">
               <li>Published 3 new blog posts targeting high-intent keywords</li>
               <li>Updated 2 existing pages with fresh content and improved CTAs</li>
               <li>Created 5 new content briefs for upcoming articles</li>
             </ul>
           </div>
-          
+
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">SEO</h5>
-            <ul className="list-disc pl-5 text-mediumGray">
+            <h5 className="text-base font-medium text-dark mb-3">SEO</h5>
+            <ul className="list-disc pl-6 text-base text-mediumGray">
               <li>Fixed 12 broken internal links</li>
               <li>Improved page load speed on 5 key landing pages</li>
               <li>Implemented schema markup on product pages</li>
             </ul>
           </div>
-          
+
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Links</h5>
-            <ul className="list-disc pl-5 text-mediumGray">
+            <h5 className="text-base font-medium text-dark mb-3">Links</h5>
+            <ul className="list-disc pl-6 text-base text-mediumGray">
               <li>Secured 4 new backlinks from DA 40+ websites</li>
               <li>Initiated outreach to 15 potential link partners</li>
               <li>Completed 3 guest post drafts for submission</li>
@@ -122,64 +122,64 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverable Progress */}
-      <div className="card bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Deliverable Progress</h4>
-        
+      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">Deliverable Progress</h4>
+
         <div className="space-y-4">
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Content Briefs Sent</h5>
-            <div className="space-y-2">
+            <h5 className="text-base font-medium text-dark mb-3">Content Briefs Sent</h5>
+            <div className="space-y-3">
               {sampleBriefs.map(brief => (
-                <div key={brief.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div key={brief.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
                   <div>
-                    <p className="text-sm font-medium text-dark">{brief.title}</p>
-                    <p className="text-xs text-mediumGray">{brief.date}</p>
+                    <p className="text-base font-medium text-dark">{brief.title}</p>
+                    <p className="text-sm text-mediumGray">{brief.date}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant={brief.status === 'Sent' ? 'success' : 'warning'}>
+                  <div className="flex items-center space-x-3">
+                    <Badge variant={brief.status === 'Sent' ? 'success' : 'warning'} className="text-sm px-3 py-1">
                       {brief.status}
                     </Badge>
                     <a href={brief.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
-                      <ExternalLink size={16} />
+                      <ExternalLink size={20} />
                     </a>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          
+
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Articles Published</h5>
-            <div className="space-y-2">
+            <h5 className="text-base font-medium text-dark mb-3">Articles Published</h5>
+            <div className="space-y-3">
               {sampleArticles.map(article => (
-                <div key={article.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div key={article.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
                   <div>
-                    <p className="text-sm font-medium text-dark">{article.title}</p>
-                    <p className="text-xs text-mediumGray">{article.date}</p>
+                    <p className="text-base font-medium text-dark">{article.title}</p>
+                    <p className="text-sm text-mediumGray">{article.date}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="success">{article.status}</Badge>
+                  <div className="flex items-center space-x-3">
+                    <Badge variant="success" className="text-sm px-3 py-1">{article.status}</Badge>
                     <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
-                      <ExternalLink size={16} />
+                      <ExternalLink size={20} />
                     </a>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          
+
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Backlinks Live</h5>
-            <div className="space-y-2">
+            <h5 className="text-base font-medium text-dark mb-3">Backlinks Live</h5>
+            <div className="space-y-3">
               {sampleBacklinks.map(backlink => (
-                <div key={backlink.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <div key={backlink.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
                   <div>
-                    <p className="text-sm font-medium text-dark">{backlink.source}</p>
-                    <p className="text-xs text-mediumGray">Target: {backlink.targetUrl}</p>
+                    <p className="text-base font-medium text-dark">{backlink.source}</p>
+                    <p className="text-sm text-mediumGray">Target: {backlink.targetUrl}</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="info">DR {backlink.dr}</Badge>
-                    <Badge variant="success">{backlink.status}</Badge>
+                  <div className="flex items-center space-x-3">
+                    <Badge variant="info" className="text-sm px-3 py-1">DR {backlink.dr}</Badge>
+                    <Badge variant="success" className="text-sm px-3 py-1">{backlink.status}</Badge>
                   </div>
                 </div>
               ))}
@@ -189,22 +189,22 @@ const sampleReportContent = {
       </div>
 
       {/* Next Steps & Requests */}
-      <div className="card bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Next Steps & Requests</h4>
-        
+      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">Next Steps & Requests</h4>
+
         <div className="space-y-3">
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Tasks for Next Week</h5>
-            <ul className="list-disc pl-5 text-mediumGray">
+            <h5 className="text-base font-medium text-dark mb-3">Tasks for Next Week</h5>
+            <ul className="list-disc pl-6 text-base text-mediumGray">
               <li>Complete technical SEO audit for the new product section</li>
               <li>Publish 2 new case studies targeting competitive keywords</li>
               <li>Finalize content calendar for Q2 2025</li>
             </ul>
           </div>
-          
-          <div className="p-3 bg-gold/10 rounded-lg">
-            <h5 className="text-sm font-medium text-dark mb-2">Action Required</h5>
-            <ul className="list-disc pl-5 text-mediumGray">
+
+          <div className="p-4 bg-gold/10 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">Action Required</h5>
+            <ul className="list-disc pl-6 text-base text-mediumGray">
               <li className="font-medium">Review "Top 10 SEO Strategies for 2025" brief by May 2nd</li>
               <li className="font-medium">Provide feedback on the new homepage design mockup</li>
             </ul>
@@ -213,29 +213,29 @@ const sampleReportContent = {
       </div>
 
       {/* Quick Links */}
-      <div className="card bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Quick Links</h4>
-        
+      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">Quick Links</h4>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <a href="#" className="flex items-center p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-            <span className="mr-2">📈</span>
-            <span className="text-sm text-dark">GSC Dashboard</span>
+          <a href="#" className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+            <span className="mr-3 text-lg">📈</span>
+            <span className="text-base text-dark">GSC Dashboard</span>
           </a>
-          <a href="#" className="flex items-center p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-            <span className="mr-2">🗂️</span>
-            <span className="text-sm text-dark">Content Folder</span>
+          <a href="#" className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+            <span className="mr-3 text-lg">🗂️</span>
+            <span className="text-base text-dark">Content Folder</span>
           </a>
-          <a href="#" className="flex items-center p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
-            <span className="mr-2">🔗</span>
-            <span className="text-sm text-dark">Backlink Sheet</span>
+          <a href="#" className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+            <span className="mr-3 text-lg">🔗</span>
+            <span className="text-base text-dark">Backlink Sheet</span>
           </a>
         </div>
       </div>
 
       {/* Slack Share Button */}
       <div className="flex justify-end">
-        <Button className="flex items-center space-x-2 bg-[#4A154B] hover:bg-[#3a1039] text-white">
-          <Slack size={16} />
+        <Button className="flex items-center space-x-3 bg-[#4A154B] hover:bg-[#3a1039] text-white px-5 py-6 text-base">
+          <Slack size={20} />
           <span>Share to Slack</span>
         </Button>
       </div>
@@ -244,14 +244,14 @@ const sampleReportContent = {
   monthly: (
     <div className="space-y-6">
       {/* Executive Summary */}
-      <div className="bg-lightGray p-4 rounded-lg">
-        <h3 className="text-lg font-medium text-dark mb-2">April 2025 Performance Report</h3>
+      <div className="bg-lightGray p-5 rounded-lg">
+        <h3 className="text-xl font-medium text-dark mb-3">April 2025 Performance Report</h3>
         <div className="mt-2 space-y-2">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="success" className="text-xs">Wins: 4 new top 10 rankings</Badge>
-            <Badge variant="warning" className="text-xs">Risks: Mobile conversion rate</Badge>
+          <div className="flex flex-wrap gap-3">
+            <Badge variant="success" className="text-sm px-3 py-1">Wins: 4 new top 10 rankings</Badge>
+            <Badge variant="warning" className="text-sm px-3 py-1">Risks: Mobile conversion rate</Badge>
           </div>
-          <p className="text-sm text-mediumGray">Monthly comprehensive analysis of your SEO campaign performance, achievements, and strategic recommendations.</p>
+          <p className="text-base text-mediumGray">Monthly comprehensive analysis of your SEO campaign performance, achievements, and strategic recommendations.</p>
         </div>
       </div>
 
@@ -582,41 +582,41 @@ const sampleReportContent = {
     <div className="space-y-6">
       {/* Executive Summary */}
       <div className="bg-primary/20 p-6 rounded-lg">
-        <h3 className="text-xl font-bold text-dark mb-4">Q1 2025 Strategy & Performance Review</h3>
-        
+        <h3 className="text-2xl font-bold text-dark mb-5">Q1 2025 Strategy & Performance Review</h3>
+
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm text-mediumGray">Traffic Growth</h4>
-            <p className="text-2xl font-bold text-primary">+42%</p>
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-green-600">+12% QoQ</span>
-              <span className="text-xs text-mediumGray ml-2">+42% YoY</span>
+          <div className="bg-white p-5 rounded-lg shadow-sm">
+            <h4 className="text-base text-mediumGray">Traffic Growth</h4>
+            <p className="text-3xl font-bold text-primary">+42%</p>
+            <div className="flex items-center mt-2">
+              <span className="text-sm text-green-600 font-medium">+12% QoQ</span>
+              <span className="text-sm text-mediumGray ml-3">+42% YoY</span>
             </div>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm text-mediumGray">Lead Growth</h4>
-            <p className="text-2xl font-bold text-gold">+38%</p>
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-green-600">+15% QoQ</span>
-              <span className="text-xs text-mediumGray ml-2">+38% YoY</span>
+
+          <div className="bg-white p-5 rounded-lg shadow-sm">
+            <h4 className="text-base text-mediumGray">Lead Growth</h4>
+            <p className="text-3xl font-bold text-gold">+38%</p>
+            <div className="flex items-center mt-2">
+              <span className="text-sm text-green-600 font-medium">+15% QoQ</span>
+              <span className="text-sm text-mediumGray ml-3">+38% YoY</span>
             </div>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="text-sm text-mediumGray">Revenue Impact</h4>
-            <p className="text-2xl font-bold text-lavender">$108K</p>
-            <div className="flex items-center mt-1">
-              <span className="text-xs text-green-600">+17% QoQ</span>
+
+          <div className="bg-white p-5 rounded-lg shadow-sm">
+            <h4 className="text-base text-mediumGray">Revenue Impact</h4>
+            <p className="text-3xl font-bold text-lavender">$108K</p>
+            <div className="flex items-center mt-2">
+              <span className="text-sm text-green-600 font-medium">+17% QoQ</span>
             </div>
           </div>
         </div>
-        
+
         {/* Trendline Chart */}
-        <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <h4 className="text-sm font-medium text-dark mb-3">Performance Trends (Last 4 Quarters)</h4>
-          <div className="h-64">
+        <div className="bg-white p-5 rounded-lg shadow-sm mb-6">
+          <h4 className="text-base font-medium text-dark mb-4">Performance Trends (Last 4 Quarters)</h4>
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={quarterlyPerformanceData}
@@ -635,94 +635,94 @@ const sampleReportContent = {
             </ResponsiveContainer>
           </div>
         </div>
-        
+
         {/* Text Summary */}
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <h4 className="text-sm font-medium text-dark mb-2">Executive Summary</h4>
-          <p className="text-sm text-mediumGray">
-            Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth. 
+        <div className="bg-white p-5 rounded-lg shadow-sm">
+          <h4 className="text-lg font-medium text-dark mb-3">Executive Summary</h4>
+          <p className="text-base text-mediumGray leading-relaxed">
+            Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth.
             Our focus on content quality and technical improvements has yielded substantial increases in organic traffic,
             while conversion rate optimizations have successfully translated this traffic into leads and revenue.
           </p>
         </div>
       </div>
-      
+
       {/* Traffic & Revenue */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-4">Traffic & Revenue</h4>
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-5">Traffic & Revenue</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Q1 2025</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Q4 2024</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QoQ Change</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Q1 2024</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">YoY Change</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Metric</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Q1 2025</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Q4 2024</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">QoQ Change</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Q1 2024</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">YoY Change</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">Organic Traffic</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">61,000</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">52,000</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Organic Traffic</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">61,000</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">52,000</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +17.3%
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">43,000</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">43,000</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +41.9%
                   </span>
                 </td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">Leads Generated</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1,350</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1,150</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Leads Generated</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,350</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,150</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +17.4%
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">980</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">980</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +37.8%
                   </span>
                 </td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">Conversion Rate</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2.2%</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2.1%</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Conversion Rate</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.2%</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.1%</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +4.8%
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">1.9%</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1.9%</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +15.8%
                   </span>
                 </td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">Revenue Impact</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$108,000</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$92,000</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Revenue Impact</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$108,000</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$92,000</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +17.4%
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$78,000</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$78,000</td>
+                <td className="px-6 py-5 whitespace-nowrap">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                     +38.5%
                   </span>
                 </td>
@@ -731,66 +731,66 @@ const sampleReportContent = {
           </table>
         </div>
       </div>
-      
+
       {/* Deliverables Roll Up */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-4">Deliverables Roll Up</h4>
-        <div className="space-y-3">
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-5">Deliverables Roll Up</h4>
+        <div className="space-y-4">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
               <span className="text-primary">📝</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-dark">36 briefs delivered</p>
-              <p className="text-xs text-mediumGray">100% of quarterly target</p>
+              <p className="text-base font-medium text-dark">36 briefs delivered</p>
+              <p className="text-sm text-mediumGray">100% of quarterly target</p>
             </div>
           </div>
-          
+
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3">
               <span className="text-gold">📰</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-dark">24 articles published</p>
-              <p className="text-xs text-mediumGray">Average word count: 1,850</p>
+              <p className="text-base font-medium text-dark">24 articles published</p>
+              <p className="text-sm text-mediumGray">Average word count: 1,850</p>
             </div>
           </div>
-          
+
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3">
               <span className="text-lavender">🔗</span>
             </div>
             <div>
-              <p className="text-sm font-medium text-dark">45 backlinks secured</p>
-              <p className="text-xs text-mediumGray">Average DR: 58</p>
+              <p className="text-base font-medium text-dark">45 backlinks secured</p>
+              <p className="text-sm text-mediumGray">Average DR: 58</p>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Top Performing Pages */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-4">Top Performing Pages</h4>
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-5">Top Performing Pages</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Traffic</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Traffic</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Change</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">
                     <a href="#" className="hover:underline">{page.url}</a>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{page.traffic}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{page.conversions}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.traffic}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.conversions}</td>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {page.delta > 0 ? '+' : ''}{page.delta}%
                     </span>
                   </td>
@@ -800,60 +800,60 @@ const sampleReportContent = {
           </table>
         </div>
       </div>
-      
+
       {/* Experiments */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-4">Experiments</h4>
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-5">Experiments</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <div className="w-12 h-12 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-3">
-              <span className="text-xl">🔍</span>
+          <div className="p-5 bg-gray-50 rounded-lg text-center">
+            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl">🔍</span>
             </div>
-            <p className="text-sm font-medium text-dark">Title Tag Tests</p>
-            <p className="text-xs text-mediumGray mt-1">CTR +1.7 percentage points</p>
+            <p className="text-base font-medium text-dark">Title Tag Tests</p>
+            <p className="text-sm text-mediumGray mt-2">CTR +1.7 percentage points</p>
           </div>
-          
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <div className="w-12 h-12 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-3">
-              <span className="text-xl">📱</span>
+
+          <div className="p-5 bg-gray-50 rounded-lg text-center">
+            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl">📱</span>
             </div>
-            <p className="text-sm font-medium text-dark">Mobile CTA Placement</p>
-            <p className="text-xs text-mediumGray mt-1">Conversion +0.8 percentage points</p>
+            <p className="text-base font-medium text-dark">Mobile CTA Placement</p>
+            <p className="text-sm text-mediumGray mt-2">Conversion +0.8 percentage points</p>
           </div>
-          
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <div className="w-12 h-12 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-3">
-              <span className="text-xl">⚡</span>
+
+          <div className="p-5 bg-gray-50 rounded-lg text-center">
+            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl">⚡</span>
             </div>
-            <p className="text-sm font-medium text-dark">Core Web Vitals</p>
-            <p className="text-xs text-mediumGray mt-1">Bounce rate -15% on key pages</p>
+            <p className="text-base font-medium text-dark">Core Web Vitals</p>
+            <p className="text-sm text-mediumGray mt-2">Bounce rate -15% on key pages</p>
           </div>
-          
-          <div className="p-4 bg-gray-50 rounded-lg text-center">
-            <div className="w-12 h-12 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-3">
-              <span className="text-xl">📊</span>
+
+          <div className="p-5 bg-gray-50 rounded-lg text-center">
+            <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl">📊</span>
             </div>
-            <p className="text-sm font-medium text-dark">Content Length Test</p>
-            <p className="text-xs text-mediumGray mt-1">Long-form +32% more conversions</p>
+            <p className="text-base font-medium text-dark">Content Length Test</p>
+            <p className="text-sm text-mediumGray mt-2">Long-form +32% more conversions</p>
           </div>
         </div>
       </div>
-      
+
       {/* Next Quarter Roadmap */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-4">Next Quarter Roadmap</h4>
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-5">Next Quarter Roadmap</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Where We Are Now</h5>
-            <p className="text-sm text-mediumGray mb-3">
-              Strong foundation with improved technical performance, growing organic visibility, and 
+            <h5 className="text-base font-medium text-dark mb-3">Where We Are Now</h5>
+            <p className="text-base text-mediumGray mb-4 leading-relaxed">
+              Strong foundation with improved technical performance, growing organic visibility, and
               established content production pipeline. Key conversion points optimized with clear user journeys.
             </p>
           </div>
-          
+
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Where We're Heading Next</h5>
-            <ul className="list-disc pl-5 text-sm text-mediumGray space-y-1">
+            <h5 className="text-base font-medium text-dark mb-3">Where We're Heading Next</h5>
+            <ul className="list-disc pl-6 text-base text-mediumGray space-y-2">
               <li>Expand content clusters around highest-converting topics</li>
               <li>Implement advanced schema markup across all key templates</li>
               <li>Launch targeted link building campaign for product pages</li>
@@ -863,51 +863,51 @@ const sampleReportContent = {
           </div>
         </div>
       </div>
-      
+
       {/* Competitor Intel */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-4">Competitor Intel</h4>
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-5">Competitor Intel</h4>
         <div className="overflow-x-auto mb-4">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Competitor</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyword Focus</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank Change (QoQ)</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notable Activity</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Competitor</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Keyword Focus</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Rank Change (QoQ)</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Notable Activity</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {competitorData.map((competitor, index) => (
                 <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-dark">{competitor.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{competitor.keywordFocus}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${competitor.rankChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{competitor.name}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.keywordFocus}</td>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${competitor.rankChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {competitor.rankChange > 0 ? '+' : ''}{competitor.rankChange}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{competitor.activity}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.activity}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h5 className="text-sm font-medium text-dark mb-2">Key Takeaways</h5>
-          <p className="text-sm text-mediumGray">
+
+        <div className="bg-blue-50 p-5 rounded-lg">
+          <h5 className="text-base font-medium text-dark mb-3">Key Takeaways</h5>
+          <p className="text-base text-mediumGray leading-relaxed">
             Opportunity to outrank Competitor B on Local SEO keywords where they've lost positions.
             Competitor A is gaining ground in Technical SEO - we should accelerate our content production
             in this area to maintain our advantage.
           </p>
         </div>
       </div>
-      
+
       {/* Risk and Tradeoffs */}
-      <div className="bg-white p-5 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Risks and Tradeoffs</h4>
-        <ul className="list-disc pl-5 text-sm text-mediumGray space-y-2">
+      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">Risks and Tradeoffs</h4>
+        <ul className="list-disc pl-6 text-base text-mediumGray space-y-3">
           <li>
             <span className="font-medium text-dark">Resource allocation:</span> Focusing on mobile optimization may slow content production temporarily
           </li>
@@ -922,11 +922,11 @@ const sampleReportContent = {
           </li>
         </ul>
       </div>
-      
+
       {/* TL;DR */}
-      <div className="bg-primary/10 p-5 rounded-lg">
-        <h4 className="font-medium text-dark mb-3">TL;DR</h4>
-        <p className="text-mediumGray">
+      <div className="bg-primary/10 p-6 rounded-lg">
+        <h4 className="text-lg font-medium text-dark mb-4">TL;DR</h4>
+        <p className="text-base text-mediumGray leading-relaxed">
           Q1 2025 delivered strong results across all KPIs with traffic up 42% YoY and leads up 38% YoY.
           Technical improvements and content quality drove performance gains. For Q2, we'll focus on mobile
           optimization, expanding high-converting content clusters, and targeted link building for product pages.
@@ -934,5 +934,162 @@ const sampleReportContent = {
         </p>
       </div>
     </div>
-  ),
-{{ ... }}
+  )
+};
+
+export default function Reports() {
+  const [activeTab, setActiveTab] = useState('weekly');
+  const [selectedReport, setSelectedReport] = useState<number | null>(1);
+  const [reportContent, setReportContent] = useState<React.ReactNode | null>(null);
+
+  // Set initial report content
+  useEffect(() => {
+    if (activeTab === 'weekly' && reports.weekly.length > 0) {
+      setSelectedReport(reports.weekly[0].id);
+      setReportContent(sampleReportContent.weekly);
+    } else if (activeTab === 'monthly' && reports.monthly.length > 0) {
+      setSelectedReport(reports.monthly[0].id);
+      setReportContent(sampleReportContent.monthly);
+    } else if (activeTab === 'quarterly' && reports.quarterly.length > 0) {
+      setSelectedReport(reports.quarterly[0].id);
+      setReportContent(sampleReportContent.quarterly);
+    }
+  }, [activeTab]);
+
+  // Handle report selection
+  const handleReportSelect = (reportId: number, type: string) => {
+    setSelectedReport(reportId);
+
+    // Set sample content based on report type
+    if (type === 'weekly') {
+      setReportContent(sampleReportContent.weekly);
+    } else if (type === 'monthly') {
+      setReportContent(sampleReportContent.monthly);
+    } else if (type === 'quarterly') {
+      setReportContent(sampleReportContent.quarterly);
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-dark">Reports</h1>
+          <p className="text-base text-mediumGray">View weekly, monthly, and quarterly performance reports</p>
+        </div>
+      </div>
+
+      <PageContainer className="w-full">
+        <PageContainerTabs>
+          <TabNavigation
+            tabs={[
+              { id: 'weekly', label: 'Weekly' },
+              { id: 'monthly', label: 'Monthly' },
+              { id: 'quarterly', label: 'Quarterly' }
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            variant="primary"
+          />
+        </PageContainerTabs>
+
+        <PageContainerBody className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Report List */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg border border-lightGray p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-medium text-dark">
+                    {activeTab === 'weekly' && 'Weekly Reports'}
+                    {activeTab === 'monthly' && 'Monthly Reports'}
+                    {activeTab === 'quarterly' && 'Quarterly Reports'}
+                  </h2>
+                  <Button variant="outline" className="flex items-center text-sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {activeTab === 'weekly' && reports.weekly.map(report => (
+                    <div
+                      key={report.id}
+                      className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-l-2 border-primary' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => handleReportSelect(report.id, 'weekly')}
+                    >
+                      <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                      <div className="flex items-center mt-2">
+                        <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                        <p className="text-sm text-mediumGray">{report.date}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {activeTab === 'monthly' && reports.monthly.map(report => (
+                    <div
+                      key={report.id}
+                      className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-l-2 border-primary' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => handleReportSelect(report.id, 'monthly')}
+                    >
+                      <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                      <div className="flex items-center mt-2">
+                        <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                        <p className="text-sm text-mediumGray">{report.date}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {activeTab === 'quarterly' && reports.quarterly.map(report => (
+                    <div
+                      key={report.id}
+                      className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-l-2 border-primary' : 'bg-gray-50 hover:bg-gray-100'}`}
+                      onClick={() => handleReportSelect(report.id, 'quarterly')}
+                    >
+                      <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                      <div className="flex items-center mt-2">
+                        <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                        <p className="text-sm text-mediumGray">{report.date}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Report Content */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-lg border border-lightGray p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <Button variant="ghost" className="mr-3">
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <h2 className="text-lg md:text-xl font-medium text-dark">
+                      {activeTab === 'weekly' && selectedReport && reports.weekly.find(r => r.id === selectedReport)?.title}
+                      {activeTab === 'monthly' && selectedReport && reports.monthly.find(r => r.id === selectedReport)?.title}
+                      {activeTab === 'quarterly' && selectedReport && reports.quarterly.find(r => r.id === selectedReport)?.title}
+                    </h2>
+                    <Button variant="ghost" className="ml-3">
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button variant="outline" className="flex items-center text-sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      PDF
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Report Content */}
+                <div className="mt-6">
+                  {reportContent}
+                </div>
+              </div>
+            </div>
+          </div>
+        </PageContainerBody>
+      </PageContainer>
+    </DashboardLayout>
+  );
+}
