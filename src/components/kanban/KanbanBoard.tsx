@@ -15,25 +15,14 @@ interface BriefBoardProps {
 
 export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoardProps) {
   // Filter briefs by status
-  const reviewBriefs = briefs.filter(brief => brief.Status === 'Review Brief' || brief.Status === 'Needs Review');
   const inProgressBriefs = briefs.filter(brief => brief.Status === 'In Progress');
   const needsInputBriefs = briefs.filter(brief => brief.Status === 'Needs Input');
+  const reviewBriefs = briefs.filter(brief => brief.Status === 'Review Brief' || brief.Status === 'Needs Review');
   const approvedBriefs = briefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved');
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Needs Your Review Column */}
-        <BriefColumn
-          title="Needs Your Review"
-          status="Needs Review"
-          briefs={reviewBriefs}
-          selectedMonth={selectedMonth}
-          bgColor="bg-[#f9f0ff]"
-          onStatusChange={onStatusChange}
-          count={reviewBriefs.length}
-        />
-
         {/* In Progress Column */}
         <BriefColumn
           title="In Progress"
@@ -56,10 +45,21 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoard
           count={needsInputBriefs.length}
         />
 
+        {/* Review Brief Column */}
+        <BriefColumn
+          title="Review Brief"
+          status="Review Brief"
+          briefs={reviewBriefs}
+          selectedMonth={selectedMonth}
+          bgColor="bg-[#f9f0ff]"
+          onStatusChange={onStatusChange}
+          count={reviewBriefs.length}
+        />
+
         {/* Brief Approved Column */}
         <BriefColumn
           title="Brief Approved"
-          status="Approved"
+          status="Brief Approved"
           briefs={approvedBriefs}
           selectedMonth={selectedMonth}
           bgColor="bg-[#f0fff4]"

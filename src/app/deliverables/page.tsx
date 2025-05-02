@@ -6,12 +6,10 @@ import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
 
 // Define types for tabs
-type MainTab = 'content' | 'backlinks';
-type ContentTab = 'briefs' | 'articles';
+type MainTab = 'briefs' | 'articles' | 'backlinks';
 
-export default function DeliverablePage() {
-  const [mainTab, setMainTab] = useState<MainTab>('content');
-  const [contentTab, setContentTab] = useState<ContentTab>('briefs');
+export default function ContentWorkflowPage() {
+  const [mainTab, setMainTab] = useState<MainTab>('briefs');
   const [selectedMonth, setSelectedMonth] = useState('January');
 
   // State for Airtable data
@@ -340,7 +338,7 @@ export default function DeliverablePage() {
     <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-dark mr-4">Deliverables</h1>
+          <h1 className="text-2xl font-bold text-dark mr-4">Content Workflow</h1>
           {/* <button
             onClick={() => {
               console.log('Debug info:');
@@ -392,10 +390,16 @@ export default function DeliverablePage() {
             <div className="tab-navigation">
               <div className="flex overflow-x-auto">
                 <button
-                  className={`tab-item ${mainTab === 'content' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('content')}
+                  className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                  onClick={() => setMainTab('briefs')}
                 >
-                  Content
+                  Briefs
+                </button>
+                <button
+                  className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                  onClick={() => setMainTab('articles')}
+                >
+                  Articles
                 </button>
                 <button
                   className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
@@ -407,122 +411,75 @@ export default function DeliverablePage() {
             </div>
           </div>
           <div>
-            {mainTab === 'content' && (
+            {mainTab === 'briefs' && (
               <div>
-                <div className="page-container-tabs border-t-0">
-                  <div className="flex justify-between items-center w-full">
-                    <div className="tab-navigation">
-                      <div className="flex overflow-x-auto">
-                        <button
-                          className={`tab-item ${contentTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-medium`}
-                          onClick={() => setContentTab('briefs')}
-                        >
-                          Briefs
-                        </button>
-                        <button
-                          className={`tab-item ${contentTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-medium`}
-                          onClick={() => setContentTab('articles')}
-                        >
-                          Articles
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <button className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-1.5 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4h16v16H4V4z"></path>
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 10h16M10 4v16"></path>
-                        </svg>
-                        Board
-                      </button>
-                      <button className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7"></path>
-                        </svg>
-                        Inbox
-                      </button>
-                    </div>
-                  </div>
-                </div>
                 <div className="page-container-body">
                   <div>
-                    {contentTab === 'briefs' && (
-                      <>
-                        <div className="mb-4">
-                          <div className="flex justify-between items-center bg-purple-100 p-2 rounded-md mb-2">
-                            <div className="flex items-center">
-                              <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center mr-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#6B21A8">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                              </div>
-                              <p className="text-sm font-medium">
-                                {filteredBriefs.filter(brief => brief.Status === 'Review Brief').length} drafts need your decision
-                              </p>
-                            </div>
-                            <button className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-1.5">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                              </svg>
-                              Show only my tasks
-                            </button>
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center bg-purple-100 p-2 rounded-md mb-2">
+                        <div className="flex items-center">
+                          <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#6B21A8">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
                           </div>
-                          <div className="mb-2">
-                            <p className="text-sm text-gray-600 mb-1">
-                              {selectedMonth}: {filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length} of {filteredBriefs.length} briefs approved
-                              ({filteredBriefs.length > 0 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length / filteredBriefs.length) * 100) : 0}%)
-                            </p>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div
-                                className="bg-primary h-1.5 rounded-full"
-                                style={{ width: `${filteredBriefs.length > 0 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length / filteredBriefs.length) * 100) : 0}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                        <BriefBoard
-                          briefs={filteredBriefs}
-                          onStatusChange={handleBriefStatusChange}
-                          selectedMonth={selectedMonth}
-                        />
-                      </>
-                    )}
-
-                    {contentTab === 'articles' && (
-                      <>
-                        <div className="mb-6">
-                          <p className="text-sm font-medium text-dark">
-                            {selectedMonth}: {filteredArticles.length} articles
+                          <p className="text-sm font-medium">
+                            {filteredBriefs.filter(brief => brief.Status === 'Review Brief').length} briefs need your review
                           </p>
                         </div>
-                        <ArticleBoard
-                          articles={filteredArticles}
-                          onStatusChange={handleArticleStatusChange}
-                          selectedMonth={selectedMonth}
-                        />
-                      </>
-                    )}
+                      </div>
+                      <div className="mb-2">
+                        <p className="text-sm text-gray-600 mb-1">
+                          {selectedMonth}: {filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length} of {filteredBriefs.length} briefs approved
+                          ({filteredBriefs.length > 0 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length / filteredBriefs.length) * 100) : 0}%)
+                        </p>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className="bg-primary h-1.5 rounded-full"
+                            style={{ width: `${filteredBriefs.length > 0 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length / filteredBriefs.length) * 100) : 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <BriefBoard
+                      briefs={filteredBriefs}
+                      onStatusChange={handleBriefStatusChange}
+                      selectedMonth={selectedMonth}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {mainTab === 'articles' && (
+              <div>
+                <div className="page-container-body">
+                  <div>
+                    <div className="mb-4">
+                      <div className="mb-2">
+                        <p className="text-sm text-gray-600 mb-1">
+                          {selectedMonth}: {filteredArticles.filter(article => article.Status === 'Live').length} of {filteredArticles.length} articles delivered
+                          ({filteredArticles.length > 0 ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100) : 0}%)
+                        </p>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className="bg-primary h-1.5 rounded-full"
+                            style={{ width: `${filteredArticles.length > 0 ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100) : 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                    <ArticleBoard
+                      articles={filteredArticles}
+                      onStatusChange={handleArticleStatusChange}
+                      selectedMonth={selectedMonth}
+                    />
                   </div>
                 </div>
               </div>
             )}
             {mainTab === 'backlinks' && (
               <div>
-                <div className="page-container-tabs border-t-0">
-                  <div className="flex justify-between items-center w-full">
-                    <div className="tab-navigation">
-                      {/* No sub-tabs needed for backlinks */}
-                    </div>
-                    <div className="flex items-center">
-                      <button className="flex items-center text-sm text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-1.5 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                        </svg>
-                        Filter
-                      </button>
-                    </div>
-                  </div>
-                </div>
                 <div className="page-container-body">
                   <div>
                     <div className="mb-4">
@@ -540,13 +497,14 @@ export default function DeliverablePage() {
                     {filteredBacklinks.length > 0 ? (
                       <div className="bg-white rounded-md">
                         <div className="border-b border-lightGray">
-                          <div className="grid grid-cols-7 text-xs font-medium text-mediumGray uppercase">
+                          <div className="grid grid-cols-8 text-xs font-medium text-mediumGray uppercase">
                             <div className="px-4 py-3">Domain</div>
                             <div className="px-4 py-3">DR</div>
                             <div className="px-4 py-3">Link Type</div>
                             <div className="px-4 py-3">Target Page</div>
                             <div className="px-4 py-3">Status</div>
                             <div className="px-4 py-3">Went Live On</div>
+                            <div className="px-4 py-3">Month</div>
                             <div className="px-4 py-3">Notes</div>
                           </div>
                         </div>
@@ -554,7 +512,7 @@ export default function DeliverablePage() {
                           {filteredBacklinks.map((backlink, index) => (
                             <div
                               key={backlink.id}
-                              className={`grid grid-cols-7 text-sm hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
+                              className={`grid grid-cols-8 text-sm hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
                               style={{ color: '#353233' }}
                             >
                               <div className="px-4 py-4 font-medium text-dark">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
@@ -620,7 +578,8 @@ export default function DeliverablePage() {
                               <div className="px-4 py-4">
                                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                                   ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
-                                  backlink.Status === 'Scheduled' || backlink.Status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                                  backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
                                   'bg-gray-100 text-gray-800'}`}>
                                   {backlink.Status || 'Unknown Status'}
                                 </span>
@@ -628,6 +587,7 @@ export default function DeliverablePage() {
                               <div className="px-4 py-4 text-mediumGray">
                                 {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
                               </div>
+                              <div className="px-4 py-4 text-mediumGray">{backlink.Month || selectedMonth}</div>
                               <div className="px-4 py-4 text-mediumGray">{backlink.Notes || '—'}</div>
                             </div>
                           ))}
@@ -649,10 +609,8 @@ export default function DeliverablePage() {
                         >
                           <option value="all">All Statuses</option>
                           <option value="Live">Live</option>
-                          <option value="Pending">Pending</option>
                           <option value="Scheduled">Scheduled</option>
                           <option value="Rejected">Rejected</option>
-                          <option value="Planned">Planned</option>
                         </select>
                       </div>
                       <div>

@@ -95,14 +95,9 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange }: Brie
       </div>
 
       <div className="grid grid-cols-2 gap-x-2 gap-y-1 mb-3">
-        <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-1">Writer:</span>
-          <span className="text-xs text-gray-700 truncate">{getDisplayName(brief.ContentWriter)}</span>
-        </div>
-
-        <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-1">Editor:</span>
-          <span className="text-xs text-gray-700 truncate">{getDisplayName(brief.ContentEditor)}</span>
+        <div className="flex items-center col-span-2">
+          <span className="text-xs text-gray-500 mr-1">SEO Strategist:</span>
+          <span className="text-xs text-gray-700 truncate">{getDisplayName(brief['SEO Strategist'])}</span>
         </div>
 
         <div className="flex items-center col-span-2">

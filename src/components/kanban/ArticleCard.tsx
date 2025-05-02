@@ -79,18 +79,11 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
           </span>
         </div>
 
-        <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-1">Editor:</span>
-          <span className="text-xs text-gray-700 truncate">
-            {article['Content Editor'] || article.Editor || 'Unassigned'}
-          </span>
-        </div>
-
-        {article['SEO Specialist'] && (
+        {(article.WordCount || article['Word Count']) && (
           <div className="flex items-center">
-            <span className="text-xs text-gray-500 mr-1">SEO Specialist:</span>
+            <span className="text-xs text-gray-500 mr-1">Word Count:</span>
             <span className="text-xs text-gray-700 truncate">
-              {article['SEO Specialist']}
+              {article.WordCount || article['Word Count']}
             </span>
           </div>
         )}
@@ -101,15 +94,6 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
             {typeof article.Client === 'string' ? article.Client : 'Example Client'}
           </span>
         </div>
-
-        {article['Content Optimization Score'] !== undefined && article['Content Optimization Score'] > 0 && (
-          <div className="flex items-center">
-            <span className="text-xs text-gray-500 mr-1">Optimization Score:</span>
-            <span className="text-xs text-gray-700 truncate">
-              {article['Content Optimization Score']}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Action buttons */}

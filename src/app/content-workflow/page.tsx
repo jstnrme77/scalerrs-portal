@@ -341,7 +341,7 @@ export default function ContentWorkflow() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-dark">Content Workflow</h1>
+        <h1 className="text-2xl font-bold text-dark">Deliverables</h1>
         <p className="text-mediumGray">Track content from brief to publication and promotion</p>
       </div>
       

@@ -5,7 +5,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { fetchTasks, fetchComments, addComment, updateTaskStatus } from '@/lib/client-api';
-import MonthlyProjectionsBoard from '@/components/task-boards/monthly-projections-board';
 // Import task types from our types file
 import {
   Task,
@@ -1021,8 +1020,7 @@ export default function TaskBoards() {
   const [boards, setBoards] = useState<Record<string, Task[]>>({
     technicalSEO: [],
     cro: [],
-    strategyAdHoc: [],
-    projections: []
+    strategyAdHoc: []
   });
   const [activeBoard, setActiveBoard] = useState('technicalSEO');
   const [addTaskModal, setAddTaskModal] = useState(false);
@@ -1045,8 +1043,7 @@ export default function TaskBoards() {
         const organizedTasks: Record<string, Task[]> = {
           technicalSEO: [],
           cro: [],
-          strategyAdHoc: [],
-          projections: []
+          strategyAdHoc: []
         };
 
         // Map Airtable tasks to our Task type
@@ -1226,17 +1223,15 @@ export default function TaskBoards() {
           <p className="text-mediumGray">Collaborate on action items with clear priorities and ownership</p>
         </div>
 
-        {activeBoard !== 'projections' && (
-          <button
-            onClick={() => setAddTaskModal(true)}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Task
-          </button>
-        )}
+        <button
+          onClick={() => setAddTaskModal(true)}
+          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Task
+        </button>
       </div>
 
       <PageContainer>
@@ -1245,8 +1240,7 @@ export default function TaskBoards() {
             tabs={[
               { id: 'cro', label: 'CRO' },
               { id: 'technicalSEO', label: 'Technical SEO' },
-              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', disabled: !showStrategyTab },
-              { id: 'projections', label: 'Monthly Projections' }
+              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', disabled: !showStrategyTab }
             ]}
             activeTab={activeBoard}
             onTabChange={setActiveBoard}
@@ -1254,9 +1248,7 @@ export default function TaskBoards() {
           />
         </PageContainerTabs>
         <PageContainerBody>
-          {activeBoard === 'projections' ? (
-            <MonthlyProjectionsBoard />
-          ) : loading ? (
+          {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>

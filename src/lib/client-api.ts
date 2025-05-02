@@ -1065,16 +1065,8 @@ export async function fetchMonthlyProjections() {
     }
 
     // Server-side rendering or static generation
-    console.log('Fetching monthly projections from API route');
-    const response = await fetch('/api/monthly-projections');
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch monthly projections: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('Monthly projections data received:', data);
-    return data.monthlyProjections;
+    console.log('API route for monthly projections was removed, using mock data');
+    return mockMonthlyProjections;
   } catch (error) {
     console.error('Error fetching monthly projections:', error);
 

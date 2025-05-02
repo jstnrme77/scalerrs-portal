@@ -270,7 +270,7 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
             className="text-primary hover:underline ml-2"
             onClick={() => onTabChange('backlinks')}
           >
-            Link Lists ({counts.backlinks})
+            Backlinks ({counts.backlinks})
           </button>
         )}
         {counts.quickwins > 0 && (
@@ -321,7 +321,7 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-lg font-bold">{totalApproved} of {totalApproved + totalPending}</span>
-            <span className="text-xs text-mediumGray">items</span>
+            <span className="text-xs text-mediumGray">items approved this week</span>
           </div>
         </div>
       </div>
@@ -340,7 +340,7 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
           <span className="font-medium">{counts.articles}</span>
         </div>
         <div className="flex justify-between py-2 border-b border-lightGray">
-          <span>Link Lists</span>
+          <span>Backlinks</span>
           <span className="font-medium">{counts.backlinks}</span>
         </div>
         {counts.quickwins > 0 && (
@@ -355,69 +355,98 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
 }
 
 // Table Component
-function ApprovalTable({ items, onApprove, onRequestChanges }: {
-  items: any[],
+function ApprovalTable({ groupedItems, onApprove, onRequestChanges }: {
+  groupedItems: { [key: string]: any[] },
   onApprove: (id: number) => void,
   onRequestChanges: (id: number) => void
 }) {
+  // Define the order of status groups
+  const statusOrder = ['awaiting_approval', 'resubmitted', 'needs_revision', 'approved', 'rejected'];
+
+  // Status group headers
+  const statusHeaders = {
+    awaiting_approval: 'Awaiting Approval',
+    resubmitted: 'Resubmitted',
+    needs_revision: 'Needs Revision',
+    approved: 'Approved',
+    rejected: 'Rejected'
+  };
+
+  // Function to render a table section for a status group
+  const renderStatusGroup = (status: string) => {
+    const items = groupedItems[status];
+    if (!items || items.length === 0) return null;
+
+    return (
+      <div key={status} className="mb-6">
+        <h3 className="font-medium text-dark mb-2">{statusHeaders[status as keyof typeof statusHeaders]}</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-lightGray">
+            <thead>
+              <tr className="bg-lightGray">
+                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Deliverable</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Assigned To</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Last Updated</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-mediumGray uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-lightGray">
+              {items.map((item) => (
+                <tr key={item.id} className={`hover:bg-lightGray/30 ${status === 'resubmitted' || status === 'needs_revision' ? 'bg-yellow-50' : ''}`}>
+                  <td className="px-4 py-3">
+                    <div className="flex items-start">
+                      <div>
+                        <div className="text-sm font-medium text-dark">
+                          <a href="#" className="hover:text-primary hover:underline">{item.item}</a>
+                        </div>
+                        {'type' in item && <div className="text-xs text-mediumGray">{item.type}</div>}
+                        {'wordCount' in item && <div className="text-xs text-mediumGray">{item.wordCount} words</div>}
+                        {'volume' in item && <div className="text-xs text-mediumGray">Volume: {item.volume}</div>}
+                        {'count' in item && <div className="text-xs text-mediumGray">{item.count} links</div>}
+                        {'pages' in item && <div className="text-xs text-mediumGray">{item.pages} pages</div>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-dark">{item.strategist}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-mediumGray">{item.lastUpdated}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={item.status} />
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {(item.status === 'awaiting_approval' || item.status === 'resubmitted' || item.status === 'needs_revision') && (
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => onApprove(item.id)}
+                          className="px-3 py-1 text-xs font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => onRequestChanges(item.id)}
+                          className="px-3 py-1 text-xs font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
+                        >
+                          Request Changes
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-lightGray">
-        <thead>
-          <tr className="bg-lightGray">
-            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Deliverable</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Strategist</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Last Updated</th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Status</th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-mediumGray uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-lightGray">
-          {items.map((item) => (
-            <tr key={item.id} className="hover:bg-lightGray/30">
-              <td className="px-4 py-3 whitespace-nowrap">
-                <div className="flex items-start">
-                  <div>
-                    <div className="text-sm font-medium text-dark">{item.item}</div>
-                    {'type' in item && <div className="text-xs text-mediumGray">{item.type}</div>}
-                    {'wordCount' in item && <div className="text-xs text-mediumGray">{item.wordCount} words</div>}
-                    {'volume' in item && <div className="text-xs text-mediumGray">Volume: {item.volume}</div>}
-                    {'count' in item && <div className="text-xs text-mediumGray">{item.count} links</div>}
-                    {'pages' in item && <div className="text-xs text-mediumGray">{item.pages} pages</div>}
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-3 whitespace-nowrap">
-                <div className="text-sm text-dark">{item.strategist}</div>
-              </td>
-              <td className="px-4 py-3 whitespace-nowrap">
-                <div className="text-sm text-mediumGray">{item.lastUpdated}</div>
-              </td>
-              <td className="px-4 py-3 whitespace-nowrap">
-                <StatusBadge status={item.status} />
-              </td>
-              <td className="px-4 py-3 whitespace-nowrap text-right">
-                {(item.status === 'awaiting_approval' || item.status === 'resubmitted' || item.status === 'needs_revision') && (
-                  <div className="flex justify-end space-x-2">
-                    <button
-                      onClick={() => onApprove(item.id)}
-                      className="px-3 py-1 text-xs font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => onRequestChanges(item.id)}
-                      className="px-3 py-1 text-xs font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
-                    >
-                      Request Changes
-                    </button>
-                  </div>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div>
+      {statusOrder.map(status => renderStatusGroup(status))}
     </div>
   );
 }
@@ -440,6 +469,15 @@ export default function Approvals() {
   // Calculate total approved and pending items
   const totalApproved = Object.values(items).flat().filter(item => item.status === 'approved').length;
   const totalPending = Object.values(pendingCounts).reduce((sum, count) => sum + count, 0);
+
+  // Group items by status
+  const groupedItems = {
+    awaiting_approval: items[activeTab as keyof typeof items].filter(item => item.status === 'awaiting_approval'),
+    resubmitted: items[activeTab as keyof typeof items].filter(item => item.status === 'resubmitted'),
+    needs_revision: items[activeTab as keyof typeof items].filter(item => item.status === 'needs_revision'),
+    approved: items[activeTab as keyof typeof items].filter(item => item.status === 'approved'),
+    rejected: items[activeTab as keyof typeof items].filter(item => item.status === 'rejected'),
+  };
 
   // Filter items based on active tab and filter
   const filteredItems = items[activeTab as keyof typeof items].filter(item => {
@@ -477,15 +515,33 @@ export default function Approvals() {
   const confirmRequestChanges = (reason: string) => {
     setItems(prev => {
       const newItems = { ...prev };
-      const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === rejectionModal.itemId);
 
-      if (itemIndex !== -1) {
-        newItems[activeTab as keyof typeof items][itemIndex] = {
-          ...newItems[activeTab as keyof typeof items][itemIndex],
-          status: 'needs_revision',
-          dateApproved: new Date().toISOString().split('T')[0],
-          revisionReason: reason
-        };
+      // Check if this is a bulk action (itemId = -1)
+      if (rejectionModal.itemId === -1) {
+        // Update all pending items in the current tab
+        newItems[activeTab as keyof typeof items] = newItems[activeTab as keyof typeof items].map(item => {
+          if (['awaiting_approval', 'resubmitted'].includes(item.status)) {
+            return {
+              ...item,
+              status: 'needs_revision',
+              dateApproved: new Date().toISOString().split('T')[0],
+              revisionReason: reason
+            };
+          }
+          return item;
+        });
+      } else {
+        // Update a single item
+        const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === rejectionModal.itemId);
+
+        if (itemIndex !== -1) {
+          newItems[activeTab as keyof typeof items][itemIndex] = {
+            ...newItems[activeTab as keyof typeof items][itemIndex],
+            status: 'needs_revision',
+            dateApproved: new Date().toISOString().split('T')[0],
+            revisionReason: reason
+          };
+        }
       }
 
       return newItems;
@@ -514,8 +570,9 @@ export default function Approvals() {
                   { id: 'keywords', label: 'Keyword Plans' },
                   { id: 'briefs', label: 'Briefs' },
                   { id: 'articles', label: 'Articles' },
-                  { id: 'backlinks', label: 'Link Lists' },
-                  { id: 'quickwins', label: 'Quick Wins' }
+                  { id: 'backlinks', label: 'Backlinks' },
+                  // Quick Wins tab is optional per requirements
+                  ...(items.quickwins.length > 0 ? [{ id: 'quickwins', label: 'Quick Wins' }] : [])
                 ]}
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -524,19 +581,34 @@ export default function Approvals() {
               />
             </PageContainerTabs>
             <PageContainerBody>
-              {/* Tab-level header */}
-              <div className="mb-4 flex justify-between items-center">
+              {/* Tab-level header - Sticky */}
+              <div className="mb-4 flex justify-between items-center sticky top-0 bg-white p-4 border-b border-lightGray z-10">
                 <div>
                   <p className="font-medium">You have {tabReviewCount} item{tabReviewCount !== 1 ? 's' : ''} to review in this section</p>
                 </div>
 
                 {tabReviewCount > 0 && (
                   <div className="flex space-x-2">
-                    <button className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-scalerrs hover:bg-primary/80 transition-colors">
+                    <button
+                      onClick={() => {
+                        // Approve all pending items in this tab
+                        const pendingItems = items[activeTab as keyof typeof items].filter(
+                          item => ['awaiting_approval', 'resubmitted'].includes(item.status)
+                        );
+                        pendingItems.forEach(item => handleApprove(item.id));
+                      }}
+                      className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-scalerrs hover:bg-primary/80 transition-colors"
+                    >
                       Approve All
                     </button>
-                    <button className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors">
+                    <button
+                      onClick={() => setRejectionModal({ isOpen: true, itemId: -1 })} // -1 indicates bulk action
+                      className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
+                    >
                       Request Changes
+                    </button>
+                    <button className="px-4 py-2 text-sm font-medium text-mediumGray border border-lightGray rounded-scalerrs hover:bg-lightGray transition-colors">
+                      Add Comment
                     </button>
                   </div>
                 )}
@@ -544,9 +616,9 @@ export default function Approvals() {
 
               {/* Table View */}
               <div className="overflow-hidden">
-                {filteredItems.length > 0 ? (
+                {Object.values(groupedItems).some(items => items.length > 0) ? (
                   <ApprovalTable
-                    items={filteredItems}
+                    groupedItems={groupedItems}
                     onApprove={handleApprove}
                     onRequestChanges={handleRequestChanges}
                   />
