@@ -1,6 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import {
+  Package,
+  CheckSquare,
+  BarChart3,
+  Clock
+} from 'lucide-react';
 
 export default function Home() {
   // Current month for milestone tracking
@@ -15,29 +21,31 @@ export default function Home() {
         </p>
 
         {/* Highlighted Reminders - Priority 1 */}
-        <div className="relative overflow-hidden rounded-[16px] border-8 border-[#9EA8FB] bg-white p-5 shadow-lg">
-          <div className="absolute top-0 right-0 h-16 w-16 overflow-hidden">
-            <div className="absolute top-0 right-0 h-4 w-4 animate-pulse rounded-full bg-red-500"></div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="rounded-md bg-amber-100 px-3 py-1.5 text-amber-800 font-medium border border-amber-200 shadow-sm">
-              <span className="flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
-                </span>
-                <span className="font-bold">1</span> Action Required
+        <div className="relative overflow-hidden rounded-3xl border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
+          <div className="mb-4">
+            <span className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
               </span>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="text-lg font-extrabold notification-text">3 deliverables need your review. 1 new report is available.</p>
-              <p className="text-sm text-[#12131C]">Your campaign lead will follow up in Slack if anything is pending.</p>
-            </div>
+              <span className="font-bold">1</span> Action Required
+            </span>
           </div>
-          <div className="mt-4 flex justify-end">
-            <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="mb-2 text-lg font-medium text-[#12131C]">Items Needing Your Attention</h2>
+              <p className="text-sm text-[#4F515E]">3 deliverables need your review. 1 new report is available.</p>
+            </div>
+            <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
               Go to Approvals
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
             </Link>
+          </div>
+          <div className="absolute right-0 top-0 h-16 w-16 overflow-hidden">
+            <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-amber-500"></div>
           </div>
         </div>
       </div>
@@ -48,12 +56,14 @@ export default function Home() {
         <div className="lg:w-2/3">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Deliverables Summary Card - Priority 2 */}
-            <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm flex flex-col h-full">
+            <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">2</span>
-                <h2 className="text-2xl font-bold">Track Deliverables</h2>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
+                  <Package className="h-6 w-6 text-[#9EA8FB]" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#12131C]">Track Deliverables</h2>
               </div>
-              <p className="text-gray-600 mb-4">Monitor your content and link building progress</p>
+              <p className="text-base text-[#12131C] mb-4">Monitor your content and link building progress</p>
 
               <div className="grid gap-8 md:grid-cols-2 flex-grow">
                 {/* Deliverables Status */}
@@ -92,19 +102,25 @@ export default function Home() {
               </div>
 
               <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/deliverables" className="btn-primary inline-flex items-center gap-2 text-base">
+                <Link href="/deliverables" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
                   View All Deliverables
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg>
                 </Link>
               </div>
             </div>
 
             {/* Client Actions Needed Card - Priority 3 */}
-            <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm flex flex-col h-full">
+            <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">3</span>
-                <h2 className="text-2xl font-bold">Your Action Items</h2>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
+                  <CheckSquare className="h-6 w-6 text-[#9EA8FB]" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#12131C]">Your Action Items</h2>
               </div>
-              <p className="text-gray-600 mb-4">Items waiting for your review or approval</p>
+              <p className="text-base text-[#12131C] mb-4">Items waiting for your review or approval</p>
 
               <div className="flex-grow">
                 <ul className="space-y-4">
@@ -141,19 +157,25 @@ export default function Home() {
                 </ul>
               </div>
               <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base">
+                <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
                   Review All Items
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg>
                 </Link>
               </div>
             </div>
 
             {/* Milestone Tracker Card - Priority 4 */}
-            <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm flex flex-col h-full md:col-span-2">
+            <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full md:col-span-2">
               <div className="flex items-center mb-4">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">4</span>
-                <h2 className="text-2xl font-bold">Campaign Progress</h2>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
+                  <BarChart3 className="h-6 w-6 text-[#9EA8FB]" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#12131C]">Campaign Progress</h2>
               </div>
-              <p className="text-gray-600 mb-4">Track your monthly campaign milestones and goals</p>
+              <p className="text-base text-[#12131C] mb-4">Track your monthly campaign milestones and goals</p>
 
               <div className="mb-6">
                 <div className="flex items-center justify-between text-base mb-2">
@@ -196,8 +218,12 @@ export default function Home() {
               </div>
 
               <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/milestones" className="btn-primary inline-flex items-center gap-2 text-base">
+                <Link href="/milestones" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
                   View Monthly Plan
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg>
                 </Link>
               </div>
             </div>
@@ -206,12 +232,14 @@ export default function Home() {
 
         {/* Latest Activity Sidebar - Priority 5 */}
         <div className="lg:w-1/3">
-          <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm h-full">
+          <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm h-full">
             <div className="flex items-center mb-4">
-              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">5</span>
-              <h2 className="text-2xl font-bold">Latest Activity</h2>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
+                <Clock className="h-6 w-6 text-[#9EA8FB]" />
+              </div>
+              <h2 className="text-2xl font-bold text-[#12131C]">Latest Activity</h2>
             </div>
-            <p className="text-gray-600 mb-4">Recent updates to your campaign</p>
+            <p className="text-base text-[#12131C] mb-4">Recent updates to your campaign</p>
 
             <div className="space-y-6">
               {/* Recent Briefs */}
@@ -261,8 +289,12 @@ export default function Home() {
             </div>
 
             <div className="mt-6 flex justify-center">
-              <Link href="/timeline" className="btn-primary inline-flex items-center gap-2 text-base">
+              <Link href="/timeline" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
                 View Full Timeline
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg>
               </Link>
             </div>
           </div>
