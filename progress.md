@@ -58,6 +58,8 @@
 - ✅ Changed card borders from colored left-only to consistent gray (#D9D9D9) borders on all sides
 - ✅ Implemented consistent color palette across the application (#9EA8FB, #353233, #D9D9D9, #12131C)
 - ✅ Standardized typography using Roboto font family throughout the application
+- ✅ Updated tab navigation to have borders on all sides for better visual clarity
+- ✅ Added document viewer modal for viewing documents without leaving the page
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -70,6 +72,8 @@
 ### Bug Fixes & Optimizations
 - ✅ Fixed TypeScript null checks for pathname in Sidebar component
 - ✅ Resolved Netlify build errors related to type safety
+- ✅ Fixed document viewer modal to work without external dependencies
+- ✅ Removed approval buttons from Content Workflow page as per requirements
 - 🔄 Improving type safety throughout the application
 
 ## Upcoming Tasks
@@ -117,3 +121,6 @@
 - Button styling standardized with 16px border radius, dark background (#12131C), white text, and consistent padding
 - Using Roboto as the primary font family throughout the application for consistent typography
 - Maintaining consistent font weights: regular (400) for body text and medium/bold (500/700) for headings and emphasis
+- Removed approval buttons from Content Workflow page to make it a tracking-only tool for clients
+- Added document viewer modal that allows viewing documents without leaving the current page
+- Updated tab navigation with full borders on all sides for better visual clarity and user experience

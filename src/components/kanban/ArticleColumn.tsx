@@ -10,6 +10,8 @@ interface ArticleColumnProps {
   bgColor: string;
   selectedMonth?: string;
   onStatusChange: (id: string, newStatus: ArticleStatus) => void;
+  hideActions?: boolean;
+  onViewDocument?: (url: string, title: string) => void;
 }
 
 export default function ArticleColumn({
@@ -18,7 +20,9 @@ export default function ArticleColumn({
   articles,
   bgColor,
   selectedMonth,
-  onStatusChange
+  onStatusChange,
+  hideActions = false,
+  onViewDocument
 }: ArticleColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.ARTICLE_CARD,
@@ -51,6 +55,8 @@ export default function ArticleColumn({
             article={article}
             selectedMonth={selectedMonth || ''}
             onStatusChange={onStatusChange}
+            hideActions={hideActions}
+            onViewDocument={onViewDocument}
           />
         ))}
 

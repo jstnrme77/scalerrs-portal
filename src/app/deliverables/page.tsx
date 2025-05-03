@@ -61,7 +61,7 @@ export default function ContentWorkflowPage() {
         setLoading(true);
         setError(null);
 
-        console.log('Starting to fetch deliverables data...');
+        console.log('Starting to fetch content workflow data...');
 
         // Check if we should use mock data
         let useMockData = false;
@@ -164,8 +164,8 @@ export default function ContentWorkflowPage() {
           }
         }
       } catch (err: any) {
-        console.error('Error in deliverables data fetching:', err);
-        setError(`An error occurred while fetching deliverables data: ${err.message || 'Unknown error'}`);
+        console.error('Error in content workflow data fetching:', err);
+        setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
 
         // Import all mock data as fallback
         try {
@@ -382,7 +382,7 @@ export default function ContentWorkflowPage() {
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <span className="ml-3 text-mediumGray">Loading deliverables data...</span>
+          <span className="ml-3 text-mediumGray">Loading content workflow data...</span>
         </div>
       ) : (
         <div className="page-container mb-6">

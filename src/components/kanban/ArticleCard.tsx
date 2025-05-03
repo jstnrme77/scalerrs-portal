@@ -6,6 +6,8 @@ interface ArticleCardProps {
   article: Article;
   selectedMonth: string;
   onStatusChange?: (id: string, newStatus: ArticleStatus) => void;
+  hideActions?: boolean;
+  onViewDocument?: (url: string, title: string) => void;
 }
 
 // Helper function to get month abbreviation
@@ -14,7 +16,7 @@ const getMonthAbbreviation = (month: number): string => {
   return months[month];
 };
 
-export default function ArticleCard({ article, selectedMonth, onStatusChange }: ArticleCardProps) {
+export default function ArticleCard({ article, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: ArticleCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.ARTICLE_CARD,
     item: { id: article.id, status: article.Status },
@@ -97,7 +99,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
       </div>
 
       {/* Action buttons */}
-      {article.Status === 'Review Draft' && (
+      {!hideActions && article.Status === 'Review Draft' && (
         <div className="flex space-x-2 mt-3">
           <button
             className="flex items-center justify-center px-3 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
@@ -146,18 +148,31 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange }: 
             View Article
           </a>
         ) : (article.DocumentLink || article['Document Link']) ? (
-          <a
-            href={article.DocumentLink || article['Document Link']}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-xs text-primary hover:underline"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            View Document
-          </a>
+          onViewDocument ? (
+            <button
+              onClick={() => onViewDocument(article.DocumentLink || article['Document Link'], article.Title || 'Article Document')}
+              className="inline-flex items-center text-xs text-primary hover:underline"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Document
+            </button>
+          ) : (
+            <a
+              href={article.DocumentLink || article['Document Link']}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center text-xs text-primary hover:underline"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View Document
+            </a>
+          )
         ) : null}
       </div>
     </div>

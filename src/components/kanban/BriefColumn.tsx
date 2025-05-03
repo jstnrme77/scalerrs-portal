@@ -11,6 +11,8 @@ interface BriefColumnProps {
   bgColor: string;
   count?: number;
   onStatusChange: (id: string, newStatus: BriefStatus) => void;
+  hideActions?: boolean;
+  onViewDocument?: (url: string, title: string) => void;
 }
 
 export default function BriefColumn({
@@ -20,7 +22,9 @@ export default function BriefColumn({
   selectedMonth,
   bgColor,
   count,
-  onStatusChange
+  onStatusChange,
+  hideActions = false,
+  onViewDocument
 }: BriefColumnProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ItemTypes.BRIEF_CARD,
@@ -53,6 +57,8 @@ export default function BriefColumn({
             brief={brief}
             selectedMonth={selectedMonth}
             onStatusChange={onStatusChange}
+            hideActions={hideActions}
+            onViewDocument={onViewDocument}
           />
         ))}
 

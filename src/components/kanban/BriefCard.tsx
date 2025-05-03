@@ -6,6 +6,8 @@ interface BriefCardProps {
   brief: Brief;
   selectedMonth: string;
   onStatusChange?: (id: string, newStatus: BriefStatus) => void;
+  hideActions?: boolean;
+  onViewDocument?: (url: string, title: string) => void;
 }
 
 // Helper function to format date as "MMM D" (e.g., "Apr 7")
@@ -48,7 +50,7 @@ const getDisplayName = (field: string | string[] | undefined): string => {
   return 'Unassigned';
 };
 
-export default function BriefCard({ brief, selectedMonth, onStatusChange }: BriefCardProps) {
+export default function BriefCard({ brief, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: BriefCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.BRIEF_CARD,
     item: { id: brief.id, status: brief.Status },
@@ -107,7 +109,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange }: Brie
       </div>
 
       {/* Action buttons */}
-      {(brief.Status === 'Review Brief' || brief.Status === 'Needs Review') && (
+      {!hideActions && (brief.Status === 'Review Brief' || brief.Status === 'Needs Review') && (
         <div className="flex space-x-2 mt-3">
           <button
             className="flex items-center justify-center px-3 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
@@ -144,35 +146,61 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange }: Brie
       <div className="mt-3 flex flex-col space-y-2">
         {brief.DocumentLink && (
           <div className="text-center">
-            <a
-              href={brief.DocumentLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-xs text-primary hover:underline"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              View Document
-            </a>
+            {onViewDocument ? (
+              <button
+                onClick={() => onViewDocument(brief.DocumentLink, brief.Title || 'Brief Document')}
+                className="inline-flex items-center text-xs text-primary hover:underline"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Document
+              </button>
+            ) : (
+              <a
+                href={brief.DocumentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-xs text-primary hover:underline"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Document
+              </a>
+            )}
           </div>
         )}
 
         {brief['FraseDocumentLink'] && (
           <div className="text-center">
-            <a
-              href={brief['FraseDocumentLink']}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-xs text-primary hover:underline"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              View Frase Document
-            </a>
+            {onViewDocument ? (
+              <button
+                onClick={() => onViewDocument(brief['FraseDocumentLink'], `${brief.Title || 'Brief'} - Frase Document`)}
+                className="inline-flex items-center text-xs text-primary hover:underline"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Frase Document
+              </button>
+            ) : (
+              <a
+                href={brief['FraseDocumentLink']}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-xs text-primary hover:underline"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Frase Document
+              </a>
+            )}
           </div>
         )}
       </div>

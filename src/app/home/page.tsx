@@ -61,7 +61,7 @@ export default function Home() {
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
                   <Package className="h-6 w-6 text-[#9EA8FB]" />
                 </div>
-                <h2 className="text-2xl font-bold text-[#12131C]">Track Deliverables</h2>
+                <h2 className="text-2xl font-bold text-[#12131C]">Content Workflow</h2>
               </div>
               <p className="text-base text-[#12131C] mb-4">Monitor your content and link building progress</p>
 

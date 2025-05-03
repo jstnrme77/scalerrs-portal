@@ -1,405 +1,743 @@
 'use client';
-
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
+import MonthSelector from '@/components/ui/selectors/MonthSelector';
+import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
+import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
+import { BriefStatus, ArticleStatus } from '@/types';
+import DocumentViewerModal from '@/components/modals/DocumentViewerModal';
+import useDocumentViewer from '@/hooks/useDocumentViewer';
 
-// Sample content workflow data
-const contentItems = [
-  { 
-    id: 1, 
-    title: 'Ultimate Guide to Enterprise SEO in 2025', 
-    targetKeyword: 'enterprise seo guide',
-    stage: 'writing', 
-    assignee: 'Jane Smith',
-    dueDate: '2025-04-15',
-    progress: 65,
-    notes: 'Incorporating latest algorithm updates and case studies',
-    history: [
-      { stage: 'brief', date: '2025-03-25', user: 'John Doe' },
-      { stage: 'research', date: '2025-03-28', user: 'Jane Smith' },
-      { stage: 'writing', date: '2025-04-01', user: 'Jane Smith' },
-    ]
-  },
-  { 
-    id: 2, 
-    title: 'How to Choose the Right SEO Agency for Your SaaS', 
-    targetKeyword: 'saas seo agency selection',
-    stage: 'editing', 
-    assignee: 'John Doe',
-    dueDate: '2025-04-10',
-    progress: 85,
-    notes: 'Final review pending from client',
-    history: [
-      { stage: 'brief', date: '2025-03-20', user: 'Jane Smith' },
-      { stage: 'research', date: '2025-03-22', user: 'John Doe' },
-      { stage: 'writing', date: '2025-03-28', user: 'John Doe' },
-      { stage: 'editing', date: '2025-04-02', user: 'Jane Smith' },
-    ]
-  },
-  { 
-    id: 3, 
-    title: 'B2B SEO Strategy: A Step-by-Step Guide', 
-    targetKeyword: 'b2b seo strategy guide',
-    stage: 'publishing', 
-    assignee: 'Jane Smith',
-    dueDate: '2025-04-05',
-    progress: 95,
-    notes: 'Scheduled for publication on April 5',
-    history: [
-      { stage: 'brief', date: '2025-03-15', user: 'John Doe' },
-      { stage: 'research', date: '2025-03-18', user: 'Jane Smith' },
-      { stage: 'writing', date: '2025-03-25', user: 'Jane Smith' },
-      { stage: 'editing', date: '2025-03-30', user: 'John Doe' },
-      { stage: 'publishing', date: '2025-04-03', user: 'Jane Smith' },
-    ]
-  },
-  { 
-    id: 4, 
-    title: '10 Content Marketing Tactics for Tech Companies', 
-    targetKeyword: 'tech content marketing tactics',
-    stage: 'promotion', 
-    assignee: 'John Doe',
-    dueDate: '2025-04-02',
-    progress: 100,
-    notes: 'Promotion campaign running on social media',
-    history: [
-      { stage: 'brief', date: '2025-03-10', user: 'Jane Smith' },
-      { stage: 'research', date: '2025-03-12', user: 'John Doe' },
-      { stage: 'writing', date: '2025-03-18', user: 'John Doe' },
-      { stage: 'editing', date: '2025-03-22', user: 'Jane Smith' },
-      { stage: 'publishing', date: '2025-03-25', user: 'John Doe' },
-      { stage: 'promotion', date: '2025-03-28', user: 'Jane Smith' },
-    ]
-  },
-  { 
-    id: 5, 
-    title: 'SEO for Startups: A Complete Playbook', 
-    targetKeyword: 'startup seo playbook',
-    stage: 'brief', 
-    assignee: 'Jane Smith',
-    dueDate: '2025-04-30',
-    progress: 10,
-    notes: 'Research phase starting next week',
-    history: [
-      { stage: 'brief', date: '2025-04-01', user: 'John Doe' },
-    ]
-  },
-  { 
-    id: 6, 
-    title: 'Local SEO for Enterprise Businesses', 
-    targetKeyword: 'enterprise local seo',
-    stage: 'research', 
-    assignee: 'John Doe',
-    dueDate: '2025-04-25',
-    progress: 25,
-    notes: 'Gathering case studies from enterprise clients',
-    history: [
-      { stage: 'brief', date: '2025-03-28', user: 'Jane Smith' },
-      { stage: 'research', date: '2025-04-01', user: 'John Doe' },
-    ]
-  },
-];
+// Define types for tabs
+type MainTab = 'briefs' | 'articles' | 'backlinks';
 
-// Workflow stages
-const stages = [
-  { id: 'brief', name: 'Brief', color: 'bg-gold/10 text-gold' },
-  { id: 'research', name: 'Research', color: 'bg-lavender/10 text-lavender' },
-  { id: 'writing', name: 'Writing', color: 'bg-primary/10 text-primary' },
-  { id: 'editing', name: 'Editing', color: 'bg-green-100 text-green-800' },
-  { id: 'publishing', name: 'Publishing', color: 'bg-blue-100 text-blue-800' },
-  { id: 'promotion', name: 'Promotion', color: 'bg-purple-100 text-purple-800' },
-];
+export default function ContentWorkflowPage() {
+  const [mainTab, setMainTab] = useState<MainTab>('briefs');
+  const [selectedMonth, setSelectedMonth] = useState('January');
 
-// Stage Badge Component
-function StageBadge({ stage }: { stage: string }) {
-  const stageInfo = stages.find(s => s.id === stage);
-  
-  return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${stageInfo?.color || 'bg-lightGray text-mediumGray'}`}>
-      {stageInfo?.name || stage}
-    </span>
-  );
-}
+  // State for Airtable data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [briefs, setBriefs] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>([]);
+  const [backlinks, setBacklinks] = useState<any[]>([]);
+  const [urlPerformance, setUrlPerformance] = useState<any[]>([]);
+  const [filteredBriefs, setFilteredBriefs] = useState<any[]>([]);
+  const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
+  const [filteredBacklinks, setFilteredBacklinks] = useState<any[]>([]);
 
-// Content Item Card Component
-function ContentItemCard({ 
-  item, 
-  onView, 
-  onAdvance 
-}: { 
-  item: any; 
-  onView: (id: number) => void; 
-  onAdvance: (id: number) => void; 
-}) {
-  const currentStageIndex = stages.findIndex(s => s.id === item.stage);
-  const isLastStage = currentStageIndex === stages.length - 1;
-  
-  return (
-    <div className="bg-white p-4 rounded-scalerrs border border-lightGray shadow-sm">
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-dark">{item.title}</h3>
-        <StageBadge stage={item.stage} />
-      </div>
-      
-      <div className="mb-3">
-        <div className="text-xs text-mediumGray mb-1">Progress</div>
-        <div className="w-full bg-lightGray rounded-full h-1.5">
-          <div 
-            className="h-1.5 rounded-full bg-primary" 
-            style={{ width: `${item.progress}%` }}
-          ></div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="text-sm text-mediumGray">
-          <span className="font-medium">Keyword:</span> {item.targetKeyword}
-        </div>
-        
-        <div className="text-sm text-mediumGray">
-          <span className="font-medium">Assignee:</span> {item.assignee}
-        </div>
-        
-        <div className="text-sm text-mediumGray">
-          <span className="font-medium">Due:</span> {new Date(item.dueDate).toLocaleDateString()}
-        </div>
-      </div>
-      
-      <div className="flex space-x-2">
-        <button 
-          onClick={() => onView(item.id)}
-          className="px-3 py-1 text-xs font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
-        >
-          View Details
-        </button>
-        
-        {!isLastStage && (
-          <button 
-            onClick={() => onAdvance(item.id)}
-            className="px-3 py-1 text-xs font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors"
-          >
-            Advance to {stages[currentStageIndex + 1].name}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
+  // Filter states for backlinks
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [drFilter, setDrFilter] = useState<string>('all');
 
-// Content Detail Modal Component
-function ContentDetailModal({ 
-  isOpen, 
-  item, 
-  onClose 
-}: { 
-  isOpen: boolean; 
-  item: any | null; 
-  onClose: () => void; 
-}) {
-  if (!isOpen || !item) return null;
-  
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-scalerrs shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-medium text-dark">{item.title}</h3>
-          <button 
-            onClick={onClose}
-            className="text-mediumGray hover:text-dark"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <div className="text-sm text-mediumGray mb-1">Current Stage</div>
-            <StageBadge stage={item.stage} />
-          </div>
-          
-          <div>
-            <div className="text-sm text-mediumGray mb-1">Progress</div>
-            <div className="w-full bg-lightGray rounded-full h-2">
-              <div 
-                className="h-2 rounded-full bg-primary" 
-                style={{ width: `${item.progress}%` }}
-              ></div>
-            </div>
-          </div>
-          
-          <div>
-            <div className="text-sm text-mediumGray mb-1">Target Keyword</div>
-            <div className="font-medium text-dark">{item.targetKeyword}</div>
-          </div>
-          
-          <div>
-            <div className="text-sm text-mediumGray mb-1">Assignee</div>
-            <div className="font-medium text-dark">{item.assignee}</div>
-          </div>
-          
-          <div>
-            <div className="text-sm text-mediumGray mb-1">Due Date</div>
-            <div className="font-medium text-dark">{new Date(item.dueDate).toLocaleDateString()}</div>
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <div className="text-sm text-mediumGray mb-1">Notes</div>
-          <div className="bg-lightGray p-3 rounded-scalerrs text-dark">{item.notes}</div>
-        </div>
-        
-        <div>
-          <div className="text-sm text-mediumGray mb-2">Workflow History</div>
-          <div className="relative">
-            <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-lightGray"></div>
-            <div className="space-y-4 ml-6">
-              {item.history.map((event: any, index: number) => (
-                <div key={index} className="relative">
-                  <div className="absolute -left-6 mt-1 w-4 h-4 rounded-full bg-white border-2 border-primary"></div>
-                  <div>
-                    <div className="flex items-center">
-                      <StageBadge stage={event.stage} />
-                      <span className="text-xs text-mediumGray ml-2">
-                        {new Date(event.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="text-sm text-dark mt-1">
-                      Moved to {stages.find(s => s.id === event.stage)?.name} by {event.user}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+  // Sort states for backlinks table
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-export default function ContentWorkflow() {
-  const [items, setItems] = useState(contentItems);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [detailModal, setDetailModal] = useState({ isOpen: false, itemId: null as number | null });
-  
-  const filteredItems = activeFilter === 'all' 
-    ? items 
-    : items.filter(item => item.stage === activeFilter);
-  
-  const handleViewDetail = (id: number) => {
-    setDetailModal({ isOpen: true, itemId: id });
+  // Use the document viewer hook
+  const { documentModal, openDocumentViewer, closeDocumentViewer } = useDocumentViewer();
+
+  // Create a mapping of URL Performance record IDs to URL paths
+  const urlPathMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    urlPerformance.forEach(url => {
+      if (url.id) {
+        map[url.id] = url['URL Path'] || url.URLPath || '/';
+      }
+    });
+    return map;
+  }, [urlPerformance]);
+
+  // Debug function to log data
+  const logData = (data: any[], type: string) => {
+    console.log(`${type} data:`, data);
+    if (data.length > 0) {
+      console.log(`First ${type} item:`, data[0]);
+      console.log(`${type} fields:`, Object.keys(data[0]));
+      console.log(`${type} Status:`, data[0].Status);
+      console.log(`${type} DueDate:`, data[0].DueDate);
+    } else {
+      console.log(`No ${type} data available`);
+    }
   };
-  
-  const handleCloseDetail = () => {
-    setDetailModal({ isOpen: false, itemId: null });
-  };
-  
-  const handleAdvanceStage = (id: number) => {
-    setItems(prev => {
-      return prev.map(item => {
-        if (item.id === id) {
-          const currentStageIndex = stages.findIndex(s => s.id === item.stage);
-          if (currentStageIndex < stages.length - 1) {
-            const nextStage = stages[currentStageIndex + 1].id;
-            
-            // Calculate new progress based on stage
-            const stageProgress = {
-              brief: 10,
-              research: 25,
-              writing: 50,
-              editing: 75,
-              publishing: 90,
-              promotion: 100
-            };
-            
-            return {
-              ...item,
-              stage: nextStage,
-              progress: stageProgress[nextStage as keyof typeof stageProgress],
-              history: [
-                ...item.history,
-                { 
-                  stage: nextStage, 
-                  date: new Date().toISOString().split('T')[0], 
-                  user: 'Current User' 
-                }
-              ]
-            };
+
+  // Fetch data from Airtable
+  useEffect(() => {
+    const fetchData = async () => {
+      // Check if we're in a browser environment
+      const isBrowser = typeof window !== 'undefined';
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log('Starting to fetch content workflow data...');
+
+        // Check if we should use mock data
+        let useMockData = false;
+        if (isBrowser) {
+          useMockData = localStorage.getItem('use-mock-data') === 'true';
+          if (useMockData) {
+            console.log('Using mock data based on localStorage setting');
+            // Import mock data
+            const { mockBriefs, mockArticles, mockBacklinks } = await import('@/lib/mock-data');
+            setBriefs(mockBriefs);
+            setArticles(mockArticles);
+            setBacklinks(mockBacklinks);
+            setLoading(false);
+            return;
           }
         }
-        return item;
-      });
+
+        // Fetch each data type separately to better handle errors
+        let briefsData = [];
+        let articlesData = [];
+        let backlinksData = [];
+        let urlPerformanceData = [];
+        let hasErrors = false;
+        const errorMessages = [];
+
+        try {
+          console.log('Fetching briefs...');
+          briefsData = await fetchBriefs();
+          console.log('Briefs fetched successfully:', briefsData.length, 'records');
+          logData(briefsData, 'Briefs');
+          setBriefs(briefsData);
+        } catch (briefsErr: any) {
+          console.error('Error fetching briefs:', briefsErr);
+          errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
+          hasErrors = true;
+
+          // Import mock briefs as fallback
+          const { mockBriefs } = await import('@/lib/mock-data');
+          setBriefs(mockBriefs);
+          console.log('Using mock briefs data as fallback');
+        }
+
+        try {
+          console.log('Fetching articles...');
+          articlesData = await fetchArticles();
+          console.log('Articles fetched successfully:', articlesData.length, 'records');
+          logData(articlesData, 'Articles');
+          setArticles(articlesData);
+        } catch (articlesErr: any) {
+          console.error('Error fetching articles:', articlesErr);
+          errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
+          hasErrors = true;
+
+          // Import mock articles as fallback
+          const { mockArticles } = await import('@/lib/mock-data');
+          setArticles(mockArticles);
+          console.log('Using mock articles data as fallback');
+        }
+
+        try {
+          console.log('Fetching backlinks...');
+          backlinksData = await fetchBacklinks();
+          console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
+          logData(backlinksData, 'Backlinks');
+          setBacklinks(backlinksData);
+        } catch (backlinksErr: any) {
+          console.error('Error fetching backlinks:', backlinksErr);
+          errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
+          hasErrors = true;
+
+          // Import mock backlinks as fallback
+          const { mockBacklinks } = await import('@/lib/mock-data');
+          setBacklinks(mockBacklinks);
+          console.log('Using mock backlinks data as fallback');
+        }
+
+        try {
+          console.log('Fetching URL performance data...');
+          urlPerformanceData = await fetchURLPerformance();
+          console.log('URL performance data fetched successfully:', urlPerformanceData.length, 'records');
+          logData(urlPerformanceData, 'URL Performance');
+          setUrlPerformance(urlPerformanceData);
+        } catch (urlPerformanceErr: any) {
+          console.error('Error fetching URL performance data:', urlPerformanceErr);
+          errorMessages.push(`URL Performance: ${urlPerformanceErr.message || 'Unknown error'}`);
+          hasErrors = true;
+
+          // Import mock URL performance data as fallback
+          const { mockURLPerformance } = await import('@/lib/mock-data');
+          setUrlPerformance(mockURLPerformance);
+          console.log('Using mock URL performance data as fallback');
+        }
+
+        // Set error message if any of the fetches failed
+        if (hasErrors) {
+          setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Using sample data as fallback.`);
+          // Set a flag in localStorage to use mock data for future requests
+          if (isBrowser) {
+            localStorage.setItem('use-mock-data', 'true');
+          }
+        }
+      } catch (err: any) {
+        console.error('Error in content workflow data fetching:', err);
+        setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
+
+        // Import all mock data as fallback
+        try {
+          const { mockBriefs, mockArticles, mockBacklinks } = await import('@/lib/mock-data');
+          setBriefs(mockBriefs);
+          setArticles(mockArticles);
+          setBacklinks(mockBacklinks);
+          console.log('Using all mock data as fallback due to error');
+
+          // Set a flag in localStorage to use mock data for future requests
+          if (isBrowser) {
+            localStorage.setItem('use-mock-data', 'true');
+          }
+        } catch (mockErr) {
+          console.error('Error importing mock data:', mockErr);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Filter data by selected month and other filters
+  useEffect(() => {
+    if (briefs.length > 0) {
+      const filtered = briefs.filter(brief => brief.Month === selectedMonth);
+      setFilteredBriefs(filtered);
+    }
+
+    if (articles.length > 0) {
+      const filtered = articles.filter(article => article.Month === selectedMonth);
+      setFilteredArticles(filtered);
+    }
+
+    if (backlinks.length > 0) {
+      // Start with month filter
+      let filtered = backlinks.filter(backlink => backlink.Month === selectedMonth);
+
+      // Apply status filter if not 'all'
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(backlink => backlink.Status === statusFilter);
+      }
+
+      // Apply DR filter if not 'all'
+      if (drFilter !== 'all') {
+        if (drFilter === '50+') {
+          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 50);
+        } else if (drFilter === '60+') {
+          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 60);
+        } else if (drFilter === '70+') {
+          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 70);
+        }
+      }
+
+      setFilteredBacklinks(filtered);
+    }
+  }, [selectedMonth, briefs, articles, backlinks, statusFilter, drFilter]);
+
+  // Handle brief status changes
+  const handleBriefStatusChange = async (briefId: string, newStatus: BriefStatus) => {
+    try {
+      console.log(`Attempting to update brief ${briefId} status to ${newStatus}...`);
+
+      // Check if we should use mock data
+      const isBrowser = typeof window !== 'undefined';
+      const useMockData = isBrowser && localStorage.getItem('use-mock-data') === 'true';
+
+      if (useMockData) {
+        console.log('Using mock data for updating brief status');
+        // Update the local state only
+        setBriefs(prevBriefs =>
+          prevBriefs.map(brief =>
+            brief.id === briefId ? { ...brief, Status: newStatus } : brief
+          )
+        );
+
+        console.log(`Brief ${briefId} status updated to ${newStatus} (mock data)`);
+        return;
+      }
+
+      // Update the status in Airtable
+      const updatedBrief = await updateBriefStatus(briefId, newStatus);
+      console.log('Updated brief:', updatedBrief);
+
+      // Update the local state
+      setBriefs(prevBriefs =>
+        prevBriefs.map(brief =>
+          brief.id === briefId ? { ...brief, Status: newStatus } : brief
+        )
+      );
+
+      console.log(`Brief ${briefId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating brief status:', error);
+
+      // Set a flag to use mock data for future requests
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('use-mock-data', 'true');
+      }
+
+      // Update the local state anyway to provide a good user experience
+      setBriefs(prevBriefs =>
+        prevBriefs.map(brief =>
+          brief.id === briefId ? { ...brief, Status: newStatus } : brief
+        )
+      );
+
+      // Show an error message to the user
+      setError('Could not update brief status in Airtable. Changes are saved locally only.');
+    }
+  };
+
+  // Handle article status changes
+  const handleArticleStatusChange = async (articleId: string, newStatus: ArticleStatus) => {
+    try {
+      console.log(`Attempting to update article ${articleId} status to ${newStatus}...`);
+
+      // Check if we should use mock data
+      const isBrowser = typeof window !== 'undefined';
+      const useMockData = isBrowser && localStorage.getItem('use-mock-data') === 'true';
+
+      if (useMockData) {
+        console.log('Using mock data for updating article status');
+        // Update the local state only
+        setArticles(prevArticles =>
+          prevArticles.map(article =>
+            article.id === articleId ? { ...article, Status: newStatus } : article
+          )
+        );
+
+        console.log(`Article ${articleId} status updated to ${newStatus} (mock data)`);
+        return;
+      }
+
+      // Update the status in Airtable
+      const updatedArticle = await updateArticleStatus(articleId, newStatus);
+      console.log('Updated article:', updatedArticle);
+
+      // Update the local state
+      setArticles(prevArticles =>
+        prevArticles.map(article =>
+          article.id === articleId ? { ...article, Status: newStatus } : article
+        )
+      );
+
+      console.log(`Article ${articleId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating article status:', error);
+
+      // Set a flag to use mock data for future requests
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('use-mock-data', 'true');
+      }
+
+      // Update the local state anyway to provide a good user experience
+      setArticles(prevArticles =>
+        prevArticles.map(article =>
+          article.id === articleId ? { ...article, Status: newStatus } : article
+        )
+      );
+
+      // Show an error message to the user
+      setError('Could not update article status in Airtable. Changes are saved locally only.');
+    }
+  };
+
+  // Handle sorting for backlinks table
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // If clicking the same column, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // If clicking a new column, set it as sort column with ascending direction
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Function to sort backlinks data
+  const getSortedBacklinks = (backlinks: any[]) => {
+    if (!sortColumn) return backlinks;
+
+    return [...backlinks].sort((a, b) => {
+      let valueA, valueB;
+
+      // Handle different column types
+      switch (sortColumn) {
+        case 'Domain':
+          valueA = a['Source Domain'] || a.Domain || '';
+          valueB = b['Source Domain'] || b.Domain || '';
+          break;
+        case 'DR':
+          valueA = Number(a['Domain Authority/Rating'] || a.DomainRating || 0);
+          valueB = Number(b['Domain Authority/Rating'] || b.DomainRating || 0);
+          break;
+        case 'LinkType':
+          valueA = a['Link Type'] || a.LinkType || '';
+          valueB = b['Link Type'] || b.LinkType || '';
+          break;
+        case 'Status':
+          valueA = a.Status || '';
+          valueB = b.Status || '';
+          break;
+        case 'WentLiveOn':
+          valueA = a['Went Live On'] || a.WentLiveOn || '';
+          valueB = b['Went Live On'] || b.WentLiveOn || '';
+          break;
+        case 'Month':
+          valueA = a.Month || '';
+          valueB = b.Month || '';
+          break;
+        case 'Notes':
+          valueA = a.Notes || '';
+          valueB = b.Notes || '';
+          break;
+        default:
+          return 0;
+      }
+
+      // Compare values based on direction
+      if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+      if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
     });
   };
-  
-  const selectedItem = detailModal.itemId !== null 
-    ? items.find(item => item.id === detailModal.itemId) 
-    : null;
+
+
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-dark">Deliverables</h1>
-        <p className="text-mediumGray">Track content from brief to publication and promotion</p>
-      </div>
-      
-      <div className="bg-white rounded-scalerrs shadow-sm border border-lightGray mb-8">
-        <div className="p-4 border-b border-lightGray overflow-x-auto">
-          <div className="flex flex-wrap gap-2">
-            <button 
-              className={`px-3 py-1 text-xs font-medium rounded-full ${activeFilter === 'all' ? 'bg-primary text-white' : 'bg-lightGray text-mediumGray hover:bg-gray-300'}`}
-              onClick={() => setActiveFilter('all')}
-            >
-              All Content
-            </button>
-            
-            {stages.map(stage => (
-              <button 
-                key={stage.id}
-                className={`px-3 py-1 text-xs font-medium rounded-full ${
-                  activeFilter === stage.id ? stage.color.replace('bg-', 'bg-').replace('/10', '') + ' text-white' : stage.color
-                }`}
-                onClick={() => setActiveFilter(stage.id)}
-              >
-                {stage.name}
-              </button>
-            ))}
-          </div>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center">
+          <h1 className="text-2xl font-bold text-dark mr-4">Content Workflow</h1>
         </div>
-        
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredItems.length > 0 ? (
-              filteredItems.map((item) => (
-                <ContentItemCard 
-                  key={item.id} 
-                  item={item} 
-                  onView={handleViewDetail} 
-                  onAdvance={handleAdvanceStage} 
-                />
-              ))
-            ) : (
-              <div className="col-span-3 text-center py-8">
-                <p className="text-mediumGray">No content items found in this stage.</p>
+        <div className="relative">
+          <MonthSelector selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+        </div>
+      </div>
+
+      {/* Document Viewer Modal */}
+      <DocumentViewerModal
+        isOpen={documentModal.isOpen}
+        onClose={closeDocumentViewer}
+        documentUrl={documentModal.url}
+        title={documentModal.title}
+      />
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="text-red-700 hover:text-red-900"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <span className="ml-3 text-mediumGray">Loading content workflow data...</span>
+        </div>
+      ) : (
+        <div className="page-container mb-6">
+          <div className="page-container-tabs">
+            <div className="tab-navigation">
+              <div className="flex overflow-x-auto">
+                <button
+                  className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                  onClick={() => setMainTab('briefs')}
+                >
+                  Briefs
+                </button>
+                <button
+                  className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                  onClick={() => setMainTab('articles')}
+                >
+                  Articles
+                </button>
+                <button
+                  className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                  onClick={() => setMainTab('backlinks')}
+                >
+                  Backlinks
+                </button>
+              </div>
+            </div>
+          </div>
+          <div>
+            {mainTab === 'briefs' && (
+              <div>
+                <div className="page-container-body">
+                  <div>
+
+                    <BriefBoard
+                      briefs={filteredBriefs}
+                      onStatusChange={handleBriefStatusChange}
+                      selectedMonth={selectedMonth}
+                      hideActions={true}
+                      onViewDocument={openDocumentViewer}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {mainTab === 'articles' && (
+              <div>
+                <div className="page-container-body">
+                  <div>
+
+                    <ArticleBoard
+                      articles={filteredArticles}
+                      onStatusChange={handleArticleStatusChange}
+                      selectedMonth={selectedMonth}
+                      hideActions={true}
+                      onViewDocument={openDocumentViewer}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            {mainTab === 'backlinks' && (
+              <div>
+                <div className="page-container-body">
+                  <div>
+
+
+                    {filteredBacklinks.length > 0 ? (
+                      <div className="bg-white rounded-md">
+                        <div className="border-b border-lightGray">
+                          <div className="grid grid-cols-8 text-xs font-medium text-mediumGray uppercase">
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('Domain')}
+                            >
+                              Domain
+                              {sortColumn === 'Domain' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('DR')}
+                            >
+                              DR
+                              {sortColumn === 'DR' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('LinkType')}
+                            >
+                              Link Type
+                              {sortColumn === 'LinkType' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="px-4 py-3">Target Page</div>
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('Status')}
+                            >
+                              Status
+                              {sortColumn === 'Status' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('WentLiveOn')}
+                            >
+                              Went Live On
+                              {sortColumn === 'WentLiveOn' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('Month')}
+                            >
+                              Month
+                              {sortColumn === 'Month' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                            <div
+                              className="px-4 py-3 cursor-pointer flex items-center"
+                              onClick={() => handleSort('Notes')}
+                            >
+                              Notes
+                              {sortColumn === 'Notes' && (
+                                <span className="ml-1">
+                                  {sortDirection === 'asc' ? '↑' : '↓'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          {getSortedBacklinks(filteredBacklinks).map((backlink, index) => (
+                            <div
+                              key={backlink.id}
+                              className={`grid grid-cols-8 text-sm hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
+                              style={{ color: '#353233' }}
+                            >
+                              <div className="px-4 py-4 font-medium text-dark">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
+                              <div className="px-4 py-4">
+                                <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
+                                  {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
+                                </span>
+                              </div>
+                              <div className="px-4 py-4 text-mediumGray">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</div>
+                              <div className="px-4 py-4 text-mediumGray">
+                                {(() => {
+                                  // Get the target URL from the appropriate field
+                                  const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
+
+                                  // Handle array of record IDs (Airtable linked records)
+                                  if (Array.isArray(targetUrl) && targetUrl.length > 0) {
+                                    const recordId = targetUrl[0];
+
+                                    // Look up the URL path from our URL Performance data
+                                    if (urlPathMap[recordId]) {
+                                      return urlPathMap[recordId];
+                                    }
+
+                                    // If we don't have a mapping, use a generic path
+                                    return `/page-${recordId.substring(0, 5)}`;
+                                  }
+
+                                  // Handle single record ID
+                                  if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
+                                    // Look up the URL path from our URL Performance data
+                                    if (urlPathMap[targetUrl]) {
+                                      return urlPathMap[targetUrl];
+                                    }
+
+                                    // If we don't have a mapping, use a generic path
+                                    return `/page-${targetUrl.substring(0, 5)}`;
+                                  }
+
+                                  // Format and display the URL
+                                  if (typeof targetUrl === 'string') {
+                                    if (targetUrl.startsWith('http')) {
+                                      return (
+                                        <a
+                                          href={targetUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-primary hover:underline"
+                                        >
+                                          {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
+                                        </a>
+                                      );
+                                    } else if (targetUrl.startsWith('/')) {
+                                      return targetUrl;
+                                    } else {
+                                      return `/${targetUrl}`;
+                                    }
+                                  } else {
+                                    // If it's not a string or array, return a default value
+                                    return '/';
+                                  }
+                                })()}
+                              </div>
+                              <div className="px-4 py-4">
+                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                  ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
+                                  backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                                  backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                                  'bg-gray-100 text-gray-800'}`}>
+                                  {backlink.Status || 'Unknown Status'}
+                                </span>
+                              </div>
+                              <div className="px-4 py-4 text-mediumGray">
+                                {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
+                              </div>
+                              <div className="px-4 py-4 text-mediumGray">{backlink.Month || selectedMonth}</div>
+                              <div className="px-4 py-4 text-mediumGray">{backlink.Notes || '—'}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center bg-white rounded-lg border border-lightGray">
+                        <p className="text-gray-500">No backlinks data available for {selectedMonth}</p>
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
+                        <select
+                          className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                          <option value="all">All Statuses</option>
+                          <option value="Live">Live</option>
+                          <option value="Scheduled">Scheduled</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
+                        <select
+                          className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                          value={drFilter}
+                          onChange={(e) => setDrFilter(e.target.value)}
+                        >
+                          <option value="all">All DR</option>
+                          <option value="50+">DR 50+</option>
+                          <option value="60+">DR 60+</option>
+                          <option value="70+">DR 70+</option>
+                        </select>
+                      </div>
+                      {(statusFilter !== 'all' || drFilter !== 'all') && (
+                        <div className="flex items-end">
+                          <button
+                            onClick={() => {
+                              setStatusFilter('all');
+                              setDrFilter('all');
+                            }}
+                            className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                          >
+                            Clear Filters
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
-      </div>
-      
-      <div className="bg-lightGray p-4 rounded-scalerrs">
-        <p className="text-sm text-mediumGray">
-          <strong>Note:</strong> Content workflow is synchronized with our content management system. Changes made here will be reflected in the main system within 5 minutes.
-        </p>
-      </div>
-      
-      <ContentDetailModal 
-        isOpen={detailModal.isOpen} 
-        item={selectedItem} 
-        onClose={handleCloseDetail} 
-      />
+      )}
     </DashboardLayout>
   );
 }

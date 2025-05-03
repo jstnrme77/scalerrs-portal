@@ -11,9 +11,11 @@ interface BriefBoardProps {
   briefs: Brief[];
   selectedMonth: string;
   onStatusChange: (id: string, newStatus: BriefStatus) => void;
+  hideActions?: boolean;
+  onViewDocument?: (url: string, title: string) => void;
 }
 
-export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoardProps) {
+export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: BriefBoardProps) {
   // Filter briefs by status
   const inProgressBriefs = briefs.filter(brief => brief.Status === 'In Progress');
   const needsInputBriefs = briefs.filter(brief => brief.Status === 'Needs Input');
@@ -32,6 +34,8 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoard
           bgColor="bg-[#f0f4ff]"
           onStatusChange={onStatusChange}
           count={inProgressBriefs.length}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* Needs Input Column */}
@@ -43,6 +47,8 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoard
           bgColor="bg-white"
           onStatusChange={onStatusChange}
           count={needsInputBriefs.length}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* Review Brief Column */}
@@ -54,6 +60,8 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoard
           bgColor="bg-[#f9f0ff]"
           onStatusChange={onStatusChange}
           count={reviewBriefs.length}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* Brief Approved Column */}
@@ -65,6 +73,8 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange }: BriefBoard
           bgColor="bg-[#f0fff4]"
           onStatusChange={onStatusChange}
           count={approvedBriefs.length}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
       </div>
     </DndProvider>
@@ -75,9 +85,11 @@ interface ArticleBoardProps {
   articles: Article[];
   selectedMonth: string;
   onStatusChange: (id: string, newStatus: ArticleStatus) => void;
+  hideActions?: boolean;
+  onViewDocument?: (url: string, title: string) => void;
 }
 
-export function ArticleBoard({ articles, selectedMonth, onStatusChange }: ArticleBoardProps) {
+export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: ArticleBoardProps) {
   // Filter articles by status
   const inProductionArticles = articles.filter(article => article.Status === 'In Production');
   const reviewDraftArticles = articles.filter(article => article.Status === 'Review Draft');
@@ -96,6 +108,8 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange }: Articl
           bgColor="bg-[#f0f4ff]"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* Review Draft Column */}
@@ -106,6 +120,8 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange }: Articl
           bgColor="bg-[#f9f0ff]"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* Draft Approved Column */}
@@ -116,6 +132,8 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange }: Articl
           bgColor="bg-[#cfe2ff]"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* To Be Published Column */}
@@ -126,6 +144,8 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange }: Articl
           bgColor="bg-[#e2e3e5]"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
 
         {/* Live Column */}
@@ -136,6 +156,8 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange }: Articl
           bgColor="bg-[#d1e7dd]"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
+          hideActions={hideActions}
+          onViewDocument={onViewDocument}
         />
       </div>
     </DndProvider>
