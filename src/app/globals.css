@@ -226,6 +226,11 @@ body, p {
   color: var(--primary) !important;
 }
 
+/* Extra bold text for notifications */
+.notification-text {
+  font-weight: 700 !important; /* Extra bold */
+}
+
 /* Sidebar text color overrides */
 .bg-sidebar-bg, .bg-sidebar-bg *, .bg-sidebar-active, .bg-sidebar-active * {
   color: #FFFFFF !important;
