@@ -388,6 +388,50 @@ button:hover, a.btn-primary:hover, a.btn-secondary:hover, a.btn-tertiary:hover {
   opacity: 0.9 !important;
 }
 
+/* Get Started Page Hover Effects */
+/* Button hover effects */
+.get-started-btn:hover {
+  background-color: #7D8AF2 !important;
+  transition: background-color 200ms ease !important;
+}
+
+/* Card hover effects - removed */
+/* Icon hover effects - removed */
+/* Border animation - removed */
+
+/* Progress bar glow effect */
+.get-started-progress:hover {
+  box-shadow: 0 0 8px rgba(158, 168, 251, 0.6) !important;
+  transition: box-shadow 200ms ease !important;
+}
+
+/* Document icon bounce effect */
+.get-started-document:hover {
+  animation: bounce 0.5s ease infinite alternate !important;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-5px); }
+}
+
+/* Circular progress pulse effect */
+.get-started-circle:hover {
+  animation: pulse 1.5s ease infinite !important;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Icon rotation effect */
+.get-started-rotate:hover {
+  transform: rotate(15deg) !important;
+  transition: transform 200ms ease !important;
+}
+
 /* Tab navigation styles */
 .tab-navigation {
   display: flex;
