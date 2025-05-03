@@ -40,7 +40,7 @@ export default function GetStartedPage() {
                 </Button>
               </div>
               <div className="absolute right-0 top-0 h-16 w-16 overflow-hidden">
-                <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-red-500"></div>
+                <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-amber-500"></div>
               </div>
             </div>
           </div>

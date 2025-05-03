@@ -20,11 +20,11 @@ export default function Home() {
             <div className="absolute top-0 right-0 h-4 w-4 animate-pulse rounded-full bg-red-500"></div>
           </div>
           <div className="flex items-start gap-4">
-            <div className="rounded-md bg-red-100 px-3 py-1.5 text-red-800 font-medium border border-red-200 shadow-sm">
+            <div className="rounded-md bg-amber-100 px-3 py-1.5 text-amber-800 font-medium border border-amber-200 shadow-sm">
               <span className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
                 </span>
                 <span className="font-bold">1</span> Action Required
               </span>

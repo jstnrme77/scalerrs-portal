@@ -53,6 +53,11 @@
 - ✅ Fixed Deliverables page card colors to match column headers
 - ✅ Updated ArticleCard component to display proper writer and editor information
 - ✅ Improved date formatting in Kanban cards
+- ✅ Standardized button styles across all pages for consistent appearance (dark #12131C background, white text)
+- ✅ Updated action item indicators with color-coded circles (red, amber, green) for visual priority
+- ✅ Changed card borders from colored left-only to consistent gray (#D9D9D9) borders on all sides
+- ✅ Implemented consistent color palette across the application (#9EA8FB, #353233, #D9D9D9, #12131C)
+- ✅ Standardized typography using Roboto font family throughout the application
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -105,3 +110,10 @@
 - Implemented dynamic mapping between Airtable record IDs and URL paths using data from the URL Performance table
 - Added functional filters for backlinks by Status and Domain Rating with a clear filters button
 - Improved filter UI with proper state management and immediate updates when filters change
+- Standardized button styles across all pages to ensure consistent appearance and user experience
+- Updated action item indicators with color-coded circles (red, amber, green) for better visual priority indication
+- Changed card borders from colored left-only to consistent gray borders on all sides for a cleaner, more uniform look
+- Adhering to the Scalerrs color palette: primary #9EA8FB, text #353233, border #D9D9D9, buttons #12131C with white text
+- Button styling standardized with 16px border radius, dark background (#12131C), white text, and consistent padding
+- Using Roboto as the primary font family throughout the application for consistent typography
+- Maintaining consistent font weights: regular (400) for body text and medium/bold (500/700) for headings and emphasis

@@ -202,8 +202,8 @@ const sampleReportContent = {
             </ul>
           </div>
 
-          <div className="p-4 bg-gold/10 rounded-lg">
-            <h5 className="text-base font-medium text-dark mb-3">Action Required</h5>
+          <div className="p-4 bg-amber-100 rounded-lg">
+            <h5 className="text-base font-medium text-amber-800 mb-3">Action Required</h5>
             <ul className="list-disc pl-6 text-base text-mediumGray">
               <li className="font-medium">Review "Top 10 SEO Strategies for 2025" brief by May 2nd</li>
               <li className="font-medium">Provide feedback on the new homepage design mockup</li>
