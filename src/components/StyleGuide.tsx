@@ -95,17 +95,7 @@ export default function StyleGuide() {
             <p>BorderColour: #12131C | Border weight: 1px | Font name: Roboto | Font weight: Bold | Font size: 16px | Line height: 24px | Letter Spacing: 0px</p>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-xl">Dark Background Primary CTA</h3>
-            <div className="p-8 bg-[#12131C] rounded-lg">
-              <div className="flex flex-wrap gap-4">
-                <Button variant="accent">Dark Background Button</Button>
-                <CustomButton variant="dark-primary">Dark Background Button</CustomButton>
-              </div>
-            </div>
-            <p>Shape Style: Rectangle, Colour Fill | Corner Radius: 16px | Shape Colour Hex:#9EA8FB | Text Colour Hex:#FFFFFF</p>
-            <p>Font name: Roboto | Font weight: Bold | Font size: 20px | Line height: 24px | Letter Spacing: 0px</p>
-          </div>
+          {/* Dark Background section removed as we're standardizing on primary/secondary/tertiary */}
 
           <div className="space-y-4">
             <h3 className="text-xl">Tertiary CTA</h3>
@@ -147,7 +137,7 @@ export default function StyleGuide() {
             <h3 className="mb-4 text-white">Dark Theme</h3>
             <p className="text-white">This is how content looks in dark theme.</p>
             <div className="mt-4">
-              <Button variant="accent">Primary Button</Button>
+              <Button>Primary Button</Button>
             </div>
           </div>
         </div>

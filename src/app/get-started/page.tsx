@@ -57,7 +57,7 @@ export default function GetStartedPage() {
             <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Loom Walkthrough</h2>
             <p className="mb-6 text-base text-[#12131C]">Learn how to use the platform with our step-by-step video walkthrough.</p>
             <Button
-              variant="secondary"
+              variant="primary"
               size="lg"
               className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Watch walkthrough clicked')}
@@ -83,7 +83,7 @@ export default function GetStartedPage() {
             <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Onboarding Forms</h2>
             <p className="mb-6 text-base text-[#12131C]">Complete these essential forms to set up your account and customize your experience.</p>
             <Button
-              variant="secondary"
+              variant="primary"
               size="lg"
               className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Complete forms clicked')}
@@ -107,7 +107,7 @@ export default function GetStartedPage() {
             <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Campaign Overview</h2>
             <p className="mb-6 text-base text-[#12131C]">Follow our proven campaign framework to maximize your results and achieve your goals.</p>
             <Button
-              variant="secondary"
+              variant="primary"
               size="lg"
               className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('View campaign roadmap clicked')}
@@ -137,7 +137,7 @@ export default function GetStartedPage() {
               <div className="h-full bg-black" style={{ width: '65%' }}></div>
             </div>
             <Button
-              variant="secondary"
+              variant="primary"
               size="lg"
               className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Explore services clicked')}
@@ -181,7 +181,7 @@ export default function GetStartedPage() {
               </div>
             </div>
             <Button
-              variant="secondary"
+              variant="primary"
               size="lg"
               className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Open guides clicked')}
@@ -209,7 +209,7 @@ export default function GetStartedPage() {
             </div>
             <p className="mb-6 text-sm text-[#4F515E]">2 of 6 tasks completed</p>
             <Button
-              variant="secondary"
+              variant="primary"
               size="lg"
               className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('View checklist clicked')}

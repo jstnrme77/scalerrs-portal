@@ -4,7 +4,7 @@ import React, { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'dark-primary' | 'tertiary';
+  variant?: 'primary' | 'secondary' | 'tertiary';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -22,7 +22,6 @@ export default function Button({
   const variantClasses = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
-    'dark-primary': 'btn-dark-primary',
     tertiary: 'btn-tertiary'
   };
 

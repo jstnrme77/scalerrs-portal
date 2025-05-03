@@ -48,7 +48,7 @@ export default function Home() {
         <div className="lg:w-2/3">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Deliverables Summary Card - Priority 2 */}
-            <div className="rounded-[16px] border-l-8 border-[#9EA8FB] bg-white p-6 shadow-sm flex flex-col h-full">
+            <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">2</span>
                 <h2 className="text-2xl font-bold">Track Deliverables</h2>
@@ -92,14 +92,14 @@ export default function Home() {
               </div>
 
               <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/deliverables" className="btn-secondary inline-flex items-center gap-2 text-base">
+                <Link href="/deliverables" className="btn-primary inline-flex items-center gap-2 text-base">
                   View All Deliverables
                 </Link>
               </div>
             </div>
 
             {/* Client Actions Needed Card - Priority 3 */}
-            <div className="rounded-[16px] border-l-8 border-[#9EA8FB] bg-white p-6 shadow-sm flex flex-col h-full">
+            <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">3</span>
                 <h2 className="text-2xl font-bold">Your Action Items</h2>
@@ -109,10 +109,10 @@ export default function Home() {
               <div className="flex-grow">
                 <ul className="space-y-4">
                   <li className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#9EA8FB]/20 mt-0.5">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 mt-0.5">
                       <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#9EA8FB] opacity-75"></span>
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#9EA8FB]"></span>
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
                       </span>
                     </div>
                     <div>
@@ -121,8 +121,8 @@ export default function Home() {
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#9EA8FB]/20 mt-0.5">
-                      <span className="h-2 w-2 rounded-full bg-[#9EA8FB]"></span>
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-amber-500"></span>
                     </div>
                     <div>
                       <p className="font-medium">Review Monthly Report</p>
@@ -130,8 +130,8 @@ export default function Home() {
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#9EA8FB]/20 mt-0.5">
-                      <span className="h-2 w-2 rounded-full bg-[#9EA8FB]"></span>
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-green-500"></span>
                     </div>
                     <div>
                       <p className="font-medium">Feedback on Article Draft</p>
@@ -148,7 +148,7 @@ export default function Home() {
             </div>
 
             {/* Milestone Tracker Card - Priority 4 */}
-            <div className="rounded-[16px] border-l-8 border-[#9EA8FB] bg-white p-6 shadow-sm flex flex-col h-full md:col-span-2">
+            <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm flex flex-col h-full md:col-span-2">
               <div className="flex items-center mb-4">
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">4</span>
                 <h2 className="text-2xl font-bold">Campaign Progress</h2>
@@ -206,7 +206,7 @@ export default function Home() {
 
         {/* Latest Activity Sidebar - Priority 5 */}
         <div className="lg:w-1/3">
-          <div className="rounded-[16px] border-l-8 border-[#9EA8FB] bg-white p-6 shadow-sm h-full">
+          <div className="rounded-[16px] border border-[#D9D9D9] bg-white p-6 shadow-sm h-full">
             <div className="flex items-center mb-4">
               <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#9EA8FB] text-white font-bold mr-3">5</span>
               <h2 className="text-2xl font-bold">Latest Activity</h2>
@@ -261,7 +261,7 @@ export default function Home() {
             </div>
 
             <div className="mt-6 flex justify-center">
-              <Link href="/timeline" className="btn-secondary inline-flex items-center gap-2 text-base">
+              <Link href="/timeline" className="btn-primary inline-flex items-center gap-2 text-base">
                 View Full Timeline
               </Link>
             </div>

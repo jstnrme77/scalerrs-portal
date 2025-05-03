@@ -309,7 +309,7 @@ body, p {
   color: var(--primary) !important;
 }
 
-/* Button styles */
+/* Button styles - Standardized for consistency */
 button {
   border-radius: 16px !important;
   transition: all 0.2s ease-in-out !important;
@@ -320,7 +320,7 @@ button {
   letter-spacing: 0px !important;
 }
 
-/* Primary CTA */
+/* Primary CTA - Dark background with white text */
 button.btn-primary, a.btn-primary {
   background-color: #12131C !important;
   color: #FFFFFF !important;
@@ -337,9 +337,10 @@ button.btn-primary, a.btn-primary {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  text-decoration: none !important;
 }
 
-/* Secondary CTA */
+/* Secondary CTA - White background with dark border and text */
 button.btn-secondary, a.btn-secondary {
   background-color: #FFFFFF !important;
   color: #12131C !important;
@@ -356,28 +357,17 @@ button.btn-secondary, a.btn-secondary {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  text-decoration: none !important;
 }
 
-/* Dark Background Primary CTA */
-button.btn-dark-primary, a.btn-dark-primary {
-  background-color: #9EA8FB !important;
+/* Dark mode overrides for secondary buttons */
+.dark button.btn-secondary, .dark a.btn-secondary {
+  background-color: transparent !important;
   color: #FFFFFF !important;
-  border: none !important;
-  font-weight: 700 !important; /* Bold */
-  font-family: 'Roboto', sans-serif !important;
-  font-size: 20px !important;
-  line-height: 24px !important;
-  letter-spacing: 0px !important;
-  border-radius: 16px !important;
-  padding: 12px 24px !important; /* Larger padding */
-  min-height: 48px !important; /* Minimum height */
-  min-width: 120px !important; /* Minimum width */
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  border: 1px solid #FFFFFF !important;
 }
 
-/* Tertiary CTA */
+/* Tertiary CTA - Transparent with underline */
 button.btn-tertiary, a.btn-tertiary {
   background-color: transparent !important;
   color: #9EA8FB !important;
@@ -386,13 +376,15 @@ button.btn-tertiary, a.btn-tertiary {
   border-radius: 0 !important;
   font-weight: 700 !important; /* Bold */
   font-family: 'Roboto', sans-serif !important;
-  font-size: 20px !important;
-  line-height: 30px !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
   letter-spacing: 0px !important;
   padding: 4px 0 !important; /* Adjust padding for tertiary buttons */
+  text-decoration: none !important;
 }
 
-button:hover, a.btn-primary:hover, a.btn-secondary:hover, a.btn-dark-primary:hover, a.btn-tertiary:hover {
+/* Hover effects */
+button:hover, a.btn-primary:hover, a.btn-secondary:hover, a.btn-tertiary:hover {
   opacity: 0.9 !important;
 }
 
