@@ -60,6 +60,7 @@
 - ✅ Standardized typography using Roboto font family throughout the application
 - ✅ Updated tab navigation to have borders on all sides for better visual clarity
 - ✅ Added document viewer modal for viewing documents without leaving the page
+- ✅ Rearranged sidebar navigation items for better user experience and workflow
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -102,6 +103,7 @@
 - Improved spacing and layout of UI elements for better visual hierarchy
 - Updated notification icons to use exclamation points in circles for better visibility
 - Reorganized navigation elements to improve usability and information architecture
+- Rearranged sidebar navigation items in the following order: Home, Get Started, Content Workflow, Approvals, Task Boards, Deliverables, Reports, KPI Dashboard, SEO Layouts, Admin
 - Modified the DashboardLayout component to conditionally show TopNavBar space only on the home page
 - Created a PageWrapper component to standardize padding across all pages
 - Enhanced KPI Dashboard with vertical card layout, more prominent progress bars, and improved visualizations
