@@ -515,7 +515,7 @@ function TaskCard({
   onStatusChange: (id: number | string, status: TaskStatus) => void;
 }) {
   return (
-    <div className="card bg-white p-4 rounded-scalerrs border border-lightGray shadow-sm" style={{ color: '#353233' }}>
+    <div className="card bg-white p-4 rounded-[16px] border border-lightGray shadow-sm" style={{ color: '#353233' }}>
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-md font-medium text-text-light dark:text-text-dark">{task.task}</h3>
         <div className="flex space-x-2">

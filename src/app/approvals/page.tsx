@@ -95,7 +95,7 @@ function ApprovalItem({
   onRequestChanges: (id: number) => void;
 }) {
   return (
-    <div className="card bg-white p-4 rounded-lg border border-lightGray" style={{ color: '#353233' }}>
+    <div className="card bg-white p-4 rounded-[16px] border border-lightGray" style={{ color: '#353233' }}>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
         <h3 className="text-md font-medium text-dark">{item.item}</h3>
         <StatusBadge status={item.status} />

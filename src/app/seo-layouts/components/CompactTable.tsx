@@ -1,9 +1,17 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+// Ensure we're using proper types
+type CompactTableProps = React.HTMLAttributes<HTMLTableElement>
+type CompactTableHeaderProps = React.HTMLAttributes<HTMLTableSectionElement>
+type CompactTableBodyProps = React.HTMLAttributes<HTMLTableSectionElement>
+type CompactTableRowProps = React.HTMLAttributes<HTMLTableRowElement>
+type CompactTableHeadProps = React.ThHTMLAttributes<HTMLTableCellElement> & { width?: string }
+type CompactTableCellProps = React.TdHTMLAttributes<HTMLTableCellElement> & { width?: string }
+
 const CompactTable = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
+  CompactTableProps
 >(({ className, ...props }, ref) => (
   <table
     ref={ref}
@@ -16,7 +24,7 @@ CompactTable.displayName = "CompactTable"
 
 const CompactTableHeader = React.forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  CompactTableHeaderProps
 >(({ className, ...props }, ref) => (
   <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
 ))
@@ -24,7 +32,7 @@ CompactTableHeader.displayName = "CompactTableHeader"
 
 const CompactTableBody = React.forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement>
+  CompactTableBodyProps
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
@@ -36,7 +44,7 @@ CompactTableBody.displayName = "CompactTableBody"
 
 const CompactTableRow = React.forwardRef<
   HTMLTableRowElement,
-  React.HTMLAttributes<HTMLTableRowElement>
+  CompactTableRowProps
 >(({ className, ...props }, ref) => (
   <tr
     ref={ref}
@@ -51,7 +59,7 @@ CompactTableRow.displayName = "CompactTableRow"
 
 const CompactTableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement> & { width?: string }
+  CompactTableHeadProps
 >(({ className, width = "150px", ...props }, ref) => (
   <th
     ref={ref}
@@ -67,7 +75,7 @@ CompactTableHead.displayName = "CompactTableHead"
 
 const CompactTableCell = React.forwardRef<
   HTMLTableCellElement,
-  React.TdHTMLAttributes<HTMLTableCellElement> & { width?: string }
+  CompactTableCellProps
 >(({ className, width = "150px", ...props }, ref) => (
   <td
     ref={ref}

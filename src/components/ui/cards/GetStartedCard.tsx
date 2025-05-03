@@ -27,7 +27,7 @@ export default function GetStartedCard({
   return (
     <div
       className={cn(
-        "card flex flex-col p-6 rounded-lg h-full min-h-[280px] bg-white shadow-sm",
+        "card flex flex-col p-6 rounded-[16px] h-full min-h-[280px] bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
@@ -44,7 +44,7 @@ export default function GetStartedCard({
       <button
         onClick={onClick}
         className={cn(
-          "px-6 py-3 rounded-md transition-colors w-full text-center",
+          "px-6 py-3 rounded-[16px] transition-colors w-full text-center",
           `bg-white hover:bg-opacity-90`
         )}
         style={{
@@ -85,7 +85,7 @@ export function GuideCard({
   return (
     <div
       className={cn(
-        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col bg-white shadow-sm",
+        "card p-6 rounded-[16px] h-full min-h-[280px] flex flex-col bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
@@ -117,7 +117,7 @@ export function GuideCard({
         <button
           onClick={onClick}
           className={cn(
-            "px-6 py-3 rounded-md transition-colors w-full text-center mt-4",
+            "px-6 py-3 rounded-[16px] transition-colors w-full text-center mt-4",
             `bg-white hover:bg-opacity-90`
           )}
           style={{
@@ -153,7 +153,7 @@ export function QuickLinksCard({
   return (
     <div
       className={cn(
-        "card p-6 rounded-lg h-full min-h-[280px]",
+        "card p-6 rounded-[16px] h-full min-h-[280px]",
         bgColor,
         className
       )}

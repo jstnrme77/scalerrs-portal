@@ -19,7 +19,7 @@ export default function RootLayout({
       <head>
         {/* Theme script disabled */}
       </head>
-      <body className="bg-white text-text-light blue-glow-top-left blue-glow-bottom-right" suppressHydrationWarning>
+      <body className="bg-white text-text-light blue-glow-top-left blue-glow-bottom-right font-roboto" suppressHydrationWarning>
         <AuthProvider>
           {children}
         </AuthProvider>

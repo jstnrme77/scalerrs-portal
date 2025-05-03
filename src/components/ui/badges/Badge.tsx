@@ -23,25 +23,25 @@ export default function Badge({
   textColor
 }: BadgeProps) {
   const variantClasses = {
-    primary: 'bg-primary/10 text-primary',
-    secondary: 'bg-gray-100 text-gray-800',
+    primary: 'bg-[#9EA8FB]/10 text-[#9EA8FB]',
+    secondary: 'bg-[#FCDC94]/10 text-[#12131C]',
     success: 'bg-green-100 text-green-800',
-    warning: 'bg-gold/10 text-gold',
+    warning: 'bg-[#FCDC94]/10 text-[#12131C]',
     danger: 'bg-red-100 text-red-800',
-    light: 'bg-gray-100 text-gray-600'
+    light: 'bg-[#D9D9D9] text-[#12131C]'
   };
 
   const sizeClasses = {
-    sm: 'px-2 py-1 text-xs',
-    md: 'px-2.5 py-1.5 text-sm',
-    lg: 'px-3 py-2 text-base'
+    sm: 'px-1.5 py-0.5 text-xs',
+    md: 'px-2 py-1 text-xs',
+    lg: 'px-2.5 py-1 text-sm'
   };
 
   const colorClasses = bgColor && textColor ? `${bgColor} ${textColor}` : variantClasses[variant];
 
   return (
     <span
-      className={`font-medium rounded-full ${colorClasses} ${sizeClasses[size]} ${className}`}
+      className={`font-normal rounded-full ${colorClasses} ${sizeClasses[size]} ${className}`}
     >
       {children}
     </span>

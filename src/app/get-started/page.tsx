@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Button from '@/components/ui/forms/Button';
 
 export default function GetStartedPage() {
   return (
@@ -25,8 +26,10 @@ export default function GetStartedPage() {
                   <h2 className="mb-2 text-lg font-medium text-[#12131C]">Complete Your Onboarding</h2>
                   <p className="text-sm text-[#4F515E]">You have 4 remaining tasks to complete your onboarding process.</p>
                 </div>
-                <button
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-[#12131C] px-6 py-3 text-base font-bold text-white hover:bg-black/90 ml-4"
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="ml-4 inline-flex items-center gap-2"
                   onClick={() => console.log('Continue onboarding clicked')}
                 >
                   Continue Onboarding
@@ -34,7 +37,7 @@ export default function GetStartedPage() {
                     <path d="M5 12h14"></path>
                     <path d="m12 5 7 7-7 7"></path>
                   </svg>
-                </button>
+                </Button>
               </div>
               <div className="absolute right-0 top-0 h-16 w-16 overflow-hidden">
                 <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-red-500"></div>
@@ -53,8 +56,10 @@ export default function GetStartedPage() {
             </div>
             <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Loom Walkthrough</h2>
             <p className="mb-6 text-base text-[#12131C]">Learn how to use the platform with our step-by-step video walkthrough.</p>
-            <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50 mt-auto"
+            <Button
+              variant="secondary"
+              size="lg"
+              className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Watch walkthrough clicked')}
             >
               Watch Now
@@ -62,7 +67,7 @@ export default function GetStartedPage() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
 
           <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
@@ -77,8 +82,10 @@ export default function GetStartedPage() {
             </div>
             <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Onboarding Forms</h2>
             <p className="mb-6 text-base text-[#12131C]">Complete these essential forms to set up your account and customize your experience.</p>
-            <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50 mt-auto"
+            <Button
+              variant="secondary"
+              size="lg"
+              className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Complete forms clicked')}
             >
               Complete Forms
@@ -86,7 +93,7 @@ export default function GetStartedPage() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
 
           <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
@@ -99,8 +106,10 @@ export default function GetStartedPage() {
             </div>
             <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Campaign Overview</h2>
             <p className="mb-6 text-base text-[#12131C]">Follow our proven campaign framework to maximize your results and achieve your goals.</p>
-            <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50 mt-auto"
+            <Button
+              variant="secondary"
+              size="lg"
+              className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('View campaign roadmap clicked')}
             >
               View Roadmap
@@ -108,7 +117,7 @@ export default function GetStartedPage() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -127,8 +136,10 @@ export default function GetStartedPage() {
             <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-200">
               <div className="h-full bg-black" style={{ width: '65%' }}></div>
             </div>
-            <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50 mt-auto"
+            <Button
+              variant="secondary"
+              size="lg"
+              className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Explore services clicked')}
             >
               Explore Services
@@ -136,7 +147,7 @@ export default function GetStartedPage() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
 
           <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
@@ -169,8 +180,10 @@ export default function GetStartedPage() {
                 <span className="text-base text-[#12131C]">Link Building Guidelines</span>
               </div>
             </div>
-            <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50 mt-auto"
+            <Button
+              variant="secondary"
+              size="lg"
+              className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('Open guides clicked')}
             >
               Open Guides
@@ -178,7 +191,7 @@ export default function GetStartedPage() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
 
           <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm text-center">
@@ -195,8 +208,10 @@ export default function GetStartedPage() {
               </div>
             </div>
             <p className="mb-6 text-sm text-[#4F515E]">2 of 6 tasks completed</p>
-            <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50 mt-auto"
+            <Button
+              variant="secondary"
+              size="lg"
+              className="mt-auto inline-flex items-center gap-2"
               onClick={() => console.log('View checklist clicked')}
             >
               Resume Checklist
@@ -204,7 +219,7 @@ export default function GetStartedPage() {
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
 

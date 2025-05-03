@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Button from '@/components/ui/forms/Button';
 
 export default function Home() {
   return (
@@ -9,7 +10,7 @@ export default function Home() {
         <p className="text-lg text-[#12131C] dark:text-gray-300">Welcome back. Here's where campaign stands this week.</p>
 
         {/* Action Required Alert */}
-        <div className="relative overflow-hidden rounded-2xl border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
+        <div className="relative overflow-hidden rounded-[16px] border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
           <div className="absolute top-0 right-0 h-16 w-16 overflow-hidden">
             <div className="absolute top-0 right-0 h-4 w-4 animate-pulse rounded-full bg-red-500"></div>
           </div>
@@ -25,72 +26,70 @@ export default function Home() {
             </div>
             <div className="flex flex-col gap-2">
               <p className="text-lg font-medium">3 deliverables need your review. 1 new report is available.</p>
-              <p className="text-sm text-[#4F515E]">Your campaign lead will follow up in Slack if anything is pending.</p>
+              <p className="text-sm text-[#12131C]">Your campaign lead will follow up in Slack if anything is pending.</p>
             </div>
           </div>
           <div className="mt-4 flex justify-end">
-            <Link href="/approvals" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#12131C] px-6 py-3 text-base font-bold text-white border border-[#12131C] hover:bg-black/90">
+            <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base">
               Go to Approvals
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Main dashboard grid - 2 rows layout */}
+      {/* Key Action Cards */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Campaign Status */}
-        <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col">
-          <h2 className="mb-6 text-2xl font-bold">Campaign Status</h2>
+        {/* Deliverables Summary */}
+        <div className="rounded-[16px] border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col">
+          <h2 className="mb-6 text-2xl font-bold">Deliverables Summary</h2>
           <div className="grid gap-8 md:grid-cols-2 flex-grow">
-            {/* Approvals Needed */}
+            {/* Deliverables Status */}
             <div className="flex flex-col items-center text-center">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-check h-6 w-6 text-[#9EA8FB]">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="m9 12 2 2 4-4"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-package-check h-6 w-6 text-[#9EA8FB]">
+                  <path d="M16 16h6"></path>
+                  <path d="M19 10V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h12"></path>
+                  <path d="m9 15 2 2 4-4"></path>
                 </svg>
               </div>
-              <h3 className="mb-2 text-xl font-bold">Approvals Needed</h3>
-              <p className="mb-2 text-base">3 items pending</p>
-              <div className="mt-2 w-full text-left">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-amber-500"></div>
-                  <span className="text-sm">2 briefs, 1 keyword plan</span>
-                </div>
-              </div>
+              <h3 className="mb-2 text-xl font-bold">Delivered</h3>
+              <p className="text-2xl font-bold">12</p>
             </div>
 
-            {/* Your Campaign */}
+            {/* In Progress */}
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-target h-6 w-6 text-[#9EA8FB]">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock h-6 w-6 text-amber-500">
                   <circle cx="12" cy="12" r="10"></circle>
-                  <circle cx="12" cy="12" r="6"></circle>
-                  <circle cx="12" cy="12" r="2"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
                 </svg>
               </div>
-              <h3 className="mb-2 text-xl font-bold">Your Campaign</h3>
-              <p className="mb-2 text-base">SEO + Content</p>
-              <div className="mt-2">
-                <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-100 text-green-800 hover:bg-green-100">
-                  Active
-                </div>
-              </div>
+              <h3 className="mb-2 text-xl font-bold">In Progress</h3>
+              <p className="text-2xl font-bold">8</p>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="h-2 w-full rounded-full bg-gray-200">
+              <div className="h-2 rounded-full bg-blue-500" style={{ width: '60%' }}></div>
+            </div>
+            <div className="mt-2 flex justify-between text-sm">
+              <span>Delivered</span>
+              <span>Pending</span>
             </div>
           </div>
 
           <div className="mt-auto pt-6 flex justify-center gap-3">
-            <Link href="/approvals" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50">
+            <Link href="/approvals" className="btn-secondary inline-flex items-center gap-2 text-base">
               View Details
             </Link>
-            <Link href="/campaign" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#12131C] px-6 py-3 text-base font-bold text-white border border-[#12131C] hover:bg-black/90">
+            <Link href="/campaign" className="btn-primary inline-flex items-center gap-2 text-base">
               Campaign Dashboard
             </Link>
           </div>
         </div>
 
         {/* Milestone Tracker */}
-        <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col">
+        <div className="rounded-[16px] border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col">
           <h2 className="mb-6 text-2xl font-bold">Milestone Tracker</h2>
           <div className="mb-6">
             <div className="flex items-center justify-between text-base mb-2">
@@ -133,10 +132,10 @@ export default function Home() {
           </div>
 
           <div className="mt-auto pt-6 flex justify-center gap-3">
-            <Link href="/milestones" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-[#12131C] bg-white px-6 py-3 text-base font-normal text-[#12131C] hover:bg-gray-50">
+            <Link href="/milestones" className="btn-secondary inline-flex items-center gap-2 text-base">
               View Details
             </Link>
-            <Link href="/milestones" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#12131C] px-6 py-3 text-base font-bold text-white border border-[#12131C] hover:bg-black/90">
+            <Link href="/milestones" className="btn-primary inline-flex items-center gap-2 text-base">
               Monthly Plan
             </Link>
           </div>

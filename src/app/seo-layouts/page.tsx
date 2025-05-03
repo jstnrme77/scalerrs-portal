@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
@@ -233,22 +233,42 @@ const linkBuildingData = [
   },
 ];
 
+// Define types for DataTable props
+interface DataTableRow {
+  id: number;
+  [key: string]: any;
+}
+
+interface DataTableColumn {
+  key: string;
+  header: string;
+  sortable?: boolean;
+  render?: (value: any, row: DataTableRow) => React.ReactNode;
+}
+
+interface DataTableProps {
+  data: DataTableRow[];
+  columns: DataTableColumn[];
+  filterOptions?: Record<string, { label: string; options: { value: string; label: string }[] }>;
+  searchPlaceholder?: string;
+}
+
 // Custom table component with filtering and sorting
 function DataTable({
   data,
   columns,
   filterOptions = {},
   searchPlaceholder = "Search..."
-}: {
-  data: any[];
-  columns: { key: string; header: string; sortable?: boolean; render?: (value: any, row: any) => React.ReactNode }[];
-  filterOptions?: Record<string, { label: string; options: { value: string; label: string }[] }>;
-  searchPlaceholder?: string;
-}) {
+}: DataTableProps) {
   const [filteredData, setFilteredData] = useState(data);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Initialize data when component mounts or data changes
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]);
 
   // Handle sorting
   const handleSort = (key: string) => {
