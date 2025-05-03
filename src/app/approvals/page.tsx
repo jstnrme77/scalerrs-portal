@@ -529,7 +529,7 @@ export default function Approvals() {
             };
           }
           return item;
-        });
+        }) as any;
       } else {
         // Update a single item
         const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === rejectionModal.itemId);

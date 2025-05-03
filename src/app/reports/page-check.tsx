@@ -12,6 +12,32 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 
+// Sample report data
+const reports = {
+  weekly: [
+    { id: 1, title: 'Weekly Report - Apr 22-28, 2025', date: '2025-04-28', type: 'weekly' },
+    { id: 2, title: 'Weekly Report - Apr 15-21, 2025', date: '2025-04-21', type: 'weekly' },
+    { id: 3, title: 'Weekly Report - Apr 8-14, 2025', date: '2025-04-14', type: 'weekly' },
+    { id: 4, title: 'Weekly Report - Apr 1-7, 2025', date: '2025-04-07', type: 'weekly' },
+  ],
+  monthly: [
+    { id: 5, title: 'April 2025 Performance Report', date: '2025-05-01', type: 'monthly' },
+    { id: 6, title: 'March 2025 Performance Report', date: '2025-04-01', type: 'monthly' },
+    { id: 7, title: 'February 2025 Performance Report', date: '2025-03-01', type: 'monthly' },
+  ],
+  quarterly: [
+    { id: 8, title: 'Q1 2025 Strategy & Performance Review', date: '2025-04-01', type: 'quarterly' },
+    { id: 9, title: 'Q4 2024 Strategy & Performance Review', date: '2025-01-01', type: 'quarterly' },
+  ]
+};
+
+// Sample report content for demonstration
+const sampleReportContent = {
+  weekly: <div>Weekly report content</div>,
+  monthly: <div>Monthly report content</div>,
+  quarterly: <div>Quarterly report content</div>
+};
+
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('weekly');
   const [selectedReport, setSelectedReport] = useState<number | null>(1);

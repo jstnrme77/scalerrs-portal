@@ -10,6 +10,7 @@
     "deploy": "next build && touch out/.nojekyll && git add out/ && git commit -m \"Deploy to gh-pages\" && git subtree push --prefix out origin gh-pages"
   },
   "dependencies": {
+    "@radix-ui/react-progress": "^1.1.4",
     "@radix-ui/react-select": "^2.2.2",
     "@radix-ui/react-tabs": "^1.1.9",
     "airtable": "^0.12.2",

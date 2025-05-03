@@ -12,7 +12,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 /**
  * A reusable button component with different variants and sizes
  */
-export default function Button({
+function Button({
   children,
   variant = 'primary',
   size = 'md',
@@ -40,3 +40,6 @@ export default function Button({
     </button>
   );
 }
+
+export default Button;
+export { Button as CustomButton };

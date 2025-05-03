@@ -14,7 +14,7 @@ type BadgeProps = {
 /**
  * A reusable badge component that can be customized with different colors and sizes
  */
-export default function Badge({
+function Badge({
   children,
   variant = 'primary',
   size = 'sm',
@@ -47,3 +47,6 @@ export default function Badge({
     </span>
   );
 }
+
+export default Badge;
+export { Badge as CustomBadge };

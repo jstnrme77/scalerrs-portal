@@ -349,21 +349,21 @@ export default function AirtableDemoPage() {
                     <h3 className="text-lg font-medium mb-2">Status</h3>
                     <div className="flex space-x-2">
                       <Button
-                        variant={selectedTask.Status === 'To Do' ? 'primary' : 'outline'}
+                        variant={selectedTask.Status === 'To Do' ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={() => updateTaskStatus(selectedTask.id, 'To Do')}
                       >
                         To Do
                       </Button>
                       <Button
-                        variant={selectedTask.Status === 'In Progress' ? 'primary' : 'outline'}
+                        variant={selectedTask.Status === 'In Progress' ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={() => updateTaskStatus(selectedTask.id, 'In Progress')}
                       >
                         In Progress
                       </Button>
                       <Button
-                        variant={selectedTask.Status === 'Completed' ? 'primary' : 'outline'}
+                        variant={selectedTask.Status === 'Completed' ? 'primary' : 'secondary'}
                         size="sm"
                         onClick={() => updateTaskStatus(selectedTask.id, 'Completed')}
                       >

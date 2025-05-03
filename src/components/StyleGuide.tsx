@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import Button as CustomButton from '@/components/ui/forms/Button';
+import { CustomButton } from '@/components/ui/forms/Button';
 import { Badge } from '@/components/ui/badge';
-import Badge as CustomBadge from '@/components/ui/badges/Badge';
+import { CustomBadge } from '@/components/ui/badges/Badge';
 
 export default function StyleGuide() {
   return (

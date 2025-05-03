@@ -104,21 +104,21 @@ export default function AdminAccess({
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
                     <Button
-                      variant="text"
+                      variant="tertiary"
                       size="sm"
                       onClick={() => onChangePassword(access.id)}
                     >
                       Change Password
                     </Button>
                     <Button
-                      variant="text"
+                      variant="tertiary"
                       size="sm"
                       onClick={() => onCopyLogin && onCopyLogin(access.id)}
                     >
                       Copy
                     </Button>
                     <Button
-                      variant="text"
+                      variant="tertiary"
                       size="sm"
                       onClick={() => onGoToService && onGoToService(access.id)}
                       className="flex items-center"
