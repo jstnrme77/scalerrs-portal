@@ -17,6 +17,8 @@ export interface TabNavigationProps {
   size?: 'default' | 'small';
   className?: string;
   containerClassName?: string;
+  tabClassName?: string;
+  activeTabClassName?: string;
 }
 
 /**
@@ -30,6 +32,8 @@ export default function TabNavigation({
   size = 'default',
   className = '',
   containerClassName = '',
+  tabClassName = '',
+  activeTabClassName = '',
 }: TabNavigationProps) {
   // Primary tabs are the main navigation tabs (top level)
   // Secondary tabs are nested tabs (second level)
@@ -51,8 +55,8 @@ export default function TabNavigation({
             className={cn(
               "tab-item",
               activeTab === tab.id
-                ? "tab-item-active"
-                : "tab-item-inactive",
+                ? cn("tab-item-active", activeTabClassName)
+                : cn("tab-item-inactive", tabClassName),
               isPrimary ? "font-semibold" : "font-medium",
               size === 'small' ? "text-sm py-2 px-4" : "py-3 px-6",
               tab.disabled && "opacity-50 cursor-not-allowed",

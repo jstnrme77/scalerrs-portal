@@ -25,7 +25,8 @@ export const mockTasks = [
     Description: 'This is a sample task',
     Status: 'In Progress',
     AssignedTo: ['rec123'],
-    Priority: 'High'
+    Priority: 'High',
+    Category: 'Technical SEO'
   },
   {
     id: 'task2',
@@ -34,7 +35,18 @@ export const mockTasks = [
     Description: 'Another sample task',
     Status: 'Completed',
     AssignedTo: ['rec456'],
-    Priority: 'Medium'
+    Priority: 'Medium',
+    Category: 'CRO'
+  },
+  {
+    id: 'task3',
+    Title: 'Strategy Planning Session',
+    Name: 'Strategy Planning Session',
+    Description: 'Plan content strategy for Q3',
+    Status: 'To Do',
+    AssignedTo: ['rec123'],
+    Priority: 'High',
+    Category: 'Strategy / Ad Hoc'
   }
 ];
 

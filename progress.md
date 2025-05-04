@@ -63,6 +63,15 @@
 - ✅ Rearranged sidebar navigation items for better user experience and workflow
 - ✅ Updated table styling in Approvals page to remove background colors from rows
 - ✅ Standardized table styling with white backgrounds, purple borders, and light purple header backgrounds
+- ✅ Updated Task Boards page with speech bubble comment indicators
+- ✅ Improved Task Boards page summary header with visual count indicator
+- ✅ Standardized Task Boards page table styling to match Approvals page
+- ✅ Updated Task Boards page modal to appear directly in front of the main page
+- ✅ Updated tab navigation styling to match Approvals page
+- ✅ Improved comment indicators for better readability
+- ✅ Enabled Strategy/Ad Hoc tab in Task Boards page
+- ✅ Added spacing between notification and table header in Task Boards page
+- ✅ Standardized border size in Task Boards page notification banner
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -130,3 +139,15 @@
 - Updated tab navigation with full borders on all sides for better visual clarity and user experience
 - Standardized table styling across the application with clean white backgrounds, purple borders (#9EA8FB), and light purple header backgrounds
 - Removed alternating row background colors from tables for a cleaner, more minimalist appearance
+- Updated Task Boards page with speech bubble comment indicators for better visual representation of comment counts
+- Enhanced Task Boards page summary header with a circular count indicator for completed tasks
+- Standardized Task Boards page table styling to match Approvals page for consistent user experience
+- Added tab-level header to Task Boards page showing the number of active tasks in the current section
+- Updated Task Boards page modal to appear directly in front of the main page without a background overlay
+- Improved Task Boards page modal styling with consistent colors and rounded corners
+- Updated tab navigation styling to match Approvals page with purple background for active tabs and light purple background for inactive tabs
+- Enhanced comment indicators with a more readable design using rounded badges with text and icons
+- Enabled the Strategy/Ad Hoc tab in Task Boards page for consistent UI regardless of data availability
+- Added a sample Strategy/Ad Hoc task to the mock data to ensure all tabs have content
+- Improved visual spacing between the notification banner and table header in Task Boards page for better readability
+- Standardized border size to 2px on all sides of the notification banner for visual consistency
