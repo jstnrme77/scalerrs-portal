@@ -150,8 +150,11 @@ export const servicesTabs = [
   }
 ];
 
+// Import Guide type from GuidesModal
+import { Guide } from '@/components/ui/modals/GuidesModal';
+
 // Guides
-export const guides = [
+export const guides: Guide[] = [
   {
     id: 'content-guidelines',
     title: 'Content Guidelines',

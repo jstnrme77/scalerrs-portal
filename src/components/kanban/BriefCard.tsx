@@ -148,7 +148,11 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
           <div className="text-center">
             {onViewDocument ? (
               <button
-                onClick={() => onViewDocument(brief.DocumentLink, brief.Title || 'Brief Document')}
+                onClick={() => {
+                  if (brief.DocumentLink) {
+                    onViewDocument(brief.DocumentLink, brief.Title || 'Brief Document');
+                  }
+                }}
                 className="inline-flex items-center text-xs text-primary hover:underline"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +182,11 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
           <div className="text-center">
             {onViewDocument ? (
               <button
-                onClick={() => onViewDocument(brief['FraseDocumentLink'], `${brief.Title || 'Brief'} - Frase Document`)}
+                onClick={() => {
+                  if (brief['FraseDocumentLink']) {
+                    onViewDocument(brief['FraseDocumentLink'], `${brief.Title || 'Brief'} - Frase Document`);
+                  }
+                }}
                 className="inline-flex items-center text-xs text-primary hover:underline"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

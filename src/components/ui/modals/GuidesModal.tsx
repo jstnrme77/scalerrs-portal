@@ -4,7 +4,7 @@ import React from 'react';
 import { EnhancedModal } from '@/components/ui/modals';
 import { FileText, Download } from 'lucide-react';
 
-type Guide = {
+export type Guide = {
   id: string;
   title: string;
   description: string;

@@ -150,7 +150,12 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
         ) : (article.DocumentLink || article['Document Link']) ? (
           onViewDocument ? (
             <button
-              onClick={() => onViewDocument(article.DocumentLink || article['Document Link'], article.Title || 'Article Document')}
+              onClick={() => {
+                const docLink = article.DocumentLink || article['Document Link'];
+                if (docLink) {
+                  onViewDocument(docLink, article.Title || 'Article Document');
+                }
+              }}
               className="inline-flex items-center text-xs text-primary hover:underline"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
