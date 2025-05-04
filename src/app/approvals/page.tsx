@@ -47,38 +47,38 @@ function StatusBadge({ status }: { status: string }) {
 
   switch (status) {
     case 'awaiting_approval':
-      bgColor = 'bg-gold/10';
-      textColor = 'text-gold';
+      bgColor = 'bg-brand-yellow/20';
+      textColor = 'text-dark';
       displayText = 'Awaiting Approval';
       break;
     case 'resubmitted':
-      bgColor = 'bg-orange-100';
-      textColor = 'text-orange-800';
+      bgColor = 'bg-primary/20';
+      textColor = 'text-dark';
       displayText = 'Resubmitted';
       break;
     case 'needs_revision':
-      bgColor = 'bg-purple-100';
-      textColor = 'text-purple-800';
+      bgColor = 'bg-brand-accent/20';
+      textColor = 'text-dark';
       displayText = 'Needs Revision';
       break;
     case 'approved':
       bgColor = 'bg-green-100';
-      textColor = 'text-green-800';
+      textColor = 'text-dark';
       displayText = 'Approved';
       break;
     case 'rejected':
       bgColor = 'bg-red-100';
-      textColor = 'text-red-800';
+      textColor = 'text-dark';
       displayText = 'Rejected';
       break;
     default:
       bgColor = 'bg-lightGray';
-      textColor = 'text-mediumGray';
+      textColor = 'text-dark';
       displayText = status.replace('_', ' ');
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
+    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
       {displayText}
     </span>
   );
@@ -95,7 +95,7 @@ function ApprovalItem({
   onRequestChanges: (id: number) => void;
 }) {
   return (
-    <div className="card bg-white p-4 rounded-[16px] border border-lightGray" style={{ color: '#353233' }}>
+    <div className="p-4 rounded-lg border-2 border-[#9EA8FB] bg-white" style={{ color: '#353233' }}>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
         <h3 className="text-md font-medium text-dark">{item.item}</h3>
         <StatusBadge status={item.status} />
@@ -152,7 +152,7 @@ function ApprovalItem({
       </div>
 
       {item.revisionReason && (
-        <div className="text-sm text-purple-800 bg-purple-50 p-2 rounded mb-3">
+        <div className="text-sm text-[#9EA8FB] bg-[#9EA8FB]/10 p-2 rounded mb-3 border border-[#9EA8FB]/30">
           <span className="font-medium">Revision Needed:</span> {item.revisionReason}
         </div>
       )}
@@ -161,13 +161,13 @@ function ApprovalItem({
         <div className="flex space-x-2">
           <button
             onClick={() => onApprove(item.id)}
-            className="px-3 py-1 text-xs font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors"
+            className="px-3 py-1 text-xs font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors"
           >
             Approve
           </button>
           <button
             onClick={() => onRequestChanges(item.id)}
-            className="px-3 py-1 text-xs font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
+            className="px-3 py-1 text-xs font-medium text-[#9EA8FB] border border-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/10 transition-colors"
           >
             Request Changes
           </button>
@@ -192,12 +192,14 @@ function RejectionModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-        <h3 className="text-lg font-medium text-dark mb-2">Request Changes</h3>
-        <p className="text-mediumGray text-sm mb-4">Please provide details about the changes needed:</p>
+    <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full border-2 border-[#9EA8FB]">
+        <div className="bg-[#9EA8FB]/10 p-3 mb-4 rounded-lg border-b-2 border-[#9EA8FB]">
+          <h3 className="text-lg font-medium text-dark">Request Changes</h3>
+          <p className="text-mediumGray text-sm">Please provide details about the changes needed:</p>
+        </div>
         <textarea
-          className="w-full border border-lightGray rounded p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full border-2 border-[#9EA8FB] rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
           rows={4}
           placeholder="Describe the changes needed..."
           value={reason}
@@ -206,7 +208,7 @@ function RejectionModal({
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-mediumGray bg-lightGray rounded hover:bg-gray-300 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-[#353233] border border-[#D9D9D9] rounded-scalerrs hover:bg-[#D9D9D9]/20 transition-colors"
           >
             Cancel
           </button>
@@ -218,7 +220,7 @@ function RejectionModal({
               }
             }}
             disabled={!reason.trim()}
-            className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${reason.trim() ? 'text-white bg-primary hover:bg-primary/80' : 'text-white bg-primary/50 cursor-not-allowed'}`}
+            className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${reason.trim() ? 'text-white bg-[#9EA8FB] hover:bg-[#9EA8FB]/80' : 'text-white bg-[#9EA8FB]/50 cursor-not-allowed'}`}
           >
             Submit Feedback
           </button>
@@ -237,13 +239,13 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
   const categoriesCount = Object.values(counts).filter(count => count > 0).length;
 
   return (
-    <div className="card bg-[#FFF8E1] p-4 rounded-lg mb-6 border border-[#FFE082]" style={{ color: '#353233' }}>
-      <p className="font-medium">You have {totalCount} items awaiting your review across {categoriesCount} categories</p>
+    <div className="p-4 rounded-lg mb-6 border-2 border-[#9EA8FB] bg-[#9EA8FB]/10">
+      <p className="font-medium text-dark">You have {totalCount} items awaiting your review across {categoriesCount} categories</p>
       <div className="text-sm mt-1">
         Jump to: {' '}
         {counts.keywords > 0 && (
           <button
-            className="text-primary hover:underline ml-2"
+            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
             onClick={() => onTabChange('keywords')}
           >
             Keyword Plans ({counts.keywords})
@@ -251,7 +253,7 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
         )}
         {counts.briefs > 0 && (
           <button
-            className="text-primary hover:underline ml-2"
+            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
             onClick={() => onTabChange('briefs')}
           >
             Briefs ({counts.briefs})
@@ -259,7 +261,7 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
         )}
         {counts.articles > 0 && (
           <button
-            className="text-primary hover:underline ml-2"
+            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
             onClick={() => onTabChange('articles')}
           >
             Articles ({counts.articles})
@@ -267,7 +269,7 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
         )}
         {counts.backlinks > 0 && (
           <button
-            className="text-primary hover:underline ml-2"
+            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
             onClick={() => onTabChange('backlinks')}
           >
             Backlinks ({counts.backlinks})
@@ -275,7 +277,7 @@ function GlobalSummaryBanner({ counts, onTabChange }: {
         )}
         {counts.quickwins > 0 && (
           <button
-            className="text-primary hover:underline ml-2"
+            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
             onClick={() => onTabChange('quickwins')}
           >
             Quick Wins ({counts.quickwins})
@@ -297,56 +299,57 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
   const dashOffset = 283 - (283 * percentage / 100);
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-lightGray">
-      <h3 className="font-medium text-dark mb-3">Pending Approvals</h3>
+    <div className="bg-white p-4 rounded-lg border-2 border-[#9EA8FB] shadow-sm">
+      <h3 className="font-medium text-dark mb-3 text-center">Pending Approvals</h3>
 
-      <div className="flex items-center justify-center mb-4">
+      <div className="flex items-center justify-center mb-6">
         <div className="relative w-24 h-24">
           <svg className="w-24 h-24" viewBox="0 0 100 100">
             <circle
               cx="50" cy="50" r="45"
               fill="none"
               stroke="#f3f4f6"
-              strokeWidth="10"
+              strokeWidth="8"
             />
             <circle
               cx="50" cy="50" r="45"
               fill="none"
               stroke="#9EA8FB"
-              strokeWidth="10"
+              strokeWidth="8"
               strokeDasharray="283"
               strokeDashoffset={dashOffset}
               strokeLinecap="round"
+              transform="rotate(-90 50 50)"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-lg font-bold">{totalApproved} of {totalApproved + totalPending}</span>
-            <span className="text-xs text-mediumGray">items approved this week</span>
+            <span className="text-lg font-bold text-dark">{totalApproved} of {totalApproved + totalPending}</span>
+            <span className="text-xs text-mediumGray text-center">items<br/>approved</span>
           </div>
         </div>
       </div>
 
       <div className="text-sm">
-        <div className="flex justify-between py-2 border-b border-lightGray">
-          <span>Keyword Plans</span>
-          <span className="font-medium">{counts.keywords}</span>
+        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+          <span className="text-dark">Keyword Plans</span>
+          <span className="font-medium text-[#9EA8FB]">{counts.keywords}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-lightGray">
-          <span>Briefs</span>
-          <span className="font-medium">{counts.briefs}</span>
+        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+          <span className="text-dark">Briefs</span>
+          <span className="font-medium text-[#9EA8FB]">{counts.briefs}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-lightGray">
-          <span>Articles</span>
-          <span className="font-medium">{counts.articles}</span>
+        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+          <span className="text-dark">Articles</span>
+          <span className="font-medium text-[#9EA8FB]">{counts.articles}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-lightGray">
-          <span>Backlinks</span>
-          <span className="font-medium">{counts.backlinks}</span>
+        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+          <span className="text-dark">Backlinks</span>
+          <span className="font-medium text-[#9EA8FB]">{counts.backlinks}</span>
         </div>
         {counts.quickwins > 0 && (
           <div className="flex justify-between py-2">
-            <span>Quick Wins</span>
-            <span className="font-medium">{counts.quickwins}</span>
+            <span className="text-dark">Quick Wins</span>
+            <span className="font-medium text-[#9EA8FB]">{counts.quickwins}</span>
           </div>
         )}
       </div>
@@ -355,10 +358,22 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
 }
 
 // Table Component
-function ApprovalTable({ groupedItems, onApprove, onRequestChanges }: {
+function ApprovalTable({
+  groupedItems,
+  onApprove,
+  onRequestChanges,
+  selectedItems,
+  onToggleItemSelection,
+  onToggleGroupSelection,
+  areAllItemsSelected
+}: {
   groupedItems: { [key: string]: any[] },
   onApprove: (id: number) => void,
-  onRequestChanges: (id: number) => void
+  onRequestChanges: (id: number) => void,
+  selectedItems: number[],
+  onToggleItemSelection: (id: number) => void,
+  onToggleGroupSelection: (items: any[], isSelected: boolean) => void,
+  areAllItemsSelected: (items: any[]) => boolean
 }) {
   // Define the order of status groups
   const statusOrder = ['awaiting_approval', 'resubmitted', 'needs_revision', 'approved', 'rejected'];
@@ -377,66 +392,114 @@ function ApprovalTable({ groupedItems, onApprove, onRequestChanges }: {
     const items = groupedItems[status];
     if (!items || items.length === 0) return null;
 
+    // Check if all items in this group are selected
+    const allSelected = areAllItemsSelected(items);
+
+    // Only show checkboxes for items that can be actioned
+    const showCheckboxes = ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(status);
+
     return (
       <div key={status} className="mb-6">
         <h3 className="font-medium text-dark mb-2">{statusHeaders[status as keyof typeof statusHeaders]}</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-lightGray">
+          <table className="min-w-full divide-y divide-[#9EA8FB] border-2 border-[#9EA8FB] rounded-lg overflow-hidden table-fixed bg-white">
             <thead>
-              <tr className="bg-lightGray">
-                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Deliverable</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Assigned To</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Last Updated</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-mediumGray uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-mediumGray uppercase tracking-wider">Actions</th>
+              <tr className="bg-[#9EA8FB]/10">
+                {showCheckboxes && (
+                  <th className="px-4 py-3 w-12">
+                    <div className="flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5 text-[#9EA8FB] focus:ring-[#9EA8FB] border-2 border-[#9EA8FB] rounded cursor-pointer"
+                        checked={allSelected}
+                        onChange={() => onToggleGroupSelection(items, !allSelected)}
+                      />
+                    </div>
+                  </th>
+                )}
+                <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[35%]">Deliverable</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[15%]">Assigned To</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[15%]">Last Updated</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Status</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-dark uppercase tracking-wider w-[25%]">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-lightGray">
-              {items.map((item) => (
-                <tr key={item.id} className={`hover:bg-lightGray/30 ${status === 'resubmitted' || status === 'needs_revision' ? 'bg-yellow-50' : ''}`}>
-                  <td className="px-4 py-3">
-                    <div className="flex items-start">
-                      <div>
-                        <div className="text-sm font-medium text-dark">
-                          <a href="#" className="hover:text-primary hover:underline">{item.item}</a>
+            <tbody className="divide-y divide-[#9EA8FB]/50">
+              {items.map((item) => {
+                // No special styling for different statuses
+
+                // Check if this item is selected
+                const isSelected = selectedItems.includes(item.id);
+
+                // Add selected styling
+                const selectedClass = isSelected ? 'bg-[#9EA8FB]/5' : '';
+
+                return (
+                  <tr
+                    key={item.id}
+                    className={`hover:bg-gray-50 ${selectedClass}`}
+                  >
+                    {showCheckboxes && (
+                      <td className="px-4 py-3 w-12">
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            className="h-5 w-5 text-[#9EA8FB] focus:ring-[#9EA8FB] border-2 border-[#9EA8FB] rounded cursor-pointer"
+                            checked={isSelected}
+                            onChange={() => onToggleItemSelection(item.id)}
+                          />
                         </div>
-                        {'type' in item && <div className="text-xs text-mediumGray">{item.type}</div>}
-                        {'wordCount' in item && <div className="text-xs text-mediumGray">{item.wordCount} words</div>}
-                        {'volume' in item && <div className="text-xs text-mediumGray">Volume: {item.volume}</div>}
-                        {'count' in item && <div className="text-xs text-mediumGray">{item.count} links</div>}
-                        {'pages' in item && <div className="text-xs text-mediumGray">{item.pages} pages</div>}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm text-dark">{item.strategist}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm text-mediumGray">{item.lastUpdated}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {(item.status === 'awaiting_approval' || item.status === 'resubmitted' || item.status === 'needs_revision') && (
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => onApprove(item.id)}
-                          className="px-3 py-1 text-xs font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => onRequestChanges(item.id)}
-                          className="px-3 py-1 text-xs font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
-                        >
-                          Request Changes
-                        </button>
-                      </div>
+                      </td>
                     )}
-                  </td>
-                </tr>
-              ))}
+                    <td className="px-4 py-3 w-[35%]">
+                      <div className="flex items-start">
+                        <div>
+                          <div className="text-sm font-medium text-dark">
+                            <a href="#" className="hover:text-primary hover:underline">{item.item}</a>
+                          </div>
+                          {'type' in item && <div className="text-xs text-mediumGray">{item.type}</div>}
+                          {'wordCount' in item && <div className="text-xs text-mediumGray">{item.wordCount} words</div>}
+                          {'volume' in item && <div className="text-xs text-mediumGray">Volume: {item.volume}</div>}
+                          {'count' in item && <div className="text-xs text-mediumGray">{item.count} links</div>}
+                          {'pages' in item && <div className="text-xs text-mediumGray">{item.pages} pages</div>}
+                          {item.revisionReason && (
+                            <div className="text-xs text-[#9EA8FB] mt-1 bg-[#EADCFF]/20 p-1 rounded border border-[#EADCFF]">
+                              <span className="font-medium">Revision: </span>{item.revisionReason}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 w-[15%]">
+                      <div className="text-sm text-dark">{item.strategist}</div>
+                    </td>
+                    <td className="px-4 py-3 w-[15%]">
+                      <div className="text-sm text-mediumGray">{item.lastUpdated}</div>
+                    </td>
+                    <td className="px-4 py-3 w-[10%] text-center">
+                      <StatusBadge status={item.status} />
+                    </td>
+                    <td className="px-4 py-3 text-right w-[25%]">
+                      {(item.status === 'awaiting_approval' || item.status === 'resubmitted' || item.status === 'needs_revision') && (
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => onApprove(item.id)}
+                            className="px-3 py-1 text-xs font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => onRequestChanges(item.id)}
+                            className="px-3 py-1 text-xs font-medium text-[#9EA8FB] border border-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/10 transition-colors"
+                          >
+                            Request Changes
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -456,14 +519,21 @@ export default function Approvals() {
   const [items, setItems] = useState(approvalItems);
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, itemId: 0 });
   const [filter, setFilter] = useState('all');
+  const [selectedItems, setSelectedItems] = useState<{[key: string]: number[]}>({
+    keywords: [],
+    briefs: [],
+    articles: [],
+    backlinks: [],
+    quickwins: []
+  });
 
   // Calculate counts for pending items in each category
   const pendingCounts = {
-    keywords: items.keywords.filter(item => ['awaiting_approval', 'resubmitted'].includes(item.status)).length,
-    briefs: items.briefs.filter(item => ['awaiting_approval', 'resubmitted'].includes(item.status)).length,
-    articles: items.articles.filter(item => ['awaiting_approval', 'resubmitted'].includes(item.status)).length,
-    backlinks: items.backlinks.filter(item => ['awaiting_approval', 'resubmitted'].includes(item.status)).length,
-    quickwins: items.quickwins.filter(item => ['awaiting_approval', 'resubmitted'].includes(item.status)).length,
+    keywords: items.keywords.filter(item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    briefs: items.briefs.filter(item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    articles: items.articles.filter(item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    backlinks: items.backlinks.filter(item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    quickwins: items.quickwins.filter(item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status)).length,
   };
 
   // Calculate total approved and pending items
@@ -488,7 +558,7 @@ export default function Approvals() {
 
   // Get count of items to review in current tab
   const tabReviewCount = items[activeTab as keyof typeof items].filter(
-    item => ['awaiting_approval', 'resubmitted'].includes(item.status)
+    item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status)
   ).length;
 
   const handleApprove = (id: number) => {
@@ -512,15 +582,109 @@ export default function Approvals() {
     setRejectionModal({ isOpen: true, itemId: id });
   };
 
+  // Handle selecting/deselecting a single item
+  const toggleItemSelection = (id: number) => {
+    setSelectedItems(prev => {
+      const currentTab = activeTab as keyof typeof prev;
+      const newSelectedItems = { ...prev };
+
+      if (newSelectedItems[currentTab].includes(id)) {
+        // Remove item if already selected
+        newSelectedItems[currentTab] = newSelectedItems[currentTab].filter(itemId => itemId !== id);
+      } else {
+        // Add item if not selected
+        newSelectedItems[currentTab] = [...newSelectedItems[currentTab], id];
+      }
+
+      return newSelectedItems;
+    });
+  };
+
+  // Handle selecting/deselecting all items in a status group
+  const toggleGroupSelection = (statusItems: any[], isSelected: boolean) => {
+    setSelectedItems(prev => {
+      const currentTab = activeTab as keyof typeof prev;
+      const newSelectedItems = { ...prev };
+
+      if (isSelected) {
+        // Add all items from this status group that aren't already selected
+        const itemIds = statusItems.map(item => item.id);
+        const uniqueIds = [...new Set([...newSelectedItems[currentTab], ...itemIds])];
+        newSelectedItems[currentTab] = uniqueIds;
+      } else {
+        // Remove all items from this status group
+        const itemIds = statusItems.map(item => item.id);
+        newSelectedItems[currentTab] = newSelectedItems[currentTab].filter(id => !itemIds.includes(id));
+      }
+
+      return newSelectedItems;
+    });
+  };
+
+  // Clear all selections for the current tab
+  const clearSelections = () => {
+    setSelectedItems(prev => {
+      const newSelectedItems = { ...prev };
+      newSelectedItems[activeTab as keyof typeof prev] = [];
+      return newSelectedItems;
+    });
+  };
+
+  // Check if all items in a group are selected
+  const areAllItemsSelected = (statusItems: any[]) => {
+    if (statusItems.length === 0) return false;
+
+    const currentTabSelections = selectedItems[activeTab as keyof typeof selectedItems];
+    return statusItems.every(item => currentTabSelections.includes(item.id));
+  };
+
+  // Get count of selected items that can be approved
+  const getSelectedApprovableCount = () => {
+    const currentTabSelections = selectedItems[activeTab as keyof typeof selectedItems];
+    const approvableItems = items[activeTab as keyof typeof items].filter(
+      item => ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status) && currentTabSelections.includes(item.id)
+    );
+    return approvableItems.length;
+  };
+
+  // Approve selected items
+  const approveSelectedItems = () => {
+    const currentTabSelections = selectedItems[activeTab as keyof typeof selectedItems];
+
+    setItems(prev => {
+      const newItems = { ...prev };
+
+      currentTabSelections.forEach(id => {
+        const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === id);
+
+        if (itemIndex !== -1 && ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(newItems[activeTab as keyof typeof items][itemIndex].status)) {
+          newItems[activeTab as keyof typeof items][itemIndex] = {
+            ...newItems[activeTab as keyof typeof items][itemIndex],
+            status: 'approved',
+            dateApproved: new Date().toISOString().split('T')[0]
+          };
+        }
+      });
+
+      return newItems;
+    });
+
+    // Clear selections after approving
+    clearSelections();
+  };
+
   const confirmRequestChanges = (reason: string) => {
     setItems(prev => {
       const newItems = { ...prev };
 
       // Check if this is a bulk action (itemId = -1)
       if (rejectionModal.itemId === -1) {
-        // Update all pending items in the current tab
+        // Get the selected items for the current tab
+        const currentTabSelections = selectedItems[activeTab as keyof typeof selectedItems];
+
+        // Update only selected pending items in the current tab
         newItems[activeTab as keyof typeof items] = newItems[activeTab as keyof typeof items].map(item => {
-          if (['awaiting_approval', 'resubmitted'].includes(item.status)) {
+          if (['awaiting_approval', 'resubmitted', 'needs_revision'].includes(item.status) && currentTabSelections.includes(item.id)) {
             return {
               ...item,
               status: 'needs_revision',
@@ -547,6 +711,8 @@ export default function Approvals() {
       return newItems;
     });
 
+    // Clear selections after applying changes
+    clearSelections();
     setRejectionModal({ isOpen: false, itemId: 0 });
   };
 
@@ -575,41 +741,59 @@ export default function Approvals() {
                   ...(items.quickwins.length > 0 ? [{ id: 'quickwins', label: 'Quick Wins' }] : [])
                 ]}
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
+                onTabChange={(tab) => {
+                  setActiveTab(tab);
+                  clearSelections(); // Clear selections when changing tabs
+                }}
                 variant="primary"
                 containerClassName="overflow-x-auto"
               />
             </PageContainerTabs>
             <PageContainerBody>
               {/* Tab-level header - Sticky */}
-              <div className="mb-4 flex justify-between items-center sticky top-0 bg-white p-4 border-b border-lightGray z-10">
+              <div className="mb-4 flex justify-between items-center sticky top-0 bg-[#9EA8FB]/10 p-4 border-b-2 border-[#9EA8FB] z-10">
                 <div>
-                  <p className="font-medium">You have {tabReviewCount} item{tabReviewCount !== 1 ? 's' : ''} to review in this section</p>
+                  <p className="font-medium text-dark">You have {tabReviewCount} item{tabReviewCount !== 1 ? 's' : ''} to review in this section</p>
                 </div>
 
                 {tabReviewCount > 0 && (
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-3">
                     <button
-                      onClick={() => {
-                        // Approve all pending items in this tab
-                        const pendingItems = items[activeTab as keyof typeof items].filter(
-                          item => ['awaiting_approval', 'resubmitted'].includes(item.status)
-                        );
-                        pendingItems.forEach(item => handleApprove(item.id));
-                      }}
-                      className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-scalerrs hover:bg-primary/80 transition-colors"
+                      onClick={approveSelectedItems}
+                      disabled={getSelectedApprovableCount() === 0}
+                      className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${
+                        getSelectedApprovableCount() > 0
+                          ? 'bg-[#9EA8FB] text-white hover:bg-[#9EA8FB]/80'
+                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      }`}
                     >
-                      Approve All
+                      {getSelectedApprovableCount() > 0
+                        ? `Approve Selected (${getSelectedApprovableCount()})`
+                        : 'Select Items to Approve'}
                     </button>
                     <button
-                      onClick={() => setRejectionModal({ isOpen: true, itemId: -1 })} // -1 indicates bulk action
-                      className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"
+                      onClick={() => {
+                        if (getSelectedApprovableCount() > 0) {
+                          setRejectionModal({ isOpen: true, itemId: -1 });
+                        }
+                      }}
+                      disabled={getSelectedApprovableCount() === 0}
+                      className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${
+                        getSelectedApprovableCount() > 0
+                          ? 'text-[#9EA8FB] border border-[#9EA8FB] hover:bg-[#9EA8FB]/10'
+                          : 'text-gray-400 border border-gray-300 cursor-not-allowed'
+                      }`}
                     >
                       Request Changes
                     </button>
-                    <button className="px-4 py-2 text-sm font-medium text-mediumGray border border-lightGray rounded-scalerrs hover:bg-lightGray transition-colors">
-                      Add Comment
-                    </button>
+                    {selectedItems[activeTab as keyof typeof selectedItems].length > 0 && (
+                      <button
+                        onClick={clearSelections}
+                        className="px-4 py-2 text-sm font-medium text-[#353233] border border-[#D9D9D9] rounded-scalerrs hover:bg-[#D9D9D9]/20 transition-colors"
+                      >
+                        Clear Selection
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -621,10 +805,14 @@ export default function Approvals() {
                     groupedItems={groupedItems}
                     onApprove={handleApprove}
                     onRequestChanges={handleRequestChanges}
+                    selectedItems={selectedItems[activeTab as keyof typeof selectedItems]}
+                    onToggleItemSelection={toggleItemSelection}
+                    onToggleGroupSelection={toggleGroupSelection}
+                    areAllItemsSelected={areAllItemsSelected}
                   />
                 ) : (
-                  <div className="text-center py-8">
-                    <p className="text-mediumGray">No items found in this section.</p>
+                  <div className="text-center py-8 border-2 border-[#9EA8FB] rounded-lg bg-[#9EA8FB]/10">
+                    <p className="text-mediumGray py-4">No items found in this section.</p>
                   </div>
                 )}
               </div>

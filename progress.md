@@ -61,6 +61,8 @@
 - ✅ Updated tab navigation to have borders on all sides for better visual clarity
 - ✅ Added document viewer modal for viewing documents without leaving the page
 - ✅ Rearranged sidebar navigation items for better user experience and workflow
+- ✅ Updated table styling in Approvals page to remove background colors from rows
+- ✅ Standardized table styling with white backgrounds, purple borders, and light purple header backgrounds
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -126,3 +128,5 @@
 - Removed approval buttons from Content Workflow page to make it a tracking-only tool for clients
 - Added document viewer modal that allows viewing documents without leaving the current page
 - Updated tab navigation with full borders on all sides for better visual clarity and user experience
+- Standardized table styling across the application with clean white backgrounds, purple borders (#9EA8FB), and light purple header backgrounds
+- Removed alternating row background colors from tables for a cleaner, more minimalist appearance
