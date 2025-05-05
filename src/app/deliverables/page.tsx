@@ -1,14 +1,15 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import MonthSelector from '@/components/ui/selectors/MonthSelector';
-import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
-import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
-import { BriefStatus, ArticleStatus } from '@/types';
+import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance } from '@/lib/client-api';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
 
-export default function ContentWorkflowPage() {
+export default function DeliverablePage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
   const [selectedMonth, setSelectedMonth] = useState('January');
 
@@ -23,7 +24,14 @@ export default function ContentWorkflowPage() {
   const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
   const [filteredBacklinks, setFilteredBacklinks] = useState<any[]>([]);
 
-  // Filter states for backlinks
+  // Sorting states
+  const [briefSort, setBriefSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+  const [articleSort, setArticleSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+  const [backlinkSort, setBacklinkSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+
+  // Filter states
+  const [briefStatusFilter, setBriefStatusFilter] = useState<string>('all');
+  const [articleStatusFilter, setArticleStatusFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [drFilter, setDrFilter] = useState<string>('all');
 
@@ -190,18 +198,68 @@ export default function ContentWorkflowPage() {
     fetchData();
   }, []);
 
-  // Filter data by selected month and other filters
+  // Helper function for sorting
+  const sortItems = (items: any[], sort: { column: string; direction: 'asc' | 'desc' } | null) => {
+    if (!sort) return items;
+
+    return [...items].sort((a, b) => {
+      let aValue = a[sort.column];
+      let bValue = b[sort.column];
+
+      // Handle date fields
+      if (sort.column === 'DueDate' || sort.column === 'Due Date' || sort.column === 'WentLiveOn' || sort.column === 'Went Live On') {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      }
+
+      // Handle numeric fields
+      if (sort.column === 'WordCount' || sort.column === 'Word Count' || sort.column === 'DomainRating' || sort.column === 'Domain Authority/Rating') {
+        aValue = aValue ? Number(aValue) : 0;
+        bValue = bValue ? Number(bValue) : 0;
+      }
+
+      if (aValue === bValue) return 0;
+
+      const result = aValue < bValue ? -1 : 1;
+      return sort.direction === 'asc' ? result : -result;
+    });
+  };
+
+  // Filter and sort data
   useEffect(() => {
+    // Filter and sort briefs
     if (briefs.length > 0) {
-      const filtered = briefs.filter(brief => brief.Month === selectedMonth);
+      // Start with month filter
+      let filtered = briefs.filter(brief => brief.Month === selectedMonth);
+
+      // Apply status filter if not 'all'
+      if (briefStatusFilter !== 'all') {
+        filtered = filtered.filter(brief => brief.Status === briefStatusFilter);
+      }
+
+      // Apply sorting
+      filtered = sortItems(filtered, briefSort);
+
       setFilteredBriefs(filtered);
     }
 
+    // Filter and sort articles
     if (articles.length > 0) {
-      const filtered = articles.filter(article => article.Month === selectedMonth);
+      // Start with month filter
+      let filtered = articles.filter(article => article.Month === selectedMonth);
+
+      // Apply status filter if not 'all'
+      if (articleStatusFilter !== 'all') {
+        filtered = filtered.filter(article => article.Status === articleStatusFilter);
+      }
+
+      // Apply sorting
+      filtered = sortItems(filtered, articleSort);
+
       setFilteredArticles(filtered);
     }
 
+    // Filter and sort backlinks
     if (backlinks.length > 0) {
       // Start with month filter
       let filtered = backlinks.filter(backlink => backlink.Month === selectedMonth);
@@ -222,141 +280,104 @@ export default function ContentWorkflowPage() {
         }
       }
 
+      // Apply sorting
+      filtered = sortItems(filtered, backlinkSort);
+
       setFilteredBacklinks(filtered);
     }
-  }, [selectedMonth, briefs, articles, backlinks, statusFilter, drFilter]);
+  }, [
+    selectedMonth,
+    briefs, articles, backlinks,
+    briefStatusFilter, articleStatusFilter, statusFilter, drFilter,
+    briefSort, articleSort, backlinkSort
+  ]);
 
-  // Handle brief status changes
-  const handleBriefStatusChange = async (briefId: string, newStatus: BriefStatus) => {
-    try {
-      console.log(`Attempting to update brief ${briefId} status to ${newStatus}...`);
-
-      // Check if we should use mock data
-      const isBrowser = typeof window !== 'undefined';
-      const useMockData = isBrowser && localStorage.getItem('use-mock-data') === 'true';
-
-      if (useMockData) {
-        console.log('Using mock data for updating brief status');
-        // Update the local state only
-        setBriefs(prevBriefs =>
-          prevBriefs.map(brief =>
-            brief.id === briefId ? { ...brief, Status: newStatus } : brief
-          )
-        );
-
-        console.log(`Brief ${briefId} status updated to ${newStatus} (mock data)`);
-        return;
-      }
-
-      // Update the status in Airtable
-      const updatedBrief = await updateBriefStatus(briefId, newStatus);
-      console.log('Updated brief:', updatedBrief);
-
-      // Update the local state
-      setBriefs(prevBriefs =>
-        prevBriefs.map(brief =>
-          brief.id === briefId ? { ...brief, Status: newStatus } : brief
-        )
-      );
-
-      console.log(`Brief ${briefId} status updated to ${newStatus}`);
-    } catch (error) {
-      console.error('Error updating brief status:', error);
-
-      // Set a flag to use mock data for future requests
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('use-mock-data', 'true');
-      }
-
-      // Update the local state anyway to provide a good user experience
-      setBriefs(prevBriefs =>
-        prevBriefs.map(brief =>
-          brief.id === briefId ? { ...brief, Status: newStatus } : brief
-        )
-      );
-
-      // Show an error message to the user
-      setError('Could not update brief status in Airtable. Changes are saved locally only.');
-    }
-  };
-
-  // Handle article status changes
-  const handleArticleStatusChange = async (articleId: string, newStatus: ArticleStatus) => {
-    try {
-      console.log(`Attempting to update article ${articleId} status to ${newStatus}...`);
-
-      // Check if we should use mock data
-      const isBrowser = typeof window !== 'undefined';
-      const useMockData = isBrowser && localStorage.getItem('use-mock-data') === 'true';
-
-      if (useMockData) {
-        console.log('Using mock data for updating article status');
-        // Update the local state only
-        setArticles(prevArticles =>
-          prevArticles.map(article =>
-            article.id === articleId ? { ...article, Status: newStatus } : article
-          )
-        );
-
-        console.log(`Article ${articleId} status updated to ${newStatus} (mock data)`);
-        return;
-      }
-
-      // Update the status in Airtable
-      const updatedArticle = await updateArticleStatus(articleId, newStatus);
-      console.log('Updated article:', updatedArticle);
-
-      // Update the local state
-      setArticles(prevArticles =>
-        prevArticles.map(article =>
-          article.id === articleId ? { ...article, Status: newStatus } : article
-        )
-      );
-
-      console.log(`Article ${articleId} status updated to ${newStatus}`);
-    } catch (error) {
-      console.error('Error updating article status:', error);
-
-      // Set a flag to use mock data for future requests
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('use-mock-data', 'true');
-      }
-
-      // Update the local state anyway to provide a good user experience
-      setArticles(prevArticles =>
-        prevArticles.map(article =>
-          article.id === articleId ? { ...article, Status: newStatus } : article
-        )
-      );
-
-      // Show an error message to the user
-      setError('Could not update article status in Airtable. Changes are saved locally only.');
-    }
-  };
+  // Note: Status change handlers have been removed as we're using table views instead of kanban boards
+  // Status changes are not part of the deliverables page requirements
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-dark mr-4">Content Workflow</h1>
-          {/* <button
-            onClick={() => {
-              console.log('Debug info:');
-              console.log('Current briefs:', briefs);
-              console.log('Filtered briefs:', filteredBriefs);
-              console.log('Selected month:', selectedMonth);
-              if (briefs.length > 0) {
-                console.log('First brief:', briefs[0]);
-                console.log('First brief fields:', Object.keys(briefs[0]));
-              }
-            }}
-            className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
-          >
-            Debug
-          </button> */}
+          <h1 className="text-2xl font-bold text-dark mr-4">Deliverables</h1>
         </div>
         <div className="relative">
           <MonthSelector selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+        </div>
+      </div>
+
+      {/* Top-Level Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* Briefs Approved Card */}
+        <div className={`rounded-[16px] border-2 p-6 bg-white ${
+          filteredBriefs.length > 0 &&
+          (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.7
+            ? 'border-green-500'
+            : (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.5
+              ? 'border-orange-500'
+              : 'border-red-500'
+        }`}>
+          <div className="flex flex-col items-center text-center">
+            <span className="text-3xl font-bold mb-2">
+              {filteredBriefs.length > 0
+                ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) * 100)
+                : 0}%
+            </span>
+            <span className="text-base font-medium">
+              Briefs Approved
+            </span>
+            <span className="text-sm text-gray-600 mt-1">
+              {filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length} of {filteredBriefs.length} briefs approved
+            </span>
+          </div>
+        </div>
+
+        {/* Articles Live Card */}
+        <div className={`rounded-[16px] border-2 p-6 bg-white ${
+          filteredArticles.length > 0 &&
+          (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.7
+            ? 'border-green-500'
+            : (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.5
+              ? 'border-orange-500'
+              : 'border-red-500'
+        }`}>
+          <div className="flex flex-col items-center text-center">
+            <span className="text-3xl font-bold mb-2">
+              {filteredArticles.length > 0
+                ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100)
+                : 0}%
+            </span>
+            <span className="text-base font-medium">
+              Articles Live
+            </span>
+            <span className="text-sm text-gray-600 mt-1">
+              {filteredArticles.filter(article => article.Status === 'Live').length} of {filteredArticles.length} articles live
+            </span>
+          </div>
+        </div>
+
+        {/* Backlinks Live Card */}
+        <div className={`rounded-[16px] border-2 p-6 bg-white ${
+          filteredBacklinks.length > 0 &&
+          (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.7
+            ? 'border-green-500'
+            : (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.5
+              ? 'border-orange-500'
+              : 'border-red-500'
+        }`}>
+          <div className="flex flex-col items-center text-center">
+            <span className="text-3xl font-bold mb-2">
+              {filteredBacklinks.length > 0
+                ? Math.round((filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) * 100)
+                : 0}%
+            </span>
+            <span className="text-base font-medium">
+              Backlinks Live
+            </span>
+            <span className="text-sm text-gray-600 mt-1">
+              {filteredBacklinks.filter(backlink => backlink.Status === 'Live').length} of {filteredBacklinks.length} backlinks placed
+            </span>
+          </div>
         </div>
       </div>
 
@@ -441,11 +462,161 @@ export default function ContentWorkflowPage() {
                         </div>
                       </div>
                     </div>
-                    <BriefBoard
-                      briefs={filteredBriefs}
-                      onStatusChange={handleBriefStatusChange}
-                      selectedMonth={selectedMonth}
-                    />
+                    {/* Briefs Table */}
+                    <div className="bg-white rounded-md border border-[#9EA8FB]">
+                      <div className="mb-8 flex flex-wrap gap-4 p-4">
+                        <div>
+                          <select
+                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                            value={briefStatusFilter}
+                            onChange={(e) => setBriefStatusFilter(e.target.value)}
+                          >
+                            <option value="all">All Statuses</option>
+                            <option value="Brief Approved">Approved</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Needs Input">Needs Input</option>
+                            <option value="Review Brief">Review Brief</option>
+                            <option value="In Progress">In Progress</option>
+                          </select>
+                        </div>
+                        {briefStatusFilter !== 'all' && (
+                          <div className="flex items-end">
+                            <button
+                              onClick={() => setBriefStatusFilter('all')}
+                              className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                            >
+                              Clear Filter
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <Table>
+                        <TableHeader className="bg-[#9EA8FB]/10">
+                          <TableRow>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBriefSort(prev => ({
+                                    column: 'Title',
+                                    direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Brief Title
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBriefSort(prev => ({
+                                    column: 'SEOStrategist',
+                                    direction: prev?.column === 'SEOStrategist' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Assigned SEO Strategist
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBriefSort(prev => ({
+                                    column: 'DueDate',
+                                    direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Due Date
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBriefSort(prev => ({
+                                    column: 'Status',
+                                    direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Status
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBriefSort(prev => ({
+                                    column: 'Month',
+                                    direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Month
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">GDoc Link</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredBriefs.length > 0 ? (
+                            filteredBriefs.map((brief) => (
+                              <TableRow key={brief.id}>
+                                <TableCell className="font-medium">{brief.Title}</TableCell>
+                                <TableCell>{brief.SEOStrategist || brief['SEO Strategist'] || '-'}</TableCell>
+                                <TableCell>
+                                  {brief.DueDate ? new Date(brief.DueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
+                                </TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    ${brief.Status === 'Brief Approved' || brief.Status === 'Approved' ? 'bg-green-100 text-green-800' :
+                                    brief.Status === 'Needs Input' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'}`}>
+                                    {brief.Status === 'Brief Approved' ? 'Approved' : brief.Status}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{brief.Month || '-'}</TableCell>
+                                <TableCell>
+                                  {brief.DocumentLink ? (
+                                    <a
+                                      href={brief.DocumentLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline flex items-center"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                      </svg>
+                                      View
+                                    </a>
+                                  ) : '-'}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                                No briefs available for {selectedMonth}
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -469,11 +640,197 @@ export default function ContentWorkflowPage() {
                         </div>
                       </div>
                     </div>
-                    <ArticleBoard
-                      articles={filteredArticles}
-                      onStatusChange={handleArticleStatusChange}
-                      selectedMonth={selectedMonth}
-                    />
+                    {/* Articles Table */}
+                    <div className="bg-white rounded-md border border-[#9EA8FB]">
+                      <div className="mb-8 flex flex-wrap gap-4 p-4">
+                        <div>
+                          <select
+                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                            value={articleStatusFilter}
+                            onChange={(e) => setArticleStatusFilter(e.target.value)}
+                          >
+                            <option value="all">All Statuses</option>
+                            <option value="Live">Live</option>
+                            <option value="Draft Approved">Draft Approved</option>
+                            <option value="Review Draft">Review Draft</option>
+                            <option value="In Production">In Production</option>
+                            <option value="To Be Published">To Be Published</option>
+                          </select>
+                        </div>
+                        {articleStatusFilter !== 'all' && (
+                          <div className="flex items-end">
+                            <button
+                              onClick={() => setArticleStatusFilter('all')}
+                              className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                            >
+                              Clear Filter
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <Table>
+                        <TableHeader className="bg-[#9EA8FB]/10">
+                          <TableRow>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setArticleSort(prev => ({
+                                    column: 'Title',
+                                    direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Article Title
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setArticleSort(prev => ({
+                                    column: 'Writer',
+                                    direction: prev?.column === 'Writer' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Assigned Writer
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setArticleSort(prev => ({
+                                    column: 'WordCount',
+                                    direction: prev?.column === 'WordCount' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Word Count
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setArticleSort(prev => ({
+                                    column: 'DueDate',
+                                    direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Due Date
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setArticleSort(prev => ({
+                                    column: 'Status',
+                                    direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Status
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setArticleSort(prev => ({
+                                    column: 'Month',
+                                    direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Month
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">GDoc Link</TableHead>
+                            <TableHead className="font-semibold">Article URL</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredArticles.length > 0 ? (
+                            filteredArticles.map((article) => (
+                              <TableRow key={article.id}>
+                                <TableCell className="font-medium">{article.Title}</TableCell>
+                                <TableCell>{article.Writer || article['Content Writer'] || '-'}</TableCell>
+                                <TableCell>{article.WordCount || article['Word Count'] || '-'}</TableCell>
+                                <TableCell>
+                                  {article.DueDate || article['Due Date'] ?
+                                    new Date(article.DueDate || article['Due Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                    : '-'}
+                                </TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    ${article.Status === 'Live' ? 'bg-green-100 text-green-800' :
+                                    article.Status === 'Draft Approved' ? 'bg-blue-100 text-blue-800' :
+                                    article.Status === 'Review Draft' ? 'bg-yellow-100 text-yellow-800' :
+                                    article.Status === 'In Production' ? 'bg-purple-100 text-purple-800' :
+                                    'bg-gray-100 text-gray-800'}`}>
+                                    {article.Status}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{article.Month || '-'}</TableCell>
+                                <TableCell>
+                                  {article.DocumentLink || article['Document Link'] ? (
+                                    <a
+                                      href={article.DocumentLink || article['Document Link']}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline flex items-center"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                      </svg>
+                                      View
+                                    </a>
+                                  ) : '-'}
+                                </TableCell>
+                                <TableCell>
+                                  {article.ArticleURL || article['Article URL'] ? (
+                                    <a
+                                      href={article.ArticleURL || article['Article URL']}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline flex items-center"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                      </svg>
+                                      View
+                                    </a>
+                                  ) : '-'}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                                No articles available for {selectedMonth}
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -494,152 +851,237 @@ export default function ContentWorkflowPage() {
                       </div>
                     </div>
 
-                    {filteredBacklinks.length > 0 ? (
-                      <div className="bg-white rounded-md">
-                        <div className="border-b border-lightGray">
-                          <div className="grid grid-cols-8 text-xs font-medium text-mediumGray uppercase">
-                            <div className="px-4 py-3">Domain</div>
-                            <div className="px-4 py-3">DR</div>
-                            <div className="px-4 py-3">Link Type</div>
-                            <div className="px-4 py-3">Target Page</div>
-                            <div className="px-4 py-3">Status</div>
-                            <div className="px-4 py-3">Went Live On</div>
-                            <div className="px-4 py-3">Month</div>
-                            <div className="px-4 py-3">Notes</div>
-                          </div>
+                    {/* Backlinks Table */}
+                    <div className="bg-white rounded-md border border-[#9EA8FB]">
+                      <div className="mb-8 flex flex-wrap gap-4 p-4">
+                        <div>
+                          <select
+                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                          >
+                            <option value="all">All Statuses</option>
+                            <option value="Live">Live</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Rejected">Rejected</option>
+                          </select>
                         </div>
                         <div>
-                          {filteredBacklinks.map((backlink, index) => (
-                            <div
-                              key={backlink.id}
-                              className={`grid grid-cols-8 text-sm hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
-                              style={{ color: '#353233' }}
-                            >
-                              <div className="px-4 py-4 font-medium text-dark">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
-                              <div className="px-4 py-4">
-                                <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
-                                  {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
-                                </span>
-                              </div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</div>
-                              <div className="px-4 py-4 text-mediumGray">
-                                {(() => {
-                                  // Get the target URL from the appropriate field
-                                  const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
-
-                                  // Handle array of record IDs (Airtable linked records)
-                                  if (Array.isArray(targetUrl) && targetUrl.length > 0) {
-                                    const recordId = targetUrl[0];
-
-                                    // Look up the URL path from our URL Performance data
-                                    if (urlPathMap[recordId]) {
-                                      return urlPathMap[recordId];
-                                    }
-
-                                    // If we don't have a mapping, use a generic path
-                                    return `/page-${recordId.substring(0, 5)}`;
-                                  }
-
-                                  // Handle single record ID
-                                  if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
-                                    // Look up the URL path from our URL Performance data
-                                    if (urlPathMap[targetUrl]) {
-                                      return urlPathMap[targetUrl];
-                                    }
-
-                                    // If we don't have a mapping, use a generic path
-                                    return `/page-${targetUrl.substring(0, 5)}`;
-                                  }
-
-                                  // Format and display the URL
-                                  if (typeof targetUrl === 'string') {
-                                    if (targetUrl.startsWith('http')) {
-                                      return (
-                                        <a
-                                          href={targetUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-primary hover:underline"
-                                        >
-                                          {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
-                                        </a>
-                                      );
-                                    } else if (targetUrl.startsWith('/')) {
-                                      return targetUrl;
-                                    } else {
-                                      return `/${targetUrl}`;
-                                    }
-                                  } else {
-                                    // If it's not a string or array, return a default value
-                                    return '/';
-                                  }
-                                })()}
-                              </div>
-                              <div className="px-4 py-4">
-                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                  ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
-                                  backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                                  backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'}`}>
-                                  {backlink.Status || 'Unknown Status'}
-                                </span>
-                              </div>
-                              <div className="px-4 py-4 text-mediumGray">
-                                {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
-                              </div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink.Month || selectedMonth}</div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink.Notes || '—'}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4 text-center bg-white rounded-lg border border-lightGray">
-                        <p className="text-gray-500">No backlinks data available for {selectedMonth}</p>
-                      </div>
-                    )}
-
-                    <div className="mt-4 flex flex-wrap gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
-                        <select
-                          className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                          value={statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                          <option value="all">All Statuses</option>
-                          <option value="Live">Live</option>
-                          <option value="Scheduled">Scheduled</option>
-                          <option value="Rejected">Rejected</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
-                        <select
-                          className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                          value={drFilter}
-                          onChange={(e) => setDrFilter(e.target.value)}
-                        >
-                          <option value="all">All DR</option>
-                          <option value="50+">DR 50+</option>
-                          <option value="60+">DR 60+</option>
-                          <option value="70+">DR 70+</option>
-                        </select>
-                      </div>
-                      {(statusFilter !== 'all' || drFilter !== 'all') && (
-                        <div className="flex items-end">
-                          <button
-                            onClick={() => {
-                              setStatusFilter('all');
-                              setDrFilter('all');
-                            }}
-                            className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                          <select
+                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                            value={drFilter}
+                            onChange={(e) => setDrFilter(e.target.value)}
                           >
-                            Clear Filters
-                          </button>
+                            <option value="all">All DR</option>
+                            <option value="50+">DR 50+</option>
+                            <option value="60+">DR 60+</option>
+                            <option value="70+">DR 70+</option>
+                          </select>
                         </div>
-                      )}
+                        {(statusFilter !== 'all' || drFilter !== 'all') && (
+                          <div className="flex items-end">
+                            <button
+                              onClick={() => {
+                                setStatusFilter('all');
+                                setDrFilter('all');
+                              }}
+                              className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                            >
+                              Clear Filters
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <Table>
+                        <TableHeader className="bg-[#9EA8FB]/10">
+                          <TableRow>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'Domain',
+                                    direction: prev?.column === 'Domain' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Domain
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'DomainRating',
+                                    direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                DR
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'LinkType',
+                                    direction: prev?.column === 'LinkType' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Link Type
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">Target Page</TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'Status',
+                                    direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Status
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'WentLiveOn',
+                                    direction: prev?.column === 'WentLiveOn' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Went Live On
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'Month',
+                                    direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center"
+                              >
+                                Month
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="font-semibold">Notes</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredBacklinks.length > 0 ? (
+                            filteredBacklinks.map((backlink) => (
+                              <TableRow key={backlink.id}>
+                                <TableCell className="font-medium">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
+                                <TableCell>
+                                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
+                                    {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</TableCell>
+                                <TableCell>
+                                  {(() => {
+                                    // Get the target URL from the appropriate field
+                                    const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
+
+                                    // Handle array of record IDs (Airtable linked records)
+                                    if (Array.isArray(targetUrl) && targetUrl.length > 0) {
+                                      const recordId = targetUrl[0];
+
+                                      // Look up the URL path from our URL Performance data
+                                      if (urlPathMap[recordId]) {
+                                        return urlPathMap[recordId];
+                                      }
+
+                                      // If we don't have a mapping, use a generic path
+                                      return `/page-${recordId.substring(0, 5)}`;
+                                    }
+
+                                    // Handle single record ID
+                                    if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
+                                      // Look up the URL path from our URL Performance data
+                                      if (urlPathMap[targetUrl]) {
+                                        return urlPathMap[targetUrl];
+                                      }
+
+                                      // If we don't have a mapping, use a generic path
+                                      return `/page-${targetUrl.substring(0, 5)}`;
+                                    }
+
+                                    // Format and display the URL
+                                    if (typeof targetUrl === 'string') {
+                                      if (targetUrl.startsWith('http')) {
+                                        return (
+                                          <a
+                                            href={targetUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:underline"
+                                          >
+                                            {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
+                                          </a>
+                                        );
+                                      } else if (targetUrl.startsWith('/')) {
+                                        return targetUrl;
+                                      } else {
+                                        return `/${targetUrl}`;
+                                      }
+                                    } else {
+                                      // If it's not a string or array, return a default value
+                                      return '/';
+                                    }
+                                  })()}
+                                </TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                    ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
+                                    backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                                    backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'}`}>
+                                    {backlink.Status || 'Unknown Status'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
+                                </TableCell>
+                                <TableCell>{backlink.Month || selectedMonth}</TableCell>
+                                <TableCell>{backlink.Notes || '—'}</TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                                No backlinks available for {selectedMonth}
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
+
+
                   </div>
                 </div>
               </div>

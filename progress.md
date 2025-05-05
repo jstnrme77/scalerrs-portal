@@ -15,7 +15,7 @@
 ### Pages
 - ✅ Home page with overview cards
 - ✅ Get Started page with onboarding information
-- ✅ Deliverables page with tabs and Kanban view
+- ✅ Deliverables page with tabs and table views
 - ✅ Task Boards page with task management functionality
 - ✅ Reports page with weekly/monthly/quarterly views
 - ✅ KPI Dashboard with metrics visualization
@@ -53,6 +53,9 @@
 - ✅ Fixed Deliverables page card colors to match column headers
 - ✅ Updated ArticleCard component to display proper writer and editor information
 - ✅ Improved date formatting in Kanban cards
+- ✅ Updated Deliverables page to use table views instead of Kanban boards
+- ✅ Added top-level summary cards with color-coded borders to Deliverables page
+- ✅ Implemented sortable columns and filtering in Deliverables page tables
 - ✅ Standardized button styles across all pages for consistent appearance (dark #12131C background, white text)
 - ✅ Updated action item indicators with color-coded circles (red, amber, green) for visual priority
 - ✅ Changed card borders from colored left-only to consistent gray (#D9D9D9) borders on all sides
@@ -123,6 +126,12 @@
 - Updated ArticleCard component to display proper writer and editor information instead of record IDs
 - Improved date formatting in Kanban cards to match the design requirements
 - Simplified the card layout to be more compact and easier to read
+- Completely redesigned Deliverables page to use table views instead of Kanban boards as per requirements
+- Added top-level summary cards showing completion percentages for Briefs, Articles, and Backlinks with color-coded borders
+- Implemented sortable columns in all tables with arrow indicators for sorting direction
+- Added status filters to all tables with dropdown selectors and clear filter buttons
+- Added extra spacing between filter controls and tables for better visual separation
+- Moved backlinks filters to the top of the table for consistency with other tabs
 - Fixed Target Page column in backlinks table to display actual URL paths instead of Airtable record IDs
 - Implemented dynamic mapping between Airtable record IDs and URL paths using data from the URL Performance table
 - Added functional filters for backlinks by Status and Domain Rating with a clear filters button
