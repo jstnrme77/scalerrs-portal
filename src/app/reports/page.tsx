@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ChevronDown, Calendar, Download, ExternalLink, MessageSquare, Filter, ChevronLeft, ChevronRight, Slack } from 'lucide-react';
+import { ChevronDown, Calendar, Download, ExternalLink, MessageSquare, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
@@ -11,23 +11,51 @@ import { Brief, Article, Backlink } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+
+// Date filter options - removed as not needed
+
+// Month filter options
+const monthFilterOptions = [
+  { value: 'all', label: 'All Months' },
+  { value: '2025-04', label: 'April 2025' },
+  { value: '2025-03', label: 'March 2025' },
+  { value: '2025-02', label: 'February 2025' },
+  { value: '2025-01', label: 'January 2025' },
+  { value: '2024-12', label: 'December 2024' },
+  { value: '2024-11', label: 'November 2024' },
+];
 
 // Sample report data
 const reports = {
   weekly: [
-    { id: 1, title: 'Weekly Report - Apr 22-28, 2025', date: '2025-04-28', type: 'weekly' },
-    { id: 2, title: 'Weekly Report - Apr 15-21, 2025', date: '2025-04-21', type: 'weekly' },
-    { id: 3, title: 'Weekly Report - Apr 8-14, 2025', date: '2025-04-14', type: 'weekly' },
-    { id: 4, title: 'Weekly Report - Apr 1-7, 2025', date: '2025-04-07', type: 'weekly' },
+    { id: 1, title: 'Weekly Report - Apr 22-28, 2025', date: '2025-04-28', type: 'weekly', month: '2025-04' },
+    { id: 2, title: 'Weekly Report - Apr 15-21, 2025', date: '2025-04-21', type: 'weekly', month: '2025-04' },
+    { id: 3, title: 'Weekly Report - Apr 8-14, 2025', date: '2025-04-14', type: 'weekly', month: '2025-04' },
+    { id: 4, title: 'Weekly Report - Apr 1-7, 2025', date: '2025-04-07', type: 'weekly', month: '2025-04' },
+    { id: 10, title: 'Weekly Report - Mar 25-31, 2025', date: '2025-03-31', type: 'weekly', month: '2025-03' },
+    { id: 11, title: 'Weekly Report - Mar 18-24, 2025', date: '2025-03-24', type: 'weekly', month: '2025-03' },
   ],
   monthly: [
-    { id: 5, title: 'April 2025 Performance Report', date: '2025-05-01', type: 'monthly' },
-    { id: 6, title: 'March 2025 Performance Report', date: '2025-04-01', type: 'monthly' },
-    { id: 7, title: 'February 2025 Performance Report', date: '2025-03-01', type: 'monthly' },
+    { id: 5, title: 'April 2025 Performance Report', date: '2025-05-01', type: 'monthly', month: '2025-04' },
+    { id: 6, title: 'March 2025 Performance Report', date: '2025-04-01', type: 'monthly', month: '2025-03' },
+    { id: 7, title: 'February 2025 Performance Report', date: '2025-03-01', type: 'monthly', month: '2025-02' },
+    { id: 12, title: 'January 2025 Performance Report', date: '2025-02-01', type: 'monthly', month: '2025-01' },
+    { id: 13, title: 'December 2024 Performance Report', date: '2025-01-01', type: 'monthly', month: '2024-12' },
   ],
   quarterly: [
-    { id: 8, title: 'Q1 2025 Strategy & Performance Review', date: '2025-04-01', type: 'quarterly' },
-    { id: 9, title: 'Q4 2024 Strategy & Performance Review', date: '2025-01-01', type: 'quarterly' },
+    { id: 8, title: 'Q1 2025 Strategy & Performance Review', date: '2025-04-01', type: 'quarterly', quarter: 'Q1-2025' },
+    { id: 9, title: 'Q4 2024 Strategy & Performance Review', date: '2025-01-01', type: 'quarterly', quarter: 'Q4-2024' },
+    { id: 14, title: 'Q3 2024 Strategy & Performance Review', date: '2024-10-01', type: 'quarterly', quarter: 'Q3-2024' },
   ]
 };
 
@@ -88,7 +116,7 @@ const sampleReportContent = {
       </div>
 
       {/* What We Did */}
-      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">What We Did</h4>
 
         <div className="space-y-4">
@@ -122,7 +150,7 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverable Progress */}
-      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Deliverable Progress</h4>
 
         <div className="space-y-4">
@@ -189,7 +217,7 @@ const sampleReportContent = {
       </div>
 
       {/* Next Steps & Requests */}
-      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Next Steps & Requests</h4>
 
         <div className="space-y-3">
@@ -213,32 +241,39 @@ const sampleReportContent = {
       </div>
 
       {/* Quick Links */}
-      <div className="card bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Quick Links</h4>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <a href="#" className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#9EA8FB]/30">
             <span className="mr-3 text-lg">📈</span>
             <span className="text-base text-dark">GSC Dashboard</span>
           </a>
-          <a href="#" className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#9EA8FB]/30">
             <span className="mr-3 text-lg">🗂️</span>
             <span className="text-base text-dark">Content Folder</span>
           </a>
-          <a href="#" className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#9EA8FB]/30">
             <span className="mr-3 text-lg">🔗</span>
             <span className="text-base text-dark">Backlink Sheet</span>
           </a>
         </div>
+
+        <div className="flex justify-end mt-4">
+          <Button variant="outline" className="flex items-center space-x-2 border-[#9EA8FB] text-[#9EA8FB] hover:bg-[#9EA8FB]/10">
+            <Download className="h-4 w-4" />
+            <span>Download Report</span>
+          </Button>
+        </div>
       </div>
 
       {/* Slack Share Button */}
-      <div className="flex justify-end">
+      {/* <div className="flex justify-end">
         <Button className="flex items-center space-x-3 bg-[#4A154B] hover:bg-[#3a1039] text-white px-5 py-6 text-base">
           <Slack size={20} />
           <span>Share to Slack</span>
         </Button>
-      </div>
+      </div> */}
     </div>
   ),
   monthly: (
@@ -256,7 +291,7 @@ const sampleReportContent = {
       </div>
 
       {/* Loom Section */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <div className="flex items-center mb-2">
           <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
             <MessageSquare size={16} className="text-red-500" />
@@ -275,7 +310,7 @@ const sampleReportContent = {
       </div>
 
       {/* Channel Performance */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Channel Performance</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -321,12 +356,12 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverables Recap */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Deliverables Recap</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-primary/5 p-3 rounded-lg">
             <h5 className="text-sm font-medium text-dark mb-2">Briefs Delivered</h5>
-            <p className="text-2xl font-bold text-primary">12</p>
+            <p className="text-2xl font-bold text-dark">12</p>
             <div className="w-full bg-lightGray rounded-full h-2 mt-2">
               <div className="bg-primary h-2 rounded-full" style={{ width: '80%' }}></div>
             </div>
@@ -334,7 +369,7 @@ const sampleReportContent = {
           </div>
           <div className="bg-gold/5 p-3 rounded-lg">
             <h5 className="text-sm font-medium text-dark mb-2">Blogs Published</h5>
-            <p className="text-2xl font-bold text-gold">8</p>
+            <p className="text-2xl font-bold text-dark">8</p>
             <div className="w-full bg-lightGray rounded-full h-2 mt-2">
               <div className="bg-gold h-2 rounded-full" style={{ width: '100%' }}></div>
             </div>
@@ -342,7 +377,7 @@ const sampleReportContent = {
           </div>
           <div className="bg-lavender/5 p-3 rounded-lg">
             <h5 className="text-sm font-medium text-dark mb-2">Backlinks Live</h5>
-            <p className="text-2xl font-bold text-lavender">15</p>
+            <p className="text-2xl font-bold text-dark">15</p>
             <div className="w-full bg-lightGray rounded-full h-2 mt-2">
               <div className="bg-lavender h-2 rounded-full" style={{ width: '125%' }}></div>
             </div>
@@ -352,19 +387,19 @@ const sampleReportContent = {
       </div>
 
       {/* Content Movers */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Content Movers</h4>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-[#9EA8FB]">
+            <thead className="bg-[#9EA8FB]/10">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Traffic</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leads</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">URL</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Traffic</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Leads</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Change</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
               {topPerformingPages.map((page, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{page.url}</td>
@@ -383,7 +418,7 @@ const sampleReportContent = {
       </div>
 
       {/* Keyword & SERP Trends */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Keyword & SERP Trends</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -444,29 +479,29 @@ const sampleReportContent = {
       </div>
 
       {/* Conversion & ROI Metrics */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Conversion & ROI Metrics</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-3 rounded-lg border border-lightGray">
+          <div className="bg-white p-3 rounded-lg border border-[#9EA8FB]/30">
             <h5 className="text-sm font-medium text-dark mb-1">Lead Generation</h5>
-            <p className="text-2xl font-bold text-primary">320</p>
+            <p className="text-2xl font-bold text-dark">320</p>
             <p className="text-xs text-green-600">+15.2% vs. March</p>
           </div>
-          <div className="bg-white p-3 rounded-lg border border-lightGray">
+          <div className="bg-white p-3 rounded-lg border border-[#9EA8FB]/30">
             <h5 className="text-sm font-medium text-dark mb-1">Assisted Conversions</h5>
-            <p className="text-2xl font-bold text-gold">86</p>
+            <p className="text-2xl font-bold text-dark">86</p>
             <p className="text-xs text-green-600">+9.8% vs. March</p>
           </div>
-          <div className="bg-white p-3 rounded-lg border border-lightGray">
+          <div className="bg-white p-3 rounded-lg border border-[#9EA8FB]/30">
             <h5 className="text-sm font-medium text-dark mb-1">CPC Equivalence</h5>
-            <p className="text-2xl font-bold text-lavender">$24,800</p>
+            <p className="text-2xl font-bold text-dark">$24,800</p>
             <p className="text-xs text-green-600">+12.5% vs. March</p>
           </div>
         </div>
       </div>
 
       {/* Campaign Projection */}
-      <div className="bg-white p-4 rounded-lg border border-lightGray">
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Campaign Projection</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -586,27 +621,27 @@ const sampleReportContent = {
 
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-lg shadow-sm">
+          <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
             <h4 className="text-base text-mediumGray">Traffic Growth</h4>
-            <p className="text-3xl font-bold text-primary">+42%</p>
+            <p className="text-3xl font-bold text-dark">+42%</p>
             <div className="flex items-center mt-2">
               <span className="text-sm text-green-600 font-medium">+12% QoQ</span>
               <span className="text-sm text-mediumGray ml-3">+42% YoY</span>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg shadow-sm">
+          <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
             <h4 className="text-base text-mediumGray">Lead Growth</h4>
-            <p className="text-3xl font-bold text-gold">+38%</p>
+            <p className="text-3xl font-bold text-dark">+38%</p>
             <div className="flex items-center mt-2">
               <span className="text-sm text-green-600 font-medium">+15% QoQ</span>
               <span className="text-sm text-mediumGray ml-3">+38% YoY</span>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg shadow-sm">
+          <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
             <h4 className="text-base text-mediumGray">Revenue Impact</h4>
-            <p className="text-3xl font-bold text-lavender">$108K</p>
+            <p className="text-3xl font-bold text-dark">$108K</p>
             <div className="flex items-center mt-2">
               <span className="text-sm text-green-600 font-medium">+17% QoQ</span>
             </div>
@@ -614,7 +649,7 @@ const sampleReportContent = {
         </div>
 
         {/* Trendline Chart */}
-        <div className="bg-white p-5 rounded-lg shadow-sm mb-6">
+        <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm mb-6">
           <h4 className="text-base font-medium text-dark mb-4">Performance Trends (Last 4 Quarters)</h4>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -628,16 +663,16 @@ const sampleReportContent = {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="traffic" stroke="#8884d8" name="Traffic" />
-                <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#82ca9d" name="Leads" />
-                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#ffc658" name="Revenue ($)" />
+                <Line yAxisId="left" type="monotone" dataKey="traffic" stroke="#9EA8FB" name="Traffic" />
+                <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#FFE4A6" name="Leads" />
+                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#EADCFF" name="Revenue ($)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Text Summary */}
-        <div className="bg-white p-5 rounded-lg shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
           <h4 className="text-lg font-medium text-dark mb-3">Executive Summary</h4>
           <p className="text-base text-mediumGray leading-relaxed">
             Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth.
@@ -648,22 +683,50 @@ const sampleReportContent = {
       </div>
 
       {/* Traffic & Revenue */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="text-lg font-medium text-dark mb-5">Traffic & Revenue</h4>
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+        <div className="flex justify-between items-center mb-5">
+          <h4 className="text-lg font-medium text-dark">Traffic & Revenue</h4>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="text-xs">
+              <Filter className="h-3 w-3 mr-1" />
+              Sort by Metric
+            </Button>
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-[#9EA8FB]">
+            <thead className="bg-[#9EA8FB]/10">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Metric</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Q1 2025</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Q4 2024</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">QoQ Change</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Q1 2024</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">YoY Change</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    Metric
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    Q1 2025
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Q4 2024</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    QoQ Change
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Q1 2024</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    YoY Change
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
+            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
+              <tr className="hover:bg-[#9EA8FB]/5">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Organic Traffic</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">61,000</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">52,000</td>
@@ -679,7 +742,7 @@ const sampleReportContent = {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr className="hover:bg-[#9EA8FB]/5">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Leads Generated</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,350</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,150</td>
@@ -695,7 +758,7 @@ const sampleReportContent = {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr className="hover:bg-[#9EA8FB]/5">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Conversion Rate</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.2%</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.1%</td>
@@ -711,7 +774,7 @@ const sampleReportContent = {
                   </span>
                 </td>
               </tr>
-              <tr>
+              <tr className="hover:bg-[#9EA8FB]/5">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Revenue Impact</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$108,000</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$92,000</td>
@@ -733,59 +796,103 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverables Roll Up */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Deliverables Roll Up</h4>
         <div className="space-y-4">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 border border-[#9EA8FB]">
               <span className="text-primary">📝</span>
             </div>
             <div>
               <p className="text-base font-medium text-dark">36 briefs delivered</p>
               <p className="text-sm text-mediumGray">100% of quarterly target</p>
             </div>
+            <div className="ml-auto">
+              <a href="/deliverables?tab=briefs" className="text-primary hover:underline text-sm flex items-center">
+                <span>View All</span>
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </a>
+            </div>
           </div>
 
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3">
+            <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3 border border-[#9EA8FB]">
               <span className="text-gold">📰</span>
             </div>
             <div>
               <p className="text-base font-medium text-dark">24 articles published</p>
               <p className="text-sm text-mediumGray">Average word count: 1,850</p>
             </div>
+            <div className="ml-auto">
+              <a href="/deliverables?tab=articles" className="text-primary hover:underline text-sm flex items-center">
+                <span>View All</span>
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </a>
+            </div>
           </div>
 
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3">
+            <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3 border border-[#9EA8FB]">
               <span className="text-lavender">🔗</span>
             </div>
             <div>
               <p className="text-base font-medium text-dark">45 backlinks secured</p>
               <p className="text-sm text-mediumGray">Average DR: 58</p>
             </div>
+            <div className="ml-auto">
+              <a href="/deliverables?tab=backlinks" className="text-primary hover:underline text-sm flex items-center">
+                <span>View All</span>
+                <ExternalLink className="h-3 w-3 ml-1" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Top Performing Pages */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="text-lg font-medium text-dark mb-5">Top Performing Pages</h4>
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+        <div className="flex justify-between items-center mb-5">
+          <h4 className="text-lg font-medium text-dark">Top Performing Pages</h4>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="text-xs">
+              <Filter className="h-3 w-3 mr-1" />
+              Sort by Traffic
+            </Button>
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-[#9EA8FB]">
+            <thead className="bg-[#9EA8FB]/10">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">URL</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Traffic</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Conversions</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">URL</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    Traffic
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    Conversions
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    Change
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
               {topPerformingPages.map((page, index) => (
-                <tr key={index}>
+                <tr key={index} className="hover:bg-[#9EA8FB]/5">
                   <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">
-                    <a href="#" className="hover:underline">{page.url}</a>
+                    <a href={`https://example.com${page.url}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center">
+                      {page.url}
+                      <ExternalLink className="h-3 w-3 ml-1 inline" />
+                    </a>
                   </td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.conversions}</td>
@@ -802,35 +909,35 @@ const sampleReportContent = {
       </div>
 
       {/* Experiments */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Experiments</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 bg-gray-50 rounded-lg text-center">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
               <span className="text-2xl">🔍</span>
             </div>
             <p className="text-base font-medium text-dark">Title Tag Tests</p>
             <p className="text-sm text-mediumGray mt-2">CTR +1.7 percentage points</p>
           </div>
 
-          <div className="p-5 bg-gray-50 rounded-lg text-center">
-            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
               <span className="text-2xl">📱</span>
             </div>
             <p className="text-base font-medium text-dark">Mobile CTA Placement</p>
             <p className="text-sm text-mediumGray mt-2">Conversion +0.8 percentage points</p>
           </div>
 
-          <div className="p-5 bg-gray-50 rounded-lg text-center">
-            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
               <span className="text-2xl">⚡</span>
             </div>
             <p className="text-base font-medium text-dark">Core Web Vitals</p>
             <p className="text-sm text-mediumGray mt-2">Bounce rate -15% on key pages</p>
           </div>
 
-          <div className="p-5 bg-gray-50 rounded-lg text-center">
-            <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
               <span className="text-2xl">📊</span>
             </div>
             <p className="text-base font-medium text-dark">Content Length Test</p>
@@ -840,10 +947,10 @@ const sampleReportContent = {
       </div>
 
       {/* Next Quarter Roadmap */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Next Quarter Roadmap</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg border border-[#9EA8FB]/30">
             <h5 className="text-base font-medium text-dark mb-3">Where We Are Now</h5>
             <p className="text-base text-mediumGray mb-4 leading-relaxed">
               Strong foundation with improved technical performance, growing organic visibility, and
@@ -851,7 +958,7 @@ const sampleReportContent = {
             </p>
           </div>
 
-          <div>
+          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg border border-[#9EA8FB]/30">
             <h5 className="text-base font-medium text-dark mb-3">Where We're Heading Next</h5>
             <ul className="list-disc pl-6 text-base text-mediumGray space-y-2">
               <li>Expand content clusters around highest-converting topics</li>
@@ -865,21 +972,34 @@ const sampleReportContent = {
       </div>
 
       {/* Competitor Intel */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
-        <h4 className="text-lg font-medium text-dark mb-5">Competitor Intel</h4>
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+        <div className="flex justify-between items-center mb-5">
+          <h4 className="text-lg font-medium text-dark">Competitor Intel</h4>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="text-xs">
+              <Filter className="h-3 w-3 mr-1" />
+              Sort by Rank Change
+            </Button>
+          </div>
+        </div>
         <div className="overflow-x-auto mb-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-[#9EA8FB]">
+            <thead className="bg-[#9EA8FB]/10">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Competitor</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Keyword Focus</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Rank Change (QoQ)</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Notable Activity</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Competitor</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Keyword Focus</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                  <div className="flex items-center">
+                    Rank Change (QoQ)
+                    <ChevronDown className="h-4 w-4 ml-1" />
+                  </div>
+                </th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Notable Activity</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
               {competitorData.map((competitor, index) => (
-                <tr key={index}>
+                <tr key={index} className="hover:bg-[#9EA8FB]/5">
                   <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{competitor.name}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.keywordFocus}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
@@ -894,7 +1014,7 @@ const sampleReportContent = {
           </table>
         </div>
 
-        <div className="bg-blue-50 p-5 rounded-lg">
+        <div className="bg-[#9EA8FB]/10 p-5 rounded-lg border border-[#9EA8FB]/30">
           <h5 className="text-base font-medium text-dark mb-3">Key Takeaways</h5>
           <p className="text-base text-mediumGray leading-relaxed">
             Opportunity to outrank Competitor B on Local SEO keywords where they've lost positions.
@@ -905,7 +1025,7 @@ const sampleReportContent = {
       </div>
 
       {/* Risk and Tradeoffs */}
-      <div className="bg-white p-6 rounded-lg border border-lightGray shadow-sm">
+      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Risks and Tradeoffs</h4>
         <ul className="list-disc pl-6 text-base text-mediumGray space-y-3">
           <li>
@@ -924,7 +1044,7 @@ const sampleReportContent = {
       </div>
 
       {/* TL;DR */}
-      <div className="bg-primary/10 p-6 rounded-lg">
+      <div className="bg-[#9EA8FB]/20 p-6 rounded-lg border border-[#9EA8FB]">
         <h4 className="text-lg font-medium text-dark mb-4">TL;DR</h4>
         <p className="text-base text-mediumGray leading-relaxed">
           Q1 2025 delivered strong results across all KPIs with traffic up 42% YoY and leads up 38% YoY.
@@ -937,24 +1057,151 @@ const sampleReportContent = {
   )
 };
 
+// Slack Share Modal Component
+const SlackShareModal = ({
+  isOpen,
+  onClose,
+  reportTitle,
+  reportType
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  reportTitle: string;
+  reportType: string;
+}) => {
+  const [channel, setChannel] = useState('#seo-updates');
+  const [message, setMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  // Generate default message based on report type and title
+  useEffect(() => {
+    let defaultMessage = '';
+    if (reportType === 'weekly') {
+      defaultMessage = `Here's the latest weekly SEO report: ${reportTitle}\n\nKey highlights:\n- Organic traffic up 15% week-over-week\n- 4 new keywords entered top 10 positions\n- 3 new backlinks secured`;
+    } else if (reportType === 'monthly') {
+      defaultMessage = `Monthly SEO performance report: ${reportTitle}\n\nKey highlights:\n- Organic traffic up 22% month-over-month\n- Lead generation increased by 18%\n- 12 new content pieces published`;
+    } else if (reportType === 'quarterly') {
+      defaultMessage = `Quarterly SEO strategy & performance review: ${reportTitle}\n\nKey highlights:\n- 42% YoY traffic growth\n- 38% YoY lead growth\n- $108K revenue impact`;
+    }
+    setMessage(defaultMessage);
+  }, [reportTitle, reportType]);
+
+  const handleSend = () => {
+    setIsSending(true);
+    // Simulate sending to Slack
+    setTimeout(() => {
+      setIsSending(false);
+      onClose();
+      // Show success message
+      alert('Report summary shared to Slack!');
+    }, 1000);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Share to Slack</DialogTitle>
+          <DialogDescription>
+            Share a summary of this report to Slack. Customize the message below.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="channel" className="text-right text-sm font-medium">
+              Channel
+            </label>
+            <Input
+              id="channel"
+              value={channel}
+              onChange={(e) => setChannel(e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label htmlFor="message" className="text-right text-sm font-medium">
+              Message
+            </label>
+            <Textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="col-span-3"
+              rows={6}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSend}
+            className="bg-[#4A154B] hover:bg-[#3a1039] text-white"
+            disabled={isSending}
+          >
+            {isSending ? 'Sending...' : 'Send to Slack'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('weekly');
   const [selectedReport, setSelectedReport] = useState<number | null>(1);
   const [reportContent, setReportContent] = useState<React.ReactNode | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(monthFilterOptions[0]);
+  const [filteredReports, setFilteredReports] = useState({
+    weekly: reports.weekly,
+    monthly: reports.monthly,
+    quarterly: reports.quarterly
+  });
+  const [isSlackModalOpen, setIsSlackModalOpen] = useState(false);
+
+  // Reference for sticky header
+  const headerRef = useRef<HTMLDivElement>(null);
+
+  // Set initial report content and apply filters
+  useEffect(() => {
+    // Filter reports based on selected month
+    if (selectedMonth.value !== 'all') {
+      setFilteredReports({
+        weekly: reports.weekly.filter(report => report.month === selectedMonth.value),
+        monthly: reports.monthly.filter(report => report.month === selectedMonth.value),
+        quarterly: reports.quarterly // Quarterly reports aren't filtered by month
+      });
+    } else {
+      setFilteredReports({
+        weekly: reports.weekly,
+        monthly: reports.monthly,
+        quarterly: reports.quarterly
+      });
+    }
+  }, [selectedMonth]);
 
   // Set initial report content
   useEffect(() => {
-    if (activeTab === 'weekly' && reports.weekly.length > 0) {
-      setSelectedReport(reports.weekly[0].id);
-      setReportContent(sampleReportContent.weekly);
-    } else if (activeTab === 'monthly' && reports.monthly.length > 0) {
-      setSelectedReport(reports.monthly[0].id);
-      setReportContent(sampleReportContent.monthly);
-    } else if (activeTab === 'quarterly' && reports.quarterly.length > 0) {
-      setSelectedReport(reports.quarterly[0].id);
-      setReportContent(sampleReportContent.quarterly);
+    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+
+    if (currentReports.length > 0) {
+      setSelectedReport(currentReports[0].id);
+
+      if (activeTab === 'weekly') {
+        setReportContent(sampleReportContent.weekly);
+      } else if (activeTab === 'monthly') {
+        setReportContent(sampleReportContent.monthly);
+      } else if (activeTab === 'quarterly') {
+        setReportContent(sampleReportContent.quarterly);
+      }
+    } else {
+      setSelectedReport(null);
+      setReportContent(null);
     }
-  }, [activeTab]);
+  }, [activeTab, filteredReports]);
 
   // Handle report selection
   const handleReportSelect = (reportId: number, type: string) => {
@@ -970,34 +1217,112 @@ export default function Reports() {
     }
   };
 
+  // Date range filter removed as not needed
+
+  // Handle month filter change
+  const handleMonthChange = (value: string) => {
+    const selected = monthFilterOptions.find(option => option.value === value);
+    if (selected) {
+      setSelectedMonth(selected);
+    }
+  };
+
+  // Handle Slack share
+  const handleSlackShare = () => {
+    setIsSlackModalOpen(true);
+  };
+
+  // Navigate to previous report
+  const navigateToPreviousReport = () => {
+    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+    if (!selectedReport || currentReports.length <= 1) return;
+
+    const currentIndex = currentReports.findIndex(report => report.id === selectedReport);
+    if (currentIndex > 0) {
+      const previousReport = currentReports[currentIndex - 1];
+      handleReportSelect(previousReport.id, activeTab);
+    }
+  };
+
+  // Navigate to next report
+  const navigateToNextReport = () => {
+    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+    if (!selectedReport || currentReports.length <= 1) return;
+
+    const currentIndex = currentReports.findIndex(report => report.id === selectedReport);
+    if (currentIndex < currentReports.length - 1) {
+      const nextReport = currentReports[currentIndex + 1];
+      handleReportSelect(nextReport.id, activeTab);
+    }
+  };
+
+  // Get current report title
+  const getCurrentReportTitle = () => {
+    if (!selectedReport) return '';
+
+    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+    const report = currentReports.find(r => r.id === selectedReport);
+    return report?.title || '';
+  };
+
   return (
     <DashboardLayout>
-      <div className="flex justify-between items-center mb-6">
+      {/* Slack Share Modal */}
+      <SlackShareModal
+        isOpen={isSlackModalOpen}
+        onClose={() => setIsSlackModalOpen(false)}
+        reportTitle={getCurrentReportTitle()}
+        reportType={activeTab}
+      />
+
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-dark">Reports</h1>
           <p className="text-base text-mediumGray">View weekly, monthly, and quarterly performance reports</p>
         </div>
+
+        {/* Month Filter */}
+        <div>
+          <Select
+            value={selectedMonth.value}
+            onValueChange={handleMonthChange}
+          >
+            <SelectTrigger className="w-[180px] h-10">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter by month" />
+            </SelectTrigger>
+            <SelectContent>
+              {monthFilterOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <PageContainer className="w-full">
-        <PageContainerTabs>
-          <TabNavigation
-            tabs={[
-              { id: 'weekly', label: 'Weekly' },
-              { id: 'monthly', label: 'Monthly' },
-              { id: 'quarterly', label: 'Quarterly' }
-            ]}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            variant="primary"
-          />
-        </PageContainerTabs>
+        <div ref={headerRef} className="sticky top-0 z-10 bg-white border-b border-lightGray">
+          <PageContainerTabs>
+            <TabNavigation
+              tabs={[
+                { id: 'weekly', label: 'Weekly' },
+                { id: 'monthly', label: 'Monthly' },
+                { id: 'quarterly', label: 'Quarterly' }
+              ]}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              variant="primary"
+            />
+          </PageContainerTabs>
+        </div>
 
         <PageContainerBody className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Report List */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-lightGray p-6">
+              <div className="bg-white rounded-lg border border-[#9EA8FB] p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium text-dark">
                     {activeTab === 'weekly' && 'Weekly Reports'}
@@ -1011,69 +1336,118 @@ export default function Reports() {
                 </div>
 
                 <div className="space-y-4">
-                  {activeTab === 'weekly' && reports.weekly.map(report => (
-                    <div
-                      key={report.id}
-                      className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-l-2 border-primary' : 'bg-gray-50 hover:bg-gray-100'}`}
-                      onClick={() => handleReportSelect(report.id, 'weekly')}
-                    >
-                      <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
-                      <div className="flex items-center mt-2">
-                        <Calendar className="h-4 w-4 text-mediumGray mr-2" />
-                        <p className="text-sm text-mediumGray">{report.date}</p>
+                  {activeTab === 'weekly' && filteredReports.weekly.length > 0 ? (
+                    filteredReports.weekly.map(report => (
+                      <div
+                        key={report.id}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-2 border-[#9EA8FB]' : 'bg-gray-50 hover:bg-[#9EA8FB]/5'}`}
+                        onClick={() => handleReportSelect(report.id, 'weekly')}
+                      >
+                        <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                        <div className="flex items-center mt-2">
+                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                          <p className="text-sm text-mediumGray">{report.date}</p>
+                        </div>
                       </div>
+                    ))
+                  ) : activeTab === 'weekly' && (
+                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                      <p className="text-mediumGray">No weekly reports found for the selected filters.</p>
                     </div>
-                  ))}
+                  )}
 
-                  {activeTab === 'monthly' && reports.monthly.map(report => (
-                    <div
-                      key={report.id}
-                      className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-l-2 border-primary' : 'bg-gray-50 hover:bg-gray-100'}`}
-                      onClick={() => handleReportSelect(report.id, 'monthly')}
-                    >
-                      <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
-                      <div className="flex items-center mt-2">
-                        <Calendar className="h-4 w-4 text-mediumGray mr-2" />
-                        <p className="text-sm text-mediumGray">{report.date}</p>
+                  {activeTab === 'monthly' && filteredReports.monthly.length > 0 ? (
+                    filteredReports.monthly.map(report => (
+                      <div
+                        key={report.id}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-2 border-[#9EA8FB]' : 'bg-gray-50 hover:bg-[#9EA8FB]/5'}`}
+                        onClick={() => handleReportSelect(report.id, 'monthly')}
+                      >
+                        <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                        <div className="flex items-center mt-2">
+                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                          <p className="text-sm text-mediumGray">{report.date}</p>
+                        </div>
                       </div>
+                    ))
+                  ) : activeTab === 'monthly' && (
+                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                      <p className="text-mediumGray">No monthly reports found for the selected filters.</p>
                     </div>
-                  ))}
+                  )}
 
-                  {activeTab === 'quarterly' && reports.quarterly.map(report => (
-                    <div
-                      key={report.id}
-                      className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-l-2 border-primary' : 'bg-gray-50 hover:bg-gray-100'}`}
-                      onClick={() => handleReportSelect(report.id, 'quarterly')}
-                    >
-                      <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
-                      <div className="flex items-center mt-2">
-                        <Calendar className="h-4 w-4 text-mediumGray mr-2" />
-                        <p className="text-sm text-mediumGray">{report.date}</p>
+                  {activeTab === 'quarterly' && filteredReports.quarterly.length > 0 ? (
+                    filteredReports.quarterly.map(report => (
+                      <div
+                        key={report.id}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-2 border-[#9EA8FB]' : 'bg-gray-50 hover:bg-[#9EA8FB]/5'}`}
+                        onClick={() => handleReportSelect(report.id, 'quarterly')}
+                      >
+                        <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                        <div className="flex items-center mt-2">
+                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                          <p className="text-sm text-mediumGray">{report.date}</p>
+                        </div>
                       </div>
+                    ))
+                  ) : activeTab === 'quarterly' && (
+                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                      <p className="text-mediumGray">No quarterly reports found for the selected filters.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Report Content */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg border border-lightGray p-6">
-                <div className="flex justify-between items-center mb-6">
+              <div className="bg-white rounded-lg border border-[#9EA8FB] p-6">
+                <div className="flex justify-between items-center mb-6 sticky top-0 bg-white py-4 z-10">
                   <div className="flex items-center">
-                    <Button variant="ghost" className="mr-3">
+                    <Button
+                      variant="ghost"
+                      className={`mr-3 ${!selectedReport || filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) <= 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#9EA8FB]/10'}`}
+                      onClick={navigateToPreviousReport}
+                      disabled={!selectedReport || filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) <= 0}
+                    >
                       <ChevronLeft className="h-5 w-5" />
                     </Button>
                     <h2 className="text-lg md:text-xl font-medium text-dark">
-                      {activeTab === 'weekly' && selectedReport && reports.weekly.find(r => r.id === selectedReport)?.title}
-                      {activeTab === 'monthly' && selectedReport && reports.monthly.find(r => r.id === selectedReport)?.title}
-                      {activeTab === 'quarterly' && selectedReport && reports.quarterly.find(r => r.id === selectedReport)?.title}
+                      {activeTab === 'weekly' && selectedReport && filteredReports.weekly.find(r => r.id === selectedReport)?.title}
+                      {activeTab === 'monthly' && selectedReport && filteredReports.monthly.find(r => r.id === selectedReport)?.title}
+                      {activeTab === 'quarterly' && selectedReport && filteredReports.quarterly.find(r => r.id === selectedReport)?.title}
                     </h2>
-                    <Button variant="ghost" className="ml-3">
+                    <Button
+                      variant="ghost"
+                      className={`ml-3 ${
+                        !selectedReport ||
+                        filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) >=
+                        filteredReports[activeTab as keyof typeof filteredReports].length - 1
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'hover:bg-[#9EA8FB]/10'
+                      }`}
+                      onClick={navigateToNextReport}
+                      disabled={
+                        !selectedReport ||
+                        filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) >=
+                        filteredReports[activeTab as keyof typeof filteredReports].length - 1
+                      }
+                    >
                       <ChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
                   <div className="flex items-center space-x-3">
+                    {activeTab === 'weekly' && (
+                      <Button
+                        className="flex items-center space-x-2 bg-[#4A154B] hover:bg-[#3a1039] text-white"
+                        onClick={handleSlackShare}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
+                          <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.687 8.834a2.528 2.528 0 0 1-2.521 2.521 2.527 2.527 0 0 1-2.522-2.521V2.522A2.527 2.527 0 0 1 15.166 0a2.528 2.528 0 0 1 2.521 2.522v6.312zM15.166 18.956a2.528 2.528 0 0 1 2.521 2.522A2.528 2.528 0 0 1 15.166 24a2.527 2.527 0 0 1-2.522-2.522v-2.522h2.522zM15.166 17.687a2.527 2.527 0 0 1-2.522-2.522 2.527 2.527 0 0 1 2.522-2.52h6.312A2.528 2.528 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.522h-6.312z" fill="currentColor" />
+                        </svg>
+                        <span>Share to Slack</span>
+                      </Button>
+                    )}
                     <Button variant="outline" className="flex items-center text-sm">
                       <Download className="h-4 w-4 mr-2" />
                       PDF

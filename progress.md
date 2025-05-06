@@ -75,6 +75,9 @@
 - ✅ Enabled Strategy/Ad Hoc tab in Task Boards page
 - ✅ Added spacing between notification and table header in Task Boards page
 - ✅ Standardized border size in Task Boards page notification banner
+- ✅ Updated Reports page with consistent purple border styling on all sides of report items
+- ✅ Fixed inconsistent text colors in Reports page metrics (KPI cards, Deliverables Recap, Conversion & ROI Metrics)
+- ✅ Simplified Reports page UI by removing unused date range filter
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -160,3 +163,7 @@
 - Added a sample Strategy/Ad Hoc task to the mock data to ensure all tabs have content
 - Improved visual spacing between the notification banner and table header in Task Boards page for better readability
 - Standardized border size to 2px on all sides of the notification banner for visual consistency
+- Updated Reports page with consistent purple border styling on all sides of report items for better visual appearance
+- Fixed inconsistent text colors in Reports page metrics to ensure all values use the same text color (black)
+- Simplified Reports page UI by removing the unused date range filter while keeping the functional month filter
+- Standardized border colors across weekly, monthly, and quarterly report content sections using the purple color (#9EA8FB)
