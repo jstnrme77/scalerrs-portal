@@ -67,46 +67,7 @@ export default function GetStartedPage() {
   }));
 
   return (
-    <>
-      <div className="space-y-4 mb-6">
-        <h1 className="text-2xl font-bold text-[#12131C]">Get Started</h1>
-        <p className="text-lg text-[#12131C]">Help clients get set up quickly, and learn how to use the portal.</p>
-
-        <div>
-          <div className="relative overflow-hidden rounded-2xl border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
-            <div className="mb-4">
-              <span className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 shadow-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
-                </span>
-                Action Required
-              </span>
-            </div>
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="mb-2 text-lg font-medium text-[#12131C]">Complete Your Onboarding</h2>
-                <p className="text-sm text-[#4F515E]">You have {totalCount - completedCount} remaining tasks to complete your onboarding process.</p>
-              </div>
-              <Button
-                variant="primary"
-                size="lg"
-                className="ml-4 inline-flex items-center gap-2 get-started-btn"
-                onClick={() => setChecklistModalOpen(true)}
-              >
-                Continue Onboarding
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-                  <path d="M5 12h14"></path>
-                  <path d="m12 5 7 7-7 7"></path>
-                </svg>
-              </Button>
-            </div>
-            <div className="absolute right-0 top-0 h-16 w-16 overflow-hidden">
-              <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-amber-500"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="-mt-8">
       {/* First row of cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
         {/* Loom Walkthrough Section */}
@@ -331,6 +292,6 @@ export default function GetStartedPage() {
         items={checklist}
         onItemToggle={handleChecklistItemToggle}
       />
-    </>
+    </div>
   );
 }

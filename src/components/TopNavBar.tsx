@@ -28,12 +28,9 @@ export default function TopNavBar({ sidebarExpanded = true }: TopNavBarProps) {
     }
   }, []);
 
-  // Only show on home page
+  // Show on home page and get-started page
   const isHomePage = pathname === '/home';
-
-  if (!isHomePage) {
-    return null;
-  }
+  const isGetStartedPage = pathname === '/get-started';
 
   // Client name would typically come from a user context or API
   const clientName = user?.Name || '(Client Name)';
@@ -41,7 +38,11 @@ export default function TopNavBar({ sidebarExpanded = true }: TopNavBarProps) {
   return (
     <div className={`fixed top-0 ${sidebarExpanded ? 'left-64' : 'left-20'} right-0 h-16 bg-white dark:bg-dark border-b border-gray-200 dark:border-gray-700 z-10 flex justify-between items-center px-6 transition-all duration-300 rounded-none`}>
       <div className="flex items-center">
-        <h1 className="text-lg font-medium text-[#12131C] dark:text-white">{greeting}, {clientName}</h1>
+        {isGetStartedPage ? (
+          <h1 className="text-2xl font-bold text-[#12131C] dark:text-white">Get Started</h1>
+        ) : (
+          <h1 className="text-lg font-medium text-[#12131C] dark:text-white">{greeting}, {clientName}</h1>
+        )}
       </div>
       <div className="flex items-center gap-4">
         <Link

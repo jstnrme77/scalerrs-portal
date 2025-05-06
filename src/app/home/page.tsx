@@ -15,13 +15,13 @@ export default function Home() {
   return (
     <>
       {/* Campaign Status Overview */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <p className="text-lg text-[#12131C] dark:text-gray-300 mb-4">
           Here&apos;s where your campaign stands this week
-        </p>
+        </p> */}
 
         {/* Highlighted Reminders - Priority 1 */}
-        <div className="relative overflow-hidden rounded-3xl border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
+        {/* <div className="relative overflow-hidden rounded-3xl border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
           <div className="mb-4">
             <span className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 shadow-sm">
               <span className="relative flex h-2 w-2">
@@ -48,7 +48,7 @@ export default function Home() {
             <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-amber-500"></div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content and Sidebar Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
