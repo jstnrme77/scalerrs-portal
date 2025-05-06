@@ -9,7 +9,19 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Download, Filter, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Calendar,
+  Download,
+  Filter,
+  TrendingDown,
+  TrendingUp,
+  AlertCircle,
+  ChevronUp
+} from "lucide-react";
 
 // Sample KPI data
 const kpiData = {
@@ -120,37 +132,37 @@ const kpiData = {
       { type: 'Resource Pages', traffic: 2260, conversions: 25, conversionRate: 1.11, avgPosition: 7.5, momChange: -2.3 }
     ],
     opportunities: [
-      { 
-        type: 'Blog Posts', 
-        title: 'Improve Internal Linking Structure', 
+      {
+        type: 'Blog Posts',
+        title: 'Improve Internal Linking Structure',
         description: 'Add more strategic internal links from high-traffic blog posts to relevant product pages to improve conversion paths.',
         priority: 'High',
         impact: 'Medium'
       },
-      { 
-        type: 'Product Pages', 
-        title: 'Enhance Schema Markup', 
+      {
+        type: 'Product Pages',
+        title: 'Enhance Schema Markup',
         description: 'Implement more detailed product schema to improve rich snippet visibility and CTR from search results.',
         priority: 'Medium',
         impact: 'High'
       },
-      { 
-        type: 'Category Pages', 
-        title: 'Optimize Title Tags & Meta Descriptions', 
+      {
+        type: 'Category Pages',
+        title: 'Optimize Title Tags & Meta Descriptions',
         description: 'Update title tags and meta descriptions to improve CTR. Current versions are too generic and not compelling.',
         priority: 'Medium',
         impact: 'Medium'
       },
-      { 
-        type: 'Landing Pages', 
-        title: 'Mobile Optimization', 
+      {
+        type: 'Landing Pages',
+        title: 'Mobile Optimization',
         description: 'Improve mobile page speed and UX. Mobile conversion rate is 25% lower than desktop despite good traffic.',
         priority: 'High',
         impact: 'High'
       },
-      { 
-        type: 'Resource Pages', 
-        title: 'Content Refresh', 
+      {
+        type: 'Resource Pages',
+        title: 'Content Refresh',
         description: 'Update outdated content and add more actionable information to improve engagement and backlink potential.',
         priority: 'Low',
         impact: 'Medium'
@@ -161,12 +173,9 @@ const kpiData = {
 
 // Date filter options
 const dateFilterOptions = [
-  { value: 'last-30-days', label: 'Last 30 Days' },
-  { value: 'last-90-days', label: 'Last 90 Days' },
-  { value: 'last-6-months', label: 'Last 6 Months' },
-  { value: 'last-12-months', label: 'Last 12 Months' },
-  { value: 'year-to-date', label: 'Year to Date' },
-  { value: 'custom', label: 'Custom Range' }
+  { value: 'monthly', label: 'Monthly View' },
+  { value: 'quarterly', label: 'Quarterly View' },
+  { value: 'yearly', label: 'Yearly View' }
 ];
 
 // Comparison period options
@@ -181,14 +190,25 @@ function KpiDashboard() {
   const [selectedComparison, setSelectedComparison] = useState(comparisonOptions[0]);
   const [activeTab, setActiveTab] = useState('summary');
 
+  // Calculate current performance metrics for the header
+  const currentProgress = 68; // Example: 68% of Q2 goal
+  const projectedAnnual = 83; // Example: 83% of annual target
+
+  // Determine growth pacing indicator
+  const getGrowthPacingIcon = (percentage: number) => {
+    if (percentage >= 80) return <TrendingUp className="h-5 w-5 text-green-600" />;
+    if (percentage >= 50) return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+    return <AlertCircle className="h-5 w-5 text-rose-500" />;
+  };
+
   return (
     <DashboardLayout>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-dark">KPI Dashboard</h1>
           <p className="text-mediumGray">Track your SEO performance metrics and forecasts</p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex items-center gap-2">
             <Select
@@ -200,7 +220,7 @@ function KpiDashboard() {
             >
               <SelectTrigger className="w-[180px] h-9">
                 <Calendar className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Select date range" />
+                <SelectValue placeholder="Select view" />
               </SelectTrigger>
               <SelectContent>
                 {dateFilterOptions.map((option) => (
@@ -210,7 +230,7 @@ function KpiDashboard() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select
               value={selectedComparison.value}
               onValueChange={(value) => {
@@ -230,11 +250,30 @@ function KpiDashboard() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <Button variant="outline" size="sm" className="flex items-center">
             <Download className="h-4 w-4 mr-1" />
             Export Report
           </Button>
+        </div>
+      </div>
+
+      {/* Header Overview with Contextual Summary */}
+      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB] mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-3">
+            {getGrowthPacingIcon(currentProgress)}
+            <div>
+              <p className="text-lg font-medium">You're currently hitting {currentProgress}% of your Q2 goal.</p>
+              <p className="text-sm text-gray-600">Based on current output, you'll reach ~{projectedAnnual}% of the annual target.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Badge className="bg-[#9EA8FB] hover:bg-[#9EA8FB]/90">
+              {selectedDateView.label}
+            </Badge>
+          </div>
         </div>
       </div>
 
@@ -243,8 +282,9 @@ function KpiDashboard() {
           <TabNavigation
             tabs={[
               { id: 'summary', label: 'KPI Summary' },
-              { id: 'forecasting', label: 'Forecasting' },
-              { id: 'pageTypeBreakdown', label: 'Page Type Breakdown' },
+              { id: 'forecasting', label: 'Forecasting Model' },
+              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type' },
+              { id: 'funnelStage', label: 'Funnel Stage Performance' },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -256,123 +296,225 @@ function KpiDashboard() {
           {/* KPI Summary Tab Content */}
           {activeTab === 'summary' && (
             <div className="space-y-6">
-              {/* Main KPI Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Organic Traffic Card */}
-                <Card>
+              {/* Main KPI Metrics - 2 rows x 3 columns grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Row 1: Critical Business KPIs */}
+
+                {/* Revenue Impact Card */}
+                <Card className="border border-[#FFE4A6]">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium">Organic Traffic</CardTitle>
-                    <CardDescription>Last 30 days vs previous period</CardDescription>
+                    <CardTitle className="text-sm font-medium text-gray-600">Revenue Impact</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-3xl font-bold">{kpiData.summary.organicTraffic.current.toLocaleString()}</span>
-                        <div className={`flex items-center ${kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-3xl font-bold text-[#FFE4A6]">$125,500</div>
+                          <div className="text-xs text-gray-500 mt-1">Target: $150,000</div>
+                        </div>
+                        <div className="flex items-center text-green-600 text-sm font-medium">
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                          <span>12%</span>
+                        </div>
+                      </div>
+
+                      {/* Micro-visual: Sparkline */}
+                      <div className="mt-4 h-8">
+                        <div className="flex items-end space-x-1 h-full">
+                          {[40, 55, 45, 60, 75, 65, 80, 85, 75, 90].map((value, i) => (
+                            <div
+                              key={i}
+                              className="w-full bg-[#FFE4A6]/50 rounded-sm"
+                              style={{ height: `${value}%` }}
+                            ></div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Organic Clicks Card */}
+                <Card className="border border-[#9EA8FB]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Organic Clicks</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData.summary.organicTraffic.current.toLocaleString()}</div>
+                          <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicTraffic.goal.toLocaleString()}</div>
+                        </div>
+                        <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {kpiData.summary.organicTraffic.change >= 0 ? (
-                            <TrendingUp className="h-4 w-4 mr-1" />
+                            <ArrowUp className="h-4 w-4 mr-1" />
                           ) : (
-                            <TrendingDown className="h-4 w-4 mr-1" />
+                            <ArrowDown className="h-4 w-4 mr-1" />
                           )}
-                          <span className="font-medium">{kpiData.summary.organicTraffic.change}%</span>
+                          <span>{kpiData.summary.organicTraffic.change}%</span>
                         </div>
                       </div>
-                      
-                      <div className="text-sm text-gray-500">
-                        Goal: {kpiData.summary.organicTraffic.goal.toLocaleString()}
-                      </div>
-                      
-                      <div className="w-full h-2 bg-gray-100 rounded-full mt-2">
-                        <div 
-                          className="h-2 bg-primary rounded-full" 
-                          style={{ width: `${kpiData.summary.organicTraffic.progress}%` }}
-                        ></div>
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 text-right">
-                        {kpiData.summary.organicTraffic.progress}% of goal
+
+                      {/* Micro-visual: Sparkline */}
+                      <div className="mt-4 h-8">
+                        <div className="flex items-end space-x-1 h-full">
+                          {[30, 40, 50, 45, 60, 75, 70, 85, 90, 95].map((value, i) => (
+                            <div
+                              key={i}
+                              className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                              style={{ height: `${value}%` }}
+                            ></div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-                
-                {/* Organic Conversions Card */}
-                <Card>
+
+                {/* Conversion Rate Card */}
+                <Card className="border border-[#9EA8FB]">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium">Organic Conversions</CardTitle>
-                    <CardDescription>Last 30 days vs previous period</CardDescription>
+                    <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-3xl font-bold">{kpiData.summary.organicConversions.current.toLocaleString()}</span>
-                        <div className={`flex items-center ${kpiData.summary.organicConversions.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-3xl font-bold text-[#9EA8FB]">2.8%</div>
+                          <div className="text-xs text-gray-500 mt-1">Target: 3.5%</div>
+                        </div>
+                        <div className="flex items-center text-green-600 text-sm font-medium">
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                          <span>0.3%</span>
+                        </div>
+                      </div>
+
+                      {/* Micro-visual: Bar chart */}
+                      <div className="mt-4 h-8">
+                        <div className="flex items-end space-x-1 h-full">
+                          {[1.8, 2.0, 2.2, 2.1, 2.3, 2.5, 2.6, 2.7, 2.8].map((value, i) => (
+                            <div
+                              key={i}
+                              className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                              style={{ height: `${(value/3.5)*100}%` }}
+                            ></div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Row 2: Supporting Metrics */}
+
+                {/* Leads Card */}
+                <Card className="border border-[#FFE4A6]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Leads</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-3xl font-bold text-[#FFE4A6]">{kpiData.summary.organicConversions.current.toLocaleString()}</div>
+                          <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicConversions.goal.toLocaleString()}</div>
+                        </div>
+                        <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicConversions.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {kpiData.summary.organicConversions.change >= 0 ? (
-                            <TrendingUp className="h-4 w-4 mr-1" />
+                            <ArrowUp className="h-4 w-4 mr-1" />
                           ) : (
-                            <TrendingDown className="h-4 w-4 mr-1" />
+                            <ArrowDown className="h-4 w-4 mr-1" />
                           )}
-                          <span className="font-medium">{kpiData.summary.organicConversions.change}%</span>
+                          <span>{kpiData.summary.organicConversions.change}%</span>
                         </div>
                       </div>
-                      
-                      <div className="text-sm text-gray-500">
-                        Goal: {kpiData.summary.organicConversions.goal.toLocaleString()}
-                      </div>
-                      
-                      <div className="w-full h-2 bg-gray-100 rounded-full mt-2">
-                        <div 
-                          className="h-2 bg-primary rounded-full" 
-                          style={{ width: `${kpiData.summary.organicConversions.progress}%` }}
-                        ></div>
-                      </div>
-                      
-                      <div className="text-xs text-gray-500 text-right">
-                        {kpiData.summary.organicConversions.progress}% of goal
+
+                      {/* Micro-visual: Sparkline */}
+                      <div className="mt-4 h-8">
+                        <div className="flex items-end space-x-1 h-full">
+                          {[35, 45, 55, 50, 65, 75, 70, 85, 90, 95].map((value, i) => (
+                            <div
+                              key={i}
+                              className="w-full bg-[#FFE4A6]/50 rounded-sm"
+                              style={{ height: `${value}%` }}
+                            ></div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-                
-                {/* Average Position Card */}
-                <Card>
+
+                {/* SQLs Card */}
+                <Card className="border border-[#9EA8FB]">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-medium">Average Position</CardTitle>
-                    <CardDescription>Last 30 days vs previous period</CardDescription>
+                    <CardTitle className="text-sm font-medium text-gray-600">SQLs</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-3xl font-bold">{kpiData.summary.averagePosition.current}</span>
-                        <div className={`flex items-center ${kpiData.summary.averagePosition.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {kpiData.summary.averagePosition.change >= 0 ? (
-                            <TrendingUp className="h-4 w-4 mr-1" />
-                          ) : (
-                            <TrendingDown className="h-4 w-4 mr-1" />
-                          )}
-                          <span className="font-medium">{kpiData.summary.averagePosition.change}%</span>
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-3xl font-bold text-[#9EA8FB]">385</div>
+                          <div className="text-xs text-gray-500 mt-1">Target: 450</div>
+                        </div>
+                        <div className="flex items-center text-green-600 text-sm font-medium">
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                          <span>18%</span>
                         </div>
                       </div>
-                      
-                      <div className="text-sm text-gray-500">
-                        Goal: {kpiData.summary.averagePosition.goal}
+
+                      {/* Micro-visual: Bar chart */}
+                      <div className="mt-4 h-8">
+                        <div className="flex items-end space-x-1 h-full">
+                          {[180, 210, 240, 260, 290, 320, 350, 370, 385].map((value, i) => (
+                            <div
+                              key={i}
+                              className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                              style={{ height: `${(value/450)*100}%` }}
+                            ></div>
+                          ))}
+                        </div>
                       </div>
-                      
-                      <div className="w-full h-2 bg-gray-100 rounded-full mt-2">
-                        <div 
-                          className="h-2 bg-primary rounded-full" 
-                          style={{ width: `${kpiData.summary.averagePosition.progress}%` }}
-                        ></div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Traffic Growth Card */}
+                <Card className="border border-[#9EA8FB]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Traffic Growth</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-3xl font-bold text-[#9EA8FB]">16.8%</div>
+                          <div className="text-xs text-gray-500 mt-1">Target: 20%</div>
+                        </div>
+                        <div className="flex items-center text-green-600 text-sm font-medium">
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                          <span>5.2%</span>
+                        </div>
                       </div>
-                      
-                      <div className="text-xs text-gray-500 text-right">
-                        {kpiData.summary.averagePosition.progress}% of goal
+
+                      {/* Micro-visual: Sparkline */}
+                      <div className="mt-4 h-8">
+                        <div className="flex items-end space-x-1 h-full">
+                          {[5, 7, 9, 8, 10, 12, 14, 15, 16.8].map((value, i) => (
+                            <div
+                              key={i}
+                              className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                              style={{ height: `${(value/20)*100}%` }}
+                            ></div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              
+
               {/* Keyword Rankings */}
               <Card>
                 <CardHeader>
@@ -402,7 +544,7 @@ function KpiDashboard() {
                         Previous: {kpiData.summary.keywordRankings.top3.previous}
                       </div>
                     </div>
-                    
+
                     {/* Top 10 Keywords */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <div className="flex justify-between items-center mb-2">
@@ -424,7 +566,7 @@ function KpiDashboard() {
                         Previous: {kpiData.summary.keywordRankings.top10.previous}
                       </div>
                     </div>
-                    
+
                     {/* Top 100 Keywords */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <div className="flex justify-between items-center mb-2">
@@ -449,7 +591,7 @@ function KpiDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Top Pages Performance */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -498,7 +640,7 @@ function KpiDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* New Pages Performance */}
               <Card>
                 <CardHeader>
@@ -533,313 +675,188 @@ function KpiDashboard() {
             </div>
           )}
 
-          {/* Forecasting Tab Content */}
+          {/* Forecasting Model Tab Content */}
           {activeTab === 'forecasting' && (
             <div className="space-y-6">
-              <Tabs defaultValue="traffic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-4">
-                  <TabsTrigger value="traffic">Traffic Forecast</TabsTrigger>
-                  <TabsTrigger value="conversions">Conversion Forecast</TabsTrigger>
-                  <TabsTrigger value="keywords">Keyword Forecast</TabsTrigger>
-                </TabsList>
-                
-                {/* Traffic Forecast Tab */}
-                <TabsContent value="traffic">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Organic Traffic Forecast</CardTitle>
-                      <CardDescription>Projected traffic growth for the next 8 months</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[400px] w-full">
-                        {/* Placeholder for chart - in a real app, you would use a charting library */}
-                        <div className="bg-gray-50 h-full w-full rounded-lg border border-gray-200 p-4 flex flex-col">
-                          <div className="flex justify-between mb-4">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                              <span className="text-xs text-gray-500">Actual</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                              <span className="text-xs text-gray-500">Forecast</span>
-                            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Card 1 - Forecast Based on Current Resources */}
+                <Card className="border border-[#9EA8FB]">
+                  <CardHeader>
+                    <CardTitle>Forecast Based on Current Resources</CardTitle>
+                    <CardDescription>What you're projected to achieve with current deliverables and timeline</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* 1. Projected Outcomes */}
+                    <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <h3 className="text-sm font-medium text-gray-600">Projected Outcomes</h3>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Total Forecasted Traffic by Q3</span>
+                          <span className="text-sm font-medium">{kpiData.forecasting.trafficForecast[8]?.forecast?.toLocaleString() || '60,500'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Forecasted Leads</span>
+                          <span className="text-sm font-medium">{kpiData.forecasting.conversionForecast[8]?.forecast?.toLocaleString() || '1,750'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">% of Original KPI Target</span>
+                          <span className="text-sm font-medium text-amber-600">65%</span>
+                        </div>
+                      </div>
+                      <div className="text-sm text-amber-600 mt-1">
+                        Expected to reach 65% of Q3 traffic goal at current pacing
+                      </div>
+                    </div>
+
+                    {/* 2. Deliverable Breakdown */}
+                    <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <h3 className="text-sm font-medium text-gray-600">Deliverable Breakdown</h3>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Content Briefs/Month</span>
+                          <span className="text-sm font-medium">8</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Backlinks/Month</span>
+                          <span className="text-sm font-medium">12</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Tech SEO Fixes Completed</span>
+                          <span className="text-sm font-medium">15</span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1 flex items-center">
+                        <span className="inline-block w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-1 text-[10px]">i</span>
+                        Assumes avg 500 visits/post, 1.7% CVR, DR 60 = +2 positions
+                      </div>
+                    </div>
+
+                    {/* 3. Visual Pacing Bar */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-gray-600">Progress Toward Target</h3>
+                      <div className="w-full h-4 bg-gray-100 rounded-full relative">
+                        <div className="h-4 bg-[#9EA8FB] rounded-full" style={{ width: '65%' }}></div>
+                        <div className="absolute top-6 left-[65%] transform -translate-x-1/2 text-xs text-[#9EA8FB]">
+                          Current Forecast
+                        </div>
+                        <div className="absolute top-6 right-0 transform translate-x-0 text-xs text-gray-600">
+                          Target
+                        </div>
+                      </div>
+                      <div className="flex justify-between mt-6">
+                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">At Risk</Badge>
+                      </div>
+                    </div>
+
+                    {/* 4. Timeline Estimate */}
+                    <div className="pt-2">
+                      <p className="text-sm text-gray-700">
+                        At this pace, you're projected to reach these outcomes by <span className="font-medium">November 2024</span>.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 2 - Forecast Based on Agreed KPI Targets */}
+                <Card className="border border-[#9EA8FB]">
+                  <CardHeader>
+                    <CardTitle>To Reach Agreed KPIs</CardTitle>
+                    <CardDescription>What would need to change to stay aligned with your campaign goals</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* 1. Target KPI Summary */}
+                    <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <h3 className="text-sm font-medium text-gray-600">Target KPI Summary</h3>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Target Traffic</span>
+                          <span className="text-sm font-medium">92,000</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Target Leads</span>
+                          <span className="text-sm font-medium">2,700</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">End Date of Goal</span>
+                          <span className="text-sm font-medium">End of Q3</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2. Gap Analysis */}
+                    <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <h3 className="text-sm font-medium text-gray-600">Gap Analysis</h3>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-sm">% of Gap to Close</span>
+                          <div className="flex items-center text-rose-600">
+                            <ArrowUp className="h-4 w-4 mr-1" />
+                            <span className="text-sm font-medium">35%</span>
                           </div>
-                          
-                          <div className="flex-1 flex items-end">
-                            {kpiData.forecasting.trafficForecast.map((item, index) => (
-                              <div key={index} className="flex-1 flex flex-col items-center">
-                                <div className="text-xs text-gray-500 mb-2">{item.month}</div>
-                                
-                                {/* Actual bar */}
-                                {item.actual !== null && (
-                                  <div 
-                                    className="w-4 bg-blue-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: `${(item.actual / 75000) * 100}%`,
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                )}
-                                
-                                {/* Forecast bar */}
-                                {item.actual === null && item.forecast !== null && (
-                                  <div 
-                                    className="w-4 bg-green-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: item.forecast ? `${(item.forecast / 75000) * 100}%` : '0%',
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                )}
-                                
-                                {/* Value label */}
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {item.actual !== null 
-                                    ? item.actual.toLocaleString() 
-                                    : item.forecast ? item.forecast.toLocaleString() : '0'}
-                                </div>
-                              </div>
-                            ))}
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Estimated Shortfall</span>
+                          <span className="text-sm font-medium text-rose-600">~31,500 visits below Q3 target</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Required Adjustments */}
+                    <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <h3 className="text-sm font-medium text-gray-600">Required Adjustments</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Deliverables</span>
+                          <span className="text-sm font-medium">+4 briefs / month</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Timeline</span>
+                          <span className="text-sm font-medium">+2 months</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Conversion Rate</span>
+                          <span className="text-sm font-medium">↑ from 1.7% → 2.1%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 4. Visual Comparison Chart */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium text-gray-600">Trajectory Comparison</h3>
+                      <div className="h-[150px] w-full bg-gray-50 rounded-lg border border-gray-200 p-2">
+                        <div className="flex items-end h-full w-full">
+                          {/* Simplified chart visualization */}
+                          <div className="flex-1 flex flex-col items-center">
+                            <div className="h-[60%] w-4 bg-[#9EA8FB] rounded-t-sm"></div>
+                            <div className="text-xs text-gray-500 mt-1">Current</div>
+                          </div>
+                          <div className="flex-1 flex flex-col items-center">
+                            <div className="h-[100%] w-4 bg-green-500 rounded-t-sm"></div>
+                            <div className="text-xs text-gray-500 mt-1">Target</div>
+                          </div>
+                          <div className="flex-1 flex flex-col items-center">
+                            <div className="h-[85%] w-4 bg-amber-500 rounded-t-sm"></div>
+                            <div className="text-xs text-gray-500 mt-1">Required</div>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Current Traffic</h4>
-                          <div className="text-2xl font-bold">
-                            {kpiData.summary.organicTraffic.current.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Last 30 days
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Projected Traffic (EOY)</h4>
-                          <div className="text-2xl font-bold text-green-600">
-                            {kpiData.forecasting.trafficForecast[11]?.forecast?.toLocaleString() || '0'}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            December 2025
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Growth Rate</h4>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {Math.round(((kpiData.forecasting.trafficForecast[11]?.forecast || 0) / kpiData.summary.organicTraffic.current - 1) * 100)}%
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Projected annual growth
-                          </div>
-                        </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>Current: 60,500</span>
+                        <span>Required: 78,200</span>
+                        <span>Target: 92,000</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                
-                {/* Conversion Forecast Tab */}
-                <TabsContent value="conversions">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Conversion Forecast</CardTitle>
-                      <CardDescription>Projected lead generation for the next 8 months</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[400px] w-full">
-                        {/* Placeholder for chart - in a real app, you would use a charting library */}
-                        <div className="bg-gray-50 h-full w-full rounded-lg border border-gray-200 p-4 flex flex-col">
-                          <div className="flex justify-between mb-4">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                              <span className="text-xs text-gray-500">Actual</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                              <span className="text-xs text-gray-500">Forecast</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 flex items-end">
-                            {kpiData.forecasting.conversionForecast.map((item, index) => (
-                              <div key={index} className="flex-1 flex flex-col items-center">
-                                <div className="text-xs text-gray-500 mb-2">{item.month}</div>
-                                
-                                {/* Actual bar */}
-                                {item.actual !== null && (
-                                  <div 
-                                    className="w-4 bg-purple-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: `${(item.actual / 2050) * 100}%`,
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                )}
-                                
-                                {/* Forecast bar */}
-                                {item.actual === null && item.forecast !== null && (
-                                  <div 
-                                    className="w-4 bg-amber-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: item.forecast ? `${(item.forecast / 2050) * 100}%` : '0%',
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                )}
-                                
-                                {/* Value label */}
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {item.actual !== null 
-                                    ? item.actual.toLocaleString() 
-                                    : item.forecast ? item.forecast.toLocaleString() : '0'}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                    </div>
+
+                    {/* 5. Internal Tooltip */}
+                    <div className="pt-2">
+                      <div className="text-xs text-gray-500 flex items-center">
+                        <span className="inline-block w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-1 text-[10px]">i</span>
+                        This assumes content starts compounding 45 days post-publish
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Current Conversions</h4>
-                          <div className="text-2xl font-bold">
-                            {kpiData.summary.organicConversions.current.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Last 30 days
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Projected Conversions (EOY)</h4>
-                          <div className="text-2xl font-bold text-amber-600">
-                            {kpiData.forecasting.conversionForecast[11]?.forecast?.toLocaleString() || '0'}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            December 2025
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Growth Rate</h4>
-                          <div className="text-2xl font-bold text-purple-600">
-                            {Math.round(((kpiData.forecasting.conversionForecast[11]?.forecast || 0) / kpiData.summary.organicConversions.current - 1) * 100)}%
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Projected annual growth
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-                
-                {/* Keyword Forecast Tab */}
-                <TabsContent value="keywords">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Keyword Position Forecast</CardTitle>
-                      <CardDescription>Projected keyword ranking improvements</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[400px] w-full">
-                        {/* Placeholder for chart - in a real app, you would use a charting library */}
-                        <div className="bg-gray-50 h-full w-full rounded-lg border border-gray-200 p-4 flex flex-col">
-                          <div className="flex justify-between mb-4">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                              <span className="text-xs text-gray-500">Top 3</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                              <span className="text-xs text-gray-500">Top 10</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                              <span className="text-xs text-gray-500">Top 100</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 flex items-end">
-                            {kpiData.forecasting.keywordForecast.map((item, index) => (
-                              <div key={index} className="flex-1 flex flex-col items-center">
-                                <div className="text-xs text-gray-500 mb-2">{item.month}</div>
-                                
-                                <div className="flex items-end space-x-1 h-full">
-                                  {/* Top 3 */}
-                                  <div 
-                                    className="w-3 bg-blue-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: `${(item.top3 / 75) * 100}%`,
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                  
-                                  {/* Top 10 */}
-                                  <div 
-                                    className="w-3 bg-green-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: `${(item.top10 / 340) * 100}%`,
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                  
-                                  {/* Top 100 */}
-                                  <div 
-                                    className="w-3 bg-amber-500 rounded-t-sm" 
-                                    style={{ 
-                                      height: `${(item.top100 / 1850) * 100}%`,
-                                      maxHeight: '100%'
-                                    }}
-                                  ></div>
-                                </div>
-                                
-                                {/* Value label */}
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {index === 0 || index === 3 || index === 11 ? item.top3 : ''}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Current Top 3 Keywords</h4>
-                          <div className="text-2xl font-bold">
-                            {kpiData.summary.keywordRankings.top3.current}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Last 30 days
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Projected Top 3 (EOY)</h4>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {kpiData.forecasting.keywordForecast[11]?.top3 || 0}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            December 2025
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
-                          <h4 className="text-sm font-medium mb-2">Growth Rate</h4>
-                          <div className="text-2xl font-bold text-green-600">
-                            {Math.round(((kpiData.forecasting.keywordForecast[11]?.top3 || 0) / kpiData.summary.keywordRankings.top3.current - 1) * 100)}%
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Projected annual growth
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
 
@@ -863,31 +880,31 @@ function KpiDashboard() {
                               clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%)',
                               backgroundColor: '#3b82f6'
                             }}></div>
-                            
+
                             {/* Product Pages Segment - 25% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 100% 50%, 100% 100%, 75% 100%)',
                               backgroundColor: '#10b981'
                             }}></div>
-                            
+
                             {/* Category Pages Segment - 20% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 75% 100%, 25% 100%)',
                               backgroundColor: '#f59e0b'
                             }}></div>
-                            
+
                             {/* Landing Pages Segment - 15% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 25% 100%, 0%, 100%, 0% 50%)',
                               backgroundColor: '#8b5cf6'
                             }}></div>
-                            
+
                             {/* Resource Pages Segment - 5% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 0% 50%, 0% 0%, 50% 0%)',
                               backgroundColor: '#ec4899'
                             }}></div>
-                            
+
                             {/* Center circle */}
                             <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-xs text-gray-500">
@@ -895,7 +912,7 @@ function KpiDashboard() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="grid grid-cols-3 gap-2 mt-4">
                             <div className="flex items-center space-x-1">
                               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
@@ -921,7 +938,7 @@ function KpiDashboard() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="h-[300px] w-full">
                       {/* Placeholder for chart - in a real app, you would use a charting library */}
                       <div className="bg-gray-50 h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
@@ -932,31 +949,31 @@ function KpiDashboard() {
                               clipPath: 'polygon(50% 50%, 50% 0%, 90% 0%, 100% 30%)',
                               backgroundColor: '#3b82f6'
                             }}></div>
-                            
+
                             {/* Product Pages Segment - 40% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 100% 30%, 100% 90%, 75% 100%)',
                               backgroundColor: '#10b981'
                             }}></div>
-                            
+
                             {/* Category Pages Segment - 15% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 75% 100%, 25% 100%)',
                               backgroundColor: '#f59e0b'
                             }}></div>
-                            
+
                             {/* Landing Pages Segment - 18% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 30% 100%, 0%, 90%, 0% 30%)',
                               backgroundColor: '#8b5cf6'
                             }}></div>
-                            
+
                             {/* Resource Pages Segment - 2% */}
                             <div className="absolute inset-0 w-full h-full" style={{
                               clipPath: 'polygon(50% 50%, 0% 30%, 0% 0%, 50% 0%)',
                               backgroundColor: '#ec4899'
                             }}></div>
-                            
+
                             {/* Center circle */}
                             <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-xs text-gray-500">
@@ -964,7 +981,7 @@ function KpiDashboard() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="grid grid-cols-3 gap-2 mt-4">
                             <div className="flex items-center space-x-1">
                               <div className="w-3 h-3 rounded-full bg-blue-500"></div>
@@ -991,7 +1008,7 @@ function KpiDashboard() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Page Type Performance Metrics</h4>
                     <div className="overflow-x-auto">
@@ -1049,7 +1066,7 @@ function KpiDashboard() {
                       </table>
                     </div>
                   </div>
-                  
+
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Page Type Optimization Opportunities</h4>
                     <div className="space-y-4">
@@ -1057,8 +1074,8 @@ function KpiDashboard() {
                         <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                           <div className="flex items-start">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                              item.priority === 'High' 
-                                ? 'bg-red-100 text-red-600' 
+                              item.priority === 'High'
+                                ? 'bg-red-100 text-red-600'
                                 : item.priority === 'Medium'
                                   ? 'bg-amber-100 text-amber-600'
                                   : 'bg-blue-100 text-blue-600'
@@ -1070,8 +1087,8 @@ function KpiDashboard() {
                               <p className="text-xs text-gray-500">{item.description}</p>
                               <div className="mt-2 flex space-x-2">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  item.priority === 'High' 
-                                    ? 'bg-red-100 text-red-800' 
+                                  item.priority === 'High'
+                                    ? 'bg-red-100 text-red-800'
                                     : item.priority === 'Medium'
                                       ? 'bg-amber-100 text-amber-800'
                                       : 'bg-blue-100 text-blue-800'
