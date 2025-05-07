@@ -318,12 +318,6 @@ function KpiDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-dark">KPI Dashboard</h1>
-          <p className="text-mediumGray">Track your SEO performance metrics and forecasts</p>
-        </div>
-      </div>
 
       {/* Performance Summary Banner */}
       <div className="p-6 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
