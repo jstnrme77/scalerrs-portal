@@ -26,7 +26,7 @@ const CompactTableHeader = React.forwardRef<
   HTMLTableSectionElement,
   CompactTableHeaderProps
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn("[&_tr]:border-b [&_tr]:rounded-[12px]", className)} {...props} />
 ))
 CompactTableHeader.displayName = "CompactTableHeader"
 
