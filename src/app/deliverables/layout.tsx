@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
 export default function DeliverableLayout({
@@ -7,5 +8,32 @@ export default function DeliverableLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  const [selectedMonth, setSelectedMonth] = useState<string>('January');
+  const [onMonthChange, setOnMonthChange] = useState<((month: string) => void) | undefined>(undefined);
+
+  // Listen for the custom event from the page component
+  useEffect(() => {
+    const handleUpdateTopNavBar = (event: CustomEvent) => {
+      const { selectedMonth, onMonthChange } = event.detail;
+      if (selectedMonth) setSelectedMonth(selectedMonth);
+      if (onMonthChange) setOnMonthChange(() => onMonthChange);
+    };
+
+    window.addEventListener('updateTopNavBar', handleUpdateTopNavBar as EventListener);
+
+    return () => {
+      window.removeEventListener('updateTopNavBar', handleUpdateTopNavBar as EventListener);
+    };
+  }, []);
+
+  return (
+    <DashboardLayout 
+      topNavBarProps={{
+        selectedMonth,
+        onMonthChange
+      }}
+    >
+      {children}
+    </DashboardLayout>
+  );
 }

@@ -1,17 +1,18 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import MonthSelector from '@/components/ui/selectors/MonthSelector';
 import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance } from '@/lib/client-api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { mockBriefs, mockArticles, mockBacklinks } from '@/lib/mock-data';
+import mockData2025 from '@/mockups/content-workflow-2025';
 
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
 
 export default function DeliverablePage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
-  const [selectedMonth, setSelectedMonth] = useState('January');
+  const [selectedMonth, setSelectedMonth] = useState('January 2025');
 
   // State for Airtable data
   const [loading, setLoading] = useState(true);
@@ -59,144 +60,139 @@ export default function DeliverablePage() {
     }
   };
 
-  // Fetch data from Airtable
+  // Use effect to update layout with month selector
   useEffect(() => {
-    const fetchData = async () => {
-      // Check if we're in a browser environment
-      const isBrowser = typeof window !== 'undefined';
+    const layoutData = {
+      pathname: '/deliverables',
+      selectedMonth: selectedMonth,
+      onMonthChange: setSelectedMonth
+    };
+    
+    // Dispatch event to communicate with layout
+    window.dispatchEvent(new CustomEvent('updateTopNavBar', { detail: layoutData }));
+  }, [selectedMonth]);
+
+  // Immediately set mock data on component mount
+  useEffect(() => {
+    // Combine regular mock data with 2025 data
+    const combinedBriefs = [
+      ...mockBriefs.map(brief => ({
+        ...brief,
+        Month: brief.Month.includes(' ') ? brief.Month : `${brief.Month} 2024` // Add year if missing
+      })),
+      ...mockData2025.briefs
+    ];
+    
+    const combinedArticles = [
+      ...mockArticles.map(article => ({
+        ...article,
+        Month: article.Month.includes(' ') ? article.Month : `${article.Month} 2024` // Add year if missing
+      })),
+      ...mockData2025.articles
+    ];
+    
+    const combinedBacklinks = [
+      ...mockBacklinks.map(backlink => ({
+        ...backlink,
+        Month: backlink.Month.includes(' ') ? backlink.Month : `${backlink.Month} 2024` // Add year if missing
+      })),
+      ...mockData2025.backlinks
+    ];
+    
+    // Set combined data
+    console.log('Using combined mock data for deliverables page');
+    setBriefs(combinedBriefs);
+    setArticles(combinedArticles);
+    setBacklinks(combinedBacklinks);
+    
+    // Also import URL Performance mock data
+    const fetchURLMockData = async () => {
+      const { mockURLPerformance } = await import('@/lib/mock-data');
+      setUrlPerformance(mockURLPerformance);
+      setLoading(false);
+    };
+    
+    fetchURLMockData();
+  }, []);
+
+  // Fetch data from Airtable - no longer used but kept for reference
+  const fetchRealData = async () => {
+    // Check if we're in a browser environment
+    const isBrowser = typeof window !== 'undefined';
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('Starting to fetch content workflow data...');
+
+      // Fetch each data type separately to better handle errors
+      let briefsData = [];
+      let articlesData = [];
+      let backlinksData = [];
+      let urlPerformanceData = [];
+      let hasErrors = false;
+      const errorMessages = [];
 
       try {
-        setLoading(true);
-        setError(null);
-
-        console.log('Starting to fetch content workflow data...');
-
-        // Check if we should use mock data
-        let useMockData = false;
-        if (isBrowser) {
-          useMockData = localStorage.getItem('use-mock-data') === 'true';
-          if (useMockData) {
-            console.log('Using mock data based on localStorage setting');
-            // Import mock data
-            const { mockBriefs, mockArticles, mockBacklinks } = await import('@/lib/mock-data');
-            setBriefs(mockBriefs);
-            setArticles(mockArticles);
-            setBacklinks(mockBacklinks);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Fetch each data type separately to better handle errors
-        let briefsData = [];
-        let articlesData = [];
-        let backlinksData = [];
-        let urlPerformanceData = [];
-        let hasErrors = false;
-        const errorMessages = [];
-
-        try {
-          console.log('Fetching briefs...');
-          briefsData = await fetchBriefs();
-          console.log('Briefs fetched successfully:', briefsData.length, 'records');
-          logData(briefsData, 'Briefs');
-          setBriefs(briefsData);
-        } catch (briefsErr: any) {
-          console.error('Error fetching briefs:', briefsErr);
-          errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
-          hasErrors = true;
-
-          // Import mock briefs as fallback
-          const { mockBriefs } = await import('@/lib/mock-data');
-          setBriefs(mockBriefs);
-          console.log('Using mock briefs data as fallback');
-        }
-
-        try {
-          console.log('Fetching articles...');
-          articlesData = await fetchArticles();
-          console.log('Articles fetched successfully:', articlesData.length, 'records');
-          logData(articlesData, 'Articles');
-          setArticles(articlesData);
-        } catch (articlesErr: any) {
-          console.error('Error fetching articles:', articlesErr);
-          errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
-          hasErrors = true;
-
-          // Import mock articles as fallback
-          const { mockArticles } = await import('@/lib/mock-data');
-          setArticles(mockArticles);
-          console.log('Using mock articles data as fallback');
-        }
-
-        try {
-          console.log('Fetching backlinks...');
-          backlinksData = await fetchBacklinks();
-          console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
-          logData(backlinksData, 'Backlinks');
-          setBacklinks(backlinksData);
-        } catch (backlinksErr: any) {
-          console.error('Error fetching backlinks:', backlinksErr);
-          errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
-          hasErrors = true;
-
-          // Import mock backlinks as fallback
-          const { mockBacklinks } = await import('@/lib/mock-data');
-          setBacklinks(mockBacklinks);
-          console.log('Using mock backlinks data as fallback');
-        }
-
-        try {
-          console.log('Fetching URL performance data...');
-          urlPerformanceData = await fetchURLPerformance();
-          console.log('URL performance data fetched successfully:', urlPerformanceData.length, 'records');
-          logData(urlPerformanceData, 'URL Performance');
-          setUrlPerformance(urlPerformanceData);
-        } catch (urlPerformanceErr: any) {
-          console.error('Error fetching URL performance data:', urlPerformanceErr);
-          errorMessages.push(`URL Performance: ${urlPerformanceErr.message || 'Unknown error'}`);
-          hasErrors = true;
-
-          // Import mock URL performance data as fallback
-          const { mockURLPerformance } = await import('@/lib/mock-data');
-          setUrlPerformance(mockURLPerformance);
-          console.log('Using mock URL performance data as fallback');
-        }
-
-        // Set error message if any of the fetches failed
-        if (hasErrors) {
-          setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Using sample data as fallback.`);
-          // Set a flag in localStorage to use mock data for future requests
-          if (isBrowser) {
-            localStorage.setItem('use-mock-data', 'true');
-          }
-        }
-      } catch (err: any) {
-        console.error('Error in content workflow data fetching:', err);
-        setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
-
-        // Import all mock data as fallback
-        try {
-          const { mockBriefs, mockArticles, mockBacklinks } = await import('@/lib/mock-data');
-          setBriefs(mockBriefs);
-          setArticles(mockArticles);
-          setBacklinks(mockBacklinks);
-          console.log('Using all mock data as fallback due to error');
-
-          // Set a flag in localStorage to use mock data for future requests
-          if (isBrowser) {
-            localStorage.setItem('use-mock-data', 'true');
-          }
-        } catch (mockErr) {
-          console.error('Error importing mock data:', mockErr);
-        }
-      } finally {
-        setLoading(false);
+        console.log('Fetching briefs...');
+        briefsData = await fetchBriefs();
+        console.log('Briefs fetched successfully:', briefsData.length, 'records');
+        logData(briefsData, 'Briefs');
+        setBriefs(briefsData);
+      } catch (briefsErr: any) {
+        console.error('Error fetching briefs:', briefsErr);
+        errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
+        hasErrors = true;
       }
-    };
 
-    fetchData();
-  }, []);
+      try {
+        console.log('Fetching articles...');
+        articlesData = await fetchArticles();
+        console.log('Articles fetched successfully:', articlesData.length, 'records');
+        logData(articlesData, 'Articles');
+        setArticles(articlesData);
+      } catch (articlesErr: any) {
+        console.error('Error fetching articles:', articlesErr);
+        errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
+        hasErrors = true;
+      }
+
+      try {
+        console.log('Fetching backlinks...');
+        backlinksData = await fetchBacklinks();
+        console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
+        logData(backlinksData, 'Backlinks');
+        setBacklinks(backlinksData);
+      } catch (backlinksErr: any) {
+        console.error('Error fetching backlinks:', backlinksErr);
+        errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
+        hasErrors = true;
+      }
+
+      try {
+        console.log('Fetching URL performance data...');
+        urlPerformanceData = await fetchURLPerformance();
+        console.log('URL performance data fetched successfully:', urlPerformanceData.length, 'records');
+        logData(urlPerformanceData, 'URL Performance');
+        setUrlPerformance(urlPerformanceData);
+      } catch (urlPerformanceErr: any) {
+        console.error('Error fetching URL performance data:', urlPerformanceErr);
+        errorMessages.push(`URL Performance: ${urlPerformanceErr.message || 'Unknown error'}`);
+        hasErrors = true;
+      }
+
+      // Set error message if any of the fetches failed
+      if (hasErrors) {
+        setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Using sample data as fallback.`);
+      }
+    } catch (err: any) {
+      console.error('Error in content workflow data fetching:', err);
+      setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Helper function for sorting
   const sortItems = (items: any[], sort: { column: string; direction: 'asc' | 'desc' } | null) => {
@@ -229,8 +225,10 @@ export default function DeliverablePage() {
   useEffect(() => {
     // Filter and sort briefs
     if (briefs.length > 0) {
+      console.log('All briefs before filtering:', briefs.map(b => ({ id: b.id, Month: b.Month, Title: b.Title })));
       // Start with month filter
       let filtered = briefs.filter(brief => brief.Month === selectedMonth);
+      console.log(`Filtering briefs for month: "${selectedMonth}"`, filtered.length);
 
       // Apply status filter if not 'all'
       if (briefStatusFilter !== 'all') {
@@ -247,6 +245,7 @@ export default function DeliverablePage() {
     if (articles.length > 0) {
       // Start with month filter
       let filtered = articles.filter(article => article.Month === selectedMonth);
+      console.log(`Filtering articles for month: ${selectedMonth}`, filtered.length);
 
       // Apply status filter if not 'all'
       if (articleStatusFilter !== 'all') {
@@ -263,11 +262,7 @@ export default function DeliverablePage() {
     if (backlinks.length > 0) {
       // Start with month filter
       let filtered = backlinks.filter(backlink => backlink.Month === selectedMonth);
-
-      // Apply status filter if not 'all'
-      if (statusFilter !== 'all') {
-        filtered = filtered.filter(backlink => backlink.Status === statusFilter);
-      }
+      console.log(`Filtering backlinks for month: ${selectedMonth}`, filtered.length);
 
       // Apply DR filter if not 'all'
       if (drFilter !== 'all') {
@@ -278,6 +273,11 @@ export default function DeliverablePage() {
         } else if (drFilter === '70+') {
           filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 70);
         }
+      }
+
+      // Apply status filter if not 'all'
+      if (statusFilter !== 'all') {
+        filtered = filtered.filter(backlink => backlink.Status === statusFilter);
       }
 
       // Apply sorting
@@ -297,25 +297,16 @@ export default function DeliverablePage() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-dark mr-4">Deliverables</h1>
-        </div>
-        <div className="relative">
-          <MonthSelector selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-        </div>
-      </div>
-
       {/* Top-Level Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Briefs Approved Card */}
-        <div className={`rounded-[16px] border-2 p-6 bg-white ${
+        <div className={`rounded-[16px] border-3 p-6 bg-white ${
           filteredBriefs.length > 0 &&
           (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.7
-            ? 'border-green-500'
+            ? 'border-purple-300'
             : (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.5
-              ? 'border-orange-500'
-              : 'border-red-500'
+              ? 'border-yellow-300'
+              : 'border-pink-200'
         }`}>
           <div className="flex flex-col items-center text-center">
             <span className="text-3xl font-bold mb-2">
@@ -333,13 +324,13 @@ export default function DeliverablePage() {
         </div>
 
         {/* Articles Live Card */}
-        <div className={`rounded-[16px] border-2 p-6 bg-white ${
+        <div className={`rounded-[16px] border-3 p-6 bg-white ${
           filteredArticles.length > 0 &&
           (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.7
-            ? 'border-green-500'
+            ? 'border-purple-300'
             : (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.5
-              ? 'border-orange-500'
-              : 'border-red-500'
+              ? 'border-yellow-300'
+              : 'border-pink-200'
         }`}>
           <div className="flex flex-col items-center text-center">
             <span className="text-3xl font-bold mb-2">
@@ -357,13 +348,13 @@ export default function DeliverablePage() {
         </div>
 
         {/* Backlinks Live Card */}
-        <div className={`rounded-[16px] border-2 p-6 bg-white ${
+        <div className={`rounded-[16px] border-3 p-6 bg-white ${
           filteredBacklinks.length > 0 &&
           (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.7
-            ? 'border-green-500'
+            ? 'border-purple-300'
             : (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.5
-              ? 'border-orange-500'
-              : 'border-red-500'
+              ? 'border-yellow-300'
+              : 'border-pink-200'
         }`}>
           <div className="flex flex-col items-center text-center">
             <span className="text-3xl font-bold mb-2">
@@ -436,7 +427,7 @@ export default function DeliverablePage() {
               <div>
                 <div className="page-container-body">
                   <div>
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                       <div className="flex justify-between items-center bg-purple-100 p-2 rounded-md mb-2">
                         <div className="flex items-center">
                           <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center mr-2">
@@ -461,9 +452,9 @@ export default function DeliverablePage() {
                           ></div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                     {/* Briefs Table */}
-                    <div className="bg-white rounded-md border border-[#9EA8FB]">
+                    <div className="bg-white">
                       <div className="mb-8 flex flex-wrap gap-4 p-4">
                         <div>
                           <select
@@ -490,11 +481,11 @@ export default function DeliverablePage() {
                           </div>
                         )}
                       </div>
-
+                      
                       <Table>
                         <TableHeader className="bg-[#9EA8FB]/10">
                           <TableRow>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[25%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -509,7 +500,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[20%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -524,7 +515,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[15%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -539,7 +530,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[15%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -554,7 +545,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[15%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -569,28 +560,28 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">GDoc Link</TableHead>
+                            <TableHead className="font-semibold w-[10%]">GDoc Link</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {filteredBriefs.length > 0 ? (
                             filteredBriefs.map((brief) => (
                               <TableRow key={brief.id}>
-                                <TableCell className="font-medium">{brief.Title}</TableCell>
-                                <TableCell>{brief.SEOStrategist || brief['SEO Strategist'] || '-'}</TableCell>
-                                <TableCell>
+                                <TableCell className="font-medium w-[25%]">{brief.Title}</TableCell>
+                                <TableCell className="w-[20%]">{brief.SEOStrategist || brief['SEO Strategist'] || '-'}</TableCell>
+                                <TableCell className="w-[15%]">
                                   {brief.DueDate ? new Date(brief.DueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
                                 </TableCell>
-                                <TableCell>
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                <TableCell className="w-[15%]">
+                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
                                     ${brief.Status === 'Brief Approved' || brief.Status === 'Approved' ? 'bg-green-100 text-green-800' :
-                                    brief.Status === 'Needs Input' ? 'bg-yellow-100 text-yellow-800' :
+                                    brief.Status === 'Needs Input' ? 'bg-yellow-200 text-yellow-800' :
                                     'bg-gray-100 text-gray-800'}`}>
                                     {brief.Status === 'Brief Approved' ? 'Approved' : brief.Status}
                                   </span>
                                 </TableCell>
-                                <TableCell>{brief.Month || '-'}</TableCell>
-                                <TableCell>
+                                <TableCell className="w-[15%]">{brief.Month || '-'}</TableCell>
+                                <TableCell className="w-[10%]">
                                   {brief.DocumentLink ? (
                                     <a
                                       href={brief.DocumentLink}
@@ -626,7 +617,7 @@ export default function DeliverablePage() {
               <div>
                 <div className="page-container-body">
                   <div>
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                       <div className="mb-2">
                         <p className="text-sm text-gray-600 mb-1">
                           {selectedMonth}: {filteredArticles.filter(article => article.Status === 'Live').length} of {filteredArticles.length} articles delivered
@@ -639,9 +630,9 @@ export default function DeliverablePage() {
                           ></div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                     {/* Articles Table */}
-                    <div className="bg-white rounded-md border border-[#9EA8FB]">
+                    <div className="bg-white">
                       <div className="mb-8 flex flex-wrap gap-4 p-4">
                         <div>
                           <select
@@ -672,7 +663,7 @@ export default function DeliverablePage() {
                       <Table>
                         <TableHeader className="bg-[#9EA8FB]/10">
                           <TableRow>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[20%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -687,7 +678,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[12%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -702,7 +693,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -717,7 +708,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -732,7 +723,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -747,7 +738,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -762,34 +753,34 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">GDoc Link</TableHead>
-                            <TableHead className="font-semibold">Article URL</TableHead>
+                            <TableHead className="font-semibold w-[14%]">GDoc Link</TableHead>
+                            <TableHead className="font-semibold w-[14%]">Article URL</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {filteredArticles.length > 0 ? (
                             filteredArticles.map((article) => (
                               <TableRow key={article.id}>
-                                <TableCell className="font-medium">{article.Title}</TableCell>
-                                <TableCell>{article.Writer || article['Content Writer'] || '-'}</TableCell>
-                                <TableCell>{article.WordCount || article['Word Count'] || '-'}</TableCell>
-                                <TableCell>
+                                <TableCell className="font-medium w-[20%]">{article.Title}</TableCell>
+                                <TableCell className="w-[12%]">{article.Writer || article['Content Writer'] || '-'}</TableCell>
+                                <TableCell className="w-[10%]">{article.WordCount || article['Word Count'] || '-'}</TableCell>
+                                <TableCell className="w-[10%]">
                                   {article.DueDate || article['Due Date'] ?
                                     new Date(article.DueDate || article['Due Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                                     : '-'}
                                 </TableCell>
-                                <TableCell>
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                <TableCell className="w-[10%]">
+                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
                                     ${article.Status === 'Live' ? 'bg-green-100 text-green-800' :
-                                    article.Status === 'Draft Approved' ? 'bg-blue-100 text-blue-800' :
-                                    article.Status === 'Review Draft' ? 'bg-yellow-100 text-yellow-800' :
-                                    article.Status === 'In Production' ? 'bg-purple-100 text-purple-800' :
+                                    article.Status === 'Draft Approved' ? 'bg-blue-200 text-blue-800' :
+                                    article.Status === 'Review Draft' ? 'bg-yellow-200 text-yellow-800' :
+                                    article.Status === 'In Production' ? 'bg-purple-200 text-purple-800' :
                                     'bg-gray-100 text-gray-800'}`}>
                                     {article.Status}
                                   </span>
                                 </TableCell>
-                                <TableCell>{article.Month || '-'}</TableCell>
-                                <TableCell>
+                                <TableCell className="w-[10%]">{article.Month || '-'}</TableCell>
+                                <TableCell className="w-[14%]">
                                   {article.DocumentLink || article['Document Link'] ? (
                                     <a
                                       href={article.DocumentLink || article['Document Link']}
@@ -804,7 +795,7 @@ export default function DeliverablePage() {
                                     </a>
                                   ) : '-'}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="w-[14%]">
                                   {article.ArticleURL || article['Article URL'] ? (
                                     <a
                                       href={article.ArticleURL || article['Article URL']}
@@ -839,7 +830,7 @@ export default function DeliverablePage() {
               <div>
                 <div className="page-container-body">
                   <div>
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                       <p className="text-sm text-gray-600 mb-1">
                         {selectedMonth}: {filteredBacklinks.filter(b => b.Status === 'Live').length} links live ({filteredBacklinks.length > 0 ? Math.round((filteredBacklinks.filter(b => b.Status === 'Live').length / filteredBacklinks.length) * 100) : 0}%)
                       </p>
@@ -849,10 +840,10 @@ export default function DeliverablePage() {
                           style={{ width: `${filteredBacklinks.length > 0 ? Math.round((filteredBacklinks.filter(b => b.Status === 'Live').length / filteredBacklinks.length) * 100) : 0}%` }}
                         ></div>
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Backlinks Table */}
-                    <div className="bg-white rounded-md border border-[#9EA8FB]">
+                    <div className="bg-white">
                       <div className="mb-8 flex flex-wrap gap-4 p-4">
                         <div>
                           <select
@@ -896,7 +887,7 @@ export default function DeliverablePage() {
                       <Table>
                         <TableHeader className="bg-[#9EA8FB]/10">
                           <TableRow>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[18%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -911,7 +902,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[8%] text-center">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -920,13 +911,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 font-medium flex items-center justify-center"
                               >
                                 DR
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[12%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -941,8 +932,8 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">Target Page</TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[15%]">Target Page</TableHead>
+                            <TableHead className="font-semibold w-[12%] pl-4">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -957,7 +948,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[12%] pl-4">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -972,7 +963,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">
+                            <TableHead className="font-semibold w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -987,21 +978,21 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold">Notes</TableHead>
+                            <TableHead className="font-semibold w-[13%]">Notes</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {filteredBacklinks.length > 0 ? (
                             filteredBacklinks.map((backlink) => (
                               <TableRow key={backlink.id}>
-                                <TableCell className="font-medium">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
-                                <TableCell>
+                                <TableCell className="font-medium w-[18%]">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
+                                <TableCell className="w-[8%] text-center">
                                   <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
                                     {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
                                   </span>
                                 </TableCell>
-                                <TableCell>{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</TableCell>
-                                <TableCell>
+                                <TableCell className="w-[12%]">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</TableCell>
+                                <TableCell className="w-[15%]">
                                   {(() => {
                                     // Get the target URL from the appropriate field
                                     const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
@@ -1054,20 +1045,20 @@ export default function DeliverablePage() {
                                     }
                                   })()}
                                 </TableCell>
-                                <TableCell>
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                <TableCell className="w-[12%] pl-4">
+                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
                                     ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
-                                    backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                                    backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                                    backlink.Status === 'Scheduled' ? 'bg-yellow-200 text-yellow-800' :
+                                    backlink.Status === 'Rejected' ? 'bg-red-200 text-red-800' :
                                     'bg-gray-100 text-gray-800'}`}>
                                     {backlink.Status || 'Unknown Status'}
                                   </span>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="w-[12%] pl-4">
                                   {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
                                 </TableCell>
-                                <TableCell>{backlink.Month || selectedMonth}</TableCell>
-                                <TableCell>{backlink.Notes || '—'}</TableCell>
+                                <TableCell className="w-[10%]">{backlink.Month || selectedMonth}</TableCell>
+                                <TableCell className="w-[13%]">{backlink.Notes || '—'}</TableCell>
                               </TableRow>
                             ))
                           ) : (

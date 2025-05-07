@@ -74,6 +74,7 @@ export default function TopNavBar({
   const pageTitle = getPageTitle();
   const isHomePage = pathname === '/home';
   const isContentWorkflowPage = pathname === '/content-workflow';
+  const isDeliverablesPage = pathname === '/deliverables';
   const isTaskBoardsPage = pathname === '/task-boards';
 
   // Client name would typically come from a user context or API
@@ -90,7 +91,7 @@ export default function TopNavBar({
       </div>
 
       <div className="flex items-center space-x-4">
-        {isContentWorkflowPage && onMonthChange && (
+        {(isContentWorkflowPage || isDeliverablesPage) && onMonthChange && (
           <RoundedMonthSelector
             selectedMonth={selectedMonth || 'January'}
             onChange={onMonthChange}

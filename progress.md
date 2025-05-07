@@ -88,6 +88,10 @@
 - ✅ Standardized all UI element border radiuses to use 12px rounded corners instead of circular/pill shapes
 - ✅ Updated Task Boards page status indicators, badges, and buttons with consistent rounded-lg styling
 - ✅ Fixed Date Logged column width in Task Boards page to prevent line wrapping
+- ✅ Moved month selector from Deliverables page to TopNavBar for consistent UI
+- ✅ Updated summary cards in Deliverables page with improved color-coding (green, orange, red indicators)
+- ✅ Implemented communication between page and layout components using custom events
+- ✅ Fixed table column alignment issues in Deliverables page with proper width classes and padding
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -102,6 +106,7 @@
 - ✅ Resolved Netlify build errors related to type safety
 - ✅ Fixed document viewer modal to work without external dependencies
 - ✅ Removed approval buttons from Content Workflow page as per requirements
+- ✅ Modified DashboardLayout to support TopNavBar customization for different pages
 - 🔄 Improving type safety throughout the application
 
 ## Upcoming Tasks
@@ -207,3 +212,7 @@
 - Standardized table header padding (12px vertical, 16px horizontal) for improved readability and spacing
 - Updated all badges, buttons, and UI elements in Task Boards to use consistent slightly rounded corners (rounded-lg) instead of fully rounded pill shapes
 - Fixed formatting in Task Boards components to improve appearance and usability
+- Moved month selector from Deliverables page to TopNavBar for a cleaner UI and consistent experience with Content Workflow page
+- Updated TopNavBar component to display month selector for both Content Workflow and Deliverables pages
+- Implemented custom event system to communicate between page components and layout components
+- Updated DashboardLayout component to support customizable TopNavBar props for different pages
