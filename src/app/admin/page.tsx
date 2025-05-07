@@ -6,7 +6,7 @@ import AdminAgreement from './AdminAgreement';
 import AdminResources from './AdminResources';
 import AdminAccess from './AdminAccess';
 import ChangePasswordModal from './ChangePasswordModal';
-import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
+import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody } from '@/components/ui/layout/PageContainer';
 
 // Sample admin data
@@ -50,6 +50,10 @@ export default function Admin() {
   const [data, setData] = useState(adminData);
   const [passwordModal, setPasswordModal] = useState({ isOpen: false, accessId: null as number | null });
   const [selectedAccess, setSelectedAccess] = useState<any | null>(null);
+  const [actionStatus, setActionStatus] = useState<{
+    type: 'success' | 'error' | 'info' | null;
+    message: string | null;
+  }>({ type: null, message: null });
 
   const handleChangePassword = (id: number) => {
     const accessItem = data.access.find(item => item.id === id);
@@ -58,67 +62,162 @@ export default function Admin() {
   };
 
   const handleSavePassword = (id: number, newPassword: string) => {
-    // Update the password in the data
-    setData(prevData => ({
-      ...prevData,
-      access: prevData.access.map(item =>
-        item.id === id ? {
-          ...item,
-          password: '••••••••••',
-          lastUpdated: new Date().toISOString().split('T')[0]
-        } : item
-      )
-    }));
+    try {
+      // Update the password in the data
+      setData(prevData => ({
+        ...prevData,
+        access: prevData.access.map(item =>
+          item.id === id ? {
+            ...item,
+            password: '••••••••••',
+            lastUpdated: new Date().toISOString().split('T')[0]
+          } : item
+        )
+      }));
 
-    // In a real application, you would send this to an API
-    console.log(`Password updated for service ID ${id}`);
+      // In a real application, you would send this to an API
+      console.log(`Password updated for service ID ${id}`);
+      
+      // Show success notification
+      setActionStatus({
+        type: 'success',
+        message: 'Password updated successfully'
+      });
+      
+      // Clear notification after a delay
+      setTimeout(() => {
+        setActionStatus({ type: null, message: null });
+      }, 3000);
+    } catch (error) {
+      // Handle error
+      setActionStatus({
+        type: 'error',
+        message: 'Failed to update password. Please try again.'
+      });
+      
+      setTimeout(() => {
+        setActionStatus({ type: null, message: null });
+      }, 3000);
+    }
   };
 
   const handleAddAccess = (newAccess: any) => {
-    setData(prevData => ({
-      ...prevData,
-      access: [...prevData.access, {
-        ...newAccess,
-        id: Math.max(...prevData.access.map(item => item.id)) + 1,
-        password: '••••••••••',
-        lastUpdated: new Date().toISOString().split('T')[0],
-        uploadedBy: 'Client',
-        editable: true
-      }]
-    }));
+    try {
+      if (!newAccess.service.trim() || !newAccess.username.trim()) {
+        setActionStatus({
+          type: 'error',
+          message: 'Service name and username are required'
+        });
+        return;
+      }
+      
+      setData(prevData => ({
+        ...prevData,
+        access: [...prevData.access, {
+          ...newAccess,
+          id: Math.max(...prevData.access.map(item => item.id)) + 1,
+          password: '••••••••••',
+          lastUpdated: new Date().toISOString().split('T')[0],
+          uploadedBy: 'Client',
+          editable: true
+        }]
+      }));
+      
+      setActionStatus({
+        type: 'success',
+        message: `Access for ${newAccess.service} added successfully`
+      });
+      
+      setTimeout(() => {
+        setActionStatus({ type: null, message: null });
+      }, 3000);
+    } catch (error) {
+      setActionStatus({
+        type: 'error',
+        message: 'Failed to add access. Please try again.'
+      });
+      
+      setTimeout(() => {
+        setActionStatus({ type: null, message: null });
+      }, 3000);
+    }
   };
 
   const handleUploadResource = (newResource: any) => {
-    setData(prevData => ({
-      ...prevData,
-      resources: [...prevData.resources, {
-        ...newResource,
-        id: Math.max(...prevData.resources.map(item => item.id)) + 1,
-        lastUpdated: new Date().toISOString().split('T')[0],
-        uploadedBy: 'Client',
-        editable: true
-      }]
-    }));
+    try {
+      if (!newResource.name.trim() || !newResource.type) {
+        setActionStatus({
+          type: 'error',
+          message: 'Resource name and type are required'
+        });
+        return;
+      }
+      
+      setData(prevData => ({
+        ...prevData,
+        resources: [...prevData.resources, {
+          ...newResource,
+          id: Math.max(...prevData.resources.map(item => item.id)) + 1,
+          lastUpdated: new Date().toISOString().split('T')[0],
+          uploadedBy: 'Client',
+          editable: true
+        }]
+      }));
+      
+      setActionStatus({
+        type: 'success',
+        message: `Resource "${newResource.name}" uploaded successfully`
+      });
+      
+      setTimeout(() => {
+        setActionStatus({ type: null, message: null });
+      }, 3000);
+    } catch (error) {
+      setActionStatus({
+        type: 'error',
+        message: 'Failed to upload resource. Please try again.'
+      });
+      
+      setTimeout(() => {
+        setActionStatus({ type: null, message: null });
+      }, 3000);
+    }
   };
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-dark">Admin</h1>
-        <p className="text-mediumGray">Manage your campaign settings and resources</p>
-      </div>
 
-      {data.missingAccess && (
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-scalerrs">
+      {actionStatus.type && actionStatus.message && (
+        <div className={`mb-6 p-4 rounded-md ${
+          actionStatus.type === 'success' ? 'bg-green-50 border-l-4 border-green-400' :
+          actionStatus.type === 'error' ? 'bg-red-50 border-l-4 border-red-400' :
+          'bg-blue-50 border-l-4 border-blue-400'
+        }`}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+              {actionStatus.type === 'success' && (
+                <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              )}
+              {actionStatus.type === 'error' && (
+                <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              )}
+              {actionStatus.type === 'info' && (
+                <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              )}
             </div>
             <div className="ml-3">
-              <p className="text-sm text-amber-700">
-                ⚠️ Missing CMS access — please complete setup in the Access & Logins tab.
+              <p className={`text-sm ${
+                actionStatus.type === 'success' ? 'text-green-700' :
+                actionStatus.type === 'error' ? 'text-red-700' :
+                'text-blue-700'
+              }`}>
+                {actionStatus.message}
               </p>
             </div>
           </div>
@@ -153,7 +252,16 @@ export default function Admin() {
               accessItems={data.access}
               onAddAccess={handleAddAccess}
               onChangePassword={handleChangePassword}
-              onCopyLogin={(id) => console.log(`Copy login info for ${id}`)}
+              onCopyLogin={(id) => {
+                console.log(`Copy login info for ${id}`);
+                setActionStatus({
+                  type: 'success',
+                  message: 'Login information copied to clipboard'
+                });
+                setTimeout(() => {
+                  setActionStatus({ type: null, message: null });
+                }, 3000);
+              }}
               onGoToService={(id) => console.log(`Go to service ${id}`)}
             />
           )}

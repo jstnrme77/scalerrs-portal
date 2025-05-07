@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Input, TextArea, Button } from '@/components/ui/forms';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 type OnboardingData = {
   businessName: string;
@@ -54,23 +56,32 @@ export default function AdminOnboarding({
           
           <div className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Business Name"
-                value={data.businessName}
-                onChange={(e) => onChange({...data, businessName: e.target.value})}
-              />
+              <div className="space-y-2">
+                <label htmlFor="businessName" className="block text-sm font-medium text-mediumGray">Business Name</label>
+                <Input
+                  id="businessName"
+                  value={data.businessName}
+                  onChange={(e) => onChange({...data, businessName: e.target.value})}
+                />
+              </div>
               
-              <Input
-                label="Website URL"
-                value={data.website}
-                onChange={(e) => onChange({...data, website: e.target.value})}
-              />
+              <div className="space-y-2">
+                <label htmlFor="website" className="block text-sm font-medium text-mediumGray">Website URL</label>
+                <Input
+                  id="website"
+                  value={data.website}
+                  onChange={(e) => onChange({...data, website: e.target.value})}
+                />
+              </div>
               
-              <Input
-                label="Industry"
-                value={data.industry}
-                onChange={(e) => onChange({...data, industry: e.target.value})}
-              />
+              <div className="space-y-2">
+                <label htmlFor="industry" className="block text-sm font-medium text-mediumGray">Industry</label>
+                <Input
+                  id="industry"
+                  value={data.industry}
+                  onChange={(e) => onChange({...data, industry: e.target.value})}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -82,28 +93,37 @@ export default function AdminOnboarding({
           
           <div className="p-4">
             <div className="space-y-4">
-              <TextArea
-                label="Main Competitors (one per line)"
-                value={data.competitors}
-                onChange={(e) => onChange({...data, competitors: e.target.value})}
-                className="h-24"
-              />
+              <div className="space-y-2">
+                <label htmlFor="competitors" className="block text-sm font-medium text-mediumGray">Main Competitors (one per line)</label>
+                <Textarea
+                  id="competitors"
+                  value={data.competitors}
+                  onChange={(e) => onChange({...data, competitors: e.target.value})}
+                  className="min-h-[100px]"
+                />
+              </div>
               
-              <TextArea
-                label="Target Audience"
-                value={data.targetAudience}
-                onChange={(e) => onChange({...data, targetAudience: e.target.value})}
-                placeholder="Describe your ideal customer profile, demographics, and behaviors"
-                className="h-24"
-              />
+              <div className="space-y-2">
+                <label htmlFor="targetAudience" className="block text-sm font-medium text-mediumGray">Target Audience</label>
+                <Textarea
+                  id="targetAudience"
+                  value={data.targetAudience}
+                  onChange={(e) => onChange({...data, targetAudience: e.target.value})}
+                  placeholder="Describe your ideal customer profile, demographics, and behaviors"
+                  className="min-h-[100px]"
+                />
+              </div>
               
-              <TextArea
-                label="Business Goals"
-                value={data.goals}
-                onChange={(e) => onChange({...data, goals: e.target.value})}
-                placeholder="What are your main business objectives for this SEO campaign?"
-                className="h-24"
-              />
+              <div className="space-y-2">
+                <label htmlFor="goals" className="block text-sm font-medium text-mediumGray">Business Goals</label>
+                <Textarea
+                  id="goals"
+                  value={data.goals}
+                  onChange={(e) => onChange({...data, goals: e.target.value})}
+                  placeholder="What are your main business objectives for this SEO campaign?"
+                  className="min-h-[100px]"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -115,29 +135,38 @@ export default function AdminOnboarding({
           
           <div className="p-4">
             <div className="space-y-4">
-              <TextArea
-                label="Existing Keywords (if any)"
-                value={data.existingKeywords}
-                onChange={(e) => onChange({...data, existingKeywords: e.target.value})}
-                placeholder="List any keywords you're currently targeting or ranking for"
-                className="h-24"
-              />
+              <div className="space-y-2">
+                <label htmlFor="existingKeywords" className="block text-sm font-medium text-mediumGray">Existing Keywords (if any)</label>
+                <Textarea
+                  id="existingKeywords"
+                  value={data.existingKeywords}
+                  onChange={(e) => onChange({...data, existingKeywords: e.target.value})}
+                  placeholder="List any keywords you're currently targeting or ranking for"
+                  className="min-h-[100px]"
+                />
+              </div>
               
-              <TextArea
-                label="Content Strategy"
-                value={data.contentStrategy}
-                onChange={(e) => onChange({...data, contentStrategy: e.target.value})}
-                placeholder="Describe your current content creation process and strategy (if any)"
-                className="h-24"
-              />
+              <div className="space-y-2">
+                <label htmlFor="contentStrategy" className="block text-sm font-medium text-mediumGray">Content Strategy</label>
+                <Textarea
+                  id="contentStrategy"
+                  value={data.contentStrategy}
+                  onChange={(e) => onChange({...data, contentStrategy: e.target.value})}
+                  placeholder="Describe your current content creation process and strategy (if any)"
+                  className="min-h-[100px]"
+                />
+              </div>
               
-              <TextArea
-                label="Known Technical Issues"
-                value={data.technicalIssues}
-                onChange={(e) => onChange({...data, technicalIssues: e.target.value})}
-                placeholder="List any known technical issues with your website"
-                className="h-24"
-              />
+              <div className="space-y-2">
+                <label htmlFor="technicalIssues" className="block text-sm font-medium text-mediumGray">Known Technical Issues</label>
+                <Textarea
+                  id="technicalIssues"
+                  value={data.technicalIssues}
+                  onChange={(e) => onChange({...data, technicalIssues: e.target.value})}
+                  placeholder="List any known technical issues with your website"
+                  className="min-h-[100px]"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -151,8 +180,8 @@ export default function AdminOnboarding({
             <div className="space-y-4">
               <p className="text-sm text-mediumGray">Select the analytics platforms you currently use:</p>
               
-              <div className="space-y-2">
-                <div className="flex items-center">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
                   <input 
                     type="checkbox" 
                     id="ga" 
@@ -166,10 +195,15 @@ export default function AdminOnboarding({
                       }
                     })}
                   />
-                  <label htmlFor="ga" className="ml-2 block text-sm text-dark">Google Analytics</label>
+                  <label 
+                    htmlFor="ga" 
+                    className="text-sm text-dark font-normal"
+                  >
+                    Google Analytics
+                  </label>
                 </div>
                 
-                <div className="flex items-center">
+                <div className="flex items-center space-x-2">
                   <input 
                     type="checkbox" 
                     id="gsc" 
@@ -183,10 +217,15 @@ export default function AdminOnboarding({
                       }
                     })}
                   />
-                  <label htmlFor="gsc" className="ml-2 block text-sm text-dark">Google Search Console</label>
+                  <label 
+                    htmlFor="gsc" 
+                    className="text-sm text-dark font-normal"
+                  >
+                    Google Search Console
+                  </label>
                 </div>
                 
-                <div className="flex items-center">
+                <div className="flex items-center space-x-2">
                   <input 
                     type="checkbox" 
                     id="ahrefs" 
@@ -200,10 +239,15 @@ export default function AdminOnboarding({
                       }
                     })}
                   />
-                  <label htmlFor="ahrefs" className="ml-2 block text-sm text-dark">Ahrefs</label>
+                  <label 
+                    htmlFor="ahrefs" 
+                    className="text-sm text-dark font-normal"
+                  >
+                    Ahrefs
+                  </label>
                 </div>
                 
-                <div className="flex items-center">
+                <div className="flex items-center space-x-2">
                   <input 
                     type="checkbox" 
                     id="semrush" 
@@ -217,21 +261,29 @@ export default function AdminOnboarding({
                       }
                     })}
                   />
-                  <label htmlFor="semrush" className="ml-2 block text-sm text-dark">SEMrush</label>
+                  <label 
+                    htmlFor="semrush" 
+                    className="text-sm text-dark font-normal"
+                  >
+                    SEMrush
+                  </label>
                 </div>
                 
-                <Input
-                  label="Other Analytics Tools"
-                  value={data.analytics.other}
-                  onChange={(e) => onChange({
-                    ...data, 
-                    analytics: {
-                      ...data.analytics,
-                      other: e.target.value
-                    }
-                  })}
-                  placeholder="List any other analytics tools you use"
-                />
+                <div className="space-y-2 mt-2">
+                  <label htmlFor="otherAnalytics" className="block text-sm font-medium text-mediumGray">Other Analytics Tools</label>
+                  <Input
+                    id="otherAnalytics"
+                    value={data.analytics.other}
+                    onChange={(e) => onChange({
+                      ...data, 
+                      analytics: {
+                        ...data.analytics,
+                        other: e.target.value
+                      }
+                    })}
+                    placeholder="List any other analytics tools you use"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -243,29 +295,37 @@ export default function AdminOnboarding({
           </div>
           
           <div className="p-4">
-            <TextArea
-              label="Additional Notes"
-              value={data.additionalNotes}
-              onChange={(e) => onChange({...data, additionalNotes: e.target.value})}
-              placeholder="Any other information that would be helpful for our team"
-              className="h-32"
-            />
+            <div className="space-y-2">
+              <label htmlFor="additionalNotes" className="block text-sm font-medium text-mediumGray">Additional Notes</label>
+              <Textarea
+                id="additionalNotes"
+                value={data.additionalNotes}
+                onChange={(e) => onChange({...data, additionalNotes: e.target.value})}
+                placeholder="Any other information that would be helpful for our team"
+                className="min-h-[100px]"
+              />
+            </div>
           </div>
         </div>
         
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-end space-x-4">
+          {onSaveDraft && (
+            <Button 
+              type="button"
+              variant="outline"
+              onClick={onSaveDraft}
+              className="font-bold rounded-[16px]"
+            >
+              Save Draft
+            </Button>
+          )}
+          
           <Button 
-            type="button" 
-            variant="secondary"
-            onClick={onSaveDraft}
+            type="submit"
+            variant="default"
+            className="font-bold rounded-[16px]"
           >
-            Save as Draft
-          </Button>
-          <Button 
-            type="submit" 
-            variant="primary"
-          >
-            Submit Onboarding
+            Submit
           </Button>
         </div>
       </form>

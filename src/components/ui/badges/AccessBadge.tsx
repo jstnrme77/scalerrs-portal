@@ -19,8 +19,8 @@ export default function AccessBadge({ access, className = '' }: AccessBadgeProps
 
   switch (access) {
     case 'Admin':
-      bgColor = 'bg-primary/10';
-      textColor = 'text-primary';
+      bgColor = 'bg-purple-100';
+      textColor = 'text-purple-800';
       break;
     case 'Editor':
       bgColor = 'bg-gold/10';

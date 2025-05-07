@@ -33,12 +33,12 @@ export default function Modal({
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-scalerrs shadow-lg ${sizeClasses[size]} w-full ${className}`}>
-        <div className="p-4 border-b border-lightGray">
+      <div className={`bg-white rounded-[16px] shadow-lg ${sizeClasses[size]} w-full ${className}`}>
+        <div className="p-6 border-b border-lightGray">
           <h3 className="text-lg font-medium text-dark">{title}</h3>
         </div>
         
-        <div className="p-4">
+        <div className="p-6">
           {children}
         </div>
       </div>

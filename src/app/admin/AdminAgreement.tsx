@@ -3,7 +3,9 @@
 import React from 'react';
 import { DocumentCard, Document } from '@/components/ui/cards';
 import { Card } from '@/components/ui/cards';
-import { Badge } from '@/components/ui/badges';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 type AdminAgreementProps = {
   agreements: (Document & { uploadedBy: string; editable: boolean })[];
@@ -38,12 +40,18 @@ export default function AdminAgreement({
             onView={onView}
             onDownload={onDownload}
           >
-            <div className="flex justify-between items-center mt-2">
-              <Badge variant="light" className="text-xs">
+            <div className="flex justify-between items-center mb-2">
+              <Badge variant="outline" className="text-xs rounded-lg">
                 View only
               </Badge>
-              <Badge variant="light" className="text-xs bg-gray-100 text-gray-600">
-                Uploaded by {agreement.uploadedBy}
+              <Badge 
+                className={`text-xs !rounded-lg ${
+                  agreement.uploadedBy === 'Scalerrs' 
+                    ? 'bg-primary text-white' 
+                    : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                {agreement.uploadedBy}
               </Badge>
             </div>
           </DocumentCard>
@@ -53,7 +61,7 @@ export default function AdminAgreement({
       {(settings.renewalDate || settings.planName || settings.showUpgradePrompt) && (
         <div className="mt-8">
           <h3 className="text-md font-medium text-dark mb-3">Plan Information</h3>
-          <Card className="bg-gray-50">
+          <Card className="bg-white border border-gray-300 shadow-none">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {settings.planName && (
                 <div>
@@ -73,9 +81,13 @@ export default function AdminAgreement({
               
               {settings.showUpgradePrompt && (
                 <div className="flex items-center">
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-scalerrs hover:bg-primary/80 transition-colors">
+                  <Button 
+                    variant="default"
+                    className="font-bold rounded-[16px] text-sm"
+                  >
                     Upgrade Plan
-                  </button>
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
                 </div>
               )}
             </div>
