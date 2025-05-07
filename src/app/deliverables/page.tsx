@@ -296,7 +296,7 @@ export default function DeliverablePage() {
   // Status changes are not part of the deliverables page requirements
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-6">
+    <main className="flex flex-1 flex-col gap-6 p-3 md:gap-8 md:p-1">
       {/* Top-Level Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Briefs Approved Card */}
