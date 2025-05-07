@@ -33,6 +33,14 @@ export default function TopNavBar({
   const [greeting, setGreeting] = useState('Good evening');
   const { user } = useAuth();
 
+  // Add debug logs to troubleshoot
+  useEffect(() => {
+    console.log("TopNavBar rendered with pathname:", pathname);
+    console.log("isDeliverablesPage:", pathname === '/deliverables');
+    console.log("selectedMonth:", selectedMonth);
+    console.log("onMonthChange function exists:", !!onMonthChange);
+  }, [pathname, selectedMonth, onMonthChange]);
+
   // Update greeting based on time of day
   useEffect(() => {
     const currentHour = new Date().getHours();
@@ -102,6 +110,13 @@ export default function TopNavBar({
       </div>
 
       <div className="flex items-center space-x-4 ml-auto">
+        {/* Debug element to show condition values */}
+        <div className="hidden">
+          isDeliverablesPage: {String(isDeliverablesPage)}, 
+          onMonthChange exists: {String(!!onMonthChange)},
+          shouldShow: {String((isContentWorkflowPage || isDeliverablesPage || pathname === '/reports') && !!onMonthChange)}
+        </div>
+        
         {(isContentWorkflowPage || isDeliverablesPage || pathname === '/reports') && onMonthChange && (
           <div className="mr-3">
             <RoundedMonthSelector

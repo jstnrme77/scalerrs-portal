@@ -8,7 +8,8 @@ export default function DeliverableLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [selectedMonth, setSelectedMonth] = useState<string>('January');
+  // Initialize with a full month and year default value
+  const [selectedMonth, setSelectedMonth] = useState<string>(`January ${new Date().getFullYear()}`);
   const [onMonthChange, setOnMonthChange] = useState<((month: string) => void) | undefined>(undefined);
 
   // Listen for the custom event from the page component

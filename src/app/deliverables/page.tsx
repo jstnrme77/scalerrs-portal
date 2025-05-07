@@ -12,7 +12,7 @@ type MainTab = 'briefs' | 'articles' | 'backlinks';
 
 export default function DeliverablePage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
-  const [selectedMonth, setSelectedMonth] = useState('January 2025');
+  const [selectedMonth, setSelectedMonth] = useState<string>('January 2025');
 
   // State for Airtable data
   const [loading, setLoading] = useState(true);
@@ -71,6 +71,24 @@ export default function DeliverablePage() {
     // Dispatch event to communicate with layout
     window.dispatchEvent(new CustomEvent('updateTopNavBar', { detail: layoutData }));
   }, [selectedMonth]);
+
+  // Add a separate effect to initialize the TopNavBar on component mount
+  useEffect(() => {
+    const layoutData = {
+      pathname: '/deliverables',
+      selectedMonth: selectedMonth,
+      onMonthChange: setSelectedMonth
+    };
+    
+    // Immediately dispatch event on mount to initialize TopNavBar
+    window.dispatchEvent(new CustomEvent('updateTopNavBar', { detail: layoutData }));
+    
+    // Also set a timeout to dispatch the event again after a slight delay
+    // This helps in case of race conditions with layout component mounting
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('updateTopNavBar', { detail: layoutData }));
+    }, 100);
+  }, []);
 
   // Immediately set mock data on component mount
   useEffect(() => {
