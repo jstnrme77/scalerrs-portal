@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { ChevronDown, Calendar, Download, ExternalLink, MessageSquare, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, Calendar, Download, ExternalLink, MessageSquare, Filter, ChevronLeft, ChevronRight, ArrowUp } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
@@ -1152,29 +1152,93 @@ const sampleReportContent = {
       <div className="p-6g">
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-lg shadow-sm">
-            <h4 className="text-base text-mediumGray">Traffic Growth</h4>
-            <p className="text-4xl font-bold text-dark">+42%</p>
-            <div className="flex items-center mt-2">
-              <span className="inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+12% QoQ</span>
-              <span className="ml-3 inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+42% YoY</span>
+          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600">Traffic Growth</h4>
+            <div className="mt-2">
+              <div className="text-4xl font-bold text-[#9EA8FB]">61,000</div>
+              <div className="text-xs text-gray-500 mt-1">Target: 65,000</div>
+            </div>
+            <div className="flex items-center mt-3">
+              <div className="flex items-center text-green-600 text-sm font-medium">
+                <ArrowUp className="h-4 w-4 mr-1" />
+                <span>42% YoY</span>
+              </div>
+              <div className="flex items-center text-green-600 text-sm font-medium ml-3">
+                <ArrowUp className="h-4 w-4 mr-1" />
+                <span>17% QoQ</span>
+              </div>
+            </div>
+            {/* Micro-visual: Sparkline */}
+            <div className="mt-3 h-8">
+              <div className="flex items-end space-x-1 h-full">
+                {[35, 45, 55, 65, 75, 80, 90, 95].map((value, i) => (
+                  <div
+                    key={i}
+                    className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                    style={{ height: `${value}%` }}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg shadow-sm">
-            <h4 className="text-base text-mediumGray">Lead Growth</h4>
-            <p className="text-4xl font-bold text-dark">+38%</p>
-            <div className="flex items-center mt-2">
-              <span className="inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+15% QoQ</span>
-              <span className="ml-3 inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+38% YoY</span>
+          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600">Leads Generated</h4>
+            <div className="mt-2">
+              <div className="text-4xl font-bold text-[#FFE4A6]">1,350</div>
+              <div className="text-xs text-gray-500 mt-1">Target: 1,500</div>
+            </div>
+            <div className="flex items-center mt-3">
+              <div className="flex items-center text-green-600 text-sm font-medium">
+                <ArrowUp className="h-4 w-4 mr-1" />
+                <span>38% YoY</span>
+              </div>
+              <div className="flex items-center text-green-600 text-sm font-medium ml-3">
+                <ArrowUp className="h-4 w-4 mr-1" />
+                <span>17% QoQ</span>
+              </div>
+            </div>
+            {/* Micro-visual: Sparkline */}
+            <div className="mt-3 h-8">
+              <div className="flex items-end space-x-1 h-full">
+                {[40, 50, 60, 70, 75, 85, 90, 95].map((value, i) => (
+                  <div
+                    key={i}
+                    className="w-full bg-[#FFE4A6]/50 rounded-sm"
+                    style={{ height: `${value}%` }}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg shadow-sm">
-            <h4 className="text-base text-mediumGray">Revenue Impact</h4>
-            <p className="text-4xl font-bold text-dark">$108K</p>
-            <div className="flex items-center mt-2">
-              <span className="inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+17% QoQ</span>
+          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-600">Revenue Impact</h4>
+            <div className="mt-2">
+              <div className="text-4xl font-bold text-[#EADCFF]">$108,000</div>
+              <div className="text-xs text-gray-500 mt-1">Target: $120,000</div>
+            </div>
+            <div className="flex items-center mt-3">
+              <div className="flex items-center text-green-600 text-sm font-medium">
+                <ArrowUp className="h-4 w-4 mr-1" />
+                <span>39% YoY</span>
+              </div>
+              <div className="flex items-center text-green-600 text-sm font-medium ml-3">
+                <ArrowUp className="h-4 w-4 mr-1" />
+                <span>17% QoQ</span>
+              </div>
+            </div>
+            {/* Micro-visual: Sparkline */}
+            <div className="mt-3 h-8">
+              <div className="flex items-end space-x-1 h-full">
+                {[45, 55, 65, 70, 75, 80, 85, 90].map((value, i) => (
+                  <div
+                    key={i}
+                    className="w-full bg-[#EADCFF]/50 rounded-sm"
+                    style={{ height: `${value}%` }}
+                  ></div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
