@@ -38,12 +38,13 @@ const monthFilterOptions = [
 // Sample report data
 const reports = {
   weekly: [
-    { id: 1, title: 'Weekly Report - Apr 22-28, 2025', date: '2025-04-28', type: 'weekly', month: '2025-04' },
-    { id: 2, title: 'Weekly Report - Apr 15-21, 2025', date: '2025-04-21', type: 'weekly', month: '2025-04' },
-    { id: 3, title: 'Weekly Report - Apr 8-14, 2025', date: '2025-04-14', type: 'weekly', month: '2025-04' },
-    { id: 4, title: 'Weekly Report - Apr 1-7, 2025', date: '2025-04-07', type: 'weekly', month: '2025-04' },
-    { id: 10, title: 'Weekly Report - Mar 25-31, 2025', date: '2025-03-31', type: 'weekly', month: '2025-03' },
-    { id: 11, title: 'Weekly Report - Mar 18-24, 2025', date: '2025-03-24', type: 'weekly', month: '2025-03' },
+    { id: 1, title: 'Weekly Report - Apr 29-May 5, 2025', date: '2025-05-05', type: 'weekly', month: '2025-05' },
+    { id: 2, title: 'Weekly Report - Apr 22-28, 2025', date: '2025-04-28', type: 'weekly', month: '2025-04' },
+    { id: 3, title: 'Weekly Report - Apr 15-21, 2025', date: '2025-04-21', type: 'weekly', month: '2025-04' },
+    { id: 4, title: 'Weekly Report - Apr 8-14, 2025', date: '2025-04-14', type: 'weekly', month: '2025-04' },
+    { id: 10, title: 'Weekly Report - Apr 1-7, 2025', date: '2025-04-07', type: 'weekly', month: '2025-04' },
+    { id: 11, title: 'Weekly Report - Mar 25-31, 2025', date: '2025-03-31', type: 'weekly', month: '2025-03' },
+    { id: 12, title: 'Weekly Report - Mar 18-24, 2025', date: '2025-03-24', type: 'weekly', month: '2025-03' },
   ],
   monthly: [
     { id: 5, title: 'April 2025 Performance Report', date: '2025-05-01', type: 'monthly', month: '2025-04' },
@@ -111,9 +112,6 @@ const sampleReportContent = {
   weekly: (
     <div className="space-y-6">
       {/* Timeframe Covered */}
-      <div className="bg-primary/10 p-4 rounded-lg">
-        <h3 className="text-xl font-medium text-dark">April 22-28, 2025</h3>
-      </div>
 
       {/* What We Did */}
       <div className="card bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
@@ -161,7 +159,6 @@ const sampleReportContent = {
                 <div key={brief.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
                   <div>
                     <p className="text-base font-medium text-dark">{brief.title}</p>
-                    <p className="text-sm text-mediumGray">{brief.date}</p>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge variant={brief.status === 'Sent' ? 'success' : 'warning'} className="text-sm px-3 py-1">
@@ -183,7 +180,6 @@ const sampleReportContent = {
                 <div key={article.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
                   <div>
                     <p className="text-base font-medium text-dark">{article.title}</p>
-                    <p className="text-sm text-mediumGray">{article.date}</p>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Badge variant="success" className="text-sm px-3 py-1">{article.status}</Badge>
@@ -258,13 +254,6 @@ const sampleReportContent = {
             <span className="text-base text-dark">Backlink Sheet</span>
           </a>
         </div>
-
-        <div className="flex justify-end mt-4">
-          <Button variant="outline" className="flex items-center space-x-2 border-[#F5F5F9] text-[#9EA8FB] hover:bg-[#9EA8FB]/10">
-            <Download className="h-4 w-4" />
-            <span>Download Report</span>
-          </Button>
-        </div>
       </div>
 
       {/* Slack Share Button */}
@@ -282,10 +271,6 @@ const sampleReportContent = {
       <div className="bg-lightGray p-5 rounded-lg">
         <h3 className="text-xl font-medium text-dark mb-3">April 2025 Performance Report</h3>
         <div className="mt-2 space-y-2">
-          <div className="flex flex-wrap gap-3">
-            <Badge variant="success" className="text-sm px-3 py-1">Wins: 4 new top 10 rankings</Badge>
-            <Badge variant="warning" className="text-sm px-3 py-1">Risks: Mobile conversion rate</Badge>
-          </div>
           <p className="text-base text-mediumGray">Monthly comprehensive analysis of your SEO campaign performance, achievements, and strategic recommendations.</p>
         </div>
       </div>
@@ -293,8 +278,8 @@ const sampleReportContent = {
       {/* Loom Section */}
       <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <div className="flex items-center mb-2">
-          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2 border border-[#F5F5F9]">
-            <MessageSquare size={16} className="text-red-500" />
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2 border border-[#F5F5F9]">
+            <MessageSquare size={16} className="text-gray-500" />
           </div>
           <h4 className="font-medium text-dark">Monthly Walkthrough</h4>
         </div>
@@ -401,12 +386,12 @@ const sampleReportContent = {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{page.url}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{page.traffic}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{page.conversions}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">{page.url}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
+                  <td className="px-6 py-5 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {page.delta > 0 ? '+' : ''}{page.delta}%
                     </span>
                   </td>
@@ -482,17 +467,17 @@ const sampleReportContent = {
       <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Conversion & ROI Metrics</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-3 rounded-lg border border-[#F5F5F9]">
+          <div className="bg-white p-3 rounded-lg">
             <h5 className="text-sm font-medium text-dark mb-1">Lead Generation</h5>
             <p className="text-2xl font-bold text-dark">320</p>
             <p className="text-xs text-green-600">+15.2% vs. March</p>
           </div>
-          <div className="bg-white p-3 rounded-lg border border-[#F5F5F9]">
+          <div className="bg-white p-3 rounded-lg">
             <h5 className="text-sm font-medium text-dark mb-1">Assisted Conversions</h5>
             <p className="text-2xl font-bold text-dark">86</p>
             <p className="text-xs text-green-600">+9.8% vs. March</p>
           </div>
-          <div className="bg-white p-3 rounded-lg border border-[#F5F5F9]">
+          <div className="bg-white p-3 rounded-lg">
             <h5 className="text-sm font-medium text-dark mb-1">CPC Equivalence</h5>
             <p className="text-2xl font-bold text-dark">$24,800</p>
             <p className="text-xs text-green-600">+12.5% vs. March</p>
@@ -623,7 +608,7 @@ const sampleReportContent = {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
             <h4 className="text-base text-mediumGray">Traffic Growth</h4>
-            <p className="text-3xl font-bold text-dark">+42%</p>
+            <p className="text-4xl font-bold text-dark">+42%</p>
             <div className="flex items-center mt-2">
               <span className="text-sm text-green-600 font-medium">+12% QoQ</span>
               <span className="text-sm text-mediumGray ml-3">+42% YoY</span>
@@ -632,7 +617,7 @@ const sampleReportContent = {
 
           <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
             <h4 className="text-base text-mediumGray">Lead Growth</h4>
-            <p className="text-3xl font-bold text-dark">+38%</p>
+            <p className="text-4xl font-bold text-dark">+38%</p>
             <div className="flex items-center mt-2">
               <span className="text-sm text-green-600 font-medium">+15% QoQ</span>
               <span className="text-sm text-mediumGray ml-3">+38% YoY</span>
@@ -641,15 +626,25 @@ const sampleReportContent = {
 
           <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
             <h4 className="text-base text-mediumGray">Revenue Impact</h4>
-            <p className="text-3xl font-bold text-dark">$108K</p>
+            <p className="text-4xl font-bold text-dark">$108K</p>
             <div className="flex items-center mt-2">
               <span className="text-sm text-green-600 font-medium">+17% QoQ</span>
             </div>
           </div>
         </div>
 
+        {/* Text Summary - Moved TLDR below KPIs */}
+        <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
+          <h4 className="text-lg font-medium text-dark mb-3">Executive Summary</h4>
+          <p className="text-base text-mediumGray leading-relaxed">
+            Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth.
+            Our focus on content quality and technical improvements has yielded substantial increases in organic traffic,
+            while conversion rate optimizations have successfully translated this traffic into leads and revenue.
+          </p>
+        </div>
+
         {/* Trendline Chart */}
-        <div className="bg-white p-5 rounded-3xl border-8 border-[#F5F5F9] shadow-sm mb-6">
+        <div className="bg-white p-5 rounded-3xl border-8 border-[#F5F5F9] shadow-sm mt-6">
           <h4 className="text-base font-medium text-dark mb-4">Performance Trends (Last 4 Quarters)</h4>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -670,16 +665,6 @@ const sampleReportContent = {
             </ResponsiveContainer>
           </div>
         </div>
-
-        {/* Text Summary */}
-        <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
-          <h4 className="text-lg font-medium text-dark mb-3">Executive Summary</h4>
-          <p className="text-base text-mediumGray leading-relaxed">
-            Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth.
-            Our focus on content quality and technical improvements has yielded substantial increases in organic traffic,
-            while conversion rate optimizations have successfully translated this traffic into leads and revenue.
-          </p>
-        </div>
       </div>
 
       {/* Traffic & Revenue */}
@@ -697,27 +682,27 @@ const sampleReportContent = {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                   <div className="flex items-center">
                     Metric
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                   <div className="flex items-center">
                     Q1 2025
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Q4 2024</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Q4 2024</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                   <div className="flex items-center">
                     QoQ Change
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Q1 2024</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Q1 2024</th>
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                   <div className="flex items-center">
                     YoY Change
                     <ChevronDown className="h-4 w-4 ml-1" />
@@ -889,8 +874,8 @@ const sampleReportContent = {
               {topPerformingPages.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">{page.url}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.traffic}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.conversions}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {page.delta > 0 ? '+' : ''}{page.delta}%
@@ -907,32 +892,32 @@ const sampleReportContent = {
       <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Experiments</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <span className="text-2xl">🔍</span>
             </div>
             <p className="text-base font-medium text-dark">Title Tag Tests</p>
             <p className="text-sm text-mediumGray mt-2">CTR +1.7 percentage points</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4">
               <span className="text-2xl">📱</span>
             </div>
-            <p className="text-base font-medium text-dark">Mobile CTA Placement</p>
+            <p className="text-base font-bold text-dark">Mobile CTA Placement</p>
             <p className="text-sm text-mediumGray mt-2">Conversion +0.8 percentage points</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4">
               <span className="text-2xl">⚡</span>
             </div>
             <p className="text-base font-medium text-dark">Core Web Vitals</p>
             <p className="text-sm text-mediumGray mt-2">Bounce rate -15% on key pages</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4">
               <span className="text-2xl">📊</span>
             </div>
             <p className="text-base font-medium text-dark">Content Length Test</p>
