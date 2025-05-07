@@ -516,7 +516,7 @@ const sampleReportContent = {
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {page.delta > 0 ? '+' : ''}{page.delta}%
                     </span>
                   </td>
@@ -540,7 +540,7 @@ const sampleReportContent = {
               <div className="flex items-center">
                 <div className="w-24 text-sm mr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#9ea8fb' }}></div>
+                    <div className="w-3 h-3 rounded-lg" style={{ backgroundColor: '#9ea8fb' }}></div>
                     <span>Position<br/>1-3</span>
                   </div>
                 </div>
