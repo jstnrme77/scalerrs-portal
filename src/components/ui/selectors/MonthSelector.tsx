@@ -9,6 +9,12 @@ interface MonthSelectorProps {
 }
 
 export default function MonthSelector({ selectedMonth, onChange }: MonthSelectorProps) {
+  // Apply custom styles to ensure 16px font size
+  const customStyles = {
+    fontSize: '16px !important',
+    fontFamily: 'Roboto, sans-serif !important',
+    lineHeight: '1.5 !important'
+  };
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,11 +45,11 @@ export default function MonthSelector({ selectedMonth, onChange }: MonthSelector
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="card flex items-center justify-between w-40 px-4 py-2 text-sm font-medium bg-white border border-lightGray rounded-lg hover:bg-lightGray"
+        className="card flex items-center justify-between w-40 px-4 py-2 font-medium bg-white border border-lightGray rounded-lg hover:bg-lightGray text-base month-selector-button"
         onClick={() => setIsOpen(!isOpen)}
-        style={{ color: '#353233' }}
+        style={{ ...customStyles, color: '#353233' }}
       >
-        {selectedMonth}
+        <span style={customStyles}>{selectedMonth}</span>
         <ChevronDown className="ml-2 h-4 w-4" />
       </button>
       {isOpen && (
@@ -52,7 +58,8 @@ export default function MonthSelector({ selectedMonth, onChange }: MonthSelector
             {months.map((month) => (
               <button
                 key={month}
-                className="block w-full text-left px-4 py-2 text-sm text-dark hover:bg-lightGray"
+                className="block w-full text-left px-4 py-2 text-dark hover:bg-lightGray month-selector-button"
+                style={customStyles}
                 onClick={() => handleMonthSelect(month)}
               >
                 {month}

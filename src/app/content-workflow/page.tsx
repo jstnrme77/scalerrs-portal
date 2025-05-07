@@ -465,7 +465,7 @@ export default function ContentWorkflowPage() {
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <span className="ml-3 text-mediumGray">Loading content workflow data...</span>
+          <span className="ml-3 text-mediumGray" style={{ fontSize: '16px' }}>Loading content workflow data...</span>
         </div>
       ) : (
         <div className="page-container mb-6">
@@ -475,18 +475,21 @@ export default function ContentWorkflowPage() {
                 <div className="flex overflow-x-auto">
                   <button
                     className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    style={{ fontSize: '16px', fontFamily: 'Roboto, sans-serif' }}
                     onClick={() => setMainTab('briefs')}
                   >
                     Briefs
                   </button>
                   <button
                     className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    style={{ fontSize: '16px', fontFamily: 'Roboto, sans-serif' }}
                     onClick={() => setMainTab('articles')}
                   >
                     Articles
                   </button>
                   <button
                     className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    style={{ fontSize: '16px', fontFamily: 'Roboto, sans-serif' }}
                     onClick={() => setMainTab('backlinks')}
                   >
                     Backlinks
@@ -496,9 +499,10 @@ export default function ContentWorkflowPage() {
                 {mainTab === 'backlinks' && (
                   <div className="flex gap-4 pr-4">
                     <div>
-                      <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
+                      <label className="block text-sm font-medium text-mediumGray mb-1" style={{ fontSize: '16px' }}>Filter by Status</label>
                       <select
-                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                        className="px-3 py-2 border border-lightGray rounded-md bg-white"
+                        style={{ fontSize: '16px' }}
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                       >
@@ -509,9 +513,10 @@ export default function ContentWorkflowPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
+                      <label className="block text-sm font-medium text-mediumGray mb-1" style={{ fontSize: '16px' }}>Filter by DR</label>
                       <select
-                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                        className="px-3 py-2 border border-lightGray rounded-md bg-white"
+                        style={{ fontSize: '16px' }}
                         value={drFilter}
                         onChange={(e) => setDrFilter(e.target.value)}
                       >
@@ -528,7 +533,8 @@ export default function ContentWorkflowPage() {
                             setStatusFilter('all');
                             setDrFilter('all');
                           }}
-                          className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                          className="px-3 py-2 text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                          style={{ fontSize: '16px' }}
                         >
                           Clear Filters
                         </button>

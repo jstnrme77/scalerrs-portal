@@ -161,6 +161,7 @@
 - Moved filter controls to be aligned with the tab navigation, positioned on the right side of the tab bar for better usability and visibility
 - Removed "Use Mock Data" button from the Content Workflow page for a cleaner production interface
 - Standardized spacing between the TopNavBar and content in the Get Started page to match the Home page
+- Increased text size in tab navigation, month selector, and filter controls to 16px for better readability and consistency, using multiple CSS rules with !important flags, custom CSS classes, and inline styles with !important to ensure proper application across all states
 - Standardized table styling across the application with clean white backgrounds, explicitly removed border radius with !rounded-none, and removed outer borders for a cleaner look
 - Removed alternating row background colors from tables for a cleaner, more minimalist appearance
 - Updated Task Boards page with speech bubble comment indicators for better visual representation of comment counts
