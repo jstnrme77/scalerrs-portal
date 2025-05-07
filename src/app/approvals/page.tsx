@@ -47,38 +47,38 @@ function StatusBadge({ status }: { status: string }) {
 
   switch (status) {
     case 'awaiting_approval':
-      bgColor = 'bg-brand-yellow/20';
-      textColor = 'text-dark';
+      bgColor = 'bg-yellow-50';
+      textColor = 'text-gray-700';
       displayText = 'Awaiting Approval';
       break;
     case 'resubmitted':
-      bgColor = 'bg-primary/20';
-      textColor = 'text-dark';
+      bgColor = 'bg-blue-50';
+      textColor = 'text-gray-700';
       displayText = 'Resubmitted';
       break;
     case 'needs_revision':
-      bgColor = 'bg-brand-accent/20';
-      textColor = 'text-dark';
+      bgColor = 'bg-orange-50';
+      textColor = 'text-gray-700';
       displayText = 'Needs Revision';
       break;
     case 'approved':
-      bgColor = 'bg-green-100';
-      textColor = 'text-dark';
+      bgColor = 'bg-green-50';
+      textColor = 'text-gray-700';
       displayText = 'Approved';
       break;
     case 'rejected':
-      bgColor = 'bg-red-100';
-      textColor = 'text-dark';
+      bgColor = 'bg-red-50';
+      textColor = 'text-gray-700';
       displayText = 'Rejected';
       break;
     default:
-      bgColor = 'bg-lightGray';
-      textColor = 'text-dark';
+      bgColor = 'bg-gray-50';
+      textColor = 'text-gray-700';
       displayText = status.replace('_', ' ');
   }
 
   return (
-    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
+    <span className={`inline-block px-2 py-1 text-base font-medium rounded-[12px] ${bgColor} ${textColor}`}>
       {displayText}
     </span>
   );
@@ -161,13 +161,13 @@ function ApprovalItem({
         <div className="flex space-x-2">
           <button
             onClick={() => onApprove(item.id)}
-            className="px-3 py-1 text-xs font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors"
+            className="px-4 py-1 text-base font-medium text-white bg-black rounded-[12px] hover:bg-gray-800 transition-colors"
           >
             Approve
           </button>
           <button
             onClick={() => onRequestChanges(item.id)}
-            className="px-3 py-1 text-xs font-medium text-[#9EA8FB] border border-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/10 transition-colors"
+            className="px-4 py-1 text-base font-medium text-[#353233] border border-[#D9D9D9] rounded-[12px] hover:bg-gray-100 transition-colors"
           >
             Request Changes
           </button>
@@ -193,13 +193,13 @@ function RejectionModal({
 
   return (
     <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full border-2 border-[#9EA8FB]">
-        <div className="bg-[#9EA8FB]/10 p-3 mb-4 rounded-lg border-b-2 border-[#9EA8FB]">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full border border-gray-200">
+        <div className="bg-gray-50 p-3 mb-4 rounded-lg border-b border-black">
           <h3 className="text-lg font-medium text-dark">Request Changes</h3>
           <p className="text-mediumGray text-sm">Please provide details about the changes needed:</p>
         </div>
         <textarea
-          className="w-full border-2 border-[#9EA8FB] rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
+          className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-black"
           rows={4}
           placeholder="Describe the changes needed..."
           value={reason}
@@ -208,7 +208,7 @@ function RejectionModal({
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-[#353233] border border-[#D9D9D9] rounded-scalerrs hover:bg-[#D9D9D9]/20 transition-colors"
+            className="px-4 py-1 text-base font-medium text-[#353233] border border-[#D9D9D9] rounded-[12px] hover:bg-gray-100 transition-colors"
           >
             Cancel
           </button>
@@ -220,7 +220,7 @@ function RejectionModal({
               }
             }}
             disabled={!reason.trim()}
-            className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${reason.trim() ? 'text-white bg-[#9EA8FB] hover:bg-[#9EA8FB]/80' : 'text-white bg-[#9EA8FB]/50 cursor-not-allowed'}`}
+            className={`px-4 py-1 text-base font-medium rounded-[12px] transition-colors ${reason.trim() ? 'text-white bg-black hover:bg-gray-800' : 'text-white bg-gray-400 cursor-not-allowed'}`}
           >
             Submit Feedback
           </button>
@@ -231,58 +231,19 @@ function RejectionModal({
 }
 
 // Global Summary Banner Component
-function GlobalSummaryBanner({ counts, onTabChange }: {
-  counts: { [key: string]: number },
-  onTabChange: (tab: string) => void
+function GlobalSummaryBanner({ counts }: {
+  counts: { [key: string]: number }
 }) {
   const totalCount = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const categoriesCount = Object.values(counts).filter(count => count > 0).length;
 
   return (
-    <div className="p-4 rounded-lg mb-6 border-2 border-[#9EA8FB] bg-[#9EA8FB]/10">
-      <p className="font-medium text-dark">You have {totalCount} items awaiting your review across {categoriesCount} categories</p>
-      <div className="text-sm mt-1">
-        Jump to: {' '}
-        {counts.keywords > 0 && (
-          <button
-            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
-            onClick={() => onTabChange('keywords')}
-          >
-            Keyword Plans ({counts.keywords})
-          </button>
-        )}
-        {counts.briefs > 0 && (
-          <button
-            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
-            onClick={() => onTabChange('briefs')}
-          >
-            Briefs ({counts.briefs})
-          </button>
-        )}
-        {counts.articles > 0 && (
-          <button
-            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
-            onClick={() => onTabChange('articles')}
-          >
-            Articles ({counts.articles})
-          </button>
-        )}
-        {counts.backlinks > 0 && (
-          <button
-            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
-            onClick={() => onTabChange('backlinks')}
-          >
-            Backlinks ({counts.backlinks})
-          </button>
-        )}
-        {counts.quickwins > 0 && (
-          <button
-            className="text-[#9EA8FB] hover:underline ml-2 font-medium"
-            onClick={() => onTabChange('quickwins')}
-          >
-            Quick Wins ({counts.quickwins})
-          </button>
-        )}
+    <div className="p-4 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="font-bold text-dark text-lg mb-1 notification-text">Pending Approvals</p>
+          <p className="text-base text-mediumGray">You have {totalCount} items awaiting your review across {categoriesCount} categories</p>
+        </div>
       </div>
     </div>
   );
@@ -296,60 +257,60 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
 }) {
   // Calculate the percentage for the progress circle
   const percentage = totalPending > 0 ? (totalApproved / (totalApproved + totalPending)) * 100 : 0;
-  const dashOffset = 283 - (283 * percentage / 100);
 
   return (
-    <div className="bg-white p-4 rounded-lg border-2 border-[#9EA8FB] shadow-sm">
-      <h3 className="font-medium text-dark mb-3 text-center">Pending Approvals</h3>
+    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <h3 className="font-medium text-dark mb-3 text-center text-base">Pending Approvals</h3>
 
       <div className="flex items-center justify-center mb-6">
-        <div className="relative w-24 h-24">
-          <svg className="w-24 h-24" viewBox="0 0 100 100">
+        <div className="relative w-28 h-28">
+          <svg className="w-28 h-28" viewBox="0 0 100 100">
             <circle
-              cx="50" cy="50" r="45"
+              cx="50" cy="50" r="42"
               fill="none"
               stroke="#f3f4f6"
               strokeWidth="8"
             />
             <circle
-              cx="50" cy="50" r="45"
+              cx="50" cy="50" r="42"
               fill="none"
               stroke="#9EA8FB"
               strokeWidth="8"
-              strokeDasharray="283"
-              strokeDashoffset={dashOffset}
+              strokeDasharray="264"
+              strokeDashoffset={264 - (264 * percentage / 100)}
               strokeLinecap="round"
               transform="rotate(-90 50 50)"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-lg font-bold text-dark">{totalApproved} of {totalApproved + totalPending}</span>
-            <span className="text-xs text-mediumGray text-center">items<br/>approved</span>
+            <span className="text-lg font-bold text-dark">{totalApproved} <span className="text-sm font-normal mx-1">of</span> {totalApproved + totalPending}</span>
+            <span className="text-xs text-mediumGray text-center mt-1">items</span>
+            <span className="text-xs text-mediumGray text-center">approved</span>
           </div>
         </div>
       </div>
 
-      <div className="text-sm">
-        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
-          <span className="text-dark">Keyword Plans</span>
-          <span className="font-medium text-[#9EA8FB]">{counts.keywords}</span>
+      <div className="text-base">
+        <div className="flex justify-between py-2 border-b border-black">
+          <span className="text-dark">Keyword</span>
+          <span className="font-medium text-dark">{counts.keywords}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+        <div className="flex justify-between py-2 border-b border-black">
           <span className="text-dark">Briefs</span>
-          <span className="font-medium text-[#9EA8FB]">{counts.briefs}</span>
+          <span className="font-medium text-dark">{counts.briefs}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+        <div className="flex justify-between py-2 border-b border-black">
           <span className="text-dark">Articles</span>
-          <span className="font-medium text-[#9EA8FB]">{counts.articles}</span>
+          <span className="font-medium text-dark">{counts.articles}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-[#9EA8FB]/30">
+        <div className="flex justify-between py-2 border-b border-black">
           <span className="text-dark">Backlinks</span>
-          <span className="font-medium text-[#9EA8FB]">{counts.backlinks}</span>
+          <span className="font-medium text-dark">{counts.backlinks}</span>
         </div>
         {counts.quickwins > 0 && (
           <div className="flex justify-between py-2">
             <span className="text-dark">Quick Wins</span>
-            <span className="font-medium text-[#9EA8FB]">{counts.quickwins}</span>
+            <span className="font-medium text-dark">{counts.quickwins}</span>
           </div>
         )}
       </div>
@@ -395,36 +356,39 @@ function ApprovalTable({
     // Check if all items in this group are selected
     const allSelected = areAllItemsSelected(items);
 
-    // Only show checkboxes for items that can be actioned
-    const showCheckboxes = ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(status);
+    // Always show checkbox column for consistent layout, but only make them interactive for actionable items
+    const showInteractiveCheckboxes = ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(status);
 
     return (
       <div key={status} className="mb-6">
-        <h3 className="font-medium text-dark mb-2">{statusHeaders[status as keyof typeof statusHeaders]}</h3>
+        <h3 className="font-medium text-dark mb-2 text-base">{statusHeaders[status as keyof typeof statusHeaders]}</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[#9EA8FB] border-2 border-[#9EA8FB] rounded-lg overflow-hidden table-fixed bg-white">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white" style={{ tableLayout: 'fixed' }}>
             <thead>
-              <tr className="bg-[#9EA8FB]/10">
-                {showCheckboxes && (
-                  <th className="px-4 py-3 w-12">
-                    <div className="flex items-center justify-center">
+              <tr className="bg-gray-100">
+                <th className="px-4 py-3 w-12">
+                  <div className="flex items-center justify-center">
+                    {/* Always show checkbox for header alignment, but only make it interactive when needed */}
+                    {showInteractiveCheckboxes ? (
                       <input
                         type="checkbox"
-                        className="h-5 w-5 text-[#9EA8FB] focus:ring-[#9EA8FB] border-2 border-[#9EA8FB] rounded cursor-pointer"
+                        className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
                         checked={allSelected}
                         onChange={() => onToggleGroupSelection(items, !allSelected)}
                       />
-                    </div>
-                  </th>
-                )}
-                <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[35%]">Deliverable</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[15%]">Assigned To</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[15%]">Last Updated</th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-dark uppercase tracking-wider w-[25%]">Actions</th>
+                    ) : (
+                      <div className="h-5 w-5"></div>
+                    )}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '35%' }}>Deliverable</th>
+                <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '15%' }}>Assigned To</th>
+                <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '15%' }}>Last Updated</th>
+                <th className="px-4 py-3 text-center text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '10%' }}>Status</th>
+                <th className="px-4 py-3 text-right text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '25%' }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#9EA8FB]/50">
+            <tbody className="divide-y divide-gray-200">
               {items.map((item) => {
                 // No special styling for different statuses
 
@@ -432,65 +396,68 @@ function ApprovalTable({
                 const isSelected = selectedItems.includes(item.id);
 
                 // Add selected styling
-                const selectedClass = isSelected ? 'bg-[#9EA8FB]/5' : '';
+                const selectedClass = isSelected ? 'bg-gray-50' : '';
 
                 return (
                   <tr
                     key={item.id}
                     className={`hover:bg-gray-50 ${selectedClass}`}
                   >
-                    {showCheckboxes && (
-                      <td className="px-4 py-3 w-12">
-                        <div className="flex items-center justify-center">
+                    <td className="px-4 py-3 w-12">
+                      <div className="flex items-center justify-center">
+                        {/* Always show checkbox for alignment, but only make it interactive when needed */}
+                        {showInteractiveCheckboxes ? (
                           <input
                             type="checkbox"
-                            className="h-5 w-5 text-[#9EA8FB] focus:ring-[#9EA8FB] border-2 border-[#9EA8FB] rounded cursor-pointer"
+                            className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
                             checked={isSelected}
                             onChange={() => onToggleItemSelection(item.id)}
                           />
-                        </div>
-                      </td>
-                    )}
-                    <td className="px-4 py-3 w-[35%]">
+                        ) : (
+                          <div className="h-5 w-5"></div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3" style={{ width: '35%' }}>
                       <div className="flex items-start">
                         <div>
-                          <div className="text-sm font-medium text-dark">
+                          <div className="text-base font-medium text-dark">
                             <a href="#" className="hover:text-primary hover:underline">{item.item}</a>
                           </div>
-                          {'type' in item && <div className="text-xs text-mediumGray">{item.type}</div>}
-                          {'wordCount' in item && <div className="text-xs text-mediumGray">{item.wordCount} words</div>}
-                          {'volume' in item && <div className="text-xs text-mediumGray">Volume: {item.volume}</div>}
-                          {'count' in item && <div className="text-xs text-mediumGray">{item.count} links</div>}
-                          {'pages' in item && <div className="text-xs text-mediumGray">{item.pages} pages</div>}
+                          {'type' in item && <div className="text-base text-mediumGray">{item.type}</div>}
+                          {'wordCount' in item && <div className="text-base text-mediumGray">{item.wordCount} words</div>}
+                          {'volume' in item && <div className="text-base text-mediumGray">Volume: {item.volume}</div>}
+                          {'count' in item && <div className="text-base text-mediumGray">{item.count} links</div>}
+                          {'pages' in item && <div className="text-base text-mediumGray">{item.pages} pages</div>}
                           {item.revisionReason && (
-                            <div className="text-xs text-[#9EA8FB] mt-1 bg-[#EADCFF]/20 p-1 rounded border border-[#EADCFF]">
+                            <div className="text-base text-gray-700 mt-1 bg-gray-50 p-1 rounded border border-gray-200">
                               <span className="font-medium">Revision: </span>{item.revisionReason}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 w-[15%]">
-                      <div className="text-sm text-dark">{item.strategist}</div>
+                    <td className="px-4 py-3" style={{ width: '15%' }}>
+                      <div className="text-base text-dark">{item.strategist}</div>
                     </td>
-                    <td className="px-4 py-3 w-[15%]">
-                      <div className="text-sm text-mediumGray">{item.lastUpdated}</div>
+                    <td className="px-4 py-3" style={{ width: '15%' }}>
+                      <div className="text-base text-mediumGray">{item.lastUpdated}</div>
                     </td>
-                    <td className="px-4 py-3 w-[10%] text-center">
+                    <td className="px-4 py-3 text-center" style={{ width: '10%' }}>
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-4 py-3 text-right w-[25%]">
+                    <td className="px-4 py-3 text-right" style={{ width: '25%' }}>
                       {(item.status === 'awaiting_approval' || item.status === 'resubmitted' || item.status === 'needs_revision') && (
                         <div className="flex justify-end space-x-2">
                           <button
                             onClick={() => onApprove(item.id)}
-                            className="px-3 py-1 text-xs font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors"
+                            className="px-4 py-1 text-base font-medium text-white bg-black rounded-[12px] hover:bg-gray-800 transition-colors"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => onRequestChanges(item.id)}
-                            className="px-3 py-1 text-xs font-medium text-[#9EA8FB] border border-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/10 transition-colors"
+                            className="px-4 py-1 text-base font-medium text-[#353233] border border-[#D9D9D9] rounded-[12px] hover:bg-gray-100 transition-colors"
                           >
                             Request Changes
                           </button>
@@ -718,13 +685,8 @@ export default function Approvals() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-dark">Approvals</h1>
-        <p className="text-mediumGray">Review and approve deliverables</p>
-      </div>
-
       {/* Global Summary Banner */}
-      <GlobalSummaryBanner counts={pendingCounts} onTabChange={setActiveTab} />
+      <GlobalSummaryBanner counts={pendingCounts} />
 
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-grow">
@@ -733,7 +695,7 @@ export default function Approvals() {
             <PageContainerTabs>
               <TabNavigation
                 tabs={[
-                  { id: 'keywords', label: 'Keyword Plans' },
+                  { id: 'keywords', label: 'Keyword' },
                   { id: 'briefs', label: 'Briefs' },
                   { id: 'articles', label: 'Articles' },
                   { id: 'backlinks', label: 'Backlinks' },
@@ -750,21 +712,17 @@ export default function Approvals() {
               />
             </PageContainerTabs>
             <PageContainerBody>
-              {/* Tab-level header - Sticky */}
-              <div className="mb-4 flex justify-between items-center sticky top-0 bg-[#9EA8FB]/10 p-4 border-b-2 border-[#9EA8FB] z-10">
-                <div>
-                  <p className="font-medium text-dark">You have {tabReviewCount} item{tabReviewCount !== 1 ? 's' : ''} to review in this section</p>
-                </div>
-
+              {/* Bulk action buttons */}
+              <div className="mb-4 flex justify-end">
                 {tabReviewCount > 0 && (
                   <div className="flex space-x-3">
                     <button
                       onClick={approveSelectedItems}
                       disabled={getSelectedApprovableCount() === 0}
-                      className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${
+                      className={`px-4 py-1 text-base font-medium rounded-md transition-colors ${
                         getSelectedApprovableCount() > 0
-                          ? 'bg-[#9EA8FB] text-white hover:bg-[#9EA8FB]/80'
-                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          ? 'bg-gray-100 text-[#353233] hover:bg-gray-200'
+                          : 'bg-gray-100 text-gray-500 cursor-not-allowed'
                       }`}
                     >
                       {getSelectedApprovableCount() > 0
@@ -778,9 +736,9 @@ export default function Approvals() {
                         }
                       }}
                       disabled={getSelectedApprovableCount() === 0}
-                      className={`px-4 py-2 text-sm font-medium rounded-scalerrs transition-colors ${
+                      className={`px-4 py-1 text-base font-medium rounded-md transition-colors ${
                         getSelectedApprovableCount() > 0
-                          ? 'text-[#9EA8FB] border border-[#9EA8FB] hover:bg-[#9EA8FB]/10'
+                          ? 'text-[#353233] border border-[#D9D9D9] hover:bg-gray-100'
                           : 'text-gray-400 border border-gray-300 cursor-not-allowed'
                       }`}
                     >
@@ -789,7 +747,7 @@ export default function Approvals() {
                     {selectedItems[activeTab as keyof typeof selectedItems].length > 0 && (
                       <button
                         onClick={clearSelections}
-                        className="px-4 py-2 text-sm font-medium text-[#353233] border border-[#D9D9D9] rounded-scalerrs hover:bg-[#D9D9D9]/20 transition-colors"
+                        className="px-4 py-1 text-base font-medium text-[#353233] border border-[#D9D9D9] rounded-md hover:bg-gray-100 transition-colors"
                       >
                         Clear Selection
                       </button>
@@ -811,8 +769,8 @@ export default function Approvals() {
                     areAllItemsSelected={areAllItemsSelected}
                   />
                 ) : (
-                  <div className="text-center py-8 border-2 border-[#9EA8FB] rounded-lg bg-[#9EA8FB]/10">
-                    <p className="text-mediumGray py-4">No items found in this section.</p>
+                  <div className="text-center py-8 border border-gray-200 rounded-lg bg-gray-50">
+                    <p className="text-gray-500 py-4 text-base">No items found in this section.</p>
                   </div>
                 )}
               </div>

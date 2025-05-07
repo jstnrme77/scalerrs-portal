@@ -77,6 +77,9 @@
 - ✅ Enabled Strategy/Ad Hoc tab in Task Boards page
 - ✅ Added spacing between notification and table header in Task Boards page
 - ✅ Standardized border size in Task Boards page notification banner
+- ✅ Updated text size to 16px throughout the Approvals page
+- ✅ Updated button border radius to 16px for consistent styling
+- ✅ Removed redundant title from Approvals page
 - ✅ Updated Reports page with consistent purple border styling on all sides of report items
 - ✅ Fixed inconsistent text colors in Reports page metrics (KPI cards, Deliverables Recap, Conversion & ROI Metrics)
 - ✅ Simplified Reports page UI by removing unused date range filter
@@ -178,6 +181,13 @@
 - Added a sample Strategy/Ad Hoc task to the mock data to ensure all tabs have content
 - Improved visual spacing between the notification banner and table header in Task Boards page for better readability
 - Standardized border size to 2px on all sides of the notification banner for visual consistency
+- Updated all text sizes to 16px (1rem) throughout the application for better readability and consistency
+- Fixed global button text size override in globals.css to ensure 16px font size
+- Updated button border radius to rounded-md (6px) to match Figma design
+- Adjusted button padding to match design (smaller, more compact buttons)
+- Removed redundant title from Approvals page since it's already in the TopNavBar
+- Updated button styles to match the client's design requirements
+- Updated tables to have gray headers (bg-gray-100), no outer borders, fixed-width columns, and bold gray headings
 - Updated Reports page with consistent purple border styling on all sides of report items for better visual appearance
 - Fixed inconsistent text colors in Reports page metrics to ensure all values use the same text color (black)
 - Simplified Reports page UI by removing the unused date range filter while keeping the functional month filter

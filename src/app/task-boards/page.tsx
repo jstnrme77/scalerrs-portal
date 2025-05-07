@@ -674,21 +674,21 @@ function TaskTable({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-[#9EA8FB] border-2 border-[#9EA8FB] rounded-lg overflow-hidden table-fixed bg-white">
+        <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
           <thead>
-            <tr className="bg-[#9EA8FB]/10 border-b border-[#9EA8FB]">
-              <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[25%]">Task</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[15%]">Assigned to</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Date Logged</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Priority</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Impact</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[5%]">Effort</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-dark uppercase tracking-wider w-[5%]">Comments</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-dark uppercase tracking-wider w-[10%]">Actions</th>
+            <tr className="bg-gray-100 border-b border-gray-200">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-[25%]">Task</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-[15%]">Assigned to</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Date Logged</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Priority</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Impact</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[5%]">Effort</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[5%]">Comments</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#9EA8FB]/50">
+          <tbody className="divide-y divide-gray-200">
             {sortedTasks.map((task) => (
               <React.Fragment key={task.id}>
                 <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
@@ -789,7 +789,7 @@ function TaskTable({
                 </tr>
                 {expandedTaskId === task.id && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-3 bg-white border-t border-[#9EA8FB]/30">
+                    <td colSpan={9} className="px-4 py-3 bg-white border-t border-gray-200">
                       <div className="grid grid-cols-2 gap-4">
                         {task.notes && (
                           <div>

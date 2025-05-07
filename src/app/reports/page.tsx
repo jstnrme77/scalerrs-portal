@@ -390,16 +390,16 @@ const sampleReportContent = {
       <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
         <h4 className="font-medium text-dark mb-3">Content Movers</h4>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[#9EA8FB]">
-            <thead className="bg-[#9EA8FB]/10">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">URL</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Traffic</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Leads</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-dark uppercase tracking-wider">Change</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">URL</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Traffic</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Leads</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Change</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
+            <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{page.url}</td>
@@ -694,8 +694,8 @@ const sampleReportContent = {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[#9EA8FB]">
-            <thead className="bg-[#9EA8FB]/10">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-100">
               <tr>
                 <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
                   <div className="flex items-center">
@@ -725,8 +725,8 @@ const sampleReportContent = {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
-              <tr className="hover:bg-[#9EA8FB]/5">
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr className="hover:bg-gray-50">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Organic Traffic</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">61,000</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">52,000</td>
@@ -742,7 +742,7 @@ const sampleReportContent = {
                   </span>
                 </td>
               </tr>
-              <tr className="hover:bg-[#9EA8FB]/5">
+              <tr className="hover:bg-gray-50">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Leads Generated</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,350</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,150</td>
@@ -758,7 +758,7 @@ const sampleReportContent = {
                   </span>
                 </td>
               </tr>
-              <tr className="hover:bg-[#9EA8FB]/5">
+              <tr className="hover:bg-gray-50">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Conversion Rate</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.2%</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.1%</td>
@@ -774,7 +774,7 @@ const sampleReportContent = {
                   </span>
                 </td>
               </tr>
-              <tr className="hover:bg-[#9EA8FB]/5">
+              <tr className="hover:bg-gray-50">
                 <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Revenue Impact</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$108,000</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$92,000</td>
@@ -861,8 +861,8 @@ const sampleReportContent = {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-[#9EA8FB]">
-            <thead className="bg-[#9EA8FB]/10">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-100">
               <tr>
                 <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">URL</th>
                 <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
@@ -885,9 +885,9 @@ const sampleReportContent = {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
+            <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
-                <tr key={index} className="hover:bg-[#9EA8FB]/5">
+                <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">
                     <a href={`https://example.com${page.url}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center">
                       {page.url}
