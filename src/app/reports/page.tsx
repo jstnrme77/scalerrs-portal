@@ -516,7 +516,7 @@ const sampleReportContent = {
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {page.delta > 0 ? '+' : ''}{page.delta}%
                     </span>
                   </td>
@@ -1176,8 +1176,8 @@ const sampleReportContent = {
             <h4 className="text-base text-mediumGray">Traffic Growth</h4>
             <p className="text-4xl font-bold text-dark">+42%</p>
             <div className="flex items-center mt-2">
-              <span className="text-sm text-green-600 font-medium">+12% QoQ</span>
-              <span className="text-sm text-mediumGray ml-3">+42% YoY</span>
+              <span className="inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+12% QoQ</span>
+              <span className="ml-3 inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+42% YoY</span>
             </div>
           </div>
 
@@ -1185,8 +1185,8 @@ const sampleReportContent = {
             <h4 className="text-base text-mediumGray">Lead Growth</h4>
             <p className="text-4xl font-bold text-dark">+38%</p>
             <div className="flex items-center mt-2">
-              <span className="text-sm text-green-600 font-medium">+15% QoQ</span>
-              <span className="text-sm text-mediumGray ml-3">+38% YoY</span>
+              <span className="inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+15% QoQ</span>
+              <span className="ml-3 inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+38% YoY</span>
             </div>
           </div>
 
@@ -1194,7 +1194,7 @@ const sampleReportContent = {
             <h4 className="text-base text-mediumGray">Revenue Impact</h4>
             <p className="text-4xl font-bold text-dark">$108K</p>
             <div className="flex items-center mt-2">
-              <span className="text-sm text-green-600 font-medium">+17% QoQ</span>
+              <span className="inline-flex items-center justify-center px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium">+17% QoQ</span>
             </div>
           </div>
         </div>
@@ -1282,13 +1282,13 @@ const sampleReportContent = {
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">61,000</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">52,000</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +17.3%
                   </span>
                 </td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">43,000</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +41.9%
                   </span>
                 </td>
@@ -1298,13 +1298,13 @@ const sampleReportContent = {
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,350</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,150</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +17.4%
                   </span>
                 </td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">980</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +37.8%
                   </span>
                 </td>
@@ -1314,13 +1314,13 @@ const sampleReportContent = {
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.2%</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.1%</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +4.8%
                   </span>
                 </td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1.9%</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +15.8%
                   </span>
                 </td>
@@ -1330,13 +1330,13 @@ const sampleReportContent = {
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$108,000</td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$92,000</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +17.4%
                   </span>
                 </td>
                 <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$78,000</td>
                 <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +38.5%
                   </span>
                 </td>
@@ -1443,7 +1443,7 @@ const sampleReportContent = {
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {page.delta > 0 ? '+' : ''}{page.delta}%
                     </span>
                   </td>
@@ -1549,7 +1549,7 @@ const sampleReportContent = {
                   <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{competitor.name}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.keywordFocus}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${competitor.rankChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium ${competitor.rankChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {competitor.rankChange > 0 ? '+' : ''}{competitor.rankChange}
                     </span>
                   </td>
