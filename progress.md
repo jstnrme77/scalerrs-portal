@@ -57,6 +57,7 @@
 - ✅ Added top-level summary cards with color-coded borders to Deliverables page
 - ✅ Implemented sortable columns and filtering in Deliverables page tables
 - ✅ Standardized button styles across all pages for consistent appearance (dark #12131C background, white text)
+- ✅ Updated button components to always show white arrows without requiring hover
 - ✅ Updated action item indicators with color-coded circles (red, amber, green) for visual priority
 - ✅ Changed card borders from colored left-only to consistent gray (#D9D9D9) borders on all sides
 - ✅ Implemented consistent color palette across the application (#9EA8FB, #353233, #D9D9D9, #12131C)
@@ -144,7 +145,8 @@
 - Updated action item indicators with color-coded circles (red, amber, green) for better visual priority indication
 - Changed card borders from colored left-only to consistent gray borders on all sides for a cleaner, more uniform look
 - Adhering to the Scalerrs color palette: primary #9EA8FB, text #353233, border #D9D9D9, buttons #12131C with white text
-- Button styling standardized with 16px border radius, dark background (#12131C), white text, and consistent padding
+- Button styling standardized with 16px border radius, dark background (#12131C), white text, white arrow icons, and consistent padding
+- Updated button components to always show white arrows without requiring hover, matching the website design
 - Using Roboto as the primary font family throughout the application for consistent typography
 - Maintaining consistent font weights: regular (400) for body text and medium/bold (500/700) for headings and emphasis
 - Removed approval buttons from Content Workflow page to make it a tracking-only tool for clients

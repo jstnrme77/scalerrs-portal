@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import MonthSelector from '@/components/ui/selectors/MonthSelector';
 import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
 import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
@@ -423,15 +422,12 @@ export default function ContentWorkflowPage() {
 
 
   return (
-    <DashboardLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-dark mr-4">Content Workflow</h1>
-        </div>
-        <div className="relative">
-          <MonthSelector selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-        </div>
-      </div>
+    <DashboardLayout
+      topNavBarProps={{
+        selectedMonth: selectedMonth,
+        onMonthChange: setSelectedMonth
+      }}
+    >
 
 
 

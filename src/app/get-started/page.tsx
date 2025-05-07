@@ -80,14 +80,10 @@ export default function GetStartedPage() {
           <Button
             variant="primary"
             size="lg"
-            className="mt-auto inline-flex items-center gap-2 get-started-btn"
+            className="mt-auto get-started-btn"
             onClick={() => setVideoModalOpen(true)}
           >
             Watch the walkthrough
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
           </Button>
         </div>
 
@@ -101,14 +97,10 @@ export default function GetStartedPage() {
           <Button
             variant="primary"
             size="lg"
-            className="mt-auto inline-flex items-center gap-2 get-started-btn"
+            className="mt-auto get-started-btn"
             onClick={() => setFormModalOpen(true)}
           >
             Complete Forms
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
           </Button>
         </div>
 
@@ -122,14 +114,10 @@ export default function GetStartedPage() {
           <Button
             variant="primary"
             size="lg"
-            className="mt-auto inline-flex items-center gap-2 get-started-btn"
+            className="mt-auto get-started-btn"
             onClick={() => setRoadmapModalOpen(true)}
           >
             View Campaign Roadmap
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
           </Button>
         </div>
       </div>
@@ -150,14 +138,10 @@ export default function GetStartedPage() {
           <Button
             variant="primary"
             size="lg"
-            className="mt-auto inline-flex items-center gap-2 get-started-btn"
+            className="mt-auto get-started-btn"
             onClick={() => setServicesModalOpen(true)}
           >
             Explore My Services
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
           </Button>
         </div>
 
@@ -185,17 +169,13 @@ export default function GetStartedPage() {
           <Button
             variant="primary"
             size="lg"
-            className="mt-auto inline-flex items-center gap-2 get-started-btn"
+            className="mt-auto get-started-btn"
             onClick={() => {
               setSelectedGuide(guides[0]);
               setGuidesModalOpen(true);
             }}
           >
             Open Guides
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
           </Button>
         </div>
 
@@ -234,14 +214,10 @@ export default function GetStartedPage() {
           <Button
             variant="primary"
             size="lg"
-            className="mt-auto inline-flex items-center gap-2 get-started-btn"
+            className="mt-auto get-started-btn"
             onClick={() => setChecklistModalOpen(true)}
           >
             Resume Checklist
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-              <path d="M5 12h14"></path>
-              <path d="m12 5 7 7-7 7"></path>
-            </svg>
           </Button>
         </div>
       </div>

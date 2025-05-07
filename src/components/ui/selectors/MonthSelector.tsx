@@ -45,21 +45,24 @@ export default function MonthSelector({ selectedMonth, onChange }: MonthSelector
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="card flex items-center justify-between w-40 px-4 py-2 font-medium bg-white border border-lightGray rounded-lg hover:bg-lightGray text-base month-selector-button"
+        className="card flex items-center justify-between w-40 px-4 py-2 font-medium bg-white border border-lightGray hover:bg-lightGray text-base month-selector-button"
         onClick={() => setIsOpen(!isOpen)}
-        style={{ ...customStyles, color: '#353233' }}
+        style={{ ...customStyles, color: '#353233', borderRadius: '9999px' }}
       >
         <span style={customStyles}>{selectedMonth}</span>
         <ChevronDown className="ml-2 h-4 w-4" />
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-lightGray">
+        <div className="absolute right-0 mt-2 w-56 bg-white shadow-lg z-10 border border-lightGray" style={{ borderRadius: '16px' }}>
           <div className="py-1">
-            {months.map((month) => (
+            {months.map((month, index) => (
               <button
                 key={month}
                 className="block w-full text-left px-4 py-2 text-dark hover:bg-lightGray month-selector-button"
-                style={customStyles}
+                style={{
+                  ...customStyles,
+                  borderRadius: index === 0 ? '16px 16px 0 0' : index === months.length - 1 ? '0 0 16px 16px' : '0'
+                }}
                 onClick={() => handleMonthSelect(month)}
               >
                 {month}

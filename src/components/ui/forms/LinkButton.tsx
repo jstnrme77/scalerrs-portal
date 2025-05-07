@@ -1,27 +1,25 @@
 'use client';
 
-import React, { ButtonHTMLAttributes, ReactNode } from 'react';
+import Link from 'next/link';
 import WhiteArrow from '@/components/ui/icons/WhiteArrow';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
+interface LinkButtonProps {
+  href: string;
+  children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'tertiary';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   showArrow?: boolean;
 }
 
-/**
- * A reusable button component with different variants and sizes
- */
-function Button({
+export default function LinkButton({
+  href,
   children,
   variant = 'primary',
   size = 'md',
   className = '',
   showArrow = true,
-  ...props
-}: ButtonProps) {
+}: LinkButtonProps) {
   const variantClasses = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
@@ -35,17 +33,14 @@ function Button({
   };
 
   return (
-    <button
+    <Link
+      href={href}
       className={`font-bold rounded-[16px] transition-colors ${variantClasses[variant]} ${sizeClasses[size]} ${className} flex items-center justify-center gap-2 text-white`}
-      {...props}
     >
       <span>{children}</span>
       {showArrow && (
         <WhiteArrow size={16} />
       )}
-    </button>
+    </Link>
   );
 }
-
-export default Button;
-export { Button as CustomButton };

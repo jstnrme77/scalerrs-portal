@@ -7,16 +7,20 @@ import ProtectedRoute from './ProtectedRoute';
 import PageWrapper from './PageWrapper';
 import { usePathname } from 'next/navigation';
 
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  topNavBarProps?: {
+    selectedMonth?: string;
+    onMonthChange?: (month: string) => void;
+  };
+}
+
 export default function DashboardLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+  topNavBarProps
+}: DashboardLayoutProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const pathname = usePathname();
-  const isHomePage = pathname === '/home';
-  const isGetStartedPage = pathname === '/get-started';
-  const showTopNavBar = isHomePage || isGetStartedPage;
 
   // Listen for changes in sidebar state
   useEffect(() => {
@@ -35,8 +39,13 @@ export default function DashboardLayout({
     <ProtectedRoute>
       <div className="flex min-h-screen bg-lightGray dark:bg-dark">
         <Sidebar />
-        {showTopNavBar && <TopNavBar sidebarExpanded={sidebarExpanded} />}
-        <div className={`flex-1 ${showTopNavBar ? 'pt-20' : 'pt-0'} transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
+        <TopNavBar
+          sidebarExpanded={sidebarExpanded}
+          pathname={pathname}
+          selectedMonth={topNavBarProps?.selectedMonth}
+          onMonthChange={topNavBarProps?.onMonthChange}
+        />
+        <div className={`flex-1 pt-20 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
           <PageWrapper>
             {children}
           </PageWrapper>

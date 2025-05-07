@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import {
   Package,
   CheckSquare,
   BarChart3,
   Clock
 } from 'lucide-react';
+import LinkButton from '@/components/ui/forms/LinkButton';
 
 export default function Home() {
   // Current month for milestone tracking
@@ -102,13 +102,9 @@ export default function Home() {
               </div>
 
               <div className="mt-auto pt-6">
-                <Link href="/deliverables" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
+                <LinkButton href="/deliverables" variant="primary" className="text-base get-started-btn w-full">
                   View All Deliverables
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                  </svg>
-                </Link>
+                </LinkButton>
               </div>
             </div>
 
@@ -157,13 +153,9 @@ export default function Home() {
                 </ul>
               </div>
               <div className="mt-auto pt-6">
-                <Link href="/approvals" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
+                <LinkButton href="/approvals" variant="primary" className="text-base get-started-btn w-full">
                   Review All Items
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                  </svg>
-                </Link>
+                </LinkButton>
               </div>
             </div>
 
@@ -218,13 +210,9 @@ export default function Home() {
               </div>
 
               <div className="mt-auto pt-6">
-                <Link href="/milestones" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
+                <LinkButton href="/milestones" variant="primary" className="text-base get-started-btn w-full">
                   View Monthly Plan
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-                    <path d="M5 12h14"></path>
-                    <path d="m12 5 7 7-7 7"></path>
-                  </svg>
-                </Link>
+                </LinkButton>
               </div>
             </div>
           </div>
@@ -289,13 +277,9 @@ export default function Home() {
             </div>
 
             <div className="mt-6">
-              <Link href="/timeline" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
+              <LinkButton href="/timeline" variant="primary" className="text-base get-started-btn w-full">
                 View Full Timeline
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-                  <path d="M5 12h14"></path>
-                  <path d="m12 5 7 7-7 7"></path>
-                </svg>
-              </Link>
+              </LinkButton>
             </div>
           </div>
         </div>
