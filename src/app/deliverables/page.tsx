@@ -300,13 +300,13 @@ export default function DeliverablePage() {
       {/* Top-Level Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Briefs Approved Card */}
-        <div className={`rounded-[16px] border-3 p-6 bg-white ${
+        <div className={`rounded-[16px] border-5 p-6 bg-white ${
           filteredBriefs.length > 0 &&
           (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.7
-            ? 'border-purple-300'
+            ? 'border-[#9ea8fb]'
             : (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.5
-              ? 'border-yellow-300'
-              : 'border-pink-200'
+              ? 'border-[#fcdc94]'
+              : 'border-[#eadcff]'
         }`}>
           <div className="flex flex-col items-center text-center">
             <span className="text-3xl font-bold mb-2">
@@ -324,13 +324,13 @@ export default function DeliverablePage() {
         </div>
 
         {/* Articles Live Card */}
-        <div className={`rounded-[16px] border-3 p-6 bg-white ${
+        <div className={`rounded-[16px] border-5 p-6 bg-white ${
           filteredArticles.length > 0 &&
           (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.7
-            ? 'border-purple-300'
+            ? 'border-[#9ea8fb]'
             : (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.5
-              ? 'border-yellow-300'
-              : 'border-pink-200'
+              ? 'border-[#fcdc94]'
+              : 'border-[#eadcff]'
         }`}>
           <div className="flex flex-col items-center text-center">
             <span className="text-3xl font-bold mb-2">
@@ -348,13 +348,13 @@ export default function DeliverablePage() {
         </div>
 
         {/* Backlinks Live Card */}
-        <div className={`rounded-[16px] border-3 p-6 bg-white ${
+        <div className={`rounded-[16px] border-5 p-6 bg-white ${
           filteredBacklinks.length > 0 &&
           (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.7
-            ? 'border-purple-300'
+            ? 'border-[#9ea8fb]'
             : (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.5
-              ? 'border-yellow-300'
-              : 'border-pink-200'
+              ? 'border-[#fcdc94]'
+              : 'border-[#eadcff]'
         }`}>
           <div className="flex flex-col items-center text-center">
             <span className="text-3xl font-bold mb-2">
