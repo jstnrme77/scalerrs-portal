@@ -355,7 +355,7 @@ function DataTable({
         />
       </div>
 
-      <div className="border rounded-md overflow-hidden">
+      <div className="rounded-md overflow-hidden">
         <Table className="w-full">
           <TableHeader className="bg-gray-50">
             <TableRow>
@@ -776,7 +776,7 @@ export default function SEOLayoutsPage() {
 
                   {/* Example Product Prune table */}
                   {view.id === 'product-prune' && (
-                    <div className="bg-white p-3 md:p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-3 md:p-4">
                       <p className="text-sm text-mediumGray mb-3">
                         This is a custom ad-hoc view for Product Prune. Client-specific tables can be added here as needed.
                       </p>
