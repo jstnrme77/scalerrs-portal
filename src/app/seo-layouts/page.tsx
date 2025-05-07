@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
-import { CompactTable, CompactTableBody, CompactTableCell, CompactTableHead, CompactTableHeader, CompactTableRow } from "./components/CompactTable";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown, Filter, Download, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ const upliftData = [
     potentialClickUplift: 2550,
     potentialUpliftSignups: 76,
     linkBuildingStatus: 'In Progress',
-    contentStatus: 'Refresh',
+    contentStatus: 'Refresh'
   },
   {
     id: 2,
@@ -42,7 +42,7 @@ const upliftData = [
     potentialClickUplift: 1250,
     potentialUpliftSignups: 37,
     linkBuildingStatus: 'Planned',
-    contentStatus: 'Refresh',
+    contentStatus: 'Refresh'
   },
   {
     id: 3,
@@ -57,7 +57,7 @@ const upliftData = [
     potentialClickUplift: 1350,
     potentialUpliftSignups: 40,
     linkBuildingStatus: 'Active',
-    contentStatus: 'New',
+    contentStatus: 'New'
   },
   {
     id: 4,
@@ -72,7 +72,7 @@ const upliftData = [
     potentialClickUplift: 3780,
     potentialUpliftSignups: 113,
     linkBuildingStatus: 'Not Started',
-    contentStatus: 'New',
+    contentStatus: 'New'
   },
   {
     id: 5,
@@ -87,7 +87,7 @@ const upliftData = [
     potentialClickUplift: 870,
     potentialUpliftSignups: 26,
     linkBuildingStatus: 'Active',
-    contentStatus: 'Refresh',
+    contentStatus: 'Refresh'
   },
 ];
 
@@ -343,141 +343,97 @@ function DataTable({
     setFilteredData(result);
   };
 
-  // Get column width based on column key
-  const getColumnWidth = (key: string) => {
-    // Define column widths based on content type
-    const columnWidths: Record<string, string> = {
-      // Common columns
-      'mainKw': '180px',
-      'targetUrl': '180px',
-      'publicationStatus': '120px',
-      'pageTypeMain': '120px',
-      'pageTypeSub': '120px',
-      'targetKwScore': '120px',
-      'mainKwPosition': '120px',
-      'clicksLastMonth': '120px',
-      'potentialClickUplift': '140px',
-      'potentialUpliftSignups': '140px',
-      'linkBuildingStatus': '120px',
-      'contentStatus': '120px',
-
-      // Internal link map specific
-      'pageType': '120px',
-      'cluster': '120px',
-      'secondaryAnchorText': '180px',
-      'internalLinkRemapStatus': '140px',
-
-      // Link building specific
-      'actualRdsNeeded': '120px',
-      'startingRds': '120px',
-      'month': '120px',
-
-      // Default for any other columns
-      'default': '120px'
-    };
-
-    return columnWidths[key] || columnWidths['default'];
-  };
-
   return (
-    <div className="space-y-2">
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between mb-4">
-        {/* Search */}
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder={searchPlaceholder}
-            className="pl-10 h-10 text-base"
-            value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-          />
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 items-center">
-          {Object.entries(filterOptions).map(([key, { label, options }]) => (
-            <div key={key} className="flex items-center">
-              <Select
-                value={filters[key] || 'all'}
-                onValueChange={(value) => handleFilterChange(key, value)}
-              >
-                <SelectTrigger className="w-[180px] h-10 text-sm">
-                  <SelectValue placeholder={label} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-sm">All {label}</SelectItem>
-                  {options.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="text-sm">
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
-
-          <Button variant="outline" className="h-10 ml-2">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
+    <div className="space-y-4">
+      <div className="w-full md:w-80 relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder={searchPlaceholder}
+          className="pl-10 h-10 rounded-md w-full"
+          value={searchQuery}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+        />
       </div>
 
-      <div className="rounded-md border w-full">
-        <div className="overflow-x-auto">
-          <CompactTable className="w-full">
-            <CompactTableHeader>
-              <CompactTableRow className="bg-gray-50">
-                {columns.map((column) => (
-                  <CompactTableHead
+      <div className="border rounded-md overflow-hidden">
+        <Table className="w-full">
+          <TableHeader className="bg-gray-50">
+            <TableRow>
+              {columns.map((column) => {
+                // Add specific width classes based on column type
+                const widthClass = 
+                  column.key === 'mainKw' ? 'w-[25%]' :
+                  column.key === 'targetUrl' ? 'w-[20%]' :
+                  column.key === 'publicationStatus' ? 'w-[15%]' :
+                  column.key === 'documentLink' ? 'w-[10%]' : '';
+                    
+                return (
+                  <TableHead
                     key={column.key}
-                    width={getColumnWidth(column.key)}
+                    className={`font-semibold ${widthClass}`}
                   >
                     {column.sortable ? (
-                      <button
-                        className="flex items-center"
-                        onClick={() => handleSort(column.key)}
-                      >
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSort(column.key)}>
                         {column.header}
-                        <ArrowUpDown className="ml-1 h-3 w-3 flex-shrink-0" />
-                      </button>
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
                     ) : (
                       column.header
                     )}
-                  </CompactTableHead>
-                ))}
-              </CompactTableRow>
-            </CompactTableHeader>
-            <CompactTableBody>
-              {filteredData.length === 0 ? (
-                <CompactTableRow>
-                  <CompactTableCell colSpan={columns.length} className="text-center py-2 text-gray-500">
-                    No results found
-                  </CompactTableCell>
-                </CompactTableRow>
-              ) : (
-                filteredData.map((row) => (
-                  <CompactTableRow key={row.id}>
-                    {columns.map((column) => (
-                      <CompactTableCell
-                        key={`${row.id}-${column.key}`}
-                        width={getColumnWidth(column.key)}
-                      >
-                        {column.render ? column.render(row[column.key], row) : row[column.key]}
-                      </CompactTableCell>
-                    ))}
-                  </CompactTableRow>
-                ))
-              )}
-            </CompactTableBody>
-          </CompactTable>
-        </div>
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-4 text-gray-500">
+                  No results found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredData.map((row) => (
+                <TableRow key={row.id}>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={`${row.id}-${column.key}`}
+                      className={column.key === 'mainKw' ? "font-medium" : ""}
+                    >
+                      {column.render ? column.render(row[column.key], row) : row[column.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
 }
 
 // Removed unused cluster data as per requirements
+
+// Status badge helper
+const renderStatusBadge = (status: string) => {
+  const statusColors: Record<string, string> = {
+    Published: 'bg-green-100 text-green-800',
+    Draft: 'bg-yellow-100 text-yellow-800',
+    Planned: 'bg-blue-100 text-blue-800',
+    'In Progress': 'bg-indigo-100 text-indigo-800',
+    Active: 'bg-purple-100 text-purple-800',
+    'Not Started': 'bg-gray-100 text-gray-800',
+    New: 'bg-emerald-100 text-emerald-800',
+    Refresh: 'bg-amber-100 text-amber-800',
+    High: 'bg-red-100 text-red-800',
+    Medium: 'bg-orange-100 text-orange-800',
+    Low: 'bg-blue-100 text-blue-800',
+  };
+
+  const colorClass = statusColors[status] || 'bg-gray-100 text-gray-800';
+  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>{status}</span>;
+};
 
 export default function SEOLayoutsPage() {
   const [activeTab, setActiveTab] = useState('uplift');
@@ -487,30 +443,6 @@ export default function SEOLayoutsPage() {
     // Example custom view - in a real app, these would be loaded from a backend
     { id: 'product-prune', label: 'Product Prune' }
   ]);
-
-  // Status badge renderer
-  const renderStatusBadge = (status: string) => {
-    const statusMap: Record<string, { variant: "default" | "destructive" | "outline" | "secondary" | "success" | "warning"; label: string }> = {
-      'Complete': { variant: 'success', label: 'Complete' },
-      'In Progress': { variant: 'warning', label: 'In Progress' },
-      'Not Started': { variant: 'secondary', label: 'Not Started' },
-      'Active': { variant: 'success', label: 'Active' },
-      'Planned': { variant: 'warning', label: 'Planned' },
-      'Published': { variant: 'success', label: 'Published' },
-      'Draft': { variant: 'warning', label: 'Draft' },
-      'New': { variant: 'default', label: 'New' },
-      'Refresh': { variant: 'secondary', label: 'Refresh' },
-      'Implemented': { variant: 'success', label: 'Implemented' },
-      'Not Implemented': { variant: 'warning', label: 'Not Implemented' },
-      'Prune': { variant: 'destructive', label: 'Prune' },
-      'Keep': { variant: 'success', label: 'Keep' },
-      'Redirect': { variant: 'warning', label: 'Redirect' },
-    };
-
-    const config = statusMap[status] || { variant: 'secondary', label: status };
-
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
 
   // Uplift potential columns
   const upliftColumns = [
@@ -739,13 +671,6 @@ export default function SEOLayoutsPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-between items-center mb-3">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-dark">SEO Layouts</h1>
-          <p className="text-base text-mediumGray">Transparent SEO data views to support strategy, content creation and reporting</p>
-        </div>
-      </div>
-
       <div className="relative z-0">
         <PageContainer className="w-full">
           <PageContainerTabs>
@@ -856,68 +781,68 @@ export default function SEOLayoutsPage() {
                         This is a custom ad-hoc view for Product Prune. Client-specific tables can be added here as needed.
                       </p>
                       <div className="overflow-x-auto">
-                        <CompactTable className="w-full">
-                          <CompactTableHeader>
-                            <CompactTableRow className="bg-gray-50">
-                              <CompactTableHead width="250px">
+                        <Table className="w-full">
+                          <TableHeader className="bg-gray-50">
+                            <TableRow>
+                              <TableHead className="font-semibold w-[40%]">
                                 Product URL
-                              </CompactTableHead>
-                              <CompactTableHead width="150px">
+                              </TableHead>
+                              <TableHead className="font-semibold w-[20%]">
                                 Traffic
-                              </CompactTableHead>
-                              <CompactTableHead width="150px">
+                              </TableHead>
+                              <TableHead className="font-semibold w-[20%]">
                                 Revenue
-                              </CompactTableHead>
-                              <CompactTableHead width="150px">
+                              </TableHead>
+                              <TableHead className="font-semibold w-[20%]">
                                 Action
-                              </CompactTableHead>
-                            </CompactTableRow>
-                          </CompactTableHeader>
-                          <CompactTableBody>
-                            <CompactTableRow>
-                              <CompactTableCell className="font-medium" width="250px">
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell className="font-medium">
                                 /products/example-1
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 125
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 $0
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 {renderStatusBadge('Prune')}
-                              </CompactTableCell>
-                            </CompactTableRow>
-                            <CompactTableRow>
-                              <CompactTableCell className="font-medium" width="250px">
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">
                                 /products/example-2
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 250
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 $125
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 {renderStatusBadge('Keep')}
-                              </CompactTableCell>
-                            </CompactTableRow>
-                            <CompactTableRow>
-                              <CompactTableCell className="font-medium" width="250px">
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell className="font-medium">
                                 /products/example-3
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 50
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 $10
-                              </CompactTableCell>
-                              <CompactTableCell width="150px">
+                              </TableCell>
+                              <TableCell>
                                 {renderStatusBadge('Redirect')}
-                              </CompactTableCell>
-                            </CompactTableRow>
-                          </CompactTableBody>
-                        </CompactTable>
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
                       </div>
                     </div>
                   )}
