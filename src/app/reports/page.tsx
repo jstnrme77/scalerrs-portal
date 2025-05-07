@@ -116,7 +116,7 @@ const sampleReportContent = {
       </div>
 
       {/* What We Did */}
-      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="card bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">What We Did</h4>
 
         <div className="space-y-4">
@@ -150,7 +150,7 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverable Progress */}
-      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="card bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Deliverable Progress</h4>
 
         <div className="space-y-4">
@@ -217,7 +217,7 @@ const sampleReportContent = {
       </div>
 
       {/* Next Steps & Requests */}
-      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="card bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Next Steps & Requests</h4>
 
         <div className="space-y-3">
@@ -230,7 +230,7 @@ const sampleReportContent = {
             </ul>
           </div>
 
-          <div className="p-4 bg-amber-100 rounded-lg">
+          <div className="p-4 bg-amber-200 rounded-lg">
             <h5 className="text-base font-medium text-amber-800 mb-3">Action Required</h5>
             <ul className="list-disc pl-6 text-base text-mediumGray">
               <li className="font-medium">Review "Top 10 SEO Strategies for 2025" brief by May 2nd</li>
@@ -241,26 +241,26 @@ const sampleReportContent = {
       </div>
 
       {/* Quick Links */}
-      <div className="card bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="card bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Quick Links</h4>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#9EA8FB]/30">
+          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#F5F5F9]">
             <span className="mr-3 text-lg">📈</span>
             <span className="text-base text-dark">GSC Dashboard</span>
           </a>
-          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#9EA8FB]/30">
+          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#F5F5F9]">
             <span className="mr-3 text-lg">🗂️</span>
             <span className="text-base text-dark">Content Folder</span>
           </a>
-          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#9EA8FB]/30">
+          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#F5F5F9]">
             <span className="mr-3 text-lg">🔗</span>
             <span className="text-base text-dark">Backlink Sheet</span>
           </a>
         </div>
 
         <div className="flex justify-end mt-4">
-          <Button variant="outline" className="flex items-center space-x-2 border-[#9EA8FB] text-[#9EA8FB] hover:bg-[#9EA8FB]/10">
+          <Button variant="outline" className="flex items-center space-x-2 border-[#F5F5F9] text-[#9EA8FB] hover:bg-[#9EA8FB]/10">
             <Download className="h-4 w-4" />
             <span>Download Report</span>
           </Button>
@@ -291,9 +291,9 @@ const sampleReportContent = {
       </div>
 
       {/* Loom Section */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <div className="flex items-center mb-2">
-          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
+          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2 border border-[#F5F5F9]">
             <MessageSquare size={16} className="text-red-500" />
           </div>
           <h4 className="font-medium text-dark">Monthly Walkthrough</h4>
@@ -310,7 +310,7 @@ const sampleReportContent = {
       </div>
 
       {/* Channel Performance */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Channel Performance</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -356,10 +356,10 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverables Recap */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Deliverables Recap</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-primary/5 p-3 rounded-lg">
+          <div className="bg-primary/5 p-3 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-sm font-medium text-dark mb-2">Briefs Delivered</h5>
             <p className="text-2xl font-bold text-dark">12</p>
             <div className="w-full bg-lightGray rounded-full h-2 mt-2">
@@ -367,7 +367,7 @@ const sampleReportContent = {
             </div>
             <p className="text-xs text-mediumGray mt-1">80% of monthly target</p>
           </div>
-          <div className="bg-gold/5 p-3 rounded-lg">
+          <div className="bg-gold/5 p-3 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-sm font-medium text-dark mb-2">Blogs Published</h5>
             <p className="text-2xl font-bold text-dark">8</p>
             <div className="w-full bg-lightGray rounded-full h-2 mt-2">
@@ -375,7 +375,7 @@ const sampleReportContent = {
             </div>
             <p className="text-xs text-mediumGray mt-1">100% of monthly target</p>
           </div>
-          <div className="bg-lavender/5 p-3 rounded-lg">
+          <div className="bg-lavender/5 p-3 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-sm font-medium text-dark mb-2">Backlinks Live</h5>
             <p className="text-2xl font-bold text-dark">15</p>
             <div className="w-full bg-lightGray rounded-full h-2 mt-2">
@@ -387,7 +387,7 @@ const sampleReportContent = {
       </div>
 
       {/* Content Movers */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Content Movers</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -418,7 +418,7 @@ const sampleReportContent = {
       </div>
 
       {/* Keyword & SERP Trends */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Keyword & SERP Trends</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -479,20 +479,20 @@ const sampleReportContent = {
       </div>
 
       {/* Conversion & ROI Metrics */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Conversion & ROI Metrics</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-3 rounded-lg border border-[#9EA8FB]/30">
+          <div className="bg-white p-3 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-sm font-medium text-dark mb-1">Lead Generation</h5>
             <p className="text-2xl font-bold text-dark">320</p>
             <p className="text-xs text-green-600">+15.2% vs. March</p>
           </div>
-          <div className="bg-white p-3 rounded-lg border border-[#9EA8FB]/30">
+          <div className="bg-white p-3 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-sm font-medium text-dark mb-1">Assisted Conversions</h5>
             <p className="text-2xl font-bold text-dark">86</p>
             <p className="text-xs text-green-600">+9.8% vs. March</p>
           </div>
-          <div className="bg-white p-3 rounded-lg border border-[#9EA8FB]/30">
+          <div className="bg-white p-3 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-sm font-medium text-dark mb-1">CPC Equivalence</h5>
             <p className="text-2xl font-bold text-dark">$24,800</p>
             <p className="text-xs text-green-600">+12.5% vs. March</p>
@@ -501,7 +501,7 @@ const sampleReportContent = {
       </div>
 
       {/* Campaign Projection */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="font-medium text-dark mb-3">Campaign Projection</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -621,7 +621,7 @@ const sampleReportContent = {
 
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
+          <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
             <h4 className="text-base text-mediumGray">Traffic Growth</h4>
             <p className="text-3xl font-bold text-dark">+42%</p>
             <div className="flex items-center mt-2">
@@ -630,7 +630,7 @@ const sampleReportContent = {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
+          <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
             <h4 className="text-base text-mediumGray">Lead Growth</h4>
             <p className="text-3xl font-bold text-dark">+38%</p>
             <div className="flex items-center mt-2">
@@ -639,7 +639,7 @@ const sampleReportContent = {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
+          <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
             <h4 className="text-base text-mediumGray">Revenue Impact</h4>
             <p className="text-3xl font-bold text-dark">$108K</p>
             <div className="flex items-center mt-2">
@@ -649,7 +649,7 @@ const sampleReportContent = {
         </div>
 
         {/* Trendline Chart */}
-        <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm mb-6">
+        <div className="bg-white p-5 rounded-3xl border-8 border-[#F5F5F9] shadow-sm mb-6">
           <h4 className="text-base font-medium text-dark mb-4">Performance Trends (Last 4 Quarters)</h4>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -672,7 +672,7 @@ const sampleReportContent = {
         </div>
 
         {/* Text Summary */}
-        <div className="bg-white p-5 rounded-lg border border-[#9EA8FB] shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
           <h4 className="text-lg font-medium text-dark mb-3">Executive Summary</h4>
           <p className="text-base text-mediumGray leading-relaxed">
             Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth.
@@ -683,7 +683,7 @@ const sampleReportContent = {
       </div>
 
       {/* Traffic & Revenue */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <div className="flex justify-between items-center mb-5">
           <h4 className="text-lg font-medium text-dark">Traffic & Revenue</h4>
           <div className="flex items-center space-x-2">
@@ -796,11 +796,11 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverables Roll Up */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Deliverables Roll Up</h4>
         <div className="space-y-4">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 border border-[#9EA8FB]">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 border border-[#F5F5F9]">
               <span className="text-primary">📝</span>
             </div>
             <div>
@@ -816,7 +816,7 @@ const sampleReportContent = {
           </div>
 
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3 border border-[#9EA8FB]">
+            <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3 border border-[#F5F5F9]">
               <span className="text-gold">📰</span>
             </div>
             <div>
@@ -832,7 +832,7 @@ const sampleReportContent = {
           </div>
 
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3 border border-[#9EA8FB]">
+            <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3 border border-[#F5F5F9]">
               <span className="text-lavender">🔗</span>
             </div>
             <div>
@@ -850,7 +850,7 @@ const sampleReportContent = {
       </div>
 
       {/* Top Performing Pages */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <div className="flex justify-between items-center mb-5">
           <h4 className="text-lg font-medium text-dark">Top Performing Pages</h4>
           <div className="flex items-center space-x-2">
@@ -888,12 +888,7 @@ const sampleReportContent = {
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">
-                    <a href={`https://example.com${page.url}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center">
-                      {page.url}
-                      <ExternalLink className="h-3 w-3 ml-1 inline" />
-                    </a>
-                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">{page.url}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
@@ -909,35 +904,35 @@ const sampleReportContent = {
       </div>
 
       {/* Experiments */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Experiments</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
               <span className="text-2xl">🔍</span>
             </div>
             <p className="text-base font-medium text-dark">Title Tag Tests</p>
             <p className="text-sm text-mediumGray mt-2">CTR +1.7 percentage points</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
               <span className="text-2xl">📱</span>
             </div>
             <p className="text-base font-medium text-dark">Mobile CTA Placement</p>
             <p className="text-sm text-mediumGray mt-2">Conversion +0.8 percentage points</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
               <span className="text-2xl">⚡</span>
             </div>
             <p className="text-base font-medium text-dark">Core Web Vitals</p>
             <p className="text-sm text-mediumGray mt-2">Bounce rate -15% on key pages</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#9EA8FB]/30 hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4 border border-[#9EA8FB]">
+          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center border border-[#F5F5F9] hover:border-[#9EA8FB] transition-colors">
+            <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4 border border-[#F5F5F9]">
               <span className="text-2xl">📊</span>
             </div>
             <p className="text-base font-medium text-dark">Content Length Test</p>
@@ -947,10 +942,10 @@ const sampleReportContent = {
       </div>
 
       {/* Next Quarter Roadmap */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-5">Next Quarter Roadmap</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg border border-[#9EA8FB]/30">
+          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-base font-medium text-dark mb-3">Where We Are Now</h5>
             <p className="text-base text-mediumGray mb-4 leading-relaxed">
               Strong foundation with improved technical performance, growing organic visibility, and
@@ -958,7 +953,7 @@ const sampleReportContent = {
             </p>
           </div>
 
-          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg border border-[#9EA8FB]/30">
+          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg border border-[#F5F5F9]">
             <h5 className="text-base font-medium text-dark mb-3">Where We're Heading Next</h5>
             <ul className="list-disc pl-6 text-base text-mediumGray space-y-2">
               <li>Expand content clusters around highest-converting topics</li>
@@ -972,7 +967,7 @@ const sampleReportContent = {
       </div>
 
       {/* Competitor Intel */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <div className="flex justify-between items-center mb-5">
           <h4 className="text-lg font-medium text-dark">Competitor Intel</h4>
           <div className="flex items-center space-x-2">
@@ -1014,7 +1009,7 @@ const sampleReportContent = {
           </table>
         </div>
 
-        <div className="bg-[#9EA8FB]/10 p-5 rounded-lg border border-[#9EA8FB]/30">
+        <div className="bg-[#9EA8FB]/10 p-5 rounded-lg border border-[#F5F5F9]">
           <h5 className="text-base font-medium text-dark mb-3">Key Takeaways</h5>
           <p className="text-base text-mediumGray leading-relaxed">
             Opportunity to outrank Competitor B on Local SEO keywords where they've lost positions.
@@ -1025,7 +1020,7 @@ const sampleReportContent = {
       </div>
 
       {/* Risk and Tradeoffs */}
-      <div className="bg-white p-6 rounded-lg border border-[#9EA8FB] shadow-sm">
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">Risks and Tradeoffs</h4>
         <ul className="list-disc pl-6 text-base text-mediumGray space-y-3">
           <li>
@@ -1044,7 +1039,7 @@ const sampleReportContent = {
       </div>
 
       {/* TL;DR */}
-      <div className="bg-[#9EA8FB]/20 p-6 rounded-lg border border-[#9EA8FB]">
+      <div className="bg-[#9EA8FB]/20 p-6 rounded-3xl border-8 border-[#F5F5F9]">
         <h4 className="text-lg font-medium text-dark mb-4">TL;DR</h4>
         <p className="text-base text-mediumGray leading-relaxed">
           Q1 2025 delivered strong results across all KPIs with traffic up 42% YoY and leads up 38% YoY.
@@ -1322,17 +1317,13 @@ export default function Reports() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Report List */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg border border-[#9EA8FB] p-6">
+              <div className="bg-white rounded-3xl border-8 border-[#F5F5F9] p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium text-dark">
                     {activeTab === 'weekly' && 'Weekly Reports'}
                     {activeTab === 'monthly' && 'Monthly Reports'}
                     {activeTab === 'quarterly' && 'Quarterly Reports'}
                   </h2>
-                  <Button variant="outline" className="flex items-center text-sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
                 </div>
 
                 <div className="space-y-4">
@@ -1340,7 +1331,7 @@ export default function Reports() {
                     filteredReports.weekly.map(report => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-2 border-[#9EA8FB]' : 'bg-gray-50 hover:bg-[#9EA8FB]/5'}`}
+                        className={`p-4 rounded-xl cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
                         onClick={() => handleReportSelect(report.id, 'weekly')}
                       >
                         <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
@@ -1351,7 +1342,7 @@ export default function Reports() {
                       </div>
                     ))
                   ) : activeTab === 'weekly' && (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="p-4 bg-white rounded-xl border-4 border-[#F5F5F9] shadow-sm text-center">
                       <p className="text-mediumGray">No weekly reports found for the selected filters.</p>
                     </div>
                   )}
@@ -1360,7 +1351,7 @@ export default function Reports() {
                     filteredReports.monthly.map(report => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-2 border-[#9EA8FB]' : 'bg-gray-50 hover:bg-[#9EA8FB]/5'}`}
+                        className={`p-4 rounded-xl cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
                         onClick={() => handleReportSelect(report.id, 'monthly')}
                       >
                         <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
@@ -1371,7 +1362,7 @@ export default function Reports() {
                       </div>
                     ))
                   ) : activeTab === 'monthly' && (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="p-4 bg-white rounded-xl border-4 border-[#F5F5F9] shadow-sm text-center">
                       <p className="text-mediumGray">No monthly reports found for the selected filters.</p>
                     </div>
                   )}
@@ -1380,7 +1371,7 @@ export default function Reports() {
                     filteredReports.quarterly.map(report => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors ${selectedReport === report.id ? 'bg-primary/10 border-2 border-[#9EA8FB]' : 'bg-gray-50 hover:bg-[#9EA8FB]/5'}`}
+                        className={`p-4 rounded-xl cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
                         onClick={() => handleReportSelect(report.id, 'quarterly')}
                       >
                         <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
@@ -1391,7 +1382,7 @@ export default function Reports() {
                       </div>
                     ))
                   ) : activeTab === 'quarterly' && (
-                    <div className="p-4 bg-gray-50 rounded-lg text-center">
+                    <div className="p-4 bg-white rounded-xl border-4 border-[#F5F5F9] shadow-sm text-center">
                       <p className="text-mediumGray">No quarterly reports found for the selected filters.</p>
                     </div>
                   )}
@@ -1401,7 +1392,7 @@ export default function Reports() {
 
             {/* Report Content */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-lg border border-[#9EA8FB] p-6">
+              <div className="bg-white rounded-3xl border-8 border-[#F5F5F9] p-6">
                 <div className="flex justify-between items-center mb-6 sticky top-0 bg-white py-4 z-10">
                   <div className="flex items-center">
                     <Button
