@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 // Sample uplift potential data
 const upliftData = [
@@ -347,32 +348,32 @@ function DataTable({
     // Define column widths based on content type
     const columnWidths: Record<string, string> = {
       // Common columns
-      'mainKw': '200px',
-      'targetUrl': '250px',
-      'publicationStatus': '150px',
-      'pageTypeMain': '150px',
-      'pageTypeSub': '150px',
-      'targetKwScore': '150px',
-      'mainKwPosition': '150px',
-      'clicksLastMonth': '150px',
-      'potentialClickUplift': '180px',
-      'potentialUpliftSignups': '180px',
-      'linkBuildingStatus': '150px',
-      'contentStatus': '150px',
+      'mainKw': '180px',
+      'targetUrl': '180px',
+      'publicationStatus': '120px',
+      'pageTypeMain': '120px',
+      'pageTypeSub': '120px',
+      'targetKwScore': '120px',
+      'mainKwPosition': '120px',
+      'clicksLastMonth': '120px',
+      'potentialClickUplift': '140px',
+      'potentialUpliftSignups': '140px',
+      'linkBuildingStatus': '120px',
+      'contentStatus': '120px',
 
       // Internal link map specific
-      'pageType': '150px',
-      'cluster': '150px',
-      'secondaryAnchorText': '250px',
-      'internalLinkRemapStatus': '180px',
+      'pageType': '120px',
+      'cluster': '120px',
+      'secondaryAnchorText': '180px',
+      'internalLinkRemapStatus': '140px',
 
       // Link building specific
-      'actualRdsNeeded': '150px',
-      'startingRds': '150px',
-      'month': '150px',
+      'actualRdsNeeded': '120px',
+      'startingRds': '120px',
+      'month': '120px',
 
       // Default for any other columns
-      'default': '150px'
+      'default': '120px'
     };
 
     return columnWidths[key] || columnWidths['default'];
@@ -422,9 +423,9 @@ function DataTable({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border w-full">
         <div className="overflow-x-auto">
-          <CompactTable>
+          <CompactTable className="w-full">
             <CompactTableHeader>
               <CompactTableRow className="bg-gray-50">
                 {columns.map((column) => (
@@ -745,100 +746,30 @@ export default function SEOLayoutsPage() {
         </div>
       </div>
 
-      <PageContainer className="w-full">
-        <PageContainerTabs>
-          <TabNavigation
-            tabs={[
-              { id: 'uplift', label: 'Uplift Potential' },
-              { id: 'internal-link', label: 'Internal Link Map' },
-              { id: 'link-building', label: 'Link Building Targets' },
-              // Add custom ad-hoc views
-              ...customViews.map(view => ({ id: view.id, label: view.label }))
-            ]}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            variant="primary"
-          />
-        </PageContainerTabs>
+      <div className="relative z-0">
+        <PageContainer className="w-full">
+          <PageContainerTabs>
+            <TabNavigation
+              tabs={[
+                { id: 'uplift', label: 'Uplift Potential' },
+                { id: 'internal-link', label: 'Internal Link Map' },
+                { id: 'link-building', label: 'Link Building Targets' },
+                // Add custom ad-hoc views
+                ...customViews.map(view => ({ id: view.id, label: view.label }))
+              ]}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              variant="primary"
+            />
+          </PageContainerTabs>
 
-        <PageContainerBody className="p-2 md:p-4">
-          {/* Content Clusters tab is removed as per requirements */}
+          <PageContainerBody className="p-2 md:p-4">
+            {/* Content Clusters tab is removed as per requirements */}
 
-          {activeTab === 'uplift' && (
-            <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                <h2 className="text-lg md:text-xl font-medium text-dark">Uplift Potential</h2>
-                <div className="flex items-center">
-                  <Button variant="outline" className="flex items-center text-sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </Button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <DataTable
-                  data={upliftData}
-                  columns={upliftColumns}
-                  filterOptions={upliftFilterOptions}
-                  searchPlaceholder="Search by keyword or URL..."
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'internal-link' && (
-            <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                <h2 className="text-lg md:text-xl font-medium text-dark">Internal Link Map</h2>
-                <div className="flex items-center">
-                  <Button variant="outline" className="flex items-center text-sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </Button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <DataTable
-                  data={internalLinkData}
-                  columns={internalLinkColumns}
-                  filterOptions={internalLinkFilterOptions}
-                  searchPlaceholder="Search by keyword, URL or anchor text..."
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'link-building' && (
-            <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                <h2 className="text-lg md:text-xl font-medium text-dark">Link Building Targets</h2>
-                <div className="flex items-center">
-                  <Button variant="outline" className="flex items-center text-sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filters
-                  </Button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <DataTable
-                  data={linkBuildingData}
-                  columns={linkBuildingColumns}
-                  filterOptions={linkBuildingFilterOptions}
-                  searchPlaceholder="Search by keyword or URL..."
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Handle custom ad-hoc views */}
-          {customViews.map(view => (
-            activeTab === view.id && (
-              <div key={view.id} className="space-y-2">
+            {activeTab === 'uplift' && (
+              <div className="space-y-2">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                  <h2 className="text-lg md:text-xl font-medium text-dark">{view.label}</h2>
+                  <h2 className="text-lg md:text-xl font-medium text-dark">Uplift Potential</h2>
                   <div className="flex items-center">
                     <Button variant="outline" className="flex items-center text-sm">
                       <Filter className="h-4 w-4 mr-2" />
@@ -847,83 +778,155 @@ export default function SEOLayoutsPage() {
                   </div>
                 </div>
 
-                {/* Example Product Prune table */}
-                {view.id === 'product-prune' && (
-                  <div className="bg-white p-3 md:p-4 rounded-lg border border-gray-200">
-                    <p className="text-sm text-mediumGray mb-3">
-                      This is a custom ad-hoc view for Product Prune. Client-specific tables can be added here as needed.
-                    </p>
-                    <div className="overflow-x-auto">
-                      <CompactTable>
-                        <CompactTableHeader>
-                          <CompactTableRow className="bg-gray-50">
-                            <CompactTableHead width="250px">
-                              Product URL
-                            </CompactTableHead>
-                            <CompactTableHead width="150px">
-                              Traffic
-                            </CompactTableHead>
-                            <CompactTableHead width="150px">
-                              Revenue
-                            </CompactTableHead>
-                            <CompactTableHead width="150px">
-                              Action
-                            </CompactTableHead>
-                          </CompactTableRow>
-                        </CompactTableHeader>
-                        <CompactTableBody>
-                          <CompactTableRow>
-                            <CompactTableCell className="font-medium" width="250px">
-                              /products/example-1
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              125
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              $0
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              {renderStatusBadge('Prune')}
-                            </CompactTableCell>
-                          </CompactTableRow>
-                          <CompactTableRow>
-                            <CompactTableCell className="font-medium" width="250px">
-                              /products/example-2
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              250
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              $125
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              {renderStatusBadge('Keep')}
-                            </CompactTableCell>
-                          </CompactTableRow>
-                          <CompactTableRow>
-                            <CompactTableCell className="font-medium" width="250px">
-                              /products/example-3
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              50
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              $10
-                            </CompactTableCell>
-                            <CompactTableCell width="150px">
-                              {renderStatusBadge('Redirect')}
-                            </CompactTableCell>
-                          </CompactTableRow>
-                        </CompactTableBody>
-                      </CompactTable>
+                <div className="w-full overflow-hidden">
+                  <DataTable
+                    data={upliftData}
+                    columns={upliftColumns}
+                    filterOptions={upliftFilterOptions}
+                    searchPlaceholder="Search by keyword or URL..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'internal-link' && (
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                  <h2 className="text-lg md:text-xl font-medium text-dark">Internal Link Map</h2>
+                  <div className="flex items-center">
+                    <Button variant="outline" className="flex items-center text-sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filters
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="w-full overflow-hidden">
+                  <DataTable
+                    data={internalLinkData}
+                    columns={internalLinkColumns}
+                    filterOptions={internalLinkFilterOptions}
+                    searchPlaceholder="Search by keyword, URL or anchor text..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'link-building' && (
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                  <h2 className="text-lg md:text-xl font-medium text-dark">Link Building Targets</h2>
+                  <div className="flex items-center">
+                    <Button variant="outline" className="flex items-center text-sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filters
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="w-full overflow-hidden">
+                  <DataTable
+                    data={linkBuildingData}
+                    columns={linkBuildingColumns}
+                    filterOptions={linkBuildingFilterOptions}
+                    searchPlaceholder="Search by keyword or URL..."
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Handle custom ad-hoc views */}
+            {customViews.map(view => (
+              activeTab === view.id && (
+                <div key={view.id} className="space-y-2">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
+                    <h2 className="text-lg md:text-xl font-medium text-dark">{view.label}</h2>
+                    <div className="flex items-center">
+                      <Button variant="outline" className="flex items-center text-sm">
+                        <Filter className="h-4 w-4 mr-2" />
+                        Filters
+                      </Button>
                     </div>
                   </div>
-                )}
-              </div>
-            )
-          ))}
-        </PageContainerBody>
-      </PageContainer>
+
+                  {/* Example Product Prune table */}
+                  {view.id === 'product-prune' && (
+                    <div className="bg-white p-3 md:p-4 rounded-lg border border-gray-200">
+                      <p className="text-sm text-mediumGray mb-3">
+                        This is a custom ad-hoc view for Product Prune. Client-specific tables can be added here as needed.
+                      </p>
+                      <div className="overflow-x-auto">
+                        <CompactTable className="w-full">
+                          <CompactTableHeader>
+                            <CompactTableRow className="bg-gray-50">
+                              <CompactTableHead width="250px">
+                                Product URL
+                              </CompactTableHead>
+                              <CompactTableHead width="150px">
+                                Traffic
+                              </CompactTableHead>
+                              <CompactTableHead width="150px">
+                                Revenue
+                              </CompactTableHead>
+                              <CompactTableHead width="150px">
+                                Action
+                              </CompactTableHead>
+                            </CompactTableRow>
+                          </CompactTableHeader>
+                          <CompactTableBody>
+                            <CompactTableRow>
+                              <CompactTableCell className="font-medium" width="250px">
+                                /products/example-1
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                125
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                $0
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                {renderStatusBadge('Prune')}
+                              </CompactTableCell>
+                            </CompactTableRow>
+                            <CompactTableRow>
+                              <CompactTableCell className="font-medium" width="250px">
+                                /products/example-2
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                250
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                $125
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                {renderStatusBadge('Keep')}
+                              </CompactTableCell>
+                            </CompactTableRow>
+                            <CompactTableRow>
+                              <CompactTableCell className="font-medium" width="250px">
+                                /products/example-3
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                50
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                $10
+                              </CompactTableCell>
+                              <CompactTableCell width="150px">
+                                {renderStatusBadge('Redirect')}
+                              </CompactTableCell>
+                            </CompactTableRow>
+                          </CompactTableBody>
+                        </CompactTable>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            ))}
+          </PageContainerBody>
+        </PageContainer>
+      </div>
     </DashboardLayout>
   );
 }

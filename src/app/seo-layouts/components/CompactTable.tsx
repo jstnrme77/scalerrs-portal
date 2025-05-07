@@ -15,7 +15,7 @@ const CompactTable = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <table
     ref={ref}
-    className={cn("w-full caption-bottom text-base table-fixed border-collapse", className)}
+    className={cn("w-full caption-bottom text-base border-collapse", className)}
     style={{ tableLayout: 'fixed' }}
     {...props}
   />
@@ -64,7 +64,7 @@ const CompactTableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-muted-foreground text-sm truncate",
+      "h-12 px-4 text-left align-middle font-medium text-muted-foreground text-sm truncate whitespace-nowrap",
       className
     )}
     style={{ width, maxWidth: width }}
@@ -79,7 +79,7 @@ const CompactTableCell = React.forwardRef<
 >(({ className, width = "150px", ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle text-sm truncate", className)}
+    className={cn("p-4 align-middle text-sm truncate whitespace-nowrap", className)}
     style={{ width, maxWidth: width }}
     {...props}
   />
