@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DocumentCard, Document } from '@/components/ui/cards';
+// import { DocumentCard, Document } from '@/components/ui/cards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,14 +9,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, FileText, FileImage, FileArchive, FileVideo, FileSpreadsheet, Link, File } from 'lucide-react';
 
+// Define Document type locally to avoid dependency issues
+type Document = {
+  id: number;
+  name: string;
+  type?: string;
+  lastUpdated?: string;
+  size?: string;
+};
+
 type ResourceDocument = Document & {
-  uploadedBy: string;
-  editable: boolean;
+  uploadedBy?: string;
+  editable?: boolean;
 };
 
 type AdminResourcesProps = {
   resources: ResourceDocument[];
-  onUpload: (newResource: Omit<ResourceDocument, 'id' | 'lastUpdated' | 'uploadedBy' | 'editable'>) => void;
+  onUpload: (newResource: Omit<ResourceDocument, 'id'>) => void;
   onView?: (id: number) => void;
   onDownload?: (id: number) => void;
 };
@@ -43,21 +52,21 @@ export default function AdminResources({
   // Group resources by category for better organization
   const resourceCategories = {
     brandAssets: resources.filter(r => 
-      r.name.toLowerCase().includes('brand') || 
-      r.name.toLowerCase().includes('logo') || 
-      r.name.toLowerCase().includes('assets')
+      r.name?.toLowerCase().includes('brand') || 
+      r.name?.toLowerCase().includes('logo') || 
+      r.name?.toLowerCase().includes('assets')
     ),
     contentGuides: resources.filter(r => 
-      r.name.toLowerCase().includes('tone') || 
-      r.name.toLowerCase().includes('guide') || 
-      r.name.toLowerCase().includes('example')
+      r.name?.toLowerCase().includes('tone') || 
+      r.name?.toLowerCase().includes('guide') || 
+      r.name?.toLowerCase().includes('example')
     ),
     productMaterials: resources.filter(r => 
-      r.name.toLowerCase().includes('product') || 
-      r.name.toLowerCase().includes('screenshot')
+      r.name?.toLowerCase().includes('product') || 
+      r.name?.toLowerCase().includes('screenshot')
     ),
     other: resources.filter(r => 
-      !r.name.toLowerCase().includes('brand') && 
+      r.name && !r.name.toLowerCase().includes('brand') && 
       !r.name.toLowerCase().includes('logo') && 
       !r.name.toLowerCase().includes('assets') &&
       !r.name.toLowerCase().includes('tone') && 
@@ -75,22 +84,14 @@ export default function AdminResources({
           <h2 className="text-lg font-medium text-dark">Resources</h2>
           <p className="text-sm text-mediumGray">Shared files that support content production, tone, branding, and collaboration</p>
         </div>
-        <div className="flex space-x-3">
-          <Button
-            variant="default"
-            className="font-bold rounded-[16px] text-sm bg-primary"
-          >
-            Scalerrs Portal
-          </Button>
-          <Button
-            variant="default"
-            onClick={() => setIsUploadModalOpen(true)}
-            className="font-bold rounded-[16px] text-sm bg-[#0F111A]"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Upload Resource
-          </Button>
-        </div>
+        <Button
+          variant="default"
+          onClick={() => setIsUploadModalOpen(true)}
+          className="font-bold rounded-[16px] text-sm bg-[#0F111A]"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Upload Resource
+        </Button>
       </div>
 
       {/* Brand Assets */}
@@ -266,7 +267,9 @@ function ResourceCard({
   onView?: (id: number) => void; 
   onDownload?: (id: number) => void; 
 }) {
-  const getFileIcon = (type: string) => {
+  const getFileIcon = (type: string | undefined) => {
+    if (!type) return <File className="h-7 w-7 text-gray-500" />;
+    
     switch (type.toUpperCase()) {
       case 'PDF':
         return <FileText className="h-7 w-7 text-red-500" />;
@@ -293,12 +296,11 @@ function ResourceCard({
   return (
     <div className="bg-white border border-gray-200 rounded-[12px] overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-4">
           <div className="flex items-center">
             <span className="mr-3">{getFileIcon(resource.type)}</span>
             <div>
-              <h4 className="text-base font-medium text-dark text-[16px]">{resource.name}</h4>
-              <p className="text-[16px] text-mediumGray">{resource.type} • {resource.size}</p>
+              <h4 className="text-base font-medium text-dark">{resource.name}</h4>
             </div>
           </div>
           <Badge 
@@ -308,19 +310,16 @@ function ResourceCard({
                 : 'bg-gray-200 text-gray-700'
             }`}
           >
-            {resource.uploadedBy}
+            {resource.uploadedBy || 'Unknown'}
           </Badge>
         </div>
-        <p className="text-[16px] text-mediumGray mb-3">
-          Last updated: {new Date(resource.lastUpdated).toLocaleDateString()}
-        </p>
         <div className="flex space-x-2">
           {onView && (
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => onView(resource.id)}
-              className="text-[16px] py-1 px-2.5 rounded-[8px] font-medium"
+              className="text-xs py-1 px-2.5 rounded-[8px] font-medium"
             >
               View
             </Button>
@@ -330,7 +329,7 @@ function ResourceCard({
               variant="default" 
               size="sm"
               onClick={() => onDownload(resource.id)}
-              className="text-[16px] py-1 px-2.5 rounded-[8px] font-medium text-white"
+              className="text-xs py-1 px-2.5 rounded-[8px] font-medium text-white"
             >
               Download
             </Button>

@@ -27,7 +27,7 @@ const adminData = {
     { id: 2, name: 'Tone of voice guide', type: 'DOCX', lastUpdated: '2025-02-15', size: '450 KB', uploadedBy: 'Client', editable: true },
     { id: 3, name: 'Example blog post', type: 'PDF', lastUpdated: '2025-03-05', size: '1.8 MB', uploadedBy: 'Scalerrs', editable: true },
     { id: 4, name: 'Product screenshots', type: 'ZIP', lastUpdated: '2025-03-12', size: '680 KB', uploadedBy: 'Client', editable: true },
-    { id: 5, name: 'Visual brand assets', type: 'ZIP', lastUpdated: '2025-01-30', size: '24.5 MB', uploadedBy: 'Client', editable: true },
+    { id: 5, name: 'Visual brand assets',  lastUpdated: '2025-01-30',  uploadedBy: 'Client', editable: true },
   ],
   settings: {
     companyName: 'Acme Corp',
