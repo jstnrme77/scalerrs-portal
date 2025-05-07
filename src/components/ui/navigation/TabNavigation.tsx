@@ -58,7 +58,7 @@ export default function TabNavigation({
                 ? cn("tab-item-active", activeTabClassName)
                 : cn("tab-item-inactive", tabClassName),
               isPrimary ? "font-semibold" : "font-medium",
-              size === 'small' ? "text-sm py-2 px-4" : "py-3 px-6",
+              size === 'small' ? "text-sm" : "",
               tab.disabled && "opacity-50 cursor-not-allowed",
               className
             )}

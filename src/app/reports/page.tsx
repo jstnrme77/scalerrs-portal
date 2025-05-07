@@ -11,6 +11,7 @@ import { Brief, Article, Backlink } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { BiCheckCircle, BiErrorCircle, BiMessageRoundedDetail, BiCalendarCheck, BiDownload, BiLinkExternal, BiFilter, BiChevronLeft, BiChevronRight, BiChevronDown } from 'react-icons/bi';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { BiLineChart, BiFolder, BiLinkAlt } from 'react-icons/bi';
 
 // Date filter options - removed as not needed
 
@@ -165,7 +167,7 @@ const sampleReportContent = {
                       {brief.status}
                     </Badge>
                     <a href={brief.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
-                      <ExternalLink size={20} />
+                      <BiLinkExternal size={20} />
                     </a>
                   </div>
                 </div>
@@ -184,7 +186,7 @@ const sampleReportContent = {
                   <div className="flex items-center space-x-3">
                     <Badge variant="success" className="text-sm px-3 py-1">{article.status}</Badge>
                     <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
-                      <ExternalLink size={20} />
+                      <BiLinkExternal size={20} />
                     </a>
                   </div>
                 </div>
@@ -226,8 +228,8 @@ const sampleReportContent = {
             </ul>
           </div>
 
-          <div className="p-4 bg-amber-200 rounded-lg">
-            <h5 className="text-base font-medium text-amber-800 mb-3">Action Required</h5>
+          <div className="p-6 rounded-lg border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+            <h5 className="font-bold text-dark text-lg mb-1 notification-text">Action Required</h5>
             <ul className="list-disc pl-6 text-base text-mediumGray">
               <li className="font-medium">Review "Top 10 SEO Strategies for 2025" brief by May 2nd</li>
               <li className="font-medium">Provide feedback on the new homepage design mockup</li>
@@ -242,15 +244,15 @@ const sampleReportContent = {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#F5F5F9]">
-            <span className="mr-3 text-lg">📈</span>
+            <BiLineChart className="mr-3 text-primary text-lg" />
             <span className="text-base text-dark">GSC Dashboard</span>
           </a>
           <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#F5F5F9]">
-            <span className="mr-3 text-lg">🗂️</span>
+            <BiFolder className="mr-3 text-primary text-lg" />
             <span className="text-base text-dark">Content Folder</span>
           </a>
           <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors border border-[#F5F5F9]">
-            <span className="mr-3 text-lg">🔗</span>
+            <BiLinkAlt className="mr-3 text-primary text-lg" />
             <span className="text-base text-dark">Backlink Sheet</span>
           </a>
         </div>
@@ -269,7 +271,6 @@ const sampleReportContent = {
     <div className="space-y-6">
       {/* Executive Summary */}
       <div className="bg-lightGray p-5 rounded-lg">
-        <h3 className="text-xl font-medium text-dark mb-3">April 2025 Performance Report</h3>
         <div className="mt-2 space-y-2">
           <p className="text-base text-mediumGray">Monthly comprehensive analysis of your SEO campaign performance, achievements, and strategic recommendations.</p>
         </div>
@@ -279,7 +280,7 @@ const sampleReportContent = {
       <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
         <div className="flex items-center mb-2">
           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2 border border-[#F5F5F9]">
-            <MessageSquare size={16} className="text-gray-500" />
+            <BiMessageRoundedDetail size={16} className="text-gray-500" />
           </div>
           <h4 className="font-medium text-dark">Monthly Walkthrough</h4>
         </div>
@@ -287,7 +288,7 @@ const sampleReportContent = {
           <div className="text-center">
             <p className="text-mediumGray">Loom video walkthrough</p>
             <Button variant="outline" size="sm" className="mt-2">
-              <ExternalLink size={14} className="mr-1" />
+              <BiLinkExternal size={14} className="mr-1" />
               Watch Video
             </Button>
           </div>
@@ -311,8 +312,8 @@ const sampleReportContent = {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="clicks" fill="#8884d8" name="Clicks" />
-                  <Bar dataKey="impressions" fill="#82ca9d" name="Impressions" />
+                  <Bar dataKey="clicks" fill="#9ea8fb" name="Clicks" />
+                  <Bar dataKey="impressions" fill="#fcdc94" name="Impressions" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -331,8 +332,8 @@ const sampleReportContent = {
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#8884d8" name="Leads" />
-                  <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#82ca9d" name="Revenue ($)" />
+                  <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#9ea8fb" name="Leads" />
+                  <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#fcdc94" name="Revenue ($)" />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -341,32 +342,156 @@ const sampleReportContent = {
       </div>
 
       {/* Deliverables Recap */}
-      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Deliverables Recap</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-primary/5 p-3 rounded-lg border border-[#F5F5F9]">
-            <h5 className="text-sm font-medium text-dark mb-2">Briefs Delivered</h5>
-            <p className="text-2xl font-bold text-dark">12</p>
-            <div className="w-full bg-lightGray rounded-full h-2 mt-2">
-              <div className="bg-primary h-2 rounded-full" style={{ width: '80%' }}></div>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '24px',
+        borderRadius: '16px',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        marginBottom: '24px'
+      }}>
+        <h4 style={{
+          fontWeight: 600,
+          marginBottom: '16px',
+          fontSize: '16px',
+          color: '#111827'
+        }}>Deliverables Recap</h4>
+        
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '16px'
+        }}>
+          {/* Briefs Delivered */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>Briefs Delivered</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '8px',
+              color: '#111827'
+            }}>12</div>
+            <div style={{
+              width: '100%',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '9999px',
+              height: '6px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                height: '100%',
+                width: '80%',
+                backgroundColor: '#9ea8fb',
+                borderRadius: '9999px',
+                left: 0,
+                top: 0
+              }}></div>
             </div>
-            <p className="text-xs text-mediumGray mt-1">80% of monthly target</p>
+            <div style={{
+              fontSize: '12px',
+              color: '#4b5563',
+              marginTop: '8px'
+            }}>80% of monthly target</div>
           </div>
-          <div className="bg-gold/5 p-3 rounded-lg border border-[#F5F5F9]">
-            <h5 className="text-sm font-medium text-dark mb-2">Blogs Published</h5>
-            <p className="text-2xl font-bold text-dark">8</p>
-            <div className="w-full bg-lightGray rounded-full h-2 mt-2">
-              <div className="bg-gold h-2 rounded-full" style={{ width: '100%' }}></div>
+          
+          {/* Blogs Published */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>Blogs Published</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '8px',
+              color: '#111827'
+            }}>8</div>
+            <div style={{
+              width: '100%',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '9999px',
+              height: '6px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                height: '100%',
+                width: '100%',
+                backgroundColor: '#fcdc94',
+                borderRadius: '9999px',
+                left: 0,
+                top: 0
+              }}></div>
             </div>
-            <p className="text-xs text-mediumGray mt-1">100% of monthly target</p>
+            <div style={{
+              fontSize: '12px',
+              color: '#4b5563',
+              marginTop: '8px'
+            }}>100% of monthly target</div>
           </div>
-          <div className="bg-lavender/5 p-3 rounded-lg border border-[#F5F5F9]">
-            <h5 className="text-sm font-medium text-dark mb-2">Backlinks Live</h5>
-            <p className="text-2xl font-bold text-dark">15</p>
-            <div className="w-full bg-lightGray rounded-full h-2 mt-2">
-              <div className="bg-lavender h-2 rounded-full" style={{ width: '125%' }}></div>
+          
+          {/* Backlinks Live */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>Backlinks Live</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '8px',
+              color: '#111827'
+            }}>15</div>
+            <div style={{
+              width: '100%',
+              backgroundColor: '#e5e7eb',
+              borderRadius: '9999px',
+              height: '6px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                height: '100%',
+                width: '125%', // Showing 125% completion
+                backgroundImage: 'linear-gradient(to right, #eadcff 80%, #d4bfff 80%)', // Gradient effect to show overflow
+                borderRadius: '9999px',
+                left: 0,
+                top: 0
+              }}></div>
             </div>
-            <p className="text-xs text-mediumGray mt-1">125% of monthly target</p>
+            <div style={{
+              fontSize: '12px',
+              color: '#4b5563',
+              marginTop: '8px'
+            }}>125% of monthly target</div>
           </div>
         </div>
       </div>
@@ -387,7 +512,7 @@ const sampleReportContent = {
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">{page.url}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{page.url}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
@@ -403,177 +528,620 @@ const sampleReportContent = {
       </div>
 
       {/* Keyword & SERP Trends */}
-      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Keyword & SERP Trends</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Rank Movement</h5>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-mediumGray">Position 1-3</span>
-                  <span className="text-sm font-medium text-dark">42 keywords <span className="text-green-500">+8</span></span>
+      <div className="bg-white p-6 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
+        <h4 className="font-medium text-dark mb-4">Keyword & SERP Trends</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Keyword Position Movement - Left Column */}
+          <div className="bg-white p-5 rounded-lg border border-gray-100">
+            <h5 className="font-medium text-dark mb-4">Keywords</h5>
+            
+            <div className="space-y-4">
+              {/* Position 1-3 */}
+              <div className="flex items-center">
+                <div className="w-24 text-sm mr-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#9ea8fb' }}></div>
+                    <span>Position<br/>1-3</span>
+                  </div>
                 </div>
-                <div className="w-full bg-lightGray rounded-full h-1.5">
-                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '25%' }}></div>
+                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '25%', backgroundColor: '#9ea8fb' }}></div>
+                </div>
+                <div className="text-right ml-4">
+                  <span className="font-medium">42 keywords</span>
+                  <span className="ml-1 text-[#9ea8fb]">+8 (+23%)</span>
                 </div>
               </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-mediumGray">Position 4-10</span>
-                  <span className="text-sm font-medium text-dark">78 keywords <span className="text-green-500">+12</span></span>
+              
+              {/* Position 4-10 */}
+              <div className="flex items-center">
+                <div className="w-24 text-sm mr-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#fcdc94' }}></div>
+                    <span>Position<br/>4-10</span>
+                  </div>
                 </div>
-                <div className="w-full bg-lightGray rounded-full h-1.5">
-                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
+                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '45%', backgroundColor: '#fcdc94' }}></div>
+                </div>
+                <div className="text-right ml-4">
+                  <span className="font-medium">78 keywords</span>
+                  <span className="ml-1 text-[#9ea8fb]">+12 (+18%)</span>
                 </div>
               </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-mediumGray">Position 11-20</span>
-                  <span className="text-sm font-medium text-dark">124 keywords <span className="text-green-500">+5</span></span>
+              
+              {/* Position 11-20 */}
+              <div className="flex items-center">
+                <div className="w-24 text-sm mr-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#eadcff' }}></div>
+                    <span>Position<br/>11-20</span>
+                  </div>
                 </div>
-                <div className="w-full bg-lightGray rounded-full h-1.5">
-                  <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '70%' }}></div>
+                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '70%', backgroundColor: '#eadcff' }}></div>
+                </div>
+                <div className="text-right ml-4">
+                  <span className="font-medium">124 keywords</span>
+                  <span className="ml-1 text-[#9ea8fb]">(+14%)</span>
+                </div>
+              </div>
+              
+              {/* Position 21-50 */}
+              <div className="flex items-center">
+                <div className="w-24 text-sm mr-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ff9d7d' }}></div>
+                    <span>Position<br/>21-50</span>
+                  </div>
+                </div>
+                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: '55%', backgroundColor: '#ff9d7d' }}></div>
+                </div>
+                <div className="text-right ml-4">
+                  <span className="font-medium">96 keywords</span>
+                  <span className="ml-1 text-red-500">-7 (-7%)</span>
+                </div>
+              </div>
+              
+              {/* Total Tracked Keywords */}
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <div className="flex justify-between">
+                  <span className="font-medium">Total Tracked Keywords</span>
+                  <div>
+                    <span className="font-bold text-dark text-lg">340</span>
+                    <span className="text-[#9ea8fb] ml-2 text-sm">+18 this month</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Top Movers */}
+              <div className="border-t border-gray-200 pt-4 mt-2">
+                <h6 className="font-medium text-dark mb-3">Top Movers</h6>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-[#9ea8fb]/10 text-[#9ea8fb] px-2 py-1 rounded text-xs">
+                    "content marketing" (+12 positions)
+                  </span>
+                  <span className="bg-[#9ea8fb]/10 text-[#9ea8fb] px-2 py-1 rounded text-xs">
+                    "seo tools" (+8 positions)
+                  </span>
+                  <span className="bg-red-100 text-red-500 px-2 py-1 rounded text-xs">
+                    "sem strategy" (-3 positions)
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-          <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Visibility Trend</h5>
+          
+          {/* Average Keyword Position - Right Column */}
+          <div className="bg-white p-5 rounded-lg border border-gray-100">
+            <h5 className="font-medium text-dark mb-4">Average Keyword Position</h5>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm text-gray-500">Current Visibility</div>
+                <div className="flex items-end">
+                  <span className="text-2xl font-bold text-dark">42.3</span>
+                  <span className="text-[#9ea8fb] ml-2 text-sm font-medium">+4.1</span>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="text-sm text-gray-500">vs. Competition</div>
+                <div className="flex items-end">
+                  <span className="text-2xl font-bold text-dark">38.7</span>
+                  <span className="text-[#9ea8fb] ml-2 text-sm font-medium">+9%</span>
+                </div>
+              </div>
+            </div>
+            
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={[
-                    { date: 'Week 1', visibility: 32 },
-                    { date: 'Week 2', visibility: 35 },
-                    { date: 'Week 3', visibility: 38 },
-                    { date: 'Week 4', visibility: 42 }
+                    { week: 'Week 1', visibility: 32, competitor: 30 },
+                    { week: 'Week 2', visibility: 35, competitor: 31 },
+                    { week: 'Week 3', visibility: 38, competitor: 32 },
+                    { week: 'Week 4', visibility: 41, competitor: 34 },
+                    { week: 'Week 5', visibility: 42, competitor: 35 }
                   ]}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
+                  <XAxis dataKey="week" axisLine={false} tickLine={false} />
+                  <YAxis domain={[25, 45]} axisLine={false} tickLine={false} orientation="right" />
                   <Tooltip />
-                  <Line type="monotone" dataKey="visibility" stroke="#8884d8" name="Visibility Score" />
+                  <Line 
+                    type="monotone" 
+                    dataKey="visibility" 
+                    stroke="#9ea8fb" 
+                    name="Your visibility" 
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: '#9ea8fb', stroke: '#fff', strokeWidth: 2 }}
+                  />
+                  {/* Add separate line for competitor */}
+                  <Line 
+                    type="monotone" 
+                    dataKey="competitor" 
+                    stroke="#eadcff" 
+                    name="Competitor avg." 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={{ r: 4, fill: '#eadcff', stroke: '#fff', strokeWidth: 2 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+            
+            <div className="mt-4">
+              <button className="w-full py-2 bg-[#9ea8fb] text-white rounded-md hover:bg-[#9ea8fb]/90 transition-colors text-sm font-medium">
+                View Detailed Analysis & Recommendations
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Conversion & ROI Metrics */}
-      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Conversion & ROI Metrics</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-3 rounded-lg">
-            <h5 className="text-sm font-medium text-dark mb-1">Lead Generation</h5>
-            <p className="text-2xl font-bold text-dark">320</p>
-            <p className="text-xs text-green-600">+15.2% vs. March</p>
+      <div style={{ 
+        backgroundColor: 'white',
+        padding: '24px',
+        borderRadius: '16px',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        marginBottom: '24px'
+      }}>
+        <h4 style={{
+          fontWeight: 600,
+          marginBottom: '16px',
+          fontSize: '16px',
+          color: '#111827'
+        }}>Conversion & ROI Metrics</h4>
+        
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: '16px'
+        }}>
+          {/* Lead Generation */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>Lead Generation</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '4px',
+              color: '#111827'
+            }}>320</div>
+            <div className="metric-positive">+15.2% vs. March</div>
           </div>
-          <div className="bg-white p-3 rounded-lg">
-            <h5 className="text-sm font-medium text-dark mb-1">Assisted Conversions</h5>
-            <p className="text-2xl font-bold text-dark">86</p>
-            <p className="text-xs text-green-600">+9.8% vs. March</p>
+          
+          {/* Assisted Conversions */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>Assisted Conversions</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '4px',
+              color: '#111827'
+            }}>86</div>
+            <div className="metric-positive">+9.8% vs. March</div>
           </div>
-          <div className="bg-white p-3 rounded-lg">
-            <h5 className="text-sm font-medium text-dark mb-1">CPC Equivalence</h5>
-            <p className="text-2xl font-bold text-dark">$24,800</p>
-            <p className="text-xs text-green-600">+12.5% vs. March</p>
+          
+          {/* CPC Equivalence */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>CPC Equivalence</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '4px',
+              color: '#111827'
+            }}>$24,800</div>
+            <div className="metric-positive">+12.5% vs. March</div>
+          </div>
+          
+          {/* Bounce Rate - for bounce rate, increase ("+") is bad, decrease ("-") is good */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #f3f4f6'
+          }}>
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '8px',
+              color: '#374151'
+            }}>Bounce Rate</div>
+            <div style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '4px',
+              color: '#111827'
+            }}>48.2%</div>
+            <div className="metric-negative">+2.1% vs. March</div>
           </div>
         </div>
       </div>
 
       {/* Campaign Projection */}
-      <div className="bg-white p-4 rounded-3xl border-8 border-[#F5F5F9] shadow-sm">
-        <h4 className="font-medium text-dark mb-3">Campaign Projection</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div style={{
+        backgroundColor: 'white',
+        padding: '24px',
+        borderRadius: '16px',
+        border: '1px solid #e5e7eb',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+        marginBottom: '24px'
+      }}>
+        <h4 style={{
+          fontWeight: 600,
+          marginBottom: '16px',
+          fontSize: '16px',
+          color: '#111827'
+        }}>Campaign Projection</h4>
+        
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '24px'
+        }}>
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Progress vs. Goals</h5>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-mediumGray">Traffic Goal</span>
-                  <span className="text-sm font-medium text-dark">45.5K / 60K</span>
+            <h5 style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '16px',
+              color: '#374151'
+            }}>Progress vs. Goals</h5>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '8px'
+              }}>
+                <div style={{
+                  width: '100px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginRight: '16px'
+                }}>
+                  <div style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#9ea8fb',
+                    marginRight: '8px'
+                  }}></div>
+                  <span style={{ fontSize: '14px', color: '#374151' }}>Traffic Goal</span>
                 </div>
-                <div className="w-full bg-lightGray rounded-full h-2">
-                  <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
+                <div style={{
+                  flex: '1',
+                  backgroundColor: '#e5e7eb',
+                  borderRadius: '9999px',
+                  height: '6px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    height: '100%',
+                    width: '65%',
+                    backgroundColor: '#9ea8fb',
+                    borderRadius: '9999px',
+                    left: 0,
+                    top: 0
+                  }}></div>
                 </div>
+                <div style={{ width: '40px', textAlign: 'right', fontSize: '14px', color: '#374151', marginLeft: '8px' }}>65%</div>
               </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-mediumGray">Lead Goal</span>
-                  <span className="text-sm font-medium text-dark">320 / 450</span>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '8px'
+              }}>
+                <div style={{
+                  width: '100px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginRight: '16px'
+                }}>
+                  <div style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#fcdc94',
+                    marginRight: '8px'
+                  }}></div>
+                  <span style={{ fontSize: '14px', color: '#374151' }}>Lead Goal</span>
                 </div>
-                <div className="w-full bg-lightGray rounded-full h-2">
-                  <div className="bg-gold h-2 rounded-full" style={{ width: '71%' }}></div>
+                <div style={{
+                  flex: '1',
+                  backgroundColor: '#e5e7eb',
+                  borderRadius: '9999px',
+                  height: '6px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    height: '100%',
+                    width: '78%',
+                    backgroundColor: '#fcdc94',
+                    borderRadius: '9999px',
+                    left: 0,
+                    top: 0
+                  }}></div>
                 </div>
+                <div style={{ width: '40px', textAlign: 'right', fontSize: '14px', color: '#374151', marginLeft: '8px' }}>78%</div>
               </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm text-mediumGray">Revenue Goal</span>
-                  <span className="text-sm font-medium text-dark">$24.8K / $35K</span>
+              
+              <div style={{
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  width: '100px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginRight: '16px'
+                }}>
+                  <div style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#eadcff',
+                    marginRight: '8px'
+                  }}></div>
+                  <span style={{ fontSize: '14px', color: '#374151' }}>Revenue</span>
                 </div>
-                <div className="w-full bg-lightGray rounded-full h-2">
-                  <div className="bg-lavender h-2 rounded-full" style={{ width: '70%' }}></div>
+                <div style={{
+                  flex: '1',
+                  backgroundColor: '#e5e7eb',
+                  borderRadius: '9999px',
+                  height: '6px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    height: '100%',
+                    width: '42%',
+                    backgroundColor: '#eadcff',
+                    borderRadius: '9999px',
+                    left: 0,
+                    top: 0
+                  }}></div>
                 </div>
+                <div style={{ width: '40px', textAlign: 'right', fontSize: '14px', color: '#374151', marginLeft: '8px' }}>42%</div>
               </div>
             </div>
           </div>
+          
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Trajectory Forecast</h5>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={[
-                    { month: 'Jan', actual: 25000, target: 25000 },
-                    { month: 'Feb', actual: 32000, target: 35000 },
-                    { month: 'Mar', actual: 38000, target: 45000 },
-                    { month: 'Apr', actual: 45500, target: 55000 },
-                    { month: 'May', actual: null, target: 65000, forecast: 53000 },
-                    { month: 'Jun', actual: null, target: 75000, forecast: 62000 }
-                  ]}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="actual" stroke="#8884d8" name="Actual" />
-                  <Line type="monotone" dataKey="target" stroke="#82ca9d" name="Target" strokeDasharray="5 5" />
-                  <Line type="monotone" dataKey="forecast" stroke="#ffc658" name="Forecast" strokeDasharray="3 3" />
-                </LineChart>
-              </ResponsiveContainer>
+            <h5 style={{
+              fontSize: '14px',
+              fontWeight: 500,
+              marginBottom: '16px',
+              color: '#374151'
+            }}>Time to Goal</h5>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px'
+            }}>
+              <div style={{
+                backgroundColor: '#f9fafb',
+                padding: '16px',
+                borderRadius: '8px',
+                border: '1px solid #f3f4f6'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  marginBottom: '8px',
+                  color: '#374151'
+                }}>Rank Improvements</div>
+                <div style={{
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  color: '#111827'
+                }}>~3 weeks</div>
+              </div>
+              
+              <div style={{
+                backgroundColor: '#f9fafb',
+                padding: '16px',
+                borderRadius: '8px',
+                border: '1px solid #f3f4f6'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  marginBottom: '8px',
+                  color: '#374151'
+                }}>Traffic Goals</div>
+                <div style={{
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  color: '#111827'
+                }}>~7 weeks</div>
+              </div>
+              
+              <div style={{
+                backgroundColor: '#f9fafb',
+                padding: '16px',
+                borderRadius: '8px',
+                border: '1px solid #f3f4f6'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  marginBottom: '8px',
+                  color: '#374151'
+                }}>Lead Growth</div>
+                <div style={{
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  color: '#111827'
+                }}>~4 weeks</div>
+              </div>
+              
+              <div style={{
+                backgroundColor: '#f9fafb',
+                padding: '16px',
+                borderRadius: '8px',
+                border: '1px solid #f3f4f6'
+              }}>
+                <div style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  marginBottom: '8px',
+                  color: '#374151'
+                }}>Revenue Target</div>
+                <div style={{
+                  fontSize: '22px',
+                  fontWeight: 700,
+                  color: '#111827'
+                }}>~9 weeks</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Wins & Cautions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-          <h4 className="font-medium text-dark mb-3 flex items-center">
-            <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">✓</span>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '16px',
+        marginBottom: '24px'
+      }}>
+        <div style={{ 
+          backgroundColor: '#9ea8fb', 
+          padding: '16px', 
+          borderRadius: '8px', 
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+        }}>
+          <h4 style={{ 
+            fontWeight: 600, 
+            marginBottom: '12px', 
+            display: 'flex',
+            alignItems: 'center',
+            color: 'white'
+          }}>
+            <span style={{
+              width: '24px',
+              height: '24px',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              borderRadius: '9999px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '8px'
+            }}>
+              <BiCheckCircle style={{ color: 'white' }} size={18} />
+            </span>
             Wins
           </h4>
-          <ul className="list-disc pl-5 text-mediumGray space-y-1">
-            <li>4 new keywords entered top 3 positions</li>
-            <li>15% increase in lead generation MoM</li>
-            <li>Page speed improvements reduced bounce rate by 12%</li>
-            <li>Exceeded backlink target by 25%</li>
+          <ul style={{
+            listStyleType: 'disc',
+            paddingLeft: '20px',
+            color: 'white'
+          }}>
+            <li style={{ marginBottom: '4px' }}>4 new keywords entered top 3 positions</li>
+            <li style={{ marginBottom: '4px' }}>15% increase in lead generation MoM</li>
+            <li style={{ marginBottom: '4px' }}>Page speed improvements reduced bounce rate by 12%</li>
+            <li>New content cluster outperforming expectations by 25%</li>
           </ul>
         </div>
-        <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
-          <h4 className="font-medium text-dark mb-3 flex items-center">
-            <span className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center mr-2">!</span>
+        
+        <div style={{ 
+          backgroundColor: '#fcdc94', 
+          padding: '16px', 
+          borderRadius: '8px', 
+          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+        }}>
+          <h4 style={{ 
+            fontWeight: 600, 
+            marginBottom: '12px', 
+            display: 'flex',
+            alignItems: 'center',
+            color: '#111827'
+          }}>
+            <span style={{
+              width: '24px',
+              height: '24px',
+              backgroundColor: 'rgba(255, 255, 255, 0.4)',
+              borderRadius: '9999px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '8px'
+            }}>
+              <BiErrorCircle style={{ color: '#111827' }} size={18} />
+            </span>
             Cautions
           </h4>
-          <ul className="list-disc pl-5 text-mediumGray space-y-1">
-            <li>Mobile conversion rate still lags desktop by 1.2%</li>
-            <li>3 target keywords lost positions due to competitor activity</li>
-            <li>Content production is 2 briefs behind schedule</li>
+          <ul style={{
+            listStyleType: 'disc',
+            paddingLeft: '20px',
+            color: '#111827'
+          }}>
+            <li style={{ marginBottom: '4px' }}>3 core product pages lost rankings (-5 positions)</li>
+            <li style={{ marginBottom: '4px' }}>Home page load time increased by 0.8s</li>
+            <li style={{ marginBottom: '4px' }}>Competitor launched new content hub in our space</li>
+            <li>Mobile conversion rate dropped 2.3% MoM</li>
           </ul>
         </div>
       </div>
@@ -601,9 +1169,7 @@ const sampleReportContent = {
   quarterly: (
     <div className="space-y-6">
       {/* Executive Summary */}
-      <div className="bg-primary/20 p-6 rounded-lg">
-        <h3 className="text-2xl font-bold text-dark mb-5">Q1 2025 Strategy & Performance Review</h3>
-
+      <div className="bg-gray-50 p-6 rounded-lg">
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-5 rounded-lg border border-[#F5F5F9] shadow-sm">
@@ -658,9 +1224,9 @@ const sampleReportContent = {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="traffic" stroke="#9EA8FB" name="Traffic" />
-                <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#FFE4A6" name="Leads" />
-                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#EADCFF" name="Revenue ($)" />
+                <Line yAxisId="left" type="monotone" dataKey="traffic" stroke="#9ea8fb" name="Traffic" />
+                <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#fcdc94" name="Leads" />
+                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#eadcff" name="Revenue ($)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -786,7 +1352,7 @@ const sampleReportContent = {
         <div className="space-y-4">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3 border border-[#F5F5F9]">
-              <span className="text-primary">📝</span>
+              <BiFolder size={16} className="text-dark" />
             </div>
             <div>
               <p className="text-base font-medium text-dark">36 briefs delivered</p>
@@ -802,7 +1368,7 @@ const sampleReportContent = {
 
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3 border border-[#F5F5F9]">
-              <span className="text-gold">📰</span>
+              <BiMessageRoundedDetail size={16} className="text-dark" />
             </div>
             <div>
               <p className="text-base font-medium text-dark">24 articles published</p>
@@ -818,7 +1384,7 @@ const sampleReportContent = {
 
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3 border border-[#F5F5F9]">
-              <span className="text-lavender">🔗</span>
+              <BiLinkAlt size={16} className="text-dark" />
             </div>
             <div>
               <p className="text-base font-medium text-dark">45 backlinks secured</p>
@@ -873,7 +1439,7 @@ const sampleReportContent = {
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-primary">{page.url}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{page.url}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
@@ -894,7 +1460,7 @@ const sampleReportContent = {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
             <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">🔍</span>
+              <BiLineChart size={24} className="text-dark" />
             </div>
             <p className="text-base font-medium text-dark">Title Tag Tests</p>
             <p className="text-sm text-mediumGray mt-2">CTR +1.7 percentage points</p>
@@ -902,7 +1468,7 @@ const sampleReportContent = {
 
           <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
             <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">📱</span>
+              <BiMessageRoundedDetail size={24} className="text-dark" />
             </div>
             <p className="text-base font-bold text-dark">Mobile CTA Placement</p>
             <p className="text-sm text-mediumGray mt-2">Conversion +0.8 percentage points</p>
@@ -910,7 +1476,7 @@ const sampleReportContent = {
 
           <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
             <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">⚡</span>
+              <BiLinkAlt size={24} className="text-dark" />
             </div>
             <p className="text-base font-medium text-dark">Core Web Vitals</p>
             <p className="text-sm text-mediumGray mt-2">Bounce rate -15% on key pages</p>
@@ -918,7 +1484,7 @@ const sampleReportContent = {
 
           <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
             <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4">
-              <span className="text-2xl">📊</span>
+              <BiFolder size={24} className="text-dark" />
             </div>
             <p className="text-base font-medium text-dark">Content Length Test</p>
             <p className="text-sm text-mediumGray mt-2">Long-form +32% more conversions</p>
@@ -963,12 +1529,12 @@ const sampleReportContent = {
           </div>
         </div>
         <div className="overflow-x-auto mb-4">
-          <table className="min-w-full divide-y divide-[#9EA8FB]">
-            <thead className="bg-[#9EA8FB]/10">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-100">
               <tr>
                 <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Competitor</th>
                 <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Keyword Focus</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-gray-200">
                   <div className="flex items-center">
                     Rank Change (QoQ)
                     <ChevronDown className="h-4 w-4 ml-1" />
@@ -977,9 +1543,9 @@ const sampleReportContent = {
                 <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Notable Activity</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-[#9EA8FB]/30">
+            <tbody className="bg-white divide-y divide-gray-200">
               {competitorData.map((competitor, index) => (
-                <tr key={index} className="hover:bg-[#9EA8FB]/5">
+                <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{competitor.name}</td>
                   <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.keywordFocus}</td>
                   <td className="px-6 py-5 whitespace-nowrap">
@@ -994,7 +1560,7 @@ const sampleReportContent = {
           </table>
         </div>
 
-        <div className="bg-[#9EA8FB]/10 p-5 rounded-lg border border-[#F5F5F9]">
+        <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
           <h5 className="text-base font-medium text-dark mb-3">Key Takeaways</h5>
           <p className="text-base text-mediumGray leading-relaxed">
             Opportunity to outrank Competitor B on Local SEO keywords where they've lost positions.
@@ -1201,9 +1767,32 @@ export default function Reports() {
 
   // Handle month filter change
   const handleMonthChange = (value: string) => {
-    const selected = monthFilterOptions.find(option => option.value === value);
-    if (selected) {
-      setSelectedMonth(selected);
+    // Extract month and year from the format "Month Year" (e.g., "January 2025")
+    if (value.includes(' ')) {
+      const [month, year] = value.split(' ');
+      // Convert to the format used in monthFilterOptions (e.g., "2025-01")
+      const monthNumber = {
+        'January': '01', 'February': '02', 'March': '03', 'April': '04',
+        'May': '05', 'June': '06', 'July': '07', 'August': '08',
+        'September': '09', 'October': '10', 'November': '11', 'December': '12'
+      }[month];
+      
+      if (monthNumber && year) {
+        const optionValue = `${year}-${monthNumber}`;
+        const selected = monthFilterOptions.find(option => option.value === optionValue);
+        if (selected) {
+          setSelectedMonth(selected);
+        } else {
+          // Fallback to "all" if we can't find a matching option
+          setSelectedMonth(monthFilterOptions[0]);
+        }
+      }
+    } else {
+      // Handle the old format for backward compatibility
+      const selected = monthFilterOptions.find(option => option.value === value);
+      if (selected) {
+        setSelectedMonth(selected);
+      }
     }
   };
 
@@ -1246,7 +1835,12 @@ export default function Reports() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      topNavBarProps={{
+        selectedMonth: selectedMonth.label,
+        onMonthChange: handleMonthChange
+      }}
+    >
       {/* Slack Share Modal */}
       <SlackShareModal
         isOpen={isSlackModalOpen}
@@ -1255,35 +1849,8 @@ export default function Reports() {
         reportType={activeTab}
       />
 
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-dark">Reports</h1>
-          <p className="text-base text-mediumGray">View weekly, monthly, and quarterly performance reports</p>
-        </div>
-
-        {/* Month Filter */}
-        <div>
-          <Select
-            value={selectedMonth.value}
-            onValueChange={handleMonthChange}
-          >
-            <SelectTrigger className="w-[180px] h-10">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by month" />
-            </SelectTrigger>
-            <SelectContent>
-              {monthFilterOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       <PageContainer className="w-full">
-        <div ref={headerRef} className="sticky top-0 z-10 bg-white border-b border-lightGray">
+        <div ref={headerRef} className="sticky top-0 z-20 bg-white shadow-sm">
           <PageContainerTabs>
             <TabNavigation
               tabs={[
@@ -1294,6 +1861,7 @@ export default function Reports() {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               variant="primary"
+              containerClassName="flex flex-nowrap"
             />
           </PageContainerTabs>
         </div>
@@ -1302,7 +1870,7 @@ export default function Reports() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Report List */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-3xl border-8 border-[#F5F5F9] p-6">
+              <div className="bg-white rounded-lg border-8 border-[#F5F5F9] p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium text-dark">
                     {activeTab === 'weekly' && 'Weekly Reports'}
@@ -1316,18 +1884,18 @@ export default function Reports() {
                     filteredReports.weekly.map(report => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-xl cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
                         onClick={() => handleReportSelect(report.id, 'weekly')}
                       >
                         <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
                         <div className="flex items-center mt-2">
-                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                          <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
                           <p className="text-sm text-mediumGray">{report.date}</p>
                         </div>
                       </div>
                     ))
                   ) : activeTab === 'weekly' && (
-                    <div className="p-4 bg-white rounded-xl border-4 border-[#F5F5F9] shadow-sm text-center">
+                    <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
                       <p className="text-mediumGray">No weekly reports found for the selected filters.</p>
                     </div>
                   )}
@@ -1336,18 +1904,18 @@ export default function Reports() {
                     filteredReports.monthly.map(report => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-xl cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
                         onClick={() => handleReportSelect(report.id, 'monthly')}
                       >
                         <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
                         <div className="flex items-center mt-2">
-                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                          <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
                           <p className="text-sm text-mediumGray">{report.date}</p>
                         </div>
                       </div>
                     ))
                   ) : activeTab === 'monthly' && (
-                    <div className="p-4 bg-white rounded-xl border-4 border-[#F5F5F9] shadow-sm text-center">
+                    <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
                       <p className="text-mediumGray">No monthly reports found for the selected filters.</p>
                     </div>
                   )}
@@ -1356,18 +1924,18 @@ export default function Reports() {
                     filteredReports.quarterly.map(report => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-xl cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
                         onClick={() => handleReportSelect(report.id, 'quarterly')}
                       >
                         <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
                         <div className="flex items-center mt-2">
-                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
+                          <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
                           <p className="text-sm text-mediumGray">{report.date}</p>
                         </div>
                       </div>
                     ))
                   ) : activeTab === 'quarterly' && (
-                    <div className="p-4 bg-white rounded-xl border-4 border-[#F5F5F9] shadow-sm text-center">
+                    <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
                       <p className="text-mediumGray">No quarterly reports found for the selected filters.</p>
                     </div>
                   )}
@@ -1377,7 +1945,7 @@ export default function Reports() {
 
             {/* Report Content */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-3xl border-8 border-[#F5F5F9] p-6">
+              <div className="bg-white rounded-lg border-8 border-[#F5F5F9] p-6">
                 <div className="flex justify-between items-center mb-6 sticky top-0 bg-white py-4 z-10">
                   <div className="flex items-center">
                     <Button
@@ -1386,7 +1954,7 @@ export default function Reports() {
                       onClick={navigateToPreviousReport}
                       disabled={!selectedReport || filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) <= 0}
                     >
-                      <ChevronLeft className="h-5 w-5" />
+                      <BiChevronLeft className="h-5 w-5" />
                     </Button>
                     <h2 className="text-lg md:text-xl font-medium text-dark">
                       {activeTab === 'weekly' && selectedReport && filteredReports.weekly.find(r => r.id === selectedReport)?.title}
@@ -1409,7 +1977,7 @@ export default function Reports() {
                         filteredReports[activeTab as keyof typeof filteredReports].length - 1
                       }
                     >
-                      <ChevronRight className="h-5 w-5" />
+                      <BiChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -1425,7 +1993,7 @@ export default function Reports() {
                       </Button>
                     )}
                     <Button variant="outline" className="flex items-center text-sm">
-                      <Download className="h-4 w-4 mr-2" />
+                      <BiDownload className="h-4 w-4 mr-2" />
                       PDF
                     </Button>
                   </div>
@@ -1443,3 +2011,5 @@ export default function Reports() {
     </DashboardLayout>
   );
 }
+
+
