@@ -62,23 +62,12 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
   // Check if the brief is overdue
   const isOverdue = brief.DueDate ? new Date(brief.DueDate) < new Date() : false;
 
-  // Determine card color based on status to match column headers
-  let cardBgColor = '';
-
-  if (brief.Status === 'Review Brief' || brief.Status === 'Needs Review') {
-    cardBgColor = 'bg-[#f9f0ff]'; // Light purple to match the header bg-[#f9f0ff]
-  } else if (brief.Status === 'In Progress') {
-    cardBgColor = 'bg-[#f0f4ff]'; // Light blue to match the header bg-[#f0f4ff]
-  } else if (brief.Status === 'Brief Approved' || brief.Status === 'Approved') {
-    cardBgColor = 'bg-[#f0fff4]'; // Light green to match the header bg-[#f0fff4]
-  } else if (brief.Status === 'Needs Input') {
-    cardBgColor = 'bg-[#f8f9fa]'; // Light gray to match the header bg-white
-  }
+  // No background colors for cards
 
   return (
     <div
       ref={drag as any}
-      className={`p-5 border-b border-gray-100 w-full ${isDragging ? 'opacity-50' : ''} ${cardBgColor}`}
+      className={`p-5 border border-gray-200 rounded-md w-full mb-2 bg-white ${isDragging ? 'opacity-50' : ''}`}
       style={{ cursor: 'move' }}
     >
       {/* Priority indicator */}

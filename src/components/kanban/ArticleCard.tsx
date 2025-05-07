@@ -29,25 +29,12 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
   const dueDate = article.DueDate || article['Due Date'];
   const isOverdue = dueDate ? new Date(dueDate as string) < new Date() : false;
 
-  // Use the exact colors from the screenshot
-  let cardBgColor = '';
-
-  if (article.Status === 'In Production') {
-    cardBgColor = 'bg-[#f0f4ff]'; // Light blue for In Production
-  } else if (article.Status === 'Review Draft') {
-    cardBgColor = 'bg-[#f9f0ff]'; // Light purple for Review Draft
-  } else if (article.Status === 'Draft Approved') {
-    cardBgColor = 'bg-[#e6f2ff]'; // Light blue for Draft Approved
-  } else if (article.Status === 'To Be Published') {
-    cardBgColor = 'bg-[#f2f2f3]'; // Light gray for To Be Published
-  } else if (article.Status === 'Live') {
-    cardBgColor = 'bg-[#f0fff4]'; // Light green for Live
-  }
+  // No background colors for cards
 
   return (
     <div
       ref={drag as any}
-      className={`p-4 border-b border-gray-100 w-full ${isDragging ? 'opacity-50' : ''} ${cardBgColor}`}
+      className={`p-4 border border-gray-200 rounded-md w-full mb-2 bg-white ${isDragging ? 'opacity-50' : ''}`}
       style={{ cursor: 'move' }}
     >
       {/* Priority indicator */}

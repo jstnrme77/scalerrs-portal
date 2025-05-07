@@ -259,6 +259,127 @@ export const mockBacklinks = [
     WentLiveOn: '2023-01-15',
     Month: 'January',
     Notes: 'Sample backlink notes'
+  },
+  {
+    id: 'backlink11',
+    Domain: 'january-seo.com',
+    DomainRating: 62,
+    LinkType: 'Editorial',
+    TargetPage: 'https://client.com/page11',
+    Status: 'Live',
+    WentLiveOn: '2023-01-10',
+    Month: 'January',
+    Notes: 'January editorial feature'
+  },
+  {
+    id: 'backlink12',
+    Domain: 'winter-marketing.org',
+    DomainRating: 55,
+    LinkType: 'Resource Page',
+    TargetPage: 'https://client.com/page12',
+    Status: 'Scheduled',
+    WentLiveOn: '',
+    Month: 'January',
+    Notes: 'Winter marketing resource'
+  },
+  {
+    id: 'backlink2',
+    Domain: 'blog.example.org',
+    DomainRating: 52,
+    LinkType: 'Resource Page',
+    TargetPage: 'https://client.com/page2',
+    Status: 'Live',
+    WentLiveOn: '2023-02-10',
+    Month: 'February',
+    Notes: 'High-quality resource link'
+  },
+  {
+    id: 'backlink3',
+    Domain: 'industry-news.com',
+    DomainRating: 67,
+    LinkType: 'Editorial',
+    TargetPage: 'https://client.com/page3',
+    Status: 'Scheduled',
+    WentLiveOn: '2023-03-05',
+    Month: 'March',
+    Notes: 'Pending editorial review'
+  },
+  {
+    id: 'backlink4',
+    Domain: 'tech-magazine.net',
+    DomainRating: 73,
+    LinkType: 'Interview',
+    TargetPage: 'https://client.com/page4',
+    Status: 'Live',
+    WentLiveOn: '2023-04-20',
+    Month: 'April',
+    Notes: 'Expert interview feature'
+  },
+  {
+    id: 'backlink5',
+    Domain: 'seo-journal.com',
+    DomainRating: 58,
+    LinkType: 'Guest Post',
+    TargetPage: 'https://client.com/page5',
+    Status: 'Rejected',
+    WentLiveOn: '',
+    Month: 'April',
+    Notes: 'Content not aligned with site guidelines'
+  },
+  {
+    id: 'backlink6',
+    Domain: 'marketing-insights.io',
+    DomainRating: 61,
+    LinkType: 'Resource Page',
+    TargetPage: 'https://client.com/page6',
+    Status: 'Scheduled',
+    WentLiveOn: '',
+    Month: 'May',
+    Notes: 'Scheduled for next content update'
+  },
+  {
+    id: 'backlink7',
+    Domain: 'digital-trends.org',
+    DomainRating: 55,
+    LinkType: 'Editorial',
+    TargetPage: 'https://client.com/page7',
+    Status: 'Live',
+    WentLiveOn: '2023-05-15',
+    Month: 'May',
+    Notes: 'Featured in industry roundup'
+  },
+  {
+    id: 'backlink8',
+    Domain: 'seo-weekly.com',
+    DomainRating: 63,
+    LinkType: 'Guest Post',
+    TargetPage: 'https://client.com/page8',
+    Status: 'Live',
+    WentLiveOn: '2023-09-05',
+    Month: 'September',
+    Notes: 'Thought leadership article'
+  },
+  {
+    id: 'backlink9',
+    Domain: 'marketing-today.net',
+    DomainRating: 58,
+    LinkType: 'Resource Page',
+    TargetPage: 'https://client.com/page9',
+    Status: 'Scheduled',
+    WentLiveOn: '',
+    Month: 'September',
+    Notes: 'Pending final approval'
+  },
+  {
+    id: 'backlink10',
+    Domain: 'tech-insights.org',
+    DomainRating: 72,
+    LinkType: 'Editorial',
+    TargetPage: 'https://client.com/page10',
+    Status: 'Live',
+    WentLiveOn: '2023-09-18',
+    Month: 'September',
+    Notes: 'Industry expert mention'
   }
 ];
 

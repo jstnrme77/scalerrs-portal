@@ -202,23 +202,37 @@ export default function ContentWorkflowPage() {
 
   // Filter data by selected month and other filters
   useEffect(() => {
+    console.log('Filtering data for month:', selectedMonth);
+    console.log('Current backlinks data:', backlinks);
+
     if (briefs.length > 0) {
       const filtered = briefs.filter(brief => brief.Month === selectedMonth);
       setFilteredBriefs(filtered);
+      console.log('Filtered briefs:', filtered.length);
     }
 
     if (articles.length > 0) {
       const filtered = articles.filter(article => article.Month === selectedMonth);
       setFilteredArticles(filtered);
+      console.log('Filtered articles:', filtered.length);
     }
 
     if (backlinks.length > 0) {
+      console.log('Filtering backlinks for month:', selectedMonth);
+      console.log('Total backlinks before filtering:', backlinks.length);
+
       // Start with month filter
-      let filtered = backlinks.filter(backlink => backlink.Month === selectedMonth);
+      let filtered = backlinks.filter(backlink => {
+        console.log('Backlink month:', backlink.Month, 'Selected month:', selectedMonth, 'Match:', backlink.Month === selectedMonth);
+        return backlink.Month === selectedMonth;
+      });
+
+      console.log('Filtered backlinks after month filter:', filtered.length);
 
       // Apply status filter if not 'all'
       if (statusFilter !== 'all') {
         filtered = filtered.filter(backlink => backlink.Status === statusFilter);
+        console.log('Filtered backlinks after status filter:', filtered.length);
       }
 
       // Apply DR filter if not 'all'
@@ -230,8 +244,10 @@ export default function ContentWorkflowPage() {
         } else if (drFilter === '70+') {
           filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 70);
         }
+        console.log('Filtered backlinks after DR filter:', filtered.length);
       }
 
+      console.log('Final filtered backlinks:', filtered);
       setFilteredBacklinks(filtered);
     }
   }, [selectedMonth, briefs, articles, backlinks, statusFilter, drFilter]);
@@ -417,6 +433,8 @@ export default function ContentWorkflowPage() {
         </div>
       </div>
 
+
+
       {/* Document Viewer Modal */}
       <DocumentViewerModal
         isOpen={documentModal.isOpen}
@@ -453,25 +471,71 @@ export default function ContentWorkflowPage() {
         <div className="page-container mb-6">
           <div className="page-container-tabs">
             <div className="tab-navigation">
-              <div className="flex overflow-x-auto">
-                <button
-                  className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('briefs')}
-                >
-                  Briefs
-                </button>
-                <button
-                  className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('articles')}
-                >
-                  Articles
-                </button>
-                <button
-                  className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('backlinks')}
-                >
-                  Backlinks
-                </button>
+              <div className="flex justify-between items-center w-full">
+                <div className="flex overflow-x-auto">
+                  <button
+                    className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    onClick={() => setMainTab('briefs')}
+                  >
+                    Briefs
+                  </button>
+                  <button
+                    className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    onClick={() => setMainTab('articles')}
+                  >
+                    Articles
+                  </button>
+                  <button
+                    className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    onClick={() => setMainTab('backlinks')}
+                  >
+                    Backlinks
+                  </button>
+                </div>
+
+                {mainTab === 'backlinks' && (
+                  <div className="flex gap-4 pr-4">
+                    <div>
+                      <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
+                      <select
+                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="Live">Live</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
+                      <select
+                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                        value={drFilter}
+                        onChange={(e) => setDrFilter(e.target.value)}
+                      >
+                        <option value="all">All DR</option>
+                        <option value="50+">DR 50+</option>
+                        <option value="60+">DR 60+</option>
+                        <option value="70+">DR 70+</option>
+                      </select>
+                    </div>
+                    {(statusFilter !== 'all' || drFilter !== 'all') && (
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            setStatusFilter('all');
+                            setDrFilter('all');
+                          }}
+                          className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -511,16 +575,17 @@ export default function ContentWorkflowPage() {
             )}
             {mainTab === 'backlinks' && (
               <div>
-                <div className="page-container-body">
+                <div className="page-container-body shadow-none">
                   <div>
 
 
                     {filteredBacklinks.length > 0 ? (
-                      <div className="bg-white rounded-md">
+                      <div className="bg-white shadow-none !rounded-none">
                         <div className="border-b border-lightGray">
-                          <div className="grid grid-cols-8 text-xs font-medium text-mediumGray uppercase">
+                          <div className="grid grid-cols-8 text-sm font-bold uppercase" style={{ fontSize: '16px', color: '#000000' }}>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('Domain')}
                             >
                               Domain
@@ -531,7 +596,8 @@ export default function ContentWorkflowPage() {
                               )}
                             </div>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('DR')}
                             >
                               DR
@@ -542,7 +608,8 @@ export default function ContentWorkflowPage() {
                               )}
                             </div>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('LinkType')}
                             >
                               Link Type
@@ -552,9 +619,10 @@ export default function ContentWorkflowPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="px-4 py-3">Target Page</div>
+                            <div className="px-4 py-3 font-bold" style={{ fontSize: '16px', color: '#000000' }}>Target Page</div>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('Status')}
                             >
                               Status
@@ -565,7 +633,8 @@ export default function ContentWorkflowPage() {
                               )}
                             </div>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('WentLiveOn')}
                             >
                               Went Live On
@@ -576,7 +645,8 @@ export default function ContentWorkflowPage() {
                               )}
                             </div>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('Month')}
                             >
                               Month
@@ -587,7 +657,8 @@ export default function ContentWorkflowPage() {
                               )}
                             </div>
                             <div
-                              className="px-4 py-3 cursor-pointer flex items-center"
+                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
+                              style={{ fontSize: '16px', color: '#000000' }}
                               onClick={() => handleSort('Notes')}
                             >
                               Notes
@@ -603,17 +674,17 @@ export default function ContentWorkflowPage() {
                           {getSortedBacklinks(filteredBacklinks).map((backlink, index) => (
                             <div
                               key={backlink.id}
-                              className={`grid grid-cols-8 text-sm hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
-                              style={{ color: '#353233' }}
+                              className={`grid grid-cols-8 text-base hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
+                              style={{ color: '#353233', fontSize: '16px' }}
                             >
-                              <div className="px-4 py-4 font-medium text-dark">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
+                              <div className="px-4 py-4 font-medium text-dark" style={{ fontSize: '16px' }}>{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
                               <div className="px-4 py-4">
-                                <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
+                                <span className="px-2 py-1 text-base font-medium bg-gray-100 rounded-full" style={{ fontSize: '16px' }}>
                                   {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
                                 </span>
                               </div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</div>
-                              <div className="px-4 py-4 text-mediumGray">
+                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</div>
+                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>
                                 {(() => {
                                   // Get the target URL from the appropriate field
                                   const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
@@ -667,70 +738,31 @@ export default function ContentWorkflowPage() {
                                 })()}
                               </div>
                               <div className="px-4 py-4">
-                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                <span className={`px-2 py-1 inline-flex text-base leading-5 font-semibold rounded-full
                                   ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
                                   backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
                                   backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'}`}>
+                                  'bg-gray-100 text-gray-800'}`}
+                                  style={{ fontSize: '16px' }}>
                                   {backlink.Status || 'Unknown Status'}
                                 </span>
                               </div>
-                              <div className="px-4 py-4 text-mediumGray">
+                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>
                                 {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
                               </div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink.Month || selectedMonth}</div>
-                              <div className="px-4 py-4 text-mediumGray">{backlink.Notes || '—'}</div>
+                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>{backlink.Month || selectedMonth}</div>
+                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>{backlink.Notes || '—'}</div>
                             </div>
                           ))}
                         </div>
                       </div>
                     ) : (
-                      <div className="p-4 text-center bg-white rounded-lg border border-lightGray">
-                        <p className="text-gray-500">No backlinks data available for {selectedMonth}</p>
+                      <div className="p-4 text-center bg-white !rounded-none">
+                        <p className="text-gray-500" style={{ fontSize: '16px' }}>No backlinks data available for {selectedMonth}</p>
                       </div>
                     )}
 
-                    <div className="mt-4 flex flex-wrap gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-mediumGray mb-1">Filter by Status</label>
-                        <select
-                          className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                          value={statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                          <option value="all">All Statuses</option>
-                          <option value="Live">Live</option>
-                          <option value="Scheduled">Scheduled</option>
-                          <option value="Rejected">Rejected</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-mediumGray mb-1">Filter by DR</label>
-                        <select
-                          className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                          value={drFilter}
-                          onChange={(e) => setDrFilter(e.target.value)}
-                        >
-                          <option value="all">All DR</option>
-                          <option value="50+">DR 50+</option>
-                          <option value="60+">DR 60+</option>
-                          <option value="70+">DR 70+</option>
-                        </select>
-                      </div>
-                      {(statusFilter !== 'all' || drFilter !== 'all') && (
-                        <div className="flex items-end">
-                          <button
-                            onClick={() => {
-                              setStatusFilter('all');
-                              setDrFilter('all');
-                            }}
-                            className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
-                          >
-                            Clear Filters
-                          </button>
-                        </div>
-                      )}
-                    </div>
+
                   </div>
                 </div>
               </div>
