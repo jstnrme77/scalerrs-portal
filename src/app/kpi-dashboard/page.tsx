@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   AlertTriangle,
   ArrowDown,
@@ -663,36 +664,26 @@ function KpiDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
                       <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Page Type</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Traffic</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Conversions</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Conversion Rate</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Avg. Position</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">MoM Change</th>
+                        <tr className="bg-gray-100 border-b border-gray-200">
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">Page Type</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Traffic</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Conversions</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Conversion Rate</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Avg. Position</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%] rounded-br-[12px]">MoM Change</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody>
                         {kpiData.topPages.map((page, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {page.url}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {page.traffic.toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {page.conversions}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {page.conversionRate}%
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {page.avgPosition.toFixed(1)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <tr key={index} className="hover:bg-gray-50 border-b">
+                            <td className="px-4 py-4 text-base font-medium text-gray-900">{page.url}</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.traffic.toLocaleString()}</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.conversions}</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.conversionRate}%</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.avgPosition.toFixed(1)}</td>
+                            <td className="px-4 py-4">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
                                 page.change >= 0 ? 'bg-[#9EA8FB]/20 text-[#6A6AC9]' : 'bg-[#FFE4A6]/20 text-[#B58B2A]'
                               }`}>
@@ -715,22 +706,22 @@ function KpiDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
                       <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">URL</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">Traffic</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">Conversions</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">Conv. Rate</th>
+                        <tr className="bg-gray-100 border-b border-gray-200">
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[40%] rounded-bl-[12px]">URL</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%]">Traffic</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%]">Conversions</th>
+                          <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-br-[12px]">Conv. Rate</th>
                         </tr>
                       </thead>
                       <tbody>
                         {kpiData.newPages.map((page, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="py-2 px-4 text-sm">{page.url}</td>
-                            <td className="py-2 px-4 text-sm">{page.traffic.toLocaleString()}</td>
-                            <td className="py-2 px-4 text-sm">{page.conversions}</td>
-                            <td className="py-2 px-4 text-sm">{page.conversionRate}%</td>
+                          <tr key={index} className="hover:bg-gray-50 border-b">
+                            <td className="px-4 py-4 text-base font-medium text-gray-900">{page.url}</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.traffic.toLocaleString()}</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.conversions}</td>
+                            <td className="px-4 py-4 text-base text-gray-700">{page.conversionRate}%</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1018,48 +1009,26 @@ function KpiDashboard() {
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Page Type Performance Metrics</h4>
                     <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Page Type
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Traffic
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Conversions
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Conversion Rate
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Avg. Position
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              MoM Change
-                            </th>
+                      <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
+                        <thead>
+                          <tr className="bg-gray-100 border-b border-gray-200">
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-bl-[12px]">Page Type</th>
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Traffic</th>
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Conversions</th>
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Conversion Rate</th>
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Avg. Position</th>
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%] rounded-br-[12px]">MoM Change</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody>
                           {kpiData.pageTypeBreakdown.traffic.map((item, index) => (
-                            <tr key={index}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {item.type}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {item.traffic.toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {item.conversions.toLocaleString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {item.conversionRate.toFixed(2)}%
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {item.avgPosition.toFixed(1)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <tr key={index} className="hover:bg-gray-50 border-b">
+                              <td className="px-4 py-4 text-base font-medium text-gray-900">{item.type}</td>
+                              <td className="px-4 py-4 text-base text-gray-700">{item.traffic.toLocaleString()}</td>
+                              <td className="px-4 py-4 text-base text-gray-700">{item.conversions.toLocaleString()}</td>
+                              <td className="px-4 py-4 text-base text-gray-700">{item.conversionRate.toFixed(2)}%</td>
+                              <td className="px-4 py-4 text-base text-gray-700">{item.avgPosition.toFixed(1)}</td>
+                              <td className="px-4 py-4">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
                                   item.momChange >= 0 ? 'bg-[#9EA8FB]/20 text-[#6A6AC9]' : 'bg-[#FFE4A6]/20 text-[#B58B2A]'
                                 }`}>
