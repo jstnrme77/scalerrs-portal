@@ -20,7 +20,10 @@ import {
   TrendingDown,
   TrendingUp,
   AlertCircle,
-  ChevronUp
+  ChevronUp,
+  RefreshCw,
+  AlertOctagon,
+  ExternalLink
 } from "lucide-react";
 
 // Sample KPI data
@@ -125,7 +128,7 @@ const kpiData = {
   },
   pageTypeBreakdown: {
     traffic: [
-      { type: 'Blog Posts', traffic: 15840, conversions: 312, conversionRate: 1.97, avgPosition: 4.8, momChange: 12.5 },
+      { type: 'Blog Pages', traffic: 15840, conversions: 312, conversionRate: 1.97, avgPosition: 4.8, momChange: 12.5 },
       { type: 'Product Pages', traffic: 11310, conversions: 500, conversionRate: 4.42, avgPosition: 3.2, momChange: 8.3 },
       { type: 'Category Pages', traffic: 9050, conversions: 188, conversionRate: 2.08, avgPosition: 5.1, momChange: 6.7 },
       { type: 'Landing Pages', traffic: 6790, conversions: 225, conversionRate: 3.31, avgPosition: 2.9, momChange: 15.2 },
@@ -167,6 +170,87 @@ const kpiData = {
         priority: 'Low',
         impact: 'Medium'
       }
+    ],
+    highLowPerformers: {
+      traffic: {
+        high: [
+          { url: '/blog/seo-strategy-2025', metric: 3850, change: 22.4, tag: 'Top Performer' },
+          { url: '/product/seo-tool', metric: 4250, change: 15.2, tag: 'Top Performer' },
+          { url: '/case-studies/ecommerce', metric: 2650, change: 18.6, tag: 'Top Performer' }
+        ],
+        low: [
+          { url: '/resources/seo-checklist', metric: 450, change: -8.2, tag: 'Needs Refresh' },
+          { url: '/blog/link-building-2023', metric: 620, change: -12.5, tag: 'Under Review' },
+          { url: '/services/content-writing', metric: 780, change: -5.1, tag: 'Needs Refresh' }
+        ]
+      },
+      conversions: {
+        high: [
+          { url: '/product/seo-tool', metric: 185, change: 24.8, tag: 'Top Performer' },
+          { url: '/blog/seo-strategy-2025', metric: 112, change: 18.2, tag: 'Top Performer' },
+          { url: '/product/rank-tracker', metric: 65, change: 30.0, tag: 'Top Performer' }
+        ],
+        low: [
+          { url: '/blog/ecommerce-seo-guide', metric: 28, change: -15.2, tag: 'Needs Refresh' },
+          { url: '/resources/seo-checklist', metric: 12, change: -22.5, tag: 'Under Review' },
+          { url: '/blog/link-building-2023', metric: 18, change: -8.3, tag: 'Needs Refresh' }
+        ]
+      },
+      timeOnPage: {
+        high: [
+          { url: '/case-studies/ecommerce', metric: '4:35', change: 12.8, tag: 'Top Performer' },
+          { url: '/blog/seo-strategy-2025', metric: '3:42', change: 8.5, tag: 'Top Performer' },
+          { url: '/product/rank-tracker', metric: '3:28', change: 15.2, tag: 'Top Performer' }
+        ],
+        low: [
+          { url: '/blog/link-building-2023', metric: '0:48', change: -32.5, tag: 'Under Review' },
+          { url: '/resources/seo-checklist', metric: '1:12', change: -18.6, tag: 'Needs Refresh' },
+          { url: '/services/content-writing', metric: '1:35', change: -9.2, tag: 'Needs Refresh' }
+        ]
+      }
+    }
+  },
+  funnelStageBreakdown: {
+    summary: [
+      { stage: 'ToFU', pages: 24, traffic: 18750, conversionRate: 1.2, leads: 225 },
+      { stage: 'MoFU', pages: 15, traffic: 12350, conversionRate: 2.8, leads: 346 },
+      { stage: 'BoFU', pages: 9, traffic: 8950, conversionRate: 4.2, leads: 376 },
+      { stage: 'High-Intent', pages: 6, traffic: 5200, conversionRate: 5.8, leads: 302 }
+    ],
+    performance: {
+      ToFU: {
+        blogPages: { traffic: 12800, conversions: 142, conversionRate: 1.1, timeOnPage: '2:05' },
+        resourcePages: { traffic: 5950, conversions: 83, conversionRate: 1.4, timeOnPage: '2:35' }
+      },
+      MoFU: {
+        featurePages: { traffic: 6850, conversions: 178, conversionRate: 2.6, timeOnPage: '3:12' },
+        comparePages: { traffic: 5500, conversions: 168, conversionRate: 3.1, timeOnPage: '3:48' }
+      },
+      BoFU: {
+        solutionPages: { traffic: 4750, conversions: 184, conversionRate: 3.9, timeOnPage: '3:25' },
+        useCasePages: { traffic: 4200, conversions: 192, conversionRate: 4.6, timeOnPage: '4:10' }
+      },
+      HighIntent: {
+        pricingPages: { traffic: 2850, conversions: 175, conversionRate: 6.1, timeOnPage: '4:25' },
+        integrationPages: { traffic: 2350, conversions: 127, conversionRate: 5.4, timeOnPage: '3:55' }
+      }
+    },
+    bottlenecks: [
+      {
+        issue: "High-traffic but low-converting blog content",
+        description: "Your SEO strategy blog posts get 3x more traffic than other content but convert 25% less effectively.",
+        recommendation: "Add stronger CTAs and lead magnets to these high-traffic blog posts."
+      },
+      {
+        issue: "MoFU dropout rate",
+        description: "Feature pages have good initial engagement but 65% of visitors don't continue to BoFU pages.",
+        recommendation: "Improve content linking between Feature and Solution pages."
+      },
+      {
+        issue: "Underperforming resource section",
+        description: "Resource pages represent 12% of site content but generate only 5% of conversions.",
+        recommendation: "Refresh outdated resources with more actionable, conversion-focused content."
+      }
     ]
   }
 };
@@ -201,6 +285,37 @@ function KpiDashboard() {
     return <AlertCircle className="h-5 w-5 text-rose-500" />;
   };
 
+  // Get appropriate time period text based on selected view
+  const getTimePeriodText = () => {
+    if (selectedDateView.value === 'monthly') return 'End of Month';
+    if (selectedDateView.value === 'quarterly') {
+      const currentQuarter = Math.floor((new Date().getMonth() / 3) + 1);
+      return `End of Q${currentQuarter}`;
+    }
+    return 'End of Year';
+  };
+
+  // Get appropriate pacing text based on selected view
+  const getPacingText = () => {
+    if (selectedDateView.value === 'monthly') return 'monthly';
+    if (selectedDateView.value === 'quarterly') {
+      const currentQuarter = Math.floor((new Date().getMonth() / 3) + 1);
+      return `Q${currentQuarter}`;
+    }
+    return 'annual';
+  };
+
+  // Get appropriate projected outcome text
+  const getProjectedOutcomeText = () => {
+    if (selectedDateView.value === 'monthly') {
+      return `At this pace you're projected to reach the monthly traffic & leads goal by the end of the month`;
+    } else if (selectedDateView.value === 'quarterly') {
+      const currentQuarter = Math.floor((new Date().getMonth() / 3) + 1);
+      return `At this pace you're projected to reach the quarterly traffic & leads goal by the end of Q${currentQuarter}`;
+    }
+    return `At this pace you're projected to reach the yearly traffic & leads goal by December 2024`;
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
@@ -208,71 +323,14 @@ function KpiDashboard() {
           <h1 className="text-2xl font-bold text-dark">KPI Dashboard</h1>
           <p className="text-mediumGray">Track your SEO performance metrics and forecasts</p>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex items-center gap-2">
-            <Select
-              value={selectedDateView.value}
-              onValueChange={(value) => {
-                const selected = dateFilterOptions.find(option => option.value === value);
-                if (selected) setSelectedDateView(selected);
-              }}
-            >
-              <SelectTrigger className="w-[180px] h-9">
-                <Calendar className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Select view" />
-              </SelectTrigger>
-              <SelectContent>
-                {dateFilterOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={selectedComparison.value}
-              onValueChange={(value) => {
-                const selected = comparisonOptions.find(option => option.value === value);
-                if (selected) setSelectedComparison(selected);
-              }}
-            >
-              <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Select comparison" />
-              </SelectTrigger>
-              <SelectContent>
-                {comparisonOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button variant="outline" size="sm" className="flex items-center">
-            <Download className="h-4 w-4 mr-1" />
-            Export Report
-          </Button>
-        </div>
       </div>
 
-      {/* Header Overview with Contextual Summary */}
-      <div className="bg-white p-4 rounded-lg border border-[#9EA8FB] mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center gap-3">
-            {getGrowthPacingIcon(currentProgress)}
-            <div>
-              <p className="text-lg font-medium">You're currently hitting {currentProgress}% of your Q2 goal.</p>
-              <p className="text-sm text-gray-600">Based on current output, you'll reach ~{projectedAnnual}% of the annual target.</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Badge className="bg-[#9EA8FB] hover:bg-[#9EA8FB]/90">
-              {selectedDateView.label}
-            </Badge>
+      {/* Performance Summary Banner */}
+      <div className="p-6 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="font-bold text-dark text-lg mb-1 notification-text">You're currently hitting {currentProgress}% of your Q2 goal.</p>
+            <p className="text-base text-mediumGray">Based on current output, you'll reach ~{projectedAnnual}% of the annual target.</p>
           </div>
         </div>
       </div>
@@ -284,7 +342,6 @@ function KpiDashboard() {
               { id: 'summary', label: 'KPI Summary' },
               { id: 'forecasting', label: 'Forecasting Model' },
               { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type' },
-              { id: 'funnelStage', label: 'Funnel Stage Performance' },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -301,21 +358,23 @@ function KpiDashboard() {
                 {/* Row 1: Critical Business KPIs */}
 
                 {/* Revenue Impact Card */}
-                <Card className="border border-[#FFE4A6]">
+                <Card className="border-gray-200">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600">Revenue Impact</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-3xl font-bold text-[#FFE4A6]">$125,500</div>
-                          <div className="text-xs text-gray-500 mt-1">Target: $150,000</div>
-                        </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-sm font-medium text-gray-600">Revenue Impact</CardTitle>
                         <div className="flex items-center text-green-600 text-sm font-medium">
                           <ArrowUp className="h-4 w-4 mr-1" />
                           <span>12%</span>
                         </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div>
+                        <div className="text-3xl font-bold text-[#FFE4A6]">$125,500</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: $150,000</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -335,17 +394,11 @@ function KpiDashboard() {
                 </Card>
 
                 {/* Organic Clicks Card */}
-                <Card className="border border-[#9EA8FB]">
+                <Card className="border-gray-200">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600">Organic Clicks</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData.summary.organicTraffic.current.toLocaleString()}</div>
-                          <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicTraffic.goal.toLocaleString()}</div>
-                        </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-sm font-medium text-gray-600">Organic Clicks</CardTitle>
                         <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {kpiData.summary.organicTraffic.change >= 0 ? (
                             <ArrowUp className="h-4 w-4 mr-1" />
@@ -354,6 +407,14 @@ function KpiDashboard() {
                           )}
                           <span>{kpiData.summary.organicTraffic.change}%</span>
                         </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData.summary.organicTraffic.current.toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicTraffic.goal.toLocaleString()}</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -373,21 +434,23 @@ function KpiDashboard() {
                 </Card>
 
                 {/* Conversion Rate Card */}
-                <Card className="border border-[#9EA8FB]">
+                <Card className="border-gray-200">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-3xl font-bold text-[#9EA8FB]">2.8%</div>
-                          <div className="text-xs text-gray-500 mt-1">Target: 3.5%</div>
-                        </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
                         <div className="flex items-center text-green-600 text-sm font-medium">
                           <ArrowUp className="h-4 w-4 mr-1" />
                           <span>0.3%</span>
                         </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col">
+                      <div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">2.8%</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: 3.5%</div>
                       </div>
 
                       {/* Micro-visual: Bar chart */}
@@ -409,25 +472,25 @@ function KpiDashboard() {
                 {/* Row 2: Supporting Metrics */}
 
                 {/* Leads Card */}
-                <Card className="border border-[#FFE4A6]">
+                <Card className="border-gray-200">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600">Leads</CardTitle>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-sm font-medium text-gray-600">Leads</CardTitle>
+                      <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicConversions.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {kpiData.summary.organicConversions.change >= 0 ? (
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                        ) : (
+                          <ArrowDown className="h-4 w-4 mr-1" />
+                        )}
+                        <span>{kpiData.summary.organicConversions.change}%</span>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-3xl font-bold text-[#FFE4A6]">{kpiData.summary.organicConversions.current.toLocaleString()}</div>
-                          <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicConversions.goal.toLocaleString()}</div>
-                        </div>
-                        <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicConversions.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {kpiData.summary.organicConversions.change >= 0 ? (
-                            <ArrowUp className="h-4 w-4 mr-1" />
-                          ) : (
-                            <ArrowDown className="h-4 w-4 mr-1" />
-                          )}
-                          <span>{kpiData.summary.organicConversions.change}%</span>
-                        </div>
+                      <div>
+                        <div className="text-3xl font-bold text-[#FFE4A6]">{kpiData.summary.organicConversions.current.toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicConversions.goal.toLocaleString()}</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -447,21 +510,21 @@ function KpiDashboard() {
                 </Card>
 
                 {/* SQLs Card */}
-                <Card className="border border-[#9EA8FB]">
+                <Card className="border-gray-200">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600">SQLs</CardTitle>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-sm font-medium text-gray-600">SQLs</CardTitle>
+                      <div className="flex items-center text-green-600 text-sm font-medium">
+                        <ArrowUp className="h-4 w-4 mr-1" />
+                        <span>18%</span>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-3xl font-bold text-[#9EA8FB]">385</div>
-                          <div className="text-xs text-gray-500 mt-1">Target: 450</div>
-                        </div>
-                        <div className="flex items-center text-green-600 text-sm font-medium">
-                          <ArrowUp className="h-4 w-4 mr-1" />
-                          <span>18%</span>
-                        </div>
+                      <div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">385</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: 450</div>
                       </div>
 
                       {/* Micro-visual: Bar chart */}
@@ -481,21 +544,21 @@ function KpiDashboard() {
                 </Card>
 
                 {/* Traffic Growth Card */}
-                <Card className="border border-[#9EA8FB]">
+                <Card className="border-gray-200">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600">Traffic Growth</CardTitle>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-sm font-medium text-gray-600">Traffic Growth</CardTitle>
+                      <div className="flex items-center text-green-600 text-sm font-medium">
+                        <ArrowUp className="h-4 w-4 mr-1" />
+                        <span>5.2%</span>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="text-3xl font-bold text-[#9EA8FB]">16.8%</div>
-                          <div className="text-xs text-gray-500 mt-1">Target: 20%</div>
-                        </div>
-                        <div className="flex items-center text-green-600 text-sm font-medium">
-                          <ArrowUp className="h-4 w-4 mr-1" />
-                          <span>5.2%</span>
-                        </div>
+                      <div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">16.8%</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: 20%</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -516,7 +579,7 @@ function KpiDashboard() {
               </div>
 
               {/* Keyword Rankings */}
-              <Card>
+              <Card className="shadow-none border-0">
                 <CardHeader>
                   <CardTitle>Keyword Rankings</CardTitle>
                   <CardDescription>Distribution of keyword positions</CardDescription>
@@ -593,7 +656,7 @@ function KpiDashboard() {
               </Card>
 
               {/* Top Pages Performance */}
-              <Card>
+              <Card className="shadow-none border-0">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
                     <CardTitle>Top Pages Performance</CardTitle>
@@ -609,30 +672,39 @@ function KpiDashboard() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">URL</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Traffic</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Change</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Conversions</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Conv. Rate</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Page Type</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Traffic</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Conversions</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Conversion Rate</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">Avg. Position</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/5">MoM Change</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="bg-white divide-y divide-gray-200">
                         {kpiData.topPages.map((page, index) => (
                           <tr key={index} className="border-b">
-                            <td className="py-2 px-4 text-sm">{page.url}</td>
-                            <td className="py-2 px-4 text-sm">{page.traffic.toLocaleString()}</td>
-                            <td className="py-2 px-4 text-sm">
-                              <div className={`flex items-center ${page.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                {page.change >= 0 ? (
-                                  <ArrowUp className="h-3 w-3 mr-1" />
-                                ) : (
-                                  <ArrowDown className="h-3 w-3 mr-1" />
-                                )}
-                                {page.change}%
-                              </div>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {page.url}
                             </td>
-                            <td className="py-2 px-4 text-sm">{page.conversions}</td>
-                            <td className="py-2 px-4 text-sm">{page.conversionRate}%</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {page.traffic.toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {page.conversions}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {page.conversionRate}%
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {page.avgPosition.toFixed(1)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
+                                page.change >= 0 ? 'bg-[#9EA8FB]/20 text-[#6A6AC9]' : 'bg-[#FFE4A6]/20 text-[#B58B2A]'
+                              }`}>
+                                {page.change >= 0 ? '+' : ''}{page.change}%
+                              </span>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -642,7 +714,7 @@ function KpiDashboard() {
               </Card>
 
               {/* New Pages Performance */}
-              <Card>
+              <Card className="shadow-none border-0">
                 <CardHeader>
                   <CardTitle>New Pages Performance</CardTitle>
                   <CardDescription>Pages published in the last 30 days</CardDescription>
@@ -652,10 +724,10 @@ function KpiDashboard() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">URL</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Traffic</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Conversions</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Conv. Rate</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">URL</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">Traffic</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">Conversions</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 w-1/4">Conv. Rate</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -680,7 +752,7 @@ function KpiDashboard() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Card 1 - Forecast Based on Current Resources */}
-                <Card className="border border-[#9EA8FB]">
+                <Card className="border border-gray-200">
                   <CardHeader>
                     <CardTitle>Forecast Based on Current Resources</CardTitle>
                     <CardDescription>What you're projected to achieve with current deliverables and timeline</CardDescription>
@@ -691,7 +763,7 @@ function KpiDashboard() {
                       <h3 className="text-sm font-medium text-gray-600">Projected Outcomes</h3>
                       <div className="space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-sm">Total Forecasted Traffic by Q3</span>
+                          <span className="text-sm">Total Forecasted Traffic by {getTimePeriodText()}</span>
                           <span className="text-sm font-medium">{kpiData.forecasting.trafficForecast[8]?.forecast?.toLocaleString() || '60,500'}</span>
                         </div>
                         <div className="flex justify-between">
@@ -704,7 +776,7 @@ function KpiDashboard() {
                         </div>
                       </div>
                       <div className="text-sm text-amber-600 mt-1">
-                        Expected to reach 65% of Q3 traffic goal at current pacing
+                        Expected to reach 65% of {getPacingText()} traffic goal at current pacing
                       </div>
                     </div>
 
@@ -725,15 +797,11 @@ function KpiDashboard() {
                           <span className="text-sm font-medium">15</span>
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 flex items-center">
-                        <span className="inline-block w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-1 text-[10px]">i</span>
-                        Assumes avg 500 visits/post, 1.7% CVR, DR 60 = +2 positions
-                      </div>
                     </div>
 
                     {/* 3. Visual Pacing Bar */}
                     <div className="space-y-2">
-                      <h3 className="text-sm font-medium text-gray-600">Progress Toward Target</h3>
+                      <h3 className="text-sm font-medium text-gray-600">Progress Towards Target</h3>
                       <div className="w-full h-4 bg-gray-100 rounded-full relative">
                         <div className="h-4 bg-[#9EA8FB] rounded-full" style={{ width: '65%' }}></div>
                         <div className="absolute top-6 left-[65%] transform -translate-x-1/2 text-xs text-[#9EA8FB]">
@@ -751,14 +819,14 @@ function KpiDashboard() {
                     {/* 4. Timeline Estimate */}
                     <div className="pt-2">
                       <p className="text-sm text-gray-700">
-                        At this pace, you're projected to reach these outcomes by <span className="font-medium">November 2024</span>.
+                        {getProjectedOutcomeText()}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Card 2 - Forecast Based on Agreed KPI Targets */}
-                <Card className="border border-[#9EA8FB]">
+                <Card className="border border-gray-200">
                   <CardHeader>
                     <CardTitle>To Reach Agreed KPIs</CardTitle>
                     <CardDescription>What would need to change to stay aligned with your campaign goals</CardDescription>
@@ -778,7 +846,7 @@ function KpiDashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">End Date of Goal</span>
-                          <span className="text-sm font-medium">End of Q3</span>
+                          <span className="text-sm font-medium">{getTimePeriodText()}</span>
                         </div>
                       </div>
                     </div>
@@ -796,7 +864,7 @@ function KpiDashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm">Estimated Shortfall</span>
-                          <span className="text-sm font-medium text-rose-600">~31,500 visits below Q3 target</span>
+                          <span className="text-sm font-medium text-rose-600">~31,500 visits below {getPacingText()} target</span>
                         </div>
                       </div>
                     </div>
@@ -846,14 +914,6 @@ function KpiDashboard() {
                         <span>Target: 92,000</span>
                       </div>
                     </div>
-
-                    {/* 5. Internal Tooltip */}
-                    <div className="pt-2">
-                      <div className="text-xs text-gray-500 flex items-center">
-                        <span className="inline-block w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 mr-1 text-[10px]">i</span>
-                        This assumes content starts compounding 45 days post-publish
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -863,7 +923,7 @@ function KpiDashboard() {
           {/* Page Type Breakdown Tab Content */}
           {activeTab === 'pageTypeBreakdown' && (
             <div className="space-y-6">
-              <Card>
+              <Card className="shadow-none border-0">
                 <CardHeader>
                   <CardTitle>Page Type Performance</CardTitle>
                   <CardDescription>Performance breakdown by page type</CardDescription>
@@ -871,67 +931,43 @@ function KpiDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="h-[300px] w-full">
-                      {/* Placeholder for chart - in a real app, you would use a charting library */}
-                      <div className="bg-gray-50 h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
-                        <div className="flex flex-col items-center">
-                          <div className="w-48 h-48 rounded-full border-8 border-gray-200 relative">
-                            {/* Blog Posts Segment - 35% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 50%)',
-                              backgroundColor: '#3b82f6'
-                            }}></div>
-
-                            {/* Product Pages Segment - 25% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 100% 50%, 100% 100%, 75% 100%)',
-                              backgroundColor: '#10b981'
-                            }}></div>
-
-                            {/* Category Pages Segment - 20% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 75% 100%, 25% 100%)',
-                              backgroundColor: '#f59e0b'
-                            }}></div>
-
-                            {/* Landing Pages Segment - 15% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 25% 100%, 0%, 100%, 0% 50%)',
-                              backgroundColor: '#8b5cf6'
-                            }}></div>
-
-                            {/* Resource Pages Segment - 5% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 0% 50%, 0% 0%, 50% 0%)',
-                              backgroundColor: '#ec4899'
-                            }}></div>
-
-                            {/* Center circle */}
-                            <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-                              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-xs text-gray-500">
-                                Traffic Share
-                              </div>
+                      {/* Chart for Traffic Share with Figma-matched colors */}
+                      <div className="bg-white h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
+                        <div className="flex flex-col items-center w-full">
+                          <div className="relative h-56 w-56 flex items-center justify-center">
+                            {/* Overlapping rectangles */}
+                            <div className="absolute left-10 top-8 w-24 h-24 bg-[#9EA8FB] rounded-lg transform -rotate-6"></div>
+                            <div className="absolute right-6 top-10 w-22 h-22 bg-[#FFE4A6] rounded-lg transform rotate-6"></div>
+                            <div className="absolute right-12 bottom-8 w-20 h-20 bg-[#B1E3FF] rounded-lg transform rotate-3"></div>
+                            <div className="absolute left-12 bottom-12 w-20 h-18 bg-[#A5D7A7] rounded-lg transform -rotate-3"></div>
+                            <div className="absolute left-6 top-24 w-14 h-14 bg-[#F8BBD0] rounded-lg transform rotate-12"></div>
+                            
+                            {/* Central text bubble */}
+                            <div className="bg-white rounded-lg shadow-sm z-10 p-3 flex flex-col items-center justify-center">
+                              <span className="text-xs text-gray-700 font-medium">Traffic</span>
+                              <span className="text-xs text-gray-700 font-medium">Share</span>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2 mt-4">
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                          <div className="grid grid-cols-3 gap-x-6 gap-y-2 mt-8">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#9EA8FB]"></div>
                               <span className="text-xs text-gray-500">Blog (35%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#FFE4A6]"></div>
                               <span className="text-xs text-gray-500">Product (25%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#B1E3FF]"></div>
                               <span className="text-xs text-gray-500">Category (20%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#A5D7A7]"></div>
                               <span className="text-xs text-gray-500">Landing (15%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#F8BBD0]"></div>
                               <span className="text-xs text-gray-500">Resource (5%)</span>
                             </div>
                           </div>
@@ -940,67 +976,43 @@ function KpiDashboard() {
                     </div>
 
                     <div className="h-[300px] w-full">
-                      {/* Placeholder for chart - in a real app, you would use a charting library */}
-                      <div className="bg-gray-50 h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
-                        <div className="flex flex-col items-center">
-                          <div className="w-48 h-48 rounded-full border-8 border-gray-200 relative">
-                            {/* Blog Posts Segment - 25% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 50% 0%, 90% 0%, 100% 30%)',
-                              backgroundColor: '#3b82f6'
-                            }}></div>
-
-                            {/* Product Pages Segment - 40% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 100% 30%, 100% 90%, 75% 100%)',
-                              backgroundColor: '#10b981'
-                            }}></div>
-
-                            {/* Category Pages Segment - 15% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 75% 100%, 25% 100%)',
-                              backgroundColor: '#f59e0b'
-                            }}></div>
-
-                            {/* Landing Pages Segment - 18% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 30% 100%, 0%, 90%, 0% 30%)',
-                              backgroundColor: '#8b5cf6'
-                            }}></div>
-
-                            {/* Resource Pages Segment - 2% */}
-                            <div className="absolute inset-0 w-full h-full" style={{
-                              clipPath: 'polygon(50% 50%, 0% 30%, 0% 0%, 50% 0%)',
-                              backgroundColor: '#ec4899'
-                            }}></div>
-
-                            {/* Center circle */}
-                            <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-                              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-xs text-gray-500">
-                                Conversion Share
-                              </div>
+                      {/* Chart for Conversion Share with Figma-matched colors */}
+                      <div className="bg-white h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
+                        <div className="flex flex-col items-center w-full">
+                          <div className="relative h-56 w-56 flex items-center justify-center">
+                            {/* Overlapping rectangles */}
+                            <div className="absolute left-12 top-8 w-20 h-20 bg-[#9EA8FB] rounded-lg transform -rotate-6"></div>
+                            <div className="absolute right-6 top-8 w-28 h-28 bg-[#FFE4A6] rounded-lg transform rotate-6"></div>
+                            <div className="absolute right-12 bottom-8 w-18 h-18 bg-[#B1E3FF] rounded-lg transform rotate-3"></div>
+                            <div className="absolute left-10 bottom-10 w-20 h-20 bg-[#A5D7A7] rounded-lg transform -rotate-3"></div>
+                            <div className="absolute left-6 top-28 w-10 h-10 bg-[#F8BBD0] rounded-lg transform rotate-12"></div>
+                            
+                            {/* Central text bubble */}
+                            <div className="bg-white rounded-lg shadow-sm z-10 p-3 flex flex-col items-center justify-center">
+                              <span className="text-xs text-gray-700 font-medium">Conversion</span>
+                              <span className="text-xs text-gray-700 font-medium">Share</span>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-2 mt-4">
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                          <div className="grid grid-cols-3 gap-x-6 gap-y-2 mt-8">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#9EA8FB]"></div>
                               <span className="text-xs text-gray-500">Blog (25%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#FFE4A6]"></div>
                               <span className="text-xs text-gray-500">Product (40%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#B1E3FF]"></div>
                               <span className="text-xs text-gray-500">Category (15%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#A5D7A7]"></div>
                               <span className="text-xs text-gray-500">Landing (18%)</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-[#F8BBD0]"></div>
                               <span className="text-xs text-gray-500">Resource (2%)</span>
                             </div>
                           </div>
@@ -1054,8 +1066,8 @@ function KpiDashboard() {
                                 {item.avgPosition.toFixed(1)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  item.momChange >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
+                                  item.momChange >= 0 ? 'bg-[#9EA8FB]/20 text-[#6A6AC9]' : 'bg-[#FFE4A6]/20 text-[#B58B2A]'
                                 }`}>
                                   {item.momChange >= 0 ? '+' : ''}{item.momChange}%
                                 </span>
@@ -1067,6 +1079,181 @@ function KpiDashboard() {
                     </div>
                   </div>
 
+                  {/* High & Low Performers Section */}
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium mb-4">High & Low Performers</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Traffic Section */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h5 className="text-sm font-medium mb-3 flex items-center">
+                          <span className="w-2 h-2 rounded-full bg-[#9EA8FB] mr-2"></span>
+                          Traffic
+                        </h5>
+                        <div className="space-y-4">
+                          <div>
+                            <h6 className="text-xs text-gray-500 mb-2">Top 3</h6>
+                            <div className="space-y-2">
+                              {kpiData.pageTypeBreakdown.highLowPerformers.traffic.high.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-xs">
+                                  <div className="truncate w-36">
+                                    {item.url}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{item.metric.toLocaleString()}</span>
+                                    <div className="flex items-center text-[#6A6AC9]">
+                                      <ArrowUp className="h-3 w-3 mr-1" />
+                                      {item.change}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h6 className="text-xs text-gray-500 mb-2">Bottom 3</h6>
+                            <div className="space-y-2">
+                              {kpiData.pageTypeBreakdown.highLowPerformers.traffic.low.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-xs">
+                                  <div className="truncate w-36">
+                                    {item.url}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{item.metric.toLocaleString()}</span>
+                                    <div className="flex items-center text-[#B58B2A]">
+                                      <ArrowDown className="h-3 w-3 mr-1" />
+                                      {Math.abs(item.change)}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conversions Section */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h5 className="text-sm font-medium mb-3 flex items-center">
+                          <span className="w-2 h-2 rounded-full bg-[#FFE4A6] mr-2"></span>
+                          Conversions
+                        </h5>
+                        <div className="space-y-4">
+                          <div>
+                            <h6 className="text-xs text-gray-500 mb-2">Top 3</h6>
+                            <div className="space-y-2">
+                              {kpiData.pageTypeBreakdown.highLowPerformers.conversions.high.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-xs">
+                                  <div className="truncate w-36">
+                                    {item.url}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{item.metric}</span>
+                                    <div className="flex items-center text-[#6A6AC9]">
+                                      <ArrowUp className="h-3 w-3 mr-1" />
+                                      {item.change}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h6 className="text-xs text-gray-500 mb-2">Bottom 3</h6>
+                            <div className="space-y-2">
+                              {kpiData.pageTypeBreakdown.highLowPerformers.conversions.low.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-xs">
+                                  <div className="truncate w-36">
+                                    {item.url}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{item.metric}</span>
+                                    <div className="flex items-center text-[#B58B2A]">
+                                      <ArrowDown className="h-3 w-3 mr-1" />
+                                      {Math.abs(item.change)}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Time on Page Section */}
+                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <h5 className="text-sm font-medium mb-3 flex items-center">
+                          <span className="w-2 h-2 rounded-full bg-[#B1E3FF] mr-2"></span>
+                          Time on Page
+                        </h5>
+                        <div className="space-y-4">
+                          <div>
+                            <h6 className="text-xs text-gray-500 mb-2">Top 3</h6>
+                            <div className="space-y-2">
+                              {kpiData.pageTypeBreakdown.highLowPerformers.timeOnPage.high.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-xs">
+                                  <div className="truncate w-36">
+                                    {item.url}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{item.metric}</span>
+                                    <div className="flex items-center text-[#6A6AC9]">
+                                      <ArrowUp className="h-3 w-3 mr-1" />
+                                      {item.change}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h6 className="text-xs text-gray-500 mb-2">Bottom 3</h6>
+                            <div className="space-y-2">
+                              {kpiData.pageTypeBreakdown.highLowPerformers.timeOnPage.low.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-xs">
+                                  <div className="truncate w-36">
+                                    {item.url}
+                                  </div>
+                                  <div className="flex items-center">
+                                    <span className="mr-2">{item.metric}</span>
+                                    <div className="flex items-center text-[#B58B2A]">
+                                      <ArrowDown className="h-3 w-3 mr-1" />
+                                      {Math.abs(item.change)}%
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottleneck Insight Callout Box */}
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium mb-4">Bottleneck Insights</h4>
+                    <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-amber-800">Where are we getting traffic but no conversions?</h3>
+                          <p className="mt-1 text-sm text-gray-600">
+                            Blog pages attract 35% of your traffic but only account for 25% of conversions.
+                            The main bottleneck is in your resource section, which represents 12% of site content
+                            but generates only 5% of conversions.
+                          </p>
+                          <div className="mt-3">
+                            <Button variant="outline" size="sm" className="text-xs border-amber-200 text-amber-800 hover:bg-amber-100">
+                              <RefreshCw className="h-3 w-3 mr-1" /> View Content Refresh Plan
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Page Type Optimization Opportunities</h4>
                     <div className="space-y-4">
@@ -1075,10 +1262,10 @@ function KpiDashboard() {
                           <div className="flex items-start">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
                               item.priority === 'High'
-                                ? 'bg-red-100 text-red-600'
+                                ? 'bg-[#FFE4A6]/20 text-[#B58B2A]'
                                 : item.priority === 'Medium'
                                   ? 'bg-amber-100 text-amber-600'
-                                  : 'bg-blue-100 text-blue-600'
+                                  : 'bg-[#9EA8FB]/20 text-[#6A6AC9]'
                             }`}>
                               {item.priority === 'High' ? '!' : item.priority === 'Medium' ? '•' : 'i'}
                             </div>
@@ -1086,16 +1273,16 @@ function KpiDashboard() {
                               <h5 className="text-sm font-medium mb-1">{item.type} - {item.title}</h5>
                               <p className="text-xs text-gray-500">{item.description}</p>
                               <div className="mt-2 flex space-x-2">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
                                   item.priority === 'High'
-                                    ? 'bg-red-100 text-red-800'
+                                    ? 'bg-[#FFE4A6]/20 text-[#B58B2A]'
                                     : item.priority === 'Medium'
                                       ? 'bg-amber-100 text-amber-800'
-                                      : 'bg-blue-100 text-blue-800'
+                                      : 'bg-[#9EA8FB]/20 text-[#6A6AC9]'
                                 }`}>
                                   {item.priority} Priority
                                 </span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
                                   {item.impact} Impact
                                 </span>
                               </div>

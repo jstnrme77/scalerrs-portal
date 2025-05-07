@@ -76,6 +76,7 @@ export default function TopNavBar({
   const isContentWorkflowPage = pathname === '/content-workflow';
   const isDeliverablesPage = pathname === '/deliverables';
   const isTaskBoardsPage = pathname === '/task-boards';
+  const isKpiDashboardPage = pathname === '/kpi-dashboard';
 
   // Client name would typically come from a user context or API
   const clientName = user?.Name || '(Client Name)';
@@ -97,6 +98,55 @@ export default function TopNavBar({
               selectedMonth={selectedMonth || 'January'}
               onChange={onMonthChange}
             />
+          </div>
+        )}
+
+        {isKpiDashboardPage && (
+          <div className="flex items-center gap-2">
+            <button 
+              type="button" 
+              role="combobox" 
+              aria-expanded="false" 
+              aria-autocomplete="none" 
+              dir="ltr" 
+              data-state="closed" 
+              className="month-selector-rounded flex items-center justify-between rounded-lg border border-[#D9D9D9] bg-white px-3 py-2 text-sm text-[#12131C] ring-offset-background placeholder:text-[#12131C]/60 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px] h-9"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar h-4 w-4 mr-2">
+                <path d="M8 2v4"></path>
+                <path d="M16 2v4"></path>
+                <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                <path d="M3 10h18"></path>
+              </svg>
+              <span style={{ pointerEvents: 'none' }}>Monthly View</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down h-4 w-4 opacity-50" aria-hidden="true">
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </button>
+            
+            <button 
+              type="button" 
+              role="combobox" 
+              aria-expanded="false" 
+              aria-autocomplete="none" 
+              dir="ltr" 
+              data-state="closed" 
+              className="month-selector-rounded flex items-center justify-between rounded-lg border border-[#D9D9D9] bg-white px-3 py-2 text-sm text-[#12131C] ring-offset-background placeholder:text-[#12131C]/60 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px] h-9"
+            >
+              <span style={{ pointerEvents: 'none' }}>Previous Period</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down h-4 w-4 opacity-50" aria-hidden="true">
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </button>
+            
+            <button className="month-selector-rounded justify-center rounded-lg font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-[#12131C] bg-white text-[#12131C] hover:opacity-90 h-10 px-4 py-2 text-sm flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download h-4 w-4 mr-1">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" x2="12" y1="15" y2="3"></line>
+              </svg>
+              Export Report
+            </button>
           </div>
         )}
 
