@@ -7,7 +7,7 @@ import PageContainer, { PageContainerBody, PageContainerTabs } from '@/component
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -279,6 +279,17 @@ function KpiDashboard() {
   const currentProgress = 68; // Example: 68% of Q2 goal
   const projectedAnnual = 83; // Example: 83% of annual target
 
+  // Handler functions for selectors
+  const handleDateViewChange = (viewValue: string) => {
+    const newView = dateFilterOptions.find(option => option.value === viewValue) || dateFilterOptions[0];
+    setSelectedDateView(newView);
+  };
+
+  const handleComparisonChange = (comparisonValue: string) => {
+    const newComparison = comparisonOptions.find(option => option.value === comparisonValue) || comparisonOptions[0];
+    setSelectedComparison(newComparison);
+  };
+
   // Determine growth pacing indicator
   const getGrowthPacingIcon = (percentage: number) => {
     if (percentage >= 80) return <TrendingUp className="h-5 w-5 text-green-600" />;
@@ -317,9 +328,17 @@ function KpiDashboard() {
     return `At this pace you're projected to reach the yearly traffic & leads goal by December 2024`;
   };
 
-  return (
-    <DashboardLayout>
+  // Custom TopNavBar props 
+  const topNavBarProps = {
+    pathname: '/kpi-dashboard', // Set the current path
+    dateView: selectedDateView.value,
+    comparisonPeriod: selectedComparison.value,
+    onDateViewChange: handleDateViewChange,
+    onComparisonChange: handleComparisonChange
+  };
 
+  return (
+    <DashboardLayout topNavBarProps={topNavBarProps}>
       {/* Performance Summary Banner */}
       <div className="p-6 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
         <div className="flex justify-between items-start">

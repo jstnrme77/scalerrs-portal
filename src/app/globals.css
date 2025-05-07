@@ -771,9 +771,9 @@ thead tr th:last-child {
 
 /* Override for month selector in TopNavBar */
 .month-selector-rounded {
-  border-radius: 9999px !important;
-  -webkit-border-radius: 9999px !important;
-  -moz-border-radius: 9999px !important;
+  border-radius: 0.5rem !important;
+  -webkit-border-radius: 0.5rem !important;
+  -moz-border-radius: 0.5rem !important;
 }
 
 .month-dropdown {

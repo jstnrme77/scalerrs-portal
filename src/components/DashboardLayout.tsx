@@ -13,6 +13,10 @@ interface DashboardLayoutProps {
     selectedMonth?: string;
     onMonthChange?: (month: string) => void;
     onAddTask?: () => void;
+    dateView?: string;
+    comparisonPeriod?: string;
+    onDateViewChange?: (viewValue: string) => void;
+    onComparisonChange?: (comparisonValue: string) => void;
   };
 }
 
@@ -46,6 +50,10 @@ export default function DashboardLayout({
           selectedMonth={topNavBarProps?.selectedMonth}
           onMonthChange={topNavBarProps?.onMonthChange}
           onAddTask={topNavBarProps?.onAddTask}
+          dateView={topNavBarProps?.dateView}
+          comparisonPeriod={topNavBarProps?.comparisonPeriod}
+          onDateViewChange={topNavBarProps?.onDateViewChange}
+          onComparisonChange={topNavBarProps?.onComparisonChange}
         />
         <div className={`flex-1 pt-20 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
           <PageWrapper>

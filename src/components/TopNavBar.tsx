@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import RoundedMonthSelector from '@/components/ui/custom/RoundedMonthSelector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, Download, ChevronDown } from 'lucide-react';
 
 interface TopNavBarProps {
   sidebarExpanded?: boolean;
@@ -10,6 +12,10 @@ interface TopNavBarProps {
   selectedMonth?: string;
   onMonthChange?: (month: string) => void;
   onAddTask?: () => void;
+  dateView?: string;
+  comparisonPeriod?: string;
+  onDateViewChange?: (viewValue: string) => void;
+  onComparisonChange?: (comparisonValue: string) => void;
 }
 
 export default function TopNavBar({
@@ -17,7 +23,11 @@ export default function TopNavBar({
   pathname = '',
   selectedMonth = `January ${new Date().getFullYear()}`,
   onMonthChange,
-  onAddTask
+  onAddTask,
+  dateView = 'monthly',
+  comparisonPeriod = 'previous-period',
+  onDateViewChange,
+  onComparisonChange
 }: TopNavBarProps) {
   // Get current time to determine greeting
   const [greeting, setGreeting] = useState('Good evening');
@@ -103,48 +113,53 @@ export default function TopNavBar({
 
         {isKpiDashboardPage && (
           <div className="flex items-center gap-2">
-            <button 
-              type="button" 
-              role="combobox" 
-              aria-expanded="false" 
-              aria-autocomplete="none" 
-              dir="ltr" 
-              data-state="closed" 
-              className="month-selector-rounded flex items-center justify-between rounded-lg border border-[#D9D9D9] bg-white px-3 py-2 text-sm text-[#12131C] ring-offset-background placeholder:text-[#12131C]/60 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px] h-9"
+            <Select 
+              value={dateView}
+              onValueChange={(value) => {
+                if (onDateViewChange) {
+                  onDateViewChange(value);
+                }
+              }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar h-4 w-4 mr-2">
-                <path d="M8 2v4"></path>
-                <path d="M16 2v4"></path>
-                <rect width="18" height="18" x="3" y="4" rx="2"></rect>
-                <path d="M3 10h18"></path>
-              </svg>
-              <span style={{ pointerEvents: 'none' }}>Monthly View</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down h-4 w-4 opacity-50" aria-hidden="true">
-                <path d="m6 9 6 6 6-6"></path>
-              </svg>
-            </button>
+              <SelectTrigger className="month-selector-rounded w-[180px] h-9 flex items-center bg-white rounded-lg">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="View">
+                  {dateView === 'monthly' ? 'Monthly View' : 
+                   dateView === 'quarterly' ? 'Quarterly View' : 
+                   'Yearly View'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthly">Monthly View</SelectItem>
+                <SelectItem value="quarterly">Quarterly View</SelectItem>
+                <SelectItem value="yearly">Yearly View</SelectItem>
+              </SelectContent>
+            </Select>
             
-            <button 
-              type="button" 
-              role="combobox" 
-              aria-expanded="false" 
-              aria-autocomplete="none" 
-              dir="ltr" 
-              data-state="closed" 
-              className="month-selector-rounded flex items-center justify-between rounded-lg border border-[#D9D9D9] bg-white px-3 py-2 text-sm text-[#12131C] ring-offset-background placeholder:text-[#12131C]/60 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px] h-9"
+            <Select 
+              value={comparisonPeriod}
+              onValueChange={(value) => {
+                if (onComparisonChange) {
+                  onComparisonChange(value);
+                }
+              }}
             >
-              <span style={{ pointerEvents: 'none' }}>Previous Period</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down h-4 w-4 opacity-50" aria-hidden="true">
-                <path d="m6 9 6 6 6-6"></path>
-              </svg>
-            </button>
+              <SelectTrigger className="month-selector-rounded w-[180px] h-9 flex items-center bg-white rounded-lg">
+                <SelectValue placeholder="Comparison">
+                  {comparisonPeriod === 'previous-period' ? 'Previous Period' : 
+                   comparisonPeriod === 'previous-year' ? 'Previous Year' : 
+                   'Custom Period'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="previous-period">Previous Period</SelectItem>
+                <SelectItem value="previous-year">Previous Year</SelectItem>
+                <SelectItem value="custom">Custom Period</SelectItem>
+              </SelectContent>
+            </Select>
             
             <button className="month-selector-rounded justify-center rounded-lg font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-[#12131C] bg-white text-[#12131C] hover:opacity-90 h-10 px-4 py-2 text-sm flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download h-4 w-4 mr-1">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" x2="12" y1="15" y2="3"></line>
-              </svg>
+              <Download className="h-4 w-4 mr-1" />
               Export Report
             </button>
           </div>
