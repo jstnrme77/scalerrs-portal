@@ -153,7 +153,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
           title="Live"
           status="Live"
           articles={liveArticles}
-          bgColor="bg-[#d1e7dd]"
+          bgColor="bg-[#f0fff4]"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
           hideActions={hideActions}

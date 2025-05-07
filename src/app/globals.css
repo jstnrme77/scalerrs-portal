@@ -441,6 +441,12 @@ button:hover, a.btn-primary:hover, a.btn-secondary:hover, a.btn-tertiary:hover {
   transition: transform 200ms ease !important;
 }
 
+/* Status badge styles */
+.status-badge-green {
+  background-color: #f0fff4 !important;
+  color: #000000 !important;
+}
+
 /* Tab navigation styles */
 .tab-navigation {
   display: flex;

@@ -741,7 +741,7 @@ export default function ContentWorkflowPage() {
                               </div>
                               <div className="px-4 py-4">
                                 <span className={`px-2 py-1 inline-flex text-base leading-5 font-semibold rounded-full
-                                  ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
+                                  ${backlink.Status === 'Live' ? 'status-badge-green' :
                                   backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
                                   backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
                                   'bg-gray-100 text-gray-800'}`}

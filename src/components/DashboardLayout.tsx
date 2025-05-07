@@ -20,7 +20,7 @@ export default function DashboardLayout({
   topNavBarProps
 }: DashboardLayoutProps) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
 
   // Listen for changes in sidebar state
   useEffect(() => {
