@@ -247,7 +247,7 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
+    <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
       {priority}
     </span>
   );
@@ -260,8 +260,8 @@ function ImpactBadge({ impact }: { impact: number }) {
 
   switch (impact) {
     case 5:
-      bgColor = 'bg-[#9EA8FB]/10';
-      textColor = 'text-[#9EA8FB]';
+      bgColor = 'bg-gray-200';
+      textColor = 'text-gray-800';
       break;
     case 4:
       bgColor = 'bg-blue-100';
@@ -285,7 +285,7 @@ function ImpactBadge({ impact }: { impact: number }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
+    <span className={`w-8 h-8 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
       {impact}
     </span>
   );
@@ -315,7 +315,7 @@ function EffortBadge({ effort }: { effort: TaskEffort }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
+    <span className={`w-8 h-8 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
       {effort}
     </span>
   );
@@ -324,21 +324,21 @@ function EffortBadge({ effort }: { effort: TaskEffort }) {
 // Comment Component
 function CommentItem({ comment }: { comment: Comment }) {
   return (
-    <div className="mb-2 last:mb-0">
+    <div className="mb-2 last:mb-0 p-3">
       <div className="flex items-start">
-        <div className="bg-lightGray rounded-full w-6 h-6 flex items-center justify-center mr-2 mt-0.5">
+        <div className="bg-lightGray rounded-lg w-6 h-6 flex items-center justify-center mr-2 mt-0.5">
           <span className="text-xs font-medium">{comment.author.charAt(0)}</span>
         </div>
         <div className="flex-1">
           <div className="flex items-baseline">
-            <span className="text-xs font-medium text-dark">{comment.author}</span>
-            <span className="text-xs text-mediumGray ml-2">{comment.timestamp}</span>
+            <span className="text-base font-medium text-dark">{comment.author}</span>
+            <span className="text-base text-mediumGray ml-2">{comment.timestamp}</span>
           </div>
-          <p className="text-sm text-dark mt-0.5">{comment.text}</p>
+          <p className="text-base text-dark mt-0.5">{comment.text}</p>
         </div>
       </div>
       {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-8 mt-2 border-l-2 border-lightGray pl-3">
+        <div className="ml-8 mt-2 border-l-2 border-lightGray pl-4">
           {comment.replies.map((reply) => (
             <CommentItem key={reply.id} comment={reply} />
           ))}
@@ -426,9 +426,9 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
     <div className="mt-3">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center text-xs font-medium text-primary hover:underline"
+        className="flex items-center text-base font-medium text-primary hover:underline"
       >
-        <div className="bg-[#9EA8FB] text-white text-xs font-medium px-2 py-1 rounded-[12px] flex items-center mr-2">
+        <div className="bg-gray-200 text-gray-700 text-base font-medium px-2 py-1 rounded-lg flex items-center mr-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
           </svg>
@@ -439,17 +439,17 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
 
       {isExpanded && (
         <div className="mt-2">
-          <div className="bg-lightGray/30 p-3 rounded-md mb-2">
+          <div className="bg-gray-100/50 p-4 rounded-[12px] mb-2">
             {loading ? (
               <div className="flex justify-center items-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-lg h-6 w-6 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : taskComments.length > 0 ? (
               taskComments.map((comment) => (
                 <CommentItem key={comment.id} comment={comment} />
               ))
             ) : (
-              <p className="text-sm text-mediumGray">No comments yet</p>
+              <p className="text-base text-mediumGray">No comments yet</p>
             )}
           </div>
 
@@ -457,14 +457,14 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
             <input
               type="text"
               placeholder="Add a comment..."
-              className="flex-1 border border-lightGray rounded-l-[12px] p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 border border-gray-200 rounded-l-[12px] p-2 text-base focus:outline-none focus:ring-1 focus:ring-gray-400"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
             />
             <button
               onClick={handleAddComment}
               disabled={!newComment.trim() || loading}
-              className="bg-[#000000] text-white px-3 py-2 rounded-r-[12px] text-sm font-medium disabled:opacity-50"
+              className="bg-[#000000] text-white px-4 py-2 rounded-r-[12px] text-base font-medium disabled:opacity-50"
             >
               {loading ? 'Posting...' : 'Post'}
             </button>
@@ -503,7 +503,7 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
+    <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
       {status}
     </span>
   );
@@ -518,9 +518,9 @@ function TaskCard({
   onStatusChange: (id: number | string, status: TaskStatus) => void;
 }) {
   return (
-    <div className="card bg-white p-6 rounded-[12px] border-2 border-gray-200" style={{ color: '#353233' }}>
+    <div className="card bg-white p-6 rounded-lg border-2 border-gray-200" style={{ color: '#353233' }}>
       <div className="flex justify-between items-start mb-5">
-        <h3 className="text-md font-medium text-text-light dark:text-text-dark mt-2">{task.task}</h3>
+        <h3 className="text-base font-medium text-text-light dark:text-text-dark mt-2">{task.task}</h3>
         <div className="flex space-x-2">
           <PriorityBadge priority={task.priority} />
           <StatusBadge status={task.status} />
@@ -530,14 +530,14 @@ function TaskCard({
       <div className="w-full h-px bg-gray-300 mb-5"></div>
 
       <div className="mb-5">
-        <div className="text-sm text-mediumGray dark:text-gray-300 mb-2">
+        <div className="text-base text-mediumGray dark:text-gray-300 mb-2">
           <span className="font-medium">Assigned to:</span> {task.assignedTo}
         </div>
-        <div className="text-sm text-mediumGray dark:text-gray-300 mb-2">
+        <div className="text-base text-mediumGray dark:text-gray-300 mb-2">
           <span className="font-medium">Logged:</span> {task.dateLogged}
         </div>
         {task.status === 'Done' && task.completedDate && (
-          <div className="text-sm text-mediumGray dark:text-gray-300">
+          <div className="text-base text-mediumGray dark:text-gray-300">
             <span className="font-medium">Completed:</span> {task.completedDate}
           </div>
         )}
@@ -545,11 +545,11 @@ function TaskCard({
 
       <div className="flex items-center space-x-5 mb-5">
         <div>
-          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-2">Impact</span>
+          <span className="text-base text-mediumGray dark:text-gray-300 block mb-2">Impact</span>
           <ImpactBadge impact={task.impact} />
         </div>
         <div>
-          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-2">Effort</span>
+          <span className="text-base text-mediumGray dark:text-gray-300 block mb-2">Effort</span>
           <EffortBadge effort={task.effort} />
         </div>
       </div>
@@ -558,8 +558,8 @@ function TaskCard({
         <>
           <div className="w-full h-px bg-gray-300 mb-5"></div>
           <div className="mb-5">
-            <div className="text-xs text-mediumGray dark:text-gray-300 mb-2">Notes</div>
-            <p className="text-sm text-text-light dark:text-text-dark bg-lightGray/30 dark:bg-darkGray/30 p-3 rounded">{task.notes}</p>
+            <div className="text-base text-mediumGray dark:text-gray-300 mb-2">Notes</div>
+            <p className="text-base text-text-light dark:text-text-dark bg-lightGray/30 dark:bg-darkGray/30 p-6 rounded-lg">{task.notes}</p>
           </div>
         </>
       )}
@@ -572,7 +572,7 @@ function TaskCard({
         {task.status === 'Not Started' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
-            className="px-3 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
+            className="px-6 py-1 text-base font-medium text-white bg-[#000000] rounded-lg hover:bg-[#000000]/80 transition-colors"
           >
             Start
           </button>
@@ -582,13 +582,13 @@ function TaskCard({
           <>
             <button
               onClick={() => onStatusChange(task.id, 'Done')}
-              className="px-3 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
+              className="px-6 py-1 text-base font-medium text-white bg-[#000000] rounded-lg hover:bg-[#000000]/80 transition-colors"
             >
               Complete
             </button>
             <button
               onClick={() => onStatusChange(task.id, 'Blocked')}
-              className="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-[12px] hover:bg-red-700 hover:text-white transition-colors"
+              className="px-6 py-1 text-base font-medium text-red-800 bg-red-100 rounded-lg hover:bg-red-700 hover:text-white transition-colors"
             >
               Block
             </button>
@@ -598,7 +598,7 @@ function TaskCard({
         {task.status === 'Blocked' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
-            className="px-3 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-[12px] hover:bg-blue-700 hover:text-white transition-colors"
+            className="px-6 py-1 text-base font-medium text-blue-800 bg-blue-100 rounded-lg hover:bg-blue-700 hover:text-white transition-colors"
           >
             Resume
           </button>
@@ -607,7 +607,7 @@ function TaskCard({
         {task.status === 'Done' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
-            className="px-3 py-1 text-xs font-medium text-mediumGray bg-lightGray rounded-[12px] hover:bg-gray-300 transition-colors"
+            className="px-6 py-1 text-base font-medium text-mediumGray bg-lightGray rounded-lg hover:bg-gray-300 transition-colors"
           >
             Reopen
           </button>
@@ -655,75 +655,53 @@ function TaskTable({
     return b.dateLogged.localeCompare(a.dateLogged);
   });
 
-  // Calculate completion stats
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.status === 'Done').length;
-
   return (
     <div className="mb-6" style={{ color: '#353233' }}>
-      {/* Status header */}
-      <h3 className="font-medium text-dark mb-2">Tasks</h3>
-
-      {/* Summary header */}
-      <div className="bg-gray-100 p-3 rounded-t-[12px] border-2 border-gray-200">
-        <div className="flex items-center">
-          <div className="flex items-center justify-center bg-[#000000] text-white rounded-full w-8 h-8 mr-2">
-            <span className="font-bold">{completedTasks}</span>
-          </div>
-          <p className="text-sm font-medium text-dark">
-            of {totalTasks} tasks completed this month
-          </p>
-        </div>
-      </div>
-
-      {/* Add spacing between notification and table */}
-      <div className="h-4"></div>
-
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
           <thead>
             <tr className="bg-gray-100 border-b border-gray-200">
-              <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">Task</th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[10%]">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-wider w-[15%]">Assigned to</th>
-              <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-wider w-[10%]">Date Logged</th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[10%]">Impact</th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[5%]">Effort</th>
-              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[5%]">Comments</th>
-              <th className="px-4 py-3 text-right text-xs font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">Actions</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">Task</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Status</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Assigned to</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">Date Logged</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Impact</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%]">Effort</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%]">Comments</th>
+              <th className="px-4 py-4 text-right text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sortedTasks.map((task) => (
               <React.Fragment key={task.id}>
                 <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
-                  <td className="px-4 py-3 w-[25%]">
+                  <td className="px-4 py-4 w-[25%]">
                     <div className="flex items-start">
                       <div>
-                        <div className="text-sm font-medium text-dark">{task.task}</div>
-                        {task.notes && <div className="text-xs text-mediumGray mt-1">{task.notes.substring(0, 60)}{task.notes.length > 60 ? '...' : ''}</div>}
+                        <div className="text-base font-medium text-dark">{task.task}</div>
+                        {task.notes && <div className="text-base text-mediumGray mt-1">{task.notes.substring(0, 60)}{task.notes.length > 60 ? '...' : ''}</div>}
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center w-[10%]">
+                  <td className="px-4 py-4 text-center w-[10%]">
                     <StatusBadge status={task.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-dark w-[15%]">{task.assignedTo}</td>
-                  <td className="px-4 py-3 text-sm text-mediumGray w-[10%]">{task.dateLogged}</td>
-                  <td className="px-4 py-3 text-center w-[10%]">
+                  <td className="px-4 py-4 text-base text-dark w-[15%]">{task.assignedTo}</td>
+                  <td className="px-4 py-4 text-base text-mediumGray w-[12%] whitespace-nowrap">{task.dateLogged}</td>
+                  <td className="px-4 py-4 text-center w-[10%]">
                     <PriorityBadge priority={task.priority} />
                   </td>
-                  <td className="px-4 py-3 text-center w-[10%]">
+                  <td className="px-4 py-4 text-center w-[8%]">
                     <ImpactBadge impact={task.impact} />
                   </td>
-                  <td className="px-4 py-3 text-center w-[5%]">
+                  <td className="px-4 py-4 text-center w-[5%]">
                     <EffortBadge effort={task.effort} />
                   </td>
-                  <td className="px-4 py-3 text-center w-[5%]">
+                  <td className="px-4 py-4 text-center w-[5%]">
                     <div className="flex justify-center">
-                      <div className="bg-[#9EA8FB] text-white text-xs font-medium px-2 py-1 rounded-[12px] flex items-center">
+                      <div className="bg-gray-200 text-gray-700 text-base font-medium px-2 py-1 rounded-lg flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                         </svg>
@@ -731,7 +709,7 @@ function TaskTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right w-[10%]">
+                  <td className="px-4 py-4 text-right w-[10%]">
                     <div className="flex justify-end space-x-2">
                       {task.status === 'Not Started' && (
                         <button
@@ -739,7 +717,7 @@ function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task.id, 'In Progress');
                           }}
-                          className="px-3 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
+                          className="px-4 py-1 text-base font-medium text-white bg-[#000000] rounded-lg hover:bg-[#000000]/80 transition-colors"
                         >
                           Start
                         </button>
@@ -752,7 +730,7 @@ function TaskTable({
                               e.stopPropagation();
                               onStatusChange(task.id, 'Done');
                             }}
-                            className="px-2 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
+                            className="px-4 py-1 text-base font-medium text-white bg-[#000000] rounded-lg hover:bg-[#000000]/80 transition-colors"
                           >
                             Complete
                           </button>
@@ -761,7 +739,7 @@ function TaskTable({
                               e.stopPropagation();
                               onStatusChange(task.id, 'Blocked');
                             }}
-                            className="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-[12px] hover:bg-red-700 hover:text-white transition-colors"
+                            className="px-4 py-1 text-base font-medium text-red-800 bg-red-100 rounded-lg hover:bg-red-700 hover:text-white transition-colors"
                           >
                             Block
                           </button>
@@ -774,7 +752,7 @@ function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task.id, 'In Progress');
                           }}
-                          className="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-[12px] hover:bg-blue-700 hover:text-white transition-colors"
+                          className="px-4 py-1 text-base font-medium text-blue-800 bg-blue-100 rounded-lg hover:bg-blue-700 hover:text-white transition-colors"
                         >
                           Resume
                         </button>
@@ -786,7 +764,7 @@ function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task.id, 'In Progress');
                           }}
-                          className="px-2 py-1 text-xs font-medium text-mediumGray bg-lightGray rounded-[12px] hover:bg-gray-300 transition-colors"
+                          className="px-4 py-1 text-base font-medium text-mediumGray bg-lightGray rounded-lg hover:bg-gray-300 transition-colors"
                         >
                           Reopen
                         </button>
@@ -796,34 +774,34 @@ function TaskTable({
                 </tr>
                 {expandedTaskId === task.id && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-3 bg-white border-t border-gray-200">
+                    <td colSpan={9} className="px-4 py-4 bg-white border-t border-gray-200">
                       <div className="grid grid-cols-2 gap-4">
                         {task.notes && (
                           <div>
-                            <h4 className="text-sm font-medium text-dark mb-1">Notes</h4>
-                            <p className="text-sm text-dark bg-[#9EA8FB]/5 p-3 rounded border border-[#9EA8FB]/30">{task.notes}</p>
+                            <h4 className="text-base font-medium text-dark mb-1">Notes</h4>
+                            <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{task.notes}</p>
                           </div>
                         )}
                         <div>
-                          <h4 className="text-sm font-medium text-dark mb-1">Comments</h4>
-                          <div className="bg-[#9EA8FB]/5 p-3 rounded border border-[#9EA8FB]/30">
+                          <h4 className="text-base font-medium text-dark mb-1">Comments</h4>
+                          <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
                             {task.comments.length > 0 ? (
                               task.comments.map((comment) => (
                                 <CommentItem key={comment.id} comment={comment} />
                               ))
                             ) : (
-                              <p className="text-sm text-mediumGray">No comments yet</p>
+                              <p className="text-base text-mediumGray">No comments yet</p>
                             )}
 
-                            <div className="mt-2 pt-2 border-t border-[#9EA8FB]/30">
+                            <div className="mt-2 pt-2 border-t border-gray-200">
                               <div className="flex">
                                 <input
                                   type="text"
                                   placeholder="Add a comment..."
-                                  className="flex-1 border border-[#9EA8FB]/30 rounded-l-[12px] p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#9EA8FB]"
+                                  className="flex-1 border border-gray-200 rounded-lg p-2 text-base focus:outline-none focus:ring-1 focus:ring-gray-400"
                                 />
                                 <button
-                                  className="bg-[#000000] text-white px-3 py-2 rounded-r-[12px] text-sm font-medium"
+                                  className="bg-[#000000] text-white px-4 py-2 rounded-lg text-base font-medium"
                                 >
                                   Post
                                 </button>
@@ -840,7 +818,7 @@ function TaskTable({
 
             {sortedTasks.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-sm text-mediumGray">
+                <td colSpan={9} className="px-4 py-8 text-center text-base text-mediumGray">
                   No tasks found in this section
                 </td>
               </tr>
@@ -927,9 +905,9 @@ function AddTaskModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div className="bg-white p-6 rounded-xl border-2 border-gray-200 shadow-lg max-w-xl w-full pointer-events-auto">
-        <div className="bg-gray-100 p-3 border-b border-gray-200 -mx-6 -mt-6 mb-6 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-black">Add New Task to {boardType} Board</h3>
+      <div className="bg-white p-8 rounded-[12px] border-2 border-gray-200 shadow-lg max-w-xl w-full pointer-events-auto">
+        <div className="bg-gray-100 p-6 border-b border-gray-200 -mx-8 -mt-8 mb-8 flex justify-between items-center rounded-t-[12px]">
+          <h3 className="text-lg font-bold text-black px-2">Add New Task to {boardType} Board</h3>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -941,12 +919,12 @@ function AddTaskModal({
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-mediumGray mb-1">Task Name</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Task Name</label>
               <input
                 type="text"
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 placeholder="Enter task description"
                 value={taskData.task}
                 onChange={(e) => setTaskData({ ...taskData, task: e.target.value })}
@@ -955,10 +933,10 @@ function AddTaskModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-mediumGray mb-1">Assigned To</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Assigned To</label>
               <input
                 type="text"
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 placeholder="Enter assignee name"
                 value={taskData.assignedTo}
                 onChange={(e) => setTaskData({ ...taskData, assignedTo: e.target.value })}
@@ -967,9 +945,9 @@ function AddTaskModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-mediumGray mb-1">Priority</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Priority</label>
               <select
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.priority}
                 onChange={(e) => setTaskData({ ...taskData, priority: e.target.value as TaskPriority })}
               >
@@ -980,9 +958,9 @@ function AddTaskModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-mediumGray mb-1">Impact (1-5)</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Impact (1-5)</label>
               <select
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.impact}
                 onChange={(e) => setTaskData({ ...taskData, impact: parseInt(e.target.value) })}
               >
@@ -995,9 +973,9 @@ function AddTaskModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-mediumGray mb-1">Effort</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Effort</label>
               <select
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.effort}
                 onChange={(e) => setTaskData({ ...taskData, effort: e.target.value as TaskEffort })}
               >
@@ -1008,9 +986,9 @@ function AddTaskModal({
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-mediumGray mb-1">Notes</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Notes</label>
               <textarea
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[80px]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[80px]"
                 placeholder="Add any additional notes or context"
                 value={taskData.notes}
                 onChange={(e) => setTaskData({ ...taskData, notes: e.target.value })}
@@ -1018,9 +996,9 @@ function AddTaskModal({
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-mediumGray mb-1">Reference Links</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Reference Links</label>
               <textarea
-                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[60px]"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[60px]"
                 placeholder="Add reference links (one per line)"
                 value={taskData.referenceLinks}
                 onChange={(e) => setTaskData({ ...taskData, referenceLinks: e.target.value })}
@@ -1028,17 +1006,17 @@ function AddTaskModal({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-[#000000] border border-[#000000] rounded-[12px] hover:bg-[#000000]/10 transition-colors"
+              className="px-5 py-2 text-base font-medium text-[#000000] border border-[#000000] rounded-[12px] hover:bg-[#000000]/10 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
+              className="px-5 py-2 text-base font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
             >
               Add Task
             </button>
@@ -1271,13 +1249,8 @@ export default function TaskBoards() {
           />
         </PageContainerTabs>
         <PageContainerBody>
-          {/* Tab-level header - Sticky */}
-          <div className="mb-4 flex justify-between items-center sticky top-0 bg-gray-100 p-4 border-b-2 border-gray-200 z-10">
-            <div>
-              <p className="font-medium text-dark">You have {currentTasks.filter(task => task.status !== 'Done').length} active task{currentTasks.filter(task => task.status !== 'Done').length !== 1 ? 's' : ''} in this section</p>
-            </div>
-          </div>
-
+          {/* Removed notification text */}
+          
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#000000]"></div>
@@ -1288,19 +1261,15 @@ export default function TaskBoards() {
               <span className="block sm:inline">{error}</span>
             </div>
           ) : (
-            <TaskTable
-              tasks={currentTasks}
-              onStatusChange={handleStatusChange}
-            />
+            <div className="max-w-[calc(100%)]">
+              <TaskTable
+                tasks={currentTasks}
+                onStatusChange={handleStatusChange}
+              />
+            </div>
           )}
         </PageContainerBody>
       </PageContainer>
-
-      <div className="bg-gray-100 p-4 rounded-[12px] mt-8 border border-gray-200">
-        <p className="text-sm text-dark">
-          <strong>Note:</strong> Tasks are synchronized with our project management system. Changes made here will be reflected in the main system within 5 minutes.
-        </p>
-      </div>
 
       <AddTaskModal
         isOpen={addTaskModal}

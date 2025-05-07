@@ -100,7 +100,8 @@ export default function TopNavBar({
         {isTaskBoardsPage && onAddTask && (
           <button
             onClick={onAddTask}
-            className="px-4 py-2 text-sm font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors flex items-center"
+            className="px-4 py-2 text-base font-medium text-white bg-[#000000] rounded-full hover:bg-[#000000]/80 transition-colors flex items-center task-btn-override"
+            style={{ borderRadius: '999px' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

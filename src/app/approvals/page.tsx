@@ -263,8 +263,8 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
       <h3 className="font-medium text-dark mb-3 text-center text-base">Pending Approvals</h3>
 
       <div className="flex items-center justify-center mb-6">
-        <div className="relative w-28 h-28">
-          <svg className="w-28 h-28" viewBox="0 0 100 100">
+        <div className="relative w-32 h-32">
+          <svg className="w-32 h-32" viewBox="0 0 100 100">
             <circle
               cx="50" cy="50" r="42"
               fill="none"

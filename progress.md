@@ -85,6 +85,9 @@
 - ✅ Simplified Reports page UI by removing unused date range filter
 - ✅ Added rounded borders (12px) to table headers on all sides for improved visual appearance
 - ✅ Enhanced table header styling with consistent padding and light purple background
+- ✅ Standardized all UI element border radiuses to use 12px rounded corners instead of circular/pill shapes
+- ✅ Updated Task Boards page status indicators, badges, and buttons with consistent rounded-lg styling
+- ✅ Fixed Date Logged column width in Task Boards page to prevent line wrapping
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -202,3 +205,5 @@
 - Updated table headers with rounded corners (12px radius) on all sides for a more polished appearance
 - Added consistent light purple background color to table headers (rgba(158, 168, 251, 0.1)) for better visual distinction
 - Standardized table header padding (12px vertical, 16px horizontal) for improved readability and spacing
+- Updated all badges, buttons, and UI elements in Task Boards to use consistent slightly rounded corners (rounded-lg) instead of fully rounded pill shapes
+- Fixed formatting in Task Boards components to improve appearance and usability
