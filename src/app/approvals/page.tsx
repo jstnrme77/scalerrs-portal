@@ -238,7 +238,7 @@ function GlobalSummaryBanner({ counts }: {
   const categoriesCount = Object.values(counts).filter(count => count > 0).length;
 
   return (
-    <div className="p-4 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+    <div className="p-6 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
       <div className="flex justify-between items-start">
         <div>
           <p className="font-bold text-dark text-lg mb-1 notification-text">Pending Approvals</p>
@@ -259,7 +259,7 @@ function SidebarSummaryPanel({ counts, totalApproved, totalPending }: {
   const percentage = totalPending > 0 ? (totalApproved / (totalApproved + totalPending)) * 100 : 0;
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
       <h3 className="font-medium text-dark mb-3 text-center text-base">Pending Approvals</h3>
 
       <div className="flex items-center justify-center mb-6">

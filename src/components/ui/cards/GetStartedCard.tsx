@@ -27,7 +27,7 @@ export default function GetStartedCard({
   return (
     <div
       className={cn(
-        "card flex flex-col p-6 rounded-[16px] h-full min-h-[280px] bg-white shadow-sm",
+        "card flex flex-col p-6 rounded-xl h-full min-h-[280px] bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
@@ -85,7 +85,7 @@ export function GuideCard({
   return (
     <div
       className={cn(
-        "card p-6 rounded-[16px] h-full min-h-[280px] flex flex-col bg-white shadow-sm",
+        "card p-6 rounded-xl h-full min-h-[280px] flex flex-col bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}
@@ -153,7 +153,7 @@ export function QuickLinksCard({
   return (
     <div
       className={cn(
-        "card p-6 rounded-[16px] h-full min-h-[280px]",
+        "card p-6 rounded-xl h-full min-h-[280px]",
         bgColor,
         className
       )}
@@ -205,7 +205,7 @@ export function ChecklistCard({
   return (
     <div
       className={cn(
-        "card p-6 rounded-lg h-full min-h-[280px] flex flex-col bg-white shadow-sm",
+        "card p-6 rounded-xl h-full min-h-[280px] flex flex-col bg-white shadow-sm",
         className
       )}
       style={{ color: '#353233' }}

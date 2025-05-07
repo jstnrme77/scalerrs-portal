@@ -18,9 +18,24 @@ export default function MonthSelector({ selectedMonth, onChange }: MonthSelector
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+  // Get current year and previous year
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1;
+  const nextYear = currentYear + 1;
+
+  // Define months array
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  // Create organized options by year
+  const nextYearOptions = months.map(month => `${month} ${nextYear}`);
+  const currentYearOptions = months.map(month => `${month} ${currentYear}`);
+  const previousYearOptions = months.map(month => `${month} ${previousYear}`);
+
+  // Combine all options for the dropdown
+  const monthYearOptions = [
+    ...nextYearOptions,
+    ...currentYearOptions,
+    ...previousYearOptions
   ];
 
   // Close dropdown when clicking outside
@@ -45,7 +60,7 @@ export default function MonthSelector({ selectedMonth, onChange }: MonthSelector
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="card flex items-center justify-between w-40 px-4 py-2 font-medium bg-white border border-lightGray hover:bg-lightGray text-base month-selector-button"
+        className="card flex items-center justify-between w-52 px-4 py-2 font-medium bg-white border border-lightGray hover:bg-lightGray text-base month-selector-button"
         onClick={() => setIsOpen(!isOpen)}
         style={{ ...customStyles, color: '#353233', borderRadius: '9999px' }}
       >
@@ -53,19 +68,50 @@ export default function MonthSelector({ selectedMonth, onChange }: MonthSelector
         <ChevronDown className="ml-2 h-4 w-4" />
       </button>
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 bg-white shadow-lg z-10 border border-lightGray" style={{ borderRadius: '16px' }}>
-          <div className="py-1">
-            {months.map((month, index) => (
+        <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg z-10 border border-lightGray" style={{ borderRadius: '16px' }}>
+          <div className="py-1 max-h-80 overflow-y-auto">
+            {/* Next Year Section */}
+            <div className="px-4 py-2 font-bold text-primary bg-primary/5 border-b border-lightGray" style={customStyles}>
+              {nextYear}
+            </div>
+            {nextYearOptions.map((monthYear) => (
               <button
-                key={month}
+                key={monthYear}
                 className="block w-full text-left px-4 py-2 text-dark hover:bg-lightGray month-selector-button"
-                style={{
-                  ...customStyles,
-                  borderRadius: index === 0 ? '16px 16px 0 0' : index === months.length - 1 ? '0 0 16px 16px' : '0'
-                }}
-                onClick={() => handleMonthSelect(month)}
+                style={customStyles}
+                onClick={() => handleMonthSelect(monthYear)}
               >
-                {month}
+                {monthYear}
+              </button>
+            ))}
+
+            {/* Current Year Section */}
+            <div className="px-4 py-2 font-bold text-primary bg-primary/5 border-b border-t border-lightGray" style={customStyles}>
+              {currentYear}
+            </div>
+            {currentYearOptions.map((monthYear) => (
+              <button
+                key={monthYear}
+                className="block w-full text-left px-4 py-2 text-dark hover:bg-lightGray month-selector-button"
+                style={customStyles}
+                onClick={() => handleMonthSelect(monthYear)}
+              >
+                {monthYear}
+              </button>
+            ))}
+
+            {/* Previous Year Section */}
+            <div className="px-4 py-2 font-bold text-primary bg-primary/5 border-b border-t border-lightGray" style={customStyles}>
+              {previousYear}
+            </div>
+            {previousYearOptions.map((monthYear) => (
+              <button
+                key={monthYear}
+                className="block w-full text-left px-4 py-2 text-dark hover:bg-lightGray month-selector-button"
+                style={customStyles}
+                onClick={() => handleMonthSelect(monthYear)}
+              >
+                {monthYear}
               </button>
             ))}
           </div>

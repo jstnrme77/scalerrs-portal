@@ -24,14 +24,14 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* In Progress Column */}
         <BriefColumn
           title="In Progress"
           status="In Progress"
           briefs={inProgressBriefs}
           selectedMonth={selectedMonth}
-          bgColor="bg-[#f0f4ff]"
+          bgColor="bg-white"
           onStatusChange={onStatusChange}
           count={inProgressBriefs.length}
           hideActions={hideActions}
@@ -57,7 +57,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
           status="Review Brief"
           briefs={reviewBriefs}
           selectedMonth={selectedMonth}
-          bgColor="bg-[#f9f0ff]"
+          bgColor="bg-white"
           onStatusChange={onStatusChange}
           count={reviewBriefs.length}
           hideActions={hideActions}
@@ -70,7 +70,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
           status="Brief Approved"
           briefs={approvedBriefs}
           selectedMonth={selectedMonth}
-          bgColor="bg-[#f0fff4]"
+          bgColor="bg-white"
           onStatusChange={onStatusChange}
           count={approvedBriefs.length}
           hideActions={hideActions}
@@ -99,13 +99,13 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
         {/* In Production Column */}
         <ArticleColumn
           title="In Production"
           status="In Production"
           articles={inProductionArticles}
-          bgColor="bg-[#f0f4ff]"
+          bgColor="bg-white"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
           hideActions={hideActions}
@@ -117,7 +117,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
           title="Review Draft"
           status="Review Draft"
           articles={reviewDraftArticles}
-          bgColor="bg-[#f9f0ff]"
+          bgColor="bg-white"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
           hideActions={hideActions}
@@ -129,7 +129,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
           title="Draft Approved"
           status="Draft Approved"
           articles={draftApprovedArticles}
-          bgColor="bg-[#cfe2ff]"
+          bgColor="bg-white"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
           hideActions={hideActions}
@@ -141,7 +141,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
           title="To Be Published"
           status="To Be Published"
           articles={toBePublishedArticles}
-          bgColor="bg-[#e2e3e5]"
+          bgColor="bg-white"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
           hideActions={hideActions}
@@ -153,7 +153,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
           title="Live"
           status="Live"
           articles={liveArticles}
-          bgColor="bg-[#f0fff4]"
+          bgColor="bg-white"
           selectedMonth={selectedMonth}
           onStatusChange={onStatusChange}
           hideActions={hideActions}

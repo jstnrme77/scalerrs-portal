@@ -14,7 +14,7 @@ interface TopNavBarProps {
 export default function TopNavBar({
   sidebarExpanded = true,
   pathname = '',
-  selectedMonth = 'January',
+  selectedMonth = `January ${new Date().getFullYear()}`,
   onMonthChange
 }: TopNavBarProps) {
   // Get current time to determine greeting

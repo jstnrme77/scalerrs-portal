@@ -38,12 +38,14 @@ export default function TaskCard({
 }: TaskCardProps) {
   return (
     <Card className={`${className}`}>
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-text-light dark:text-text-dark">{task.name}</h3>
+      <div className="flex justify-between items-start mb-5">
+        <h3 className="text-md font-medium text-text-light dark:text-text-dark mt-2">{task.name}</h3>
         <StatusBadge status={task.status} />
       </div>
 
-      <div className="space-y-2 mb-4">
+      <div className="w-full h-px bg-gray-300 mb-5"></div>
+
+      <div className="space-y-3 mb-5">
         <div className="text-sm text-mediumGray dark:text-gray-300">
           <span className="font-medium">Assigned to:</span> {task.assignedTo}
         </div>
@@ -57,7 +59,7 @@ export default function TaskCard({
           <PriorityBadge priority={task.priority} />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <div className="text-sm text-mediumGray dark:text-gray-300">
             <span className="font-medium">Impact:</span> {task.impact}
           </div>
@@ -74,6 +76,7 @@ export default function TaskCard({
         )}
       </div>
 
+      <div className="w-full h-px bg-gray-300 mb-5"></div>
       <div className="flex justify-between items-center">
         <div className="flex space-x-2">
           <button

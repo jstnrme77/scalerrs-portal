@@ -53,7 +53,7 @@ export default function BriefColumn({
         <div className="h-px bg-gray-200 w-full mt-1"></div>
       </div>
 
-      <div className="bg-white rounded-b-lg p-2 mt-2">
+      <div className="bg-white rounded-b-lg p-3 mt-2">
         {briefs.map((brief) => (
           <BriefCard
             key={brief.id}

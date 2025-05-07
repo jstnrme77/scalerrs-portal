@@ -1,4 +1,6 @@
 // Mock data for static builds and fallbacks
+// Import 2025 mockup data
+import mockData2025 from '../mockups/content-workflow-2025';
 
 // Mock users
 export const mockUsers = [
@@ -491,6 +493,11 @@ export const mockKeywordPerformance = [
     Date: '2023-01-31'
   }
 ];
+
+// Export 2025 mockup data
+export const mockBriefs2025 = mockData2025.briefs;
+export const mockArticles2025 = mockData2025.articles;
+export const mockBacklinks2025 = mockData2025.backlinks;
 
 // Mock Monthly Projections
 // This data is used when Airtable connection is not available

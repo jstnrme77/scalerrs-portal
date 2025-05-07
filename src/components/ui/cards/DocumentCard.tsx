@@ -33,17 +33,19 @@ export default function DocumentCard({
 }: DocumentCardProps) {
   return (
     <Card className={className}>
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-text-light dark:text-text-dark">{document.name}</h3>
+      <div className="flex justify-between items-start mb-5">
+        <h3 className="text-md font-medium text-text-light dark:text-text-dark mt-2">{document.name}</h3>
         <FileTypeBadge type={document.type} />
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="text-sm text-mediumGray dark:text-gray-300">
+      <div className="w-full h-px bg-gray-300 mb-5"></div>
+
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="text-sm text-mediumGray dark:text-gray-300 mb-2">
           <span className="font-medium">Updated:</span> {new Date(document.lastUpdated).toLocaleDateString()}
         </div>
 
-        <div className="text-sm text-mediumGray dark:text-gray-300">
+        <div className="text-sm text-mediumGray dark:text-gray-300 mb-2">
           <span className="font-medium">Size:</span> {document.size}
         </div>
 
@@ -54,9 +56,15 @@ export default function DocumentCard({
         )}
       </div>
 
-      {children}
+      {children && (
+        <>
+          <div className="w-full h-px bg-gray-300 mb-5"></div>
+          <div className="mb-5">{children}</div>
+        </>
+      )}
 
-      <div className="flex space-x-2 mt-3">
+      <div className="w-full h-px bg-gray-300 mb-5"></div>
+      <div className="flex space-x-3">
         <button
           onClick={() => onView && onView(document.id)}
           className="px-3 py-1 text-xs font-medium text-primary border border-primary rounded-scalerrs hover:bg-primary/10 transition-colors"

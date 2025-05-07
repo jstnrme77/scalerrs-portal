@@ -167,8 +167,13 @@
 - Removed "Use Mock Data" button from the Content Workflow page for a cleaner production interface
 - Standardized spacing between the TopNavBar and content in the Get Started page to match the Home page
 - Increased text size in tab navigation, month selector, and filter controls to 16px for better readability and consistency, using multiple CSS rules with !important flags, custom CSS classes, and inline styles with !important to ensure proper application across all states
+- Enhanced month selector to include both month and year (e.g., "January 2024") with organized year sections in the dropdown for better usability when working with multi-year projects
+- Updated the RoundedMonthSelector component to include year in the format "Month Year" with organized sections for 2023, 2024, and 2025 (limited to Jan-Apr), with proper handling of multiple year formats and hardcoded year values to prevent future dates beyond April 2025
+- Added mockup data for 2025 (January through April) for briefs, articles, and backlinks to demonstrate future content workflow
+- Added document links to all 2025 briefs and articles to enable the "View Document" functionality
 - Standardized table styling across the application with clean white backgrounds, explicitly removed border radius with !rounded-none, and removed outer borders for a cleaner look
 - Removed alternating row background colors from tables for a cleaner, more minimalist appearance
+- Updated the backlinks table in the content-workflow page to use the same table structure and styling as the approvals page for consistency
 - Updated Task Boards page with speech bubble comment indicators for better visual representation of comment counts
 - Enhanced Task Boards page summary header with a circular count indicator for completed tasks
 - Standardized Task Boards page table styling to match Approvals page for consistent user experience

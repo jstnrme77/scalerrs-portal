@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
+import { mockBriefs2025, mockArticles2025, mockBacklinks2025 } from '@/lib/mock-data';
 import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
 import DocumentViewerModal from '@/components/modals/DocumentViewerModal';
@@ -204,6 +205,48 @@ export default function ContentWorkflowPage() {
     console.log('Filtering data for month:', selectedMonth);
     console.log('Current backlinks data:', backlinks);
 
+    // Check if we're looking at 2025 data
+    const is2025Data = selectedMonth.includes('2025');
+
+    if (is2025Data) {
+      // Use 2025 mockup data
+      console.log('Using 2025 mockup data for', selectedMonth);
+
+      // Filter briefs for 2025
+      const filtered2025Briefs = mockBriefs2025.filter(brief => brief.Month === selectedMonth);
+      setFilteredBriefs(filtered2025Briefs);
+      console.log('Filtered 2025 briefs:', filtered2025Briefs.length);
+
+      // Filter articles for 2025
+      const filtered2025Articles = mockArticles2025.filter(article => article.Month === selectedMonth);
+      setFilteredArticles(filtered2025Articles);
+      console.log('Filtered 2025 articles:', filtered2025Articles.length);
+
+      // Filter backlinks for 2025
+      let filtered2025Backlinks = mockBacklinks2025.filter(backlink => backlink.Month === selectedMonth);
+
+      // Apply additional filters to 2025 backlinks
+      if (statusFilter !== 'all') {
+        filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink.Status === statusFilter);
+      }
+
+      if (drFilter !== 'all') {
+        if (drFilter === '50+') {
+          filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink['Domain Authority/Rating'] >= 50);
+        } else if (drFilter === '60+') {
+          filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink['Domain Authority/Rating'] >= 60);
+        } else if (drFilter === '70+') {
+          filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink['Domain Authority/Rating'] >= 70);
+        }
+      }
+
+      setFilteredBacklinks(filtered2025Backlinks);
+      console.log('Filtered 2025 backlinks:', filtered2025Backlinks.length);
+
+      return; // Exit early since we're using 2025 data
+    }
+
+    // Regular filtering for non-2025 data
     if (briefs.length > 0) {
       const filtered = briefs.filter(brief => brief.Month === selectedMonth);
       setFilteredBriefs(filtered);
@@ -582,181 +625,150 @@ export default function ContentWorkflowPage() {
 
 
                     {filteredBacklinks.length > 0 ? (
-                      <div className="bg-white shadow-none !rounded-none">
-                        <div className="border-b border-lightGray">
-                          <div className="grid grid-cols-8 text-sm font-bold uppercase" style={{ fontSize: '16px', color: '#000000' }}>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('Domain')}
-                            >
-                              Domain
-                              {sortColumn === 'Domain' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('DR')}
-                            >
-                              DR
-                              {sortColumn === 'DR' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('LinkType')}
-                            >
-                              Link Type
-                              {sortColumn === 'LinkType' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                            <div className="px-4 py-3 font-bold" style={{ fontSize: '16px', color: '#000000' }}>Target Page</div>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('Status')}
-                            >
-                              Status
-                              {sortColumn === 'Status' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('WentLiveOn')}
-                            >
-                              Went Live On
-                              {sortColumn === 'WentLiveOn' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('Month')}
-                            >
-                              Month
-                              {sortColumn === 'Month' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className="px-4 py-3 cursor-pointer flex items-center font-bold"
-                              style={{ fontSize: '16px', color: '#000000' }}
-                              onClick={() => handleSort('Notes')}
-                            >
-                              Notes
-                              {sortColumn === 'Notes' && (
-                                <span className="ml-1">
-                                  {sortDirection === 'asc' ? '↑' : '↓'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          {getSortedBacklinks(filteredBacklinks).map((backlink, index) => (
-                            <div
-                              key={backlink.id}
-                              className={`grid grid-cols-8 text-base hover:bg-lightGray ${index !== filteredBacklinks.length - 1 ? 'border-b border-lightGray' : ''}`}
-                              style={{ color: '#353233', fontSize: '16px' }}
-                            >
-                              <div className="px-4 py-4 font-medium text-dark" style={{ fontSize: '16px' }}>{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</div>
-                              <div className="px-4 py-4">
-                                <span className="px-2 py-1 text-base font-medium bg-gray-100 rounded-full" style={{ fontSize: '16px' }}>
-                                  {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
-                                </span>
-                              </div>
-                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</div>
-                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>
-                                {(() => {
-                                  // Get the target URL from the appropriate field
-                                  const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white" style={{ tableLayout: 'fixed' }}>
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('Domain')}>
+                                Domain
+                                {sortColumn === 'Domain' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('DR')}>
+                                DR
+                                {sortColumn === 'DR' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('LinkType')}>
+                                Link Type
+                                {sortColumn === 'LinkType' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider">
+                                Target URL
+                              </th>
+                              <th className="px-4 py-3 text-center text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('Status')}>
+                                Status
+                                {sortColumn === 'Status' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('WentLiveOn')}>
+                                Went Live On
+                                {sortColumn === 'WentLiveOn' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('Month')}>
+                                Month
+                                {sortColumn === 'Month' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                              <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('Notes')}>
+                                Notes
+                                {sortColumn === 'Notes' && (
+                                  <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                                )}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {getSortedBacklinks(filteredBacklinks).map((backlink) => (
+                              <tr
+                                key={backlink.id}
+                                className="hover:bg-gray-50"
+                                style={{ color: '#353233' }}
+                              >
+                                <td className="px-4 py-3 font-medium text-dark" style={{ fontSize: '16px' }}>
+                                  {backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}
+                                </td>
+                                <td className="px-4 py-3" style={{ fontSize: '16px' }}>
+                                  <span className="px-2 py-1 text-base font-medium bg-gray-100 rounded-full">
+                                    {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
+                                  {backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}
+                                </td>
+                                <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
+                                  {(() => {
+                                    // Get the target URL from the appropriate field
+                                    const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
 
-                                  // Handle array of record IDs (Airtable linked records)
-                                  if (Array.isArray(targetUrl) && targetUrl.length > 0) {
-                                    const recordId = targetUrl[0];
+                                    // Handle array of record IDs (Airtable linked records)
+                                    if (Array.isArray(targetUrl) && targetUrl.length > 0) {
+                                      const recordId = targetUrl[0];
 
-                                    // Look up the URL path from our URL Performance data
-                                    if (urlPathMap[recordId]) {
-                                      return urlPathMap[recordId];
+                                      // Look up the URL path from our URL Performance data
+                                      if (urlPathMap[recordId]) {
+                                        return urlPathMap[recordId];
+                                      }
+
+                                      // If we don't have a mapping, use a generic path
+                                      return `/page-${recordId.substring(0, 5)}`;
                                     }
 
-                                    // If we don't have a mapping, use a generic path
-                                    return `/page-${recordId.substring(0, 5)}`;
-                                  }
+                                    // Handle single record ID
+                                    if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
+                                      // Look up the URL path from our URL Performance data
+                                      if (urlPathMap[targetUrl]) {
+                                        return urlPathMap[targetUrl];
+                                      }
 
-                                  // Handle single record ID
-                                  if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
-                                    // Look up the URL path from our URL Performance data
-                                    if (urlPathMap[targetUrl]) {
-                                      return urlPathMap[targetUrl];
+                                      // If we don't have a mapping, use a generic path
+                                      return `/page-${targetUrl.substring(0, 5)}`;
                                     }
 
-                                    // If we don't have a mapping, use a generic path
-                                    return `/page-${targetUrl.substring(0, 5)}`;
-                                  }
-
-                                  // Format and display the URL
-                                  if (typeof targetUrl === 'string') {
-                                    if (targetUrl.startsWith('http')) {
-                                      return (
-                                        <a
-                                          href={targetUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-primary hover:underline"
-                                        >
-                                          {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
-                                        </a>
-                                      );
-                                    } else if (targetUrl.startsWith('/')) {
-                                      return targetUrl;
+                                    // Format and display the URL
+                                    if (typeof targetUrl === 'string') {
+                                      if (targetUrl.startsWith('http')) {
+                                        return (
+                                          <a
+                                            href={targetUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:underline"
+                                          >
+                                            {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
+                                          </a>
+                                        );
+                                      } else if (targetUrl.startsWith('/')) {
+                                        return targetUrl;
+                                      } else {
+                                        return `/${targetUrl}`;
+                                      }
                                     } else {
-                                      return `/${targetUrl}`;
+                                      // If it's not a string or array, return a default value
+                                      return '/';
                                     }
-                                  } else {
-                                    // If it's not a string or array, return a default value
-                                    return '/';
-                                  }
-                                })()}
-                              </div>
-                              <div className="px-4 py-4">
-                                <span className={`px-2 py-1 inline-flex text-base leading-5 font-semibold rounded-full
-                                  ${backlink.Status === 'Live' ? 'status-badge-green' :
-                                  backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                                  backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                  'bg-gray-100 text-gray-800'}`}
-                                  style={{ fontSize: '16px' }}>
-                                  {backlink.Status || 'Unknown Status'}
-                                </span>
-                              </div>
-                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>
-                                {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
-                              </div>
-                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>{backlink.Month || selectedMonth}</div>
-                              <div className="px-4 py-4 text-mediumGray" style={{ fontSize: '16px' }}>{backlink.Notes || '—'}</div>
-                            </div>
-                          ))}
-                        </div>
+                                  })()}
+                                </td>
+                                <td className="px-4 py-3 text-center" style={{ fontSize: '16px' }}>
+                                  <span className={`px-2 py-1 inline-flex text-base leading-5 font-semibold rounded-[12px]
+                                    ${backlink.Status === 'Live' ? 'status-badge-green' :
+                                    backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                                    backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'}`}>
+                                    {backlink.Status || 'Unknown Status'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
+                                  {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
+                                </td>
+                                <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
+                                  {backlink.Month || selectedMonth}
+                                </td>
+                                <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
+                                  {backlink.Notes || '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     ) : (
                       <div className="p-4 text-center bg-white !rounded-none">

@@ -518,20 +518,22 @@ function TaskCard({
   onStatusChange: (id: number | string, status: TaskStatus) => void;
 }) {
   return (
-    <div className="card bg-white p-4 rounded-lg border-2 border-[#9EA8FB]" style={{ color: '#353233' }}>
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="text-md font-medium text-text-light dark:text-text-dark">{task.task}</h3>
+    <div className="card bg-white p-6 rounded-xl border-2 border-[#9EA8FB]" style={{ color: '#353233' }}>
+      <div className="flex justify-between items-start mb-5">
+        <h3 className="text-md font-medium text-text-light dark:text-text-dark mt-2">{task.task}</h3>
         <div className="flex space-x-2">
           <PriorityBadge priority={task.priority} />
           <StatusBadge status={task.status} />
         </div>
       </div>
 
-      <div className="mb-3">
-        <div className="text-sm text-mediumGray dark:text-gray-300">
+      <div className="w-full h-px bg-gray-300 mb-5"></div>
+
+      <div className="mb-5">
+        <div className="text-sm text-mediumGray dark:text-gray-300 mb-2">
           <span className="font-medium">Assigned to:</span> {task.assignedTo}
         </div>
-        <div className="text-sm text-mediumGray dark:text-gray-300">
+        <div className="text-sm text-mediumGray dark:text-gray-300 mb-2">
           <span className="font-medium">Logged:</span> {task.dateLogged}
         </div>
         {task.status === 'Done' && task.completedDate && (
@@ -541,27 +543,32 @@ function TaskCard({
         )}
       </div>
 
-      <div className="flex items-center space-x-3 mb-3">
+      <div className="flex items-center space-x-5 mb-5">
         <div>
-          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-1">Impact</span>
+          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-2">Impact</span>
           <ImpactBadge impact={task.impact} />
         </div>
         <div>
-          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-1">Effort</span>
+          <span className="text-xs text-mediumGray dark:text-gray-300 block mb-2">Effort</span>
           <EffortBadge effort={task.effort} />
         </div>
       </div>
 
       {task.notes && (
-        <div className="mb-3">
-          <div className="text-xs text-mediumGray dark:text-gray-300 mb-1">Notes</div>
-          <p className="text-sm text-text-light dark:text-text-dark bg-lightGray/30 dark:bg-darkGray/30 p-2 rounded">{task.notes}</p>
-        </div>
+        <>
+          <div className="w-full h-px bg-gray-300 mb-5"></div>
+          <div className="mb-5">
+            <div className="text-xs text-mediumGray dark:text-gray-300 mb-2">Notes</div>
+            <p className="text-sm text-text-light dark:text-text-dark bg-lightGray/30 dark:bg-darkGray/30 p-3 rounded">{task.notes}</p>
+          </div>
+        </>
       )}
 
+      <div className="w-full h-px bg-gray-300 mb-5"></div>
       <CommentsSection comments={task.comments} taskId={task.id} />
 
-      <div className="flex space-x-2 mt-3">
+      <div className="w-full h-px bg-gray-300 mb-5 mt-5"></div>
+      <div className="flex space-x-3">
         {task.status === 'Not Started' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
@@ -920,7 +927,7 @@ function AddTaskModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div className="bg-white p-6 rounded-lg border-2 border-[#9EA8FB] shadow-lg max-w-xl w-full pointer-events-auto">
+      <div className="bg-white p-6 rounded-xl border-2 border-[#9EA8FB] shadow-lg max-w-xl w-full pointer-events-auto">
         <div className="bg-[#9EA8FB]/10 p-3 border-b border-[#9EA8FB] -mx-6 -mt-6 mb-6 flex justify-between items-center">
           <h3 className="text-lg font-medium text-dark">Add New Task to {boardType} Board</h3>
           <button
