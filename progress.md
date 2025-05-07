@@ -160,6 +160,7 @@
 - Made table headers bold and black for better contrast with data rows
 - Moved filter controls to be aligned with the tab navigation, positioned on the right side of the tab bar for better usability and visibility
 - Removed "Use Mock Data" button from the Content Workflow page for a cleaner production interface
+- Standardized spacing between the TopNavBar and content in the Get Started page to match the Home page
 - Standardized table styling across the application with clean white backgrounds, explicitly removed border radius with !rounded-none, and removed outer borders for a cleaner look
 - Removed alternating row background colors from tables for a cleaner, more minimalist appearance
 - Updated Task Boards page with speech bubble comment indicators for better visual representation of comment counts

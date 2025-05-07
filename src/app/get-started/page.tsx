@@ -67,7 +67,7 @@ export default function GetStartedPage() {
   }));
 
   return (
-    <div className="-mt-8">
+    <div>
       {/* First row of cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
         {/* Loom Walkthrough Section */}

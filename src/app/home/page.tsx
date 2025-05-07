@@ -31,12 +31,12 @@ export default function Home() {
               <span className="font-bold">1</span> Action Required
             </span>
           </div>
-          <div className="flex items-start justify-between">
-            <div>
+          <div className="flex flex-col">
+            <div className="mb-4">
               <h2 className="mb-2 text-lg font-medium text-[#12131C]">Items Needing Your Attention</h2>
               <p className="text-sm text-[#4F515E]">3 deliverables need your review. 1 new report is available.</p>
             </div>
-            <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
+            <Link href="/approvals" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
               Go to Approvals
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
                 <path d="M5 12h14"></path>
@@ -101,8 +101,8 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/deliverables" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
+              <div className="mt-auto pt-6">
+                <Link href="/deliverables" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
                   View All Deliverables
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
                     <path d="M5 12h14"></path>
@@ -156,8 +156,8 @@ export default function Home() {
                   </li>
                 </ul>
               </div>
-              <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/approvals" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
+              <div className="mt-auto pt-6">
+                <Link href="/approvals" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
                   Review All Items
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
                     <path d="M5 12h14"></path>
@@ -217,8 +217,8 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-auto pt-6 flex justify-center gap-3">
-                <Link href="/milestones" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
+              <div className="mt-auto pt-6">
+                <Link href="/milestones" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
                   View Monthly Plan
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
                     <path d="M5 12h14"></path>
@@ -288,8 +288,8 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-6 flex justify-center">
-              <Link href="/timeline" className="btn-primary inline-flex items-center gap-2 text-base get-started-btn">
+            <div className="mt-6">
+              <Link href="/timeline" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
                 View Full Timeline
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
                   <path d="M5 12h14"></path>
