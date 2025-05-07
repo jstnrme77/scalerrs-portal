@@ -83,6 +83,8 @@
 - ✅ Updated Reports page with consistent purple border styling on all sides of report items
 - ✅ Fixed inconsistent text colors in Reports page metrics (KPI cards, Deliverables Recap, Conversion & ROI Metrics)
 - ✅ Simplified Reports page UI by removing unused date range filter
+- ✅ Added rounded borders (12px) to table headers on all sides for improved visual appearance
+- ✅ Enhanced table header styling with consistent padding and light purple background
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -116,7 +118,7 @@
 - The project is currently on track with all major features implemented
 - Focus is now on refinement, optimization, and additional features
 - All pages are functional with proper styling and interactions
-- Theme switching has been temporarily disabled as requested
+- Theme switching has been temporarily disabled as requested<!--  -->
 - Fixed critical TypeScript errors that were preventing Netlify deployment
 - Using Tailwind classes for colors instead of hardcoded values for better maintainability
 - UI elements are now consistent between pages, specifically matching the Get Started page with the Home page
@@ -197,3 +199,6 @@
 - Fixed inconsistent text colors in Reports page metrics to ensure all values use the same text color (black)
 - Simplified Reports page UI by removing the unused date range filter while keeping the functional month filter
 - Standardized border colors across weekly, monthly, and quarterly report content sections using the purple color (#9EA8FB)
+- Updated table headers with rounded corners (12px radius) on all sides for a more polished appearance
+- Added consistent light purple background color to table headers (rgba(158, 168, 251, 0.1)) for better visual distinction
+- Standardized table header padding (12px vertical, 16px horizontal) for improved readability and spacing

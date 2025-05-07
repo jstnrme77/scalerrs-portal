@@ -12,6 +12,7 @@ interface DashboardLayoutProps {
   topNavBarProps?: {
     selectedMonth?: string;
     onMonthChange?: (month: string) => void;
+    onAddTask?: () => void;
   };
 }
 
@@ -44,6 +45,7 @@ export default function DashboardLayout({
           pathname={pathname}
           selectedMonth={topNavBarProps?.selectedMonth}
           onMonthChange={topNavBarProps?.onMonthChange}
+          onAddTask={topNavBarProps?.onAddTask}
         />
         <div className={`flex-1 pt-20 transition-all duration-300 ${sidebarExpanded ? 'ml-64' : 'ml-20'}`}>
           <PageWrapper>

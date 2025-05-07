@@ -9,13 +9,15 @@ interface TopNavBarProps {
   pathname?: string;
   selectedMonth?: string;
   onMonthChange?: (month: string) => void;
+  onAddTask?: () => void;
 }
 
 export default function TopNavBar({
   sidebarExpanded = true,
   pathname = '',
   selectedMonth = `January ${new Date().getFullYear()}`,
-  onMonthChange
+  onMonthChange,
+  onAddTask
 }: TopNavBarProps) {
   // Get current time to determine greeting
   const [greeting, setGreeting] = useState('Good evening');
@@ -72,6 +74,7 @@ export default function TopNavBar({
   const pageTitle = getPageTitle();
   const isHomePage = pathname === '/home';
   const isContentWorkflowPage = pathname === '/content-workflow';
+  const isTaskBoardsPage = pathname === '/task-boards';
 
   // Client name would typically come from a user context or API
   const clientName = user?.Name || '(Client Name)';
@@ -86,14 +89,26 @@ export default function TopNavBar({
         )}
       </div>
 
-      {isContentWorkflowPage && onMonthChange && (
-        <div className="flex items-center">
+      <div className="flex items-center space-x-4">
+        {isContentWorkflowPage && onMonthChange && (
           <RoundedMonthSelector
             selectedMonth={selectedMonth || 'January'}
             onChange={onMonthChange}
           />
-        </div>
-      )}
+        )}
+
+        {isTaskBoardsPage && onAddTask && (
+          <button
+            onClick={onAddTask}
+            className="px-4 py-2 text-sm font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Task
+          </button>
+        )}
+      </div>
     </div>
   );
 }

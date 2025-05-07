@@ -247,7 +247,7 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
+    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
       {priority}
     </span>
   );
@@ -260,8 +260,8 @@ function ImpactBadge({ impact }: { impact: number }) {
 
   switch (impact) {
     case 5:
-      bgColor = 'bg-purple-100';
-      textColor = 'text-purple-800';
+      bgColor = 'bg-[#9EA8FB]/10';
+      textColor = 'text-[#9EA8FB]';
       break;
     case 4:
       bgColor = 'bg-blue-100';
@@ -285,7 +285,7 @@ function ImpactBadge({ impact }: { impact: number }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
+    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
       {impact}
     </span>
   );
@@ -315,7 +315,7 @@ function EffortBadge({ effort }: { effort: TaskEffort }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
+    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
       {effort}
     </span>
   );
@@ -428,7 +428,7 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center text-xs font-medium text-primary hover:underline"
       >
-        <div className="bg-[#9EA8FB] text-white text-xs font-medium px-2 py-1 rounded-full flex items-center mr-2">
+        <div className="bg-[#9EA8FB] text-white text-xs font-medium px-2 py-1 rounded-[12px] flex items-center mr-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
           </svg>
@@ -457,14 +457,14 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
             <input
               type="text"
               placeholder="Add a comment..."
-              className="flex-1 border border-lightGray rounded-l-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 border border-lightGray rounded-l-[12px] p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
             />
             <button
               onClick={handleAddComment}
               disabled={!newComment.trim() || loading}
-              className="bg-[#9EA8FB] text-white px-3 py-2 rounded-r-md text-sm font-medium disabled:opacity-50"
+              className="bg-[#000000] text-white px-3 py-2 rounded-r-[12px] text-sm font-medium disabled:opacity-50"
             >
               {loading ? 'Posting...' : 'Post'}
             </button>
@@ -503,7 +503,7 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   }
 
   return (
-    <span className={`px-2 py-1 text-xs font-medium rounded-full ${bgColor} ${textColor}`}>
+    <span className={`px-2 py-1 text-xs font-medium rounded-[12px] ${bgColor} ${textColor}`}>
       {status}
     </span>
   );
@@ -518,7 +518,7 @@ function TaskCard({
   onStatusChange: (id: number | string, status: TaskStatus) => void;
 }) {
   return (
-    <div className="card bg-white p-6 rounded-xl border-2 border-[#9EA8FB]" style={{ color: '#353233' }}>
+    <div className="card bg-white p-6 rounded-[12px] border-2 border-gray-200" style={{ color: '#353233' }}>
       <div className="flex justify-between items-start mb-5">
         <h3 className="text-md font-medium text-text-light dark:text-text-dark mt-2">{task.task}</h3>
         <div className="flex space-x-2">
@@ -572,7 +572,7 @@ function TaskCard({
         {task.status === 'Not Started' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
-            className="px-3 py-1 text-xs font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors"
+            className="px-3 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
           >
             Start
           </button>
@@ -582,13 +582,13 @@ function TaskCard({
           <>
             <button
               onClick={() => onStatusChange(task.id, 'Done')}
-              className="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-scalerrs hover:bg-green-700 hover:text-white transition-colors"
+              className="px-3 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
             >
               Complete
             </button>
             <button
               onClick={() => onStatusChange(task.id, 'Blocked')}
-              className="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-scalerrs hover:bg-red-700 hover:text-white transition-colors"
+              className="px-3 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-[12px] hover:bg-red-700 hover:text-white transition-colors"
             >
               Block
             </button>
@@ -598,7 +598,7 @@ function TaskCard({
         {task.status === 'Blocked' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
-            className="px-3 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-scalerrs hover:bg-blue-700 hover:text-white transition-colors"
+            className="px-3 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-[12px] hover:bg-blue-700 hover:text-white transition-colors"
           >
             Resume
           </button>
@@ -607,7 +607,7 @@ function TaskCard({
         {task.status === 'Done' && (
           <button
             onClick={() => onStatusChange(task.id, 'In Progress')}
-            className="px-3 py-1 text-xs font-medium text-mediumGray bg-lightGray rounded-scalerrs hover:bg-gray-300 transition-colors"
+            className="px-3 py-1 text-xs font-medium text-mediumGray bg-lightGray rounded-[12px] hover:bg-gray-300 transition-colors"
           >
             Reopen
           </button>
@@ -665,9 +665,9 @@ function TaskTable({
       <h3 className="font-medium text-dark mb-2">Tasks</h3>
 
       {/* Summary header */}
-      <div className="bg-[#9EA8FB]/10 p-3 rounded-t-lg border-2 border-[#9EA8FB]">
+      <div className="bg-gray-100 p-3 rounded-t-[12px] border-2 border-gray-200">
         <div className="flex items-center">
-          <div className="flex items-center justify-center bg-[#9EA8FB] text-white rounded-full w-8 h-8 mr-2">
+          <div className="flex items-center justify-center bg-[#000000] text-white rounded-full w-8 h-8 mr-2">
             <span className="font-bold">{completedTasks}</span>
           </div>
           <p className="text-sm font-medium text-dark">
@@ -684,15 +684,15 @@ function TaskTable({
         <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
           <thead>
             <tr className="bg-gray-100 border-b border-gray-200">
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-[25%]">Task</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-[15%]">Assigned to</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Date Logged</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Priority</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Impact</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[5%]">Effort</th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-[5%]">Comments</th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider w-[10%]">Actions</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">Task</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[10%]">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-wider w-[15%]">Assigned to</th>
+              <th className="px-4 py-3 text-left text-xs font-bold text-black uppercase tracking-wider w-[10%]">Date Logged</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[10%]">Impact</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[5%]">Effort</th>
+              <th className="px-4 py-3 text-center text-xs font-bold text-black uppercase tracking-wider w-[5%]">Comments</th>
+              <th className="px-4 py-3 text-right text-xs font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -723,7 +723,7 @@ function TaskTable({
                   </td>
                   <td className="px-4 py-3 text-center w-[5%]">
                     <div className="flex justify-center">
-                      <div className="bg-[#9EA8FB] text-white text-xs font-medium px-2 py-1 rounded-full flex items-center">
+                      <div className="bg-[#9EA8FB] text-white text-xs font-medium px-2 py-1 rounded-[12px] flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                         </svg>
@@ -739,7 +739,7 @@ function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task.id, 'In Progress');
                           }}
-                          className="px-3 py-1 text-xs font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors"
+                          className="px-3 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
                         >
                           Start
                         </button>
@@ -752,7 +752,7 @@ function TaskTable({
                               e.stopPropagation();
                               onStatusChange(task.id, 'Done');
                             }}
-                            className="px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-scalerrs hover:bg-green-700 hover:text-white transition-colors"
+                            className="px-2 py-1 text-xs font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
                           >
                             Complete
                           </button>
@@ -761,7 +761,7 @@ function TaskTable({
                               e.stopPropagation();
                               onStatusChange(task.id, 'Blocked');
                             }}
-                            className="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-scalerrs hover:bg-red-700 hover:text-white transition-colors"
+                            className="px-2 py-1 text-xs font-medium text-red-800 bg-red-100 rounded-[12px] hover:bg-red-700 hover:text-white transition-colors"
                           >
                             Block
                           </button>
@@ -774,7 +774,7 @@ function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task.id, 'In Progress');
                           }}
-                          className="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-scalerrs hover:bg-blue-700 hover:text-white transition-colors"
+                          className="px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-[12px] hover:bg-blue-700 hover:text-white transition-colors"
                         >
                           Resume
                         </button>
@@ -786,7 +786,7 @@ function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task.id, 'In Progress');
                           }}
-                          className="px-2 py-1 text-xs font-medium text-mediumGray bg-lightGray rounded-scalerrs hover:bg-gray-300 transition-colors"
+                          className="px-2 py-1 text-xs font-medium text-mediumGray bg-lightGray rounded-[12px] hover:bg-gray-300 transition-colors"
                         >
                           Reopen
                         </button>
@@ -820,10 +820,10 @@ function TaskTable({
                                 <input
                                   type="text"
                                   placeholder="Add a comment..."
-                                  className="flex-1 border border-[#9EA8FB]/30 rounded-l-md p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#9EA8FB]"
+                                  className="flex-1 border border-[#9EA8FB]/30 rounded-l-[12px] p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#9EA8FB]"
                                 />
                                 <button
-                                  className="bg-[#9EA8FB] text-white px-3 py-2 rounded-r-md text-sm font-medium"
+                                  className="bg-[#000000] text-white px-3 py-2 rounded-r-[12px] text-sm font-medium"
                                 >
                                   Post
                                 </button>
@@ -927,12 +927,12 @@ function AddTaskModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div className="bg-white p-6 rounded-xl border-2 border-[#9EA8FB] shadow-lg max-w-xl w-full pointer-events-auto">
-        <div className="bg-[#9EA8FB]/10 p-3 border-b border-[#9EA8FB] -mx-6 -mt-6 mb-6 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-dark">Add New Task to {boardType} Board</h3>
+      <div className="bg-white p-6 rounded-xl border-2 border-gray-200 shadow-lg max-w-xl w-full pointer-events-auto">
+        <div className="bg-gray-100 p-3 border-b border-gray-200 -mx-6 -mt-6 mb-6 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-black">Add New Task to {boardType} Board</h3>
           <button
             onClick={onClose}
-            className="text-[#9EA8FB] hover:text-[#9EA8FB]/80"
+            className="text-gray-500 hover:text-gray-700"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -946,7 +946,7 @@ function AddTaskModal({
               <label className="block text-sm font-medium text-mediumGray mb-1">Task Name</label>
               <input
                 type="text"
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 placeholder="Enter task description"
                 value={taskData.task}
                 onChange={(e) => setTaskData({ ...taskData, task: e.target.value })}
@@ -958,7 +958,7 @@ function AddTaskModal({
               <label className="block text-sm font-medium text-mediumGray mb-1">Assigned To</label>
               <input
                 type="text"
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 placeholder="Enter assignee name"
                 value={taskData.assignedTo}
                 onChange={(e) => setTaskData({ ...taskData, assignedTo: e.target.value })}
@@ -969,7 +969,7 @@ function AddTaskModal({
             <div>
               <label className="block text-sm font-medium text-mediumGray mb-1">Priority</label>
               <select
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.priority}
                 onChange={(e) => setTaskData({ ...taskData, priority: e.target.value as TaskPriority })}
               >
@@ -982,7 +982,7 @@ function AddTaskModal({
             <div>
               <label className="block text-sm font-medium text-mediumGray mb-1">Impact (1-5)</label>
               <select
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.impact}
                 onChange={(e) => setTaskData({ ...taskData, impact: parseInt(e.target.value) })}
               >
@@ -997,7 +997,7 @@ function AddTaskModal({
             <div>
               <label className="block text-sm font-medium text-mediumGray mb-1">Effort</label>
               <select
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.effort}
                 onChange={(e) => setTaskData({ ...taskData, effort: e.target.value as TaskEffort })}
               >
@@ -1010,7 +1010,7 @@ function AddTaskModal({
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-mediumGray mb-1">Notes</label>
               <textarea
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] min-h-[80px]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[80px]"
                 placeholder="Add any additional notes or context"
                 value={taskData.notes}
                 onChange={(e) => setTaskData({ ...taskData, notes: e.target.value })}
@@ -1020,7 +1020,7 @@ function AddTaskModal({
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-mediumGray mb-1">Reference Links</label>
               <textarea
-                className="w-full border border-[#9EA8FB]/30 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] min-h-[60px]"
+                className="w-full border border-gray-200 rounded-[12px] p-2 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[60px]"
                 placeholder="Add reference links (one per line)"
                 value={taskData.referenceLinks}
                 onChange={(e) => setTaskData({ ...taskData, referenceLinks: e.target.value })}
@@ -1032,13 +1032,13 @@ function AddTaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-[#9EA8FB] border border-[#9EA8FB] rounded-lg hover:bg-[#9EA8FB]/10 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-[#000000] border border-[#000000] rounded-[12px] hover:bg-[#000000]/10 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-[#9EA8FB] rounded-lg hover:bg-[#9EA8FB]/80 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-[#000000] rounded-[12px] hover:bg-[#000000]/80 transition-colors"
             >
               Add Task
             </button>
@@ -1249,23 +1249,11 @@ export default function TaskBoards() {
   const currentTasks = boards[activeBoard as keyof typeof boards];
 
   return (
-    <DashboardLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-dark">Tasks</h1>
-          <p className="text-mediumGray">Collaborate on action items with clear priorities and ownership</p>
-        </div>
-
-        <button
-          onClick={() => setAddTaskModal(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-[#9EA8FB] rounded-scalerrs hover:bg-[#9EA8FB]/80 transition-colors flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Task
-        </button>
-      </div>
+    <DashboardLayout
+      topNavBarProps={{
+        onAddTask: () => setAddTaskModal(true)
+      }}
+    >
 
       <PageContainer>
         <PageContainerTabs>
@@ -1278,13 +1266,13 @@ export default function TaskBoards() {
             activeTab={activeBoard}
             onTabChange={setActiveBoard}
             variant="primary"
-            tabClassName="bg-[#9EA8FB]/10 border-[#9EA8FB]"
-            activeTabClassName="bg-[#9EA8FB] text-white"
+            tabClassName="bg-gray-100 border-gray-200"
+            activeTabClassName="bg-[#000000] text-white"
           />
         </PageContainerTabs>
         <PageContainerBody>
           {/* Tab-level header - Sticky */}
-          <div className="mb-4 flex justify-between items-center sticky top-0 bg-[#9EA8FB]/10 p-4 border-b-2 border-[#9EA8FB] z-10">
+          <div className="mb-4 flex justify-between items-center sticky top-0 bg-gray-100 p-4 border-b-2 border-gray-200 z-10">
             <div>
               <p className="font-medium text-dark">You have {currentTasks.filter(task => task.status !== 'Done').length} active task{currentTasks.filter(task => task.status !== 'Done').length !== 1 ? 's' : ''} in this section</p>
             </div>
@@ -1292,7 +1280,7 @@ export default function TaskBoards() {
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9EA8FB]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#000000]"></div>
             </div>
           ) : error ? (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -1308,7 +1296,7 @@ export default function TaskBoards() {
         </PageContainerBody>
       </PageContainer>
 
-      <div className="bg-[#9EA8FB]/10 p-4 rounded-lg mt-8 border border-[#9EA8FB]/30">
+      <div className="bg-gray-100 p-4 rounded-[12px] mt-8 border border-gray-200">
         <p className="text-sm text-dark">
           <strong>Note:</strong> Tasks are synchronized with our project management system. Changes made here will be reflected in the main system within 5 minutes.
         </p>
