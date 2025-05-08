@@ -1,17 +1,67 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import DashboardLayout from '@/components/DashboardLayout';
-import { ChevronDown, Calendar, Download, ExternalLink, MessageSquare, Filter, ChevronLeft, ChevronRight, ArrowUp } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import TabNavigation from '@/components/ui/navigation/TabNavigation';
-import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
-import { fetchBriefs, fetchArticles, fetchBacklinks } from '@/lib/client-api';
-import { Brief, Article, Backlink } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { BiCheckCircle, BiErrorCircle, BiMessageRoundedDetail, BiCalendarCheck, BiDownload, BiLinkExternal, BiFilter, BiChevronLeft, BiChevronRight, BiChevronDown } from 'react-icons/bi';
+import { useState, useEffect, useRef } from "react";
+import DashboardLayout from "@/components/DashboardLayout";
+import {
+  ChevronDown,
+  Calendar,
+  Download,
+  ExternalLink,
+  MessageSquare,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUp,
+  BarChart2,
+  FolderOpen,
+  Link2,
+  ChartColumn,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import TabNavigation from "@/components/ui/navigation/TabNavigation";
+import PageContainer, {
+  PageContainerBody,
+  PageContainerTabs,
+} from "@/components/ui/layout/PageContainer";
+import { fetchBriefs, fetchArticles, fetchBacklinks } from "@/lib/client-api";
+import { Brief, Article, Backlink } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  BiCheckCircle,
+  BiErrorCircle,
+  BiMessageRoundedDetail,
+  BiCalendarCheck,
+  BiDownload,
+  BiLinkExternal,
+  BiFilter,
+  BiChevronLeft,
+  BiChevronRight,
+  BiChevronDown,
+} from "react-icons/bi";
 import {
   Dialog,
   DialogContent,
@@ -22,91 +72,263 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { BiLineChart, BiFolder, BiLinkAlt } from 'react-icons/bi';
 
 // Date filter options - removed as not needed
 
 // Month filter options
 const monthFilterOptions = [
-  { value: 'all', label: 'All Months' },
-  { value: '2025-04', label: 'April 2025' },
-  { value: '2025-03', label: 'March 2025' },
-  { value: '2025-02', label: 'February 2025' },
-  { value: '2025-01', label: 'January 2025' },
-  { value: '2024-12', label: 'December 2024' },
-  { value: '2024-11', label: 'November 2024' },
+  { value: "all", label: "All Months" },
+  { value: "2025-04", label: "April 2025" },
+  { value: "2025-03", label: "March 2025" },
+  { value: "2025-02", label: "February 2025" },
+  { value: "2025-01", label: "January 2025" },
+  { value: "2024-12", label: "December 2024" },
+  { value: "2024-11", label: "November 2024" },
 ];
 
 // Sample report data
 const reports = {
   weekly: [
-    { id: 1, title: 'Weekly Report - Apr 29-May 5, 2025', date: '2025-05-05', type: 'weekly', month: '2025-05' },
-    { id: 2, title: 'Weekly Report - Apr 22-28, 2025', date: '2025-04-28', type: 'weekly', month: '2025-04' },
-    { id: 3, title: 'Weekly Report - Apr 15-21, 2025', date: '2025-04-21', type: 'weekly', month: '2025-04' },
-    { id: 4, title: 'Weekly Report - Apr 8-14, 2025', date: '2025-04-14', type: 'weekly', month: '2025-04' },
-    { id: 10, title: 'Weekly Report - Apr 1-7, 2025', date: '2025-04-07', type: 'weekly', month: '2025-04' },
-    { id: 11, title: 'Weekly Report - Mar 25-31, 2025', date: '2025-03-31', type: 'weekly', month: '2025-03' },
-    { id: 12, title: 'Weekly Report - Mar 18-24, 2025', date: '2025-03-24', type: 'weekly', month: '2025-03' },
+    {
+      id: 1,
+      title: "Weekly Report - Apr 29-May 5, 2025",
+      date: "2025-05-05",
+      type: "weekly",
+      month: "2025-05",
+    },
+    {
+      id: 2,
+      title: "Weekly Report - Apr 22-28, 2025",
+      date: "2025-04-28",
+      type: "weekly",
+      month: "2025-04",
+    },
+    {
+      id: 3,
+      title: "Weekly Report - Apr 15-21, 2025",
+      date: "2025-04-21",
+      type: "weekly",
+      month: "2025-04",
+    },
+    {
+      id: 4,
+      title: "Weekly Report - Apr 8-14, 2025",
+      date: "2025-04-14",
+      type: "weekly",
+      month: "2025-04",
+    },
+    {
+      id: 10,
+      title: "Weekly Report - Apr 1-7, 2025",
+      date: "2025-04-07",
+      type: "weekly",
+      month: "2025-04",
+    },
+    {
+      id: 11,
+      title: "Weekly Report - Mar 25-31, 2025",
+      date: "2025-03-31",
+      type: "weekly",
+      month: "2025-03",
+    },
+    {
+      id: 12,
+      title: "Weekly Report - Mar 18-24, 2025",
+      date: "2025-03-24",
+      type: "weekly",
+      month: "2025-03",
+    },
   ],
   monthly: [
-    { id: 5, title: 'April 2025 Performance Report', date: '2025-05-01', type: 'monthly', month: '2025-04' },
-    { id: 6, title: 'March 2025 Performance Report', date: '2025-04-01', type: 'monthly', month: '2025-03' },
-    { id: 7, title: 'February 2025 Performance Report', date: '2025-03-01', type: 'monthly', month: '2025-02' },
-    { id: 12, title: 'January 2025 Performance Report', date: '2025-02-01', type: 'monthly', month: '2025-01' },
-    { id: 13, title: 'December 2024 Performance Report', date: '2025-01-01', type: 'monthly', month: '2024-12' },
+    {
+      id: 5,
+      title: "April 2025 Performance Report",
+      date: "2025-05-01",
+      type: "monthly",
+      month: "2025-04",
+    },
+    {
+      id: 6,
+      title: "March 2025 Performance Report",
+      date: "2025-04-01",
+      type: "monthly",
+      month: "2025-03",
+    },
+    {
+      id: 7,
+      title: "February 2025 Performance Report",
+      date: "2025-03-01",
+      type: "monthly",
+      month: "2025-02",
+    },
+    {
+      id: 12,
+      title: "January 2025 Performance Report",
+      date: "2025-02-01",
+      type: "monthly",
+      month: "2025-01",
+    },
+    {
+      id: 13,
+      title: "December 2024 Performance Report",
+      date: "2025-01-01",
+      type: "monthly",
+      month: "2024-12",
+    },
   ],
   quarterly: [
-    { id: 8, title: 'Q1 2025 Strategy & Performance Review', date: '2025-04-01', type: 'quarterly', quarter: 'Q1-2025' },
-    { id: 9, title: 'Q4 2024 Strategy & Performance Review', date: '2025-01-01', type: 'quarterly', quarter: 'Q4-2024' },
-    { id: 14, title: 'Q3 2024 Strategy & Performance Review', date: '2024-10-01', type: 'quarterly', quarter: 'Q3-2024' },
-  ]
+    {
+      id: 8,
+      title: "Q1 2025 Strategy & Performance Review",
+      date: "2025-04-01",
+      type: "quarterly",
+      quarter: "Q1-2025",
+    },
+    {
+      id: 9,
+      title: "Q4 2024 Strategy & Performance Review",
+      date: "2025-01-01",
+      type: "quarterly",
+      quarter: "Q4-2024",
+    },
+    {
+      id: 14,
+      title: "Q3 2024 Strategy & Performance Review",
+      date: "2024-10-01",
+      type: "quarterly",
+      quarter: "Q3-2024",
+    },
+  ],
 };
 
 // Sample briefs, articles, and backlinks data
 const sampleBriefs = [
-  { id: 1, title: 'Top 10 SEO Strategies for 2025', status: 'Sent', date: '2025-04-25', url: 'https://docs.google.com/document/d/123' },
-  { id: 2, title: 'Technical SEO Audit Checklist', status: 'In Progress', date: '2025-04-26', url: 'https://docs.google.com/document/d/456' },
-  { id: 3, title: 'Content Marketing ROI Guide', status: 'Sent', date: '2025-04-24', url: 'https://docs.google.com/document/d/789' },
+  {
+    id: 1,
+    title: "Top 10 SEO Strategies for 2025",
+    status: "Sent",
+    date: "2025-04-25",
+    url: "https://docs.google.com/document/d/123",
+  },
+  {
+    id: 2,
+    title: "Technical SEO Audit Checklist",
+    status: "In Progress",
+    date: "2025-04-26",
+    url: "https://docs.google.com/document/d/456",
+  },
+  {
+    id: 3,
+    title: "Content Marketing ROI Guide",
+    status: "Sent",
+    date: "2025-04-24",
+    url: "https://docs.google.com/document/d/789",
+  },
 ];
 
 const sampleArticles = [
-  { id: 1, title: 'How to Improve Your Website Core Web Vitals', status: 'Published', date: '2025-04-23', url: 'https://example.com/blog/core-web-vitals' },
-  { id: 2, title: 'The Ultimate Guide to Local SEO', status: 'Published', date: '2025-04-22', url: 'https://example.com/blog/local-seo-guide' },
+  {
+    id: 1,
+    title: "How to Improve Your Website Core Web Vitals",
+    status: "Published",
+    date: "2025-04-23",
+    url: "https://example.com/blog/core-web-vitals",
+  },
+  {
+    id: 2,
+    title: "The Ultimate Guide to Local SEO",
+    status: "Published",
+    date: "2025-04-22",
+    url: "https://example.com/blog/local-seo-guide",
+  },
 ];
 
 const sampleBacklinks = [
-  { id: 1, source: 'industry-blog.com', targetUrl: '/blog/seo-guide', status: 'Live', date: '2025-04-27', dr: 68 },
-  { id: 2, source: 'marketing-news.com', targetUrl: '/services/content', status: 'Live', date: '2025-04-25', dr: 72 },
+  {
+    id: 1,
+    source: "industry-blog.com",
+    targetUrl: "/blog/seo-guide",
+    status: "Live",
+    date: "2025-04-27",
+    dr: 68,
+  },
+  {
+    id: 2,
+    source: "marketing-news.com",
+    targetUrl: "/services/content",
+    status: "Live",
+    date: "2025-04-25",
+    dr: 72,
+  },
 ];
 
 // Sample monthly performance data
 const monthlyPerformanceData = [
-  { month: 'Jan', clicks: 12000, impressions: 250000, leads: 280, revenue: 18000 },
-  { month: 'Feb', clicks: 13500, impressions: 275000, leads: 310, revenue: 21000 },
-  { month: 'Mar', clicks: 15000, impressions: 310000, leads: 350, revenue: 24500 },
-  { month: 'Apr', clicks: 17000, impressions: 340000, leads: 410, revenue: 28000 },
+  {
+    month: "Jan",
+    clicks: 12000,
+    impressions: 250000,
+    leads: 280,
+    revenue: 18000,
+  },
+  {
+    month: "Feb",
+    clicks: 13500,
+    impressions: 275000,
+    leads: 310,
+    revenue: 21000,
+  },
+  {
+    month: "Mar",
+    clicks: 15000,
+    impressions: 310000,
+    leads: 350,
+    revenue: 24500,
+  },
+  {
+    month: "Apr",
+    clicks: 17000,
+    impressions: 340000,
+    leads: 410,
+    revenue: 28000,
+  },
 ];
 
 // Sample quarterly performance data
 const quarterlyPerformanceData = [
-  { quarter: 'Q2 2024', traffic: 38000, leads: 850, revenue: 65000 },
-  { quarter: 'Q3 2024', traffic: 45000, leads: 980, revenue: 78000 },
-  { quarter: 'Q4 2024', traffic: 52000, leads: 1150, revenue: 92000 },
-  { quarter: 'Q1 2025', traffic: 61000, leads: 1350, revenue: 108000 },
+  { quarter: "Q2 2024", traffic: 38000, leads: 850, revenue: 65000 },
+  { quarter: "Q3 2024", traffic: 45000, leads: 980, revenue: 78000 },
+  { quarter: "Q4 2024", traffic: 52000, leads: 1150, revenue: 92000 },
+  { quarter: "Q1 2025", traffic: 61000, leads: 1350, revenue: 108000 },
 ];
 
 // Sample top performing pages
 const topPerformingPages = [
-  { url: '/blog/seo-guide-2025', traffic: 4500, conversions: 135, delta: 12 },
-  { url: '/services/technical-seo', traffic: 3200, conversions: 96, delta: 8 },
-  { url: '/case-studies/ecommerce', traffic: 2800, conversions: 84, delta: 15 },
+  { url: "/blog/seo-guide-2025", traffic: 4500, conversions: 135, delta: 12 },
+  { url: "/services/technical-seo", traffic: 3200, conversions: 96, delta: 8 },
+  { url: "/case-studies/ecommerce", traffic: 2800, conversions: 84, delta: 15 },
 ];
 
 // Sample competitor data
 const competitorData = [
-  { name: 'Competitor A', keywordFocus: 'Technical SEO', rankChange: 5, activity: 'Launched new service pages' },
-  { name: 'Competitor B', keywordFocus: 'Local SEO', rankChange: -2, activity: 'Increased backlink acquisition' },
-  { name: 'Competitor C', keywordFocus: 'Content Marketing', rankChange: 3, activity: 'Redesigned blog section' },
+  {
+    name: "Competitor A",
+    keywordFocus: "Technical SEO",
+    rankChange: 5,
+    activity: "Launched new service pages",
+  },
+  {
+    name: "Competitor B",
+    keywordFocus: "Local SEO",
+    rankChange: -2,
+    activity: "Increased backlink acquisition",
+  },
+  {
+    name: "Competitor C",
+    keywordFocus: "Content Marketing",
+    rankChange: 3,
+    activity: "Redesigned blog section",
+  },
 ];
 
 // Sample report content for demonstration
@@ -124,7 +346,9 @@ const sampleReportContent = {
             <h5 className="text-base font-medium text-dark mb-3">Content</h5>
             <ul className="list-disc pl-6 text-base text-mediumGray">
               <li>Published 3 new blog posts targeting high-intent keywords</li>
-              <li>Updated 2 existing pages with fresh content and improved CTAs</li>
+              <li>
+                Updated 2 existing pages with fresh content and improved CTAs
+              </li>
               <li>Created 5 new content briefs for upcoming articles</li>
             </ul>
           </div>
@@ -151,22 +375,39 @@ const sampleReportContent = {
 
       {/* Deliverable Progress */}
       <div className="card bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">Deliverable Progress</h4>
+        <h4 className="text-lg font-medium text-dark mb-4">
+          Deliverable Progress
+        </h4>
 
         <div className="space-y-4">
           <div>
-            <h5 className="text-base font-medium text-dark mb-3">Content Briefs Sent</h5>
+            <h5 className="text-base font-medium text-dark mb-3">
+              Content Briefs Sent
+            </h5>
             <div className="space-y-3">
-              {sampleBriefs.map(brief => (
-                <div key={brief.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
+              {sampleBriefs.map((brief) => (
+                <div
+                  key={brief.id}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded"
+                >
                   <div>
-                    <p className="text-base font-medium text-dark">{brief.title}</p>
+                    <p className="text-base font-medium text-dark">
+                      {brief.title}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge variant={brief.status === 'Sent' ? 'success' : 'warning'} className="text-sm px-3 py-1">
+                    <Badge
+                      variant={brief.status === "Sent" ? "success" : "warning"}
+                      className="text-sm px-3 py-1"
+                    >
                       {brief.status}
                     </Badge>
-                    <a href={brief.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
+                    <a
+                      href={brief.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80"
+                    >
                       <BiLinkExternal size={20} />
                     </a>
                   </div>
@@ -176,16 +417,30 @@ const sampleReportContent = {
           </div>
 
           <div>
-            <h5 className="text-base font-medium text-dark mb-3">Articles Published</h5>
+            <h5 className="text-base font-medium text-dark mb-3">
+              Articles Published
+            </h5>
             <div className="space-y-3">
-              {sampleArticles.map(article => (
-                <div key={article.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
+              {sampleArticles.map((article) => (
+                <div
+                  key={article.id}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded"
+                >
                   <div>
-                    <p className="text-base font-medium text-dark">{article.title}</p>
+                    <p className="text-base font-medium text-dark">
+                      {article.title}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge variant="success" className="text-sm px-3 py-1">{article.status}</Badge>
-                    <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
+                    <Badge variant="success" className="text-sm px-3 py-1">
+                      {article.status}
+                    </Badge>
+                    <a
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary/80"
+                    >
                       <BiLinkExternal size={20} />
                     </a>
                   </div>
@@ -195,17 +450,30 @@ const sampleReportContent = {
           </div>
 
           <div>
-            <h5 className="text-base font-medium text-dark mb-3">Backlinks Live</h5>
+            <h5 className="text-base font-medium text-dark mb-3">
+              Backlinks Live
+            </h5>
             <div className="space-y-3">
-              {sampleBacklinks.map(backlink => (
-                <div key={backlink.id} className="flex items-center justify-between p-4 bg-gray-50 rounded">
+              {sampleBacklinks.map((backlink) => (
+                <div
+                  key={backlink.id}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded"
+                >
                   <div>
-                    <p className="text-base font-medium text-dark">{backlink.source}</p>
-                    <p className="text-sm text-mediumGray">Target: {backlink.targetUrl}</p>
+                    <p className="text-base font-medium text-dark">
+                      {backlink.source}
+                    </p>
+                    <p className="text-sm text-mediumGray">
+                      Target: {backlink.targetUrl}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge variant="info" className="text-sm px-3 py-1">DR {backlink.dr}</Badge>
-                    <Badge variant="success" className="text-sm px-3 py-1">{backlink.status}</Badge>
+                    <Badge variant="info" className="text-sm px-3 py-1">
+                      DR {backlink.dr}
+                    </Badge>
+                    <Badge variant="success" className="text-sm px-3 py-1">
+                      {backlink.status}
+                    </Badge>
                   </div>
                 </div>
               ))}
@@ -216,11 +484,15 @@ const sampleReportContent = {
 
       {/* Next Steps & Requests */}
       <div className="card bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">Next Steps & Requests</h4>
+        <h4 className="text-lg font-medium text-dark mb-4">
+          Next Steps & Requests
+        </h4>
 
         <div className="space-y-3">
           <div>
-            <h5 className="text-base font-medium text-dark mb-3">Tasks for Next Week</h5>
+            <h5 className="text-base font-medium text-dark mb-3">
+              Tasks for Next Week
+            </h5>
             <ul className="list-disc pl-6 text-base text-mediumGray">
               <li>Complete technical SEO audit for the new product section</li>
               <li>Publish 2 new case studies targeting competitive keywords</li>
@@ -229,10 +501,16 @@ const sampleReportContent = {
           </div>
 
           <div className="p-6 rounded-lg border border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
-            <h5 className="font-bold text-dark text-lg mb-1 notification-text">Action Required</h5>
+            <h5 className="font-bold text-dark text-lg mb-1 notification-text">
+              Action Required
+            </h5>
             <ul className="list-disc pl-6 text-base text-mediumGray">
-              <li className="font-medium">Review "Top 10 SEO Strategies for 2025" brief by May 2nd</li>
-              <li className="font-medium">Provide feedback on the new homepage design mockup</li>
+              <li className="font-medium">
+                Review "Top 10 SEO Strategies for 2025" brief by May 2nd
+              </li>
+              <li className="font-medium">
+                Provide feedback on the new homepage design mockup
+              </li>
             </ul>
           </div>
         </div>
@@ -240,31 +518,44 @@ const sampleReportContent = {
 
       {/* Quick Links */}
       <div className="card bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">Quick Links</h4>
+        <h4 className="text-lg font-bold text-dark mb-4">Quick Links</h4>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors">
-            <BiLineChart className="mr-3 text-primary text-lg" />
+          <a
+            href="https://search.google.com/search-console"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <ChartColumn className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
             <span className="text-base text-dark">GSC Dashboard</span>
           </a>
-          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors">
-            <BiFolder className="mr-3 text-primary text-lg" />
+          <a
+            href="https://drive.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <FolderOpen className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
             <span className="text-base text-dark">Content Folder</span>
           </a>
-          <a href="#" className="flex items-center p-4 bg-[#9EA8FB]/5 rounded hover:bg-[#9EA8FB]/10 transition-colors">
-            <BiLinkAlt className="mr-3 text-primary text-lg" />
+          <a
+            href="https://docs.google.com/spreadsheets"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Link2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
             <span className="text-base text-dark">Backlink Sheet</span>
           </a>
         </div>
       </div>
-
-      {/* Slack Share Button */}
-      {/* <div className="flex justify-end">
-        <Button className="flex items-center space-x-3 bg-[#4A154B] hover:bg-[#3a1039] text-white px-5 py-6 text-base">
-          <Slack size={20} />
-          <span>Share to Slack</span>
-        </Button>
-      </div> */}
     </div>
   ),
   monthly: (
@@ -272,7 +563,10 @@ const sampleReportContent = {
       {/* Executive Summary */}
       <div className="bg-lightGray p-5 rounded-lg">
         <div className="mt-2 space-y-2">
-          <p className="text-base text-mediumGray">Monthly comprehensive analysis of your SEO campaign performance, achievements, and strategic recommendations.</p>
+          <p className="text-base text-mediumGray">
+            Monthly comprehensive analysis of your SEO campaign performance,
+            achievements, and strategic recommendations.
+          </p>
         </div>
       </div>
 
@@ -297,10 +591,14 @@ const sampleReportContent = {
 
       {/* Channel Performance */}
       <div className="bg-white p-4">
-        <h4 className="font-medium text-dark mb-3">Channel Performance</h4>
+        <h4 className="text-lg font-bold text-dark mb-3">
+          Channel Performance
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Organic Traffic</h5>
+            <h5 className="text-sm font-medium text-dark mb-2">
+              Organic Traffic
+            </h5>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
@@ -313,13 +611,19 @@ const sampleReportContent = {
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="clicks" fill="#9ea8fb" name="Clicks" />
-                  <Bar dataKey="impressions" fill="#fcdc94" name="Impressions" />
+                  <Bar
+                    dataKey="impressions"
+                    fill="#fcdc94"
+                    name="Impressions"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
           <div>
-            <h5 className="text-sm font-medium text-dark mb-2">Leads & Revenue</h5>
+            <h5 className="text-sm font-medium text-dark mb-2">
+              Leads & Revenue
+            </h5>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -332,8 +636,20 @@ const sampleReportContent = {
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#9ea8fb" name="Leads" />
-                  <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#fcdc94" name="Revenue ($)" />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="leads"
+                    stroke="#9ea8fb"
+                    name="Leads"
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#fcdc94"
+                    name="Revenue ($)"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -341,177 +657,295 @@ const sampleReportContent = {
         </div>
       </div>
 
+      {/* Average Keyword Position */}
+      <div className="bg-white p-4">
+        <h4 className="text-lg font-bold text-dark mb-3">
+          Average Keyword Position
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 p-5 rounded-lg flex flex-col items-center justify-center">
+            <h5 className="text-base font-medium text-dark mb-2">
+              Current Visibility
+            </h5>
+            <div className="text-4xl font-bold text-dark">42.3</div>
+            <div className="text-sm text-[#9EA8FB] font-medium">+4.1</div>
+          </div>
+          <div className="bg-gray-50 p-5 rounded-lg flex flex-col items-center justify-center">
+            <h5 className="text-base font-medium text-dark mb-2">
+              vs. Competition
+            </h5>
+            <div className="text-4xl font-bold text-dark">38.7</div>
+            <div className="text-sm text-[#9EA8FB] font-medium">+9%</div>
+          </div>
+        </div>
+      </div>
+
       {/* Deliverables Recap */}
-      <div style={{
-        backgroundColor: 'white',
-        padding: '24px',
-        marginBottom: '24px'
-      }}>
-        <h4 style={{
-          fontWeight: 600,
-          marginBottom: '16px',
-          fontSize: '16px',
-          color: '#111827'
-        }}>Deliverables Recap</h4>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '16px'
-        }}>
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <h4
+          style={{
+            fontWeight: 600,
+            marginBottom: "16px",
+            fontSize: "16px",
+            color: "#111827",
+          }}
+        >
+          Deliverables Recap
+        </h4>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: "16px",
+          }}
+        >
           {/* Briefs Delivered */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>Briefs Delivered</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '8px',
-              color: '#111827'
-            }}>12</div>
-            <div style={{
-              width: '100%',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '9999px',
-              height: '6px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                position: 'absolute',
-                height: '100%',
-                width: '80%',
-                backgroundColor: '#9ea8fb',
-                borderRadius: '9999px',
-                left: 0,
-                top: 0
-              }}></div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              Briefs Delivered
             </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#4b5563',
-              marginTop: '8px'
-            }}>80% of monthly target</div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "8px",
+                color: "#111827",
+              }}
+            >
+              12
+            </div>
+            <div
+              style={{
+                width: "100%",
+                backgroundColor: "#e5e7eb",
+                borderRadius: "9999px",
+                height: "6px",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  height: "100%",
+                  width: "80%",
+                  backgroundColor: "#9ea8fb",
+                  borderRadius: "9999px",
+                  left: 0,
+                  top: 0,
+                }}
+              ></div>
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#4b5563",
+                marginTop: "8px",
+              }}
+            >
+              80% of monthly target
+            </div>
           </div>
-          
+
           {/* Blogs Published */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>Blogs Published</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '8px',
-              color: '#111827'
-            }}>8</div>
-            <div style={{
-              width: '100%',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '9999px',
-              height: '6px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                position: 'absolute',
-                height: '100%',
-                width: '100%',
-                backgroundColor: '#fcdc94',
-                borderRadius: '9999px',
-                left: 0,
-                top: 0
-              }}></div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              Blogs Published
             </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#4b5563',
-              marginTop: '8px'
-            }}>100% of monthly target</div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "8px",
+                color: "#111827",
+              }}
+            >
+              8
+            </div>
+            <div
+              style={{
+                width: "100%",
+                backgroundColor: "#e5e7eb",
+                borderRadius: "9999px",
+                height: "6px",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  height: "100%",
+                  width: "100%",
+                  backgroundColor: "#fcdc94",
+                  borderRadius: "9999px",
+                  left: 0,
+                  top: 0,
+                }}
+              ></div>
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#4b5563",
+                marginTop: "8px",
+              }}
+            >
+              100% of monthly target
+            </div>
           </div>
-          
+
           {/* Backlinks Live */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>Backlinks Live</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '8px',
-              color: '#111827'
-            }}>15</div>
-            <div style={{
-              width: '100%',
-              backgroundColor: '#e5e7eb',
-              borderRadius: '9999px',
-              height: '6px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                position: 'absolute',
-                height: '100%',
-                width: '125%', // Showing 125% completion
-                backgroundImage: 'linear-gradient(to right, #eadcff 80%, #d4bfff 80%)', // Gradient effect to show overflow
-                borderRadius: '9999px',
-                left: 0,
-                top: 0
-              }}></div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              Backlinks Live
             </div>
-            <div style={{
-              fontSize: '12px',
-              color: '#4b5563',
-              marginTop: '8px'
-            }}>125% of monthly target</div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "8px",
+                color: "#111827",
+              }}
+            >
+              15
+            </div>
+            <div
+              style={{
+                width: "100%",
+                backgroundColor: "#e5e7eb",
+                borderRadius: "9999px",
+                height: "6px",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  height: "100%",
+                  width: "125%", // Showing 125% completion
+                  backgroundImage:
+                    "linear-gradient(to right, #eadcff 80%, #d4bfff 80%)", // Gradient effect to show overflow
+                  borderRadius: "9999px",
+                  left: 0,
+                  top: 0,
+                }}
+              ></div>
+            </div>
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#4b5563",
+                marginTop: "8px",
+              }}
+            >
+              125% of monthly target
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content Movers */}
       <div className="bg-white p-4">
-        <h4 className="font-medium text-dark mb-3">Content Movers</h4>
+        <h4 className="text-lg font-bold text-dark mb-3">Content Movers</h4>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">URL</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Traffic</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Leads</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Change</th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+                >
+                  URL
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+                >
+                  Traffic
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+                >
+                  Leads
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+                >
+                  Change
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{page.url}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                    {page.url}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
+                    {page.traffic}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
+                    {page.conversions}
+                  </td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {page.delta > 0 ? '+' : ''}{page.delta}%
+                    <span
+                      className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                        }`}
+                    >
+                      {page.delta > 0 ? "+" : ""}
+                      {page.delta}%
                     </span>
                   </td>
                 </tr>
@@ -523,624 +957,817 @@ const sampleReportContent = {
 
       {/* Keyword & SERP Trends */}
       <div className="bg-white p-6">
-        <h4 className="font-medium text-dark mb-4">Keyword & SERP Trends</h4>
+        <h4 className="text-lg font-bold text-dark mb-4">
+          Keyword & SERP Trends
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Keyword Position Movement - Left Column */}
           <div className="bg-white p-5 rounded-lg">
             <h5 className="font-medium text-dark mb-4">Keywords</h5>
-            
+
             <div className="space-y-4">
               {/* Position 1-3 */}
               <div className="flex items-center">
                 <div className="w-24 text-sm mr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-lg" style={{ backgroundColor: '#9ea8fb' }}></div>
-                    <span>Position<br/>1-3</span>
+                    <div
+                      className="w-3 h-3 rounded-lg"
+                      style={{ backgroundColor: "#9ea8fb" }}
+                    ></div>
+                    <span>
+                      Position
+                      <br />
+                      1-3
+                    </span>
                   </div>
                 </div>
                 <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: '25%', backgroundColor: '#9ea8fb' }}></div>
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: "25%", backgroundColor: "#9ea8fb" }}
+                  ></div>
                 </div>
                 <div className="text-right ml-4">
                   <span className="font-medium">42 keywords</span>
                   <span className="ml-1 text-[#9ea8fb]">+8 (+23%)</span>
                 </div>
               </div>
-              
+
               {/* Position 4-10 */}
               <div className="flex items-center">
                 <div className="w-24 text-sm mr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#fcdc94' }}></div>
-                    <span>Position<br/>4-10</span>
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: "#fcdc94" }}
+                    ></div>
+                    <span>
+                      Position
+                      <br />
+                      4-10
+                    </span>
                   </div>
                 </div>
                 <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: '45%', backgroundColor: '#fcdc94' }}></div>
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: "45%", backgroundColor: "#fcdc94" }}
+                  ></div>
                 </div>
                 <div className="text-right ml-4">
                   <span className="font-medium">78 keywords</span>
                   <span className="ml-1 text-[#9ea8fb]">+12 (+18%)</span>
                 </div>
               </div>
-              
+
               {/* Position 11-20 */}
               <div className="flex items-center">
                 <div className="w-24 text-sm mr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#eadcff' }}></div>
-                    <span>Position<br/>11-20</span>
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: "#eadcff" }}
+                    ></div>
+                    <span>
+                      Position
+                      <br />
+                      11-20
+                    </span>
                   </div>
                 </div>
                 <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: '70%', backgroundColor: '#eadcff' }}></div>
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: "70%", backgroundColor: "#eadcff" }}
+                  ></div>
                 </div>
                 <div className="text-right ml-4">
                   <span className="font-medium">124 keywords</span>
                   <span className="ml-1 text-[#9ea8fb]">(+14%)</span>
                 </div>
               </div>
-              
+
               {/* Position 21-50 */}
               <div className="flex items-center">
                 <div className="w-24 text-sm mr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ff9d7d' }}></div>
-                    <span>Position<br/>21-50</span>
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: "#ff9d7d" }}
+                    ></div>
+                    <span>
+                      Position
+                      <br />
+                      21-50
+                    </span>
                   </div>
                 </div>
                 <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: '55%', backgroundColor: '#ff9d7d' }}></div>
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: "55%", backgroundColor: "#ff9d7d" }}
+                  ></div>
                 </div>
                 <div className="text-right ml-4">
                   <span className="font-medium">96 keywords</span>
                   <span className="ml-1 text-red-500">-7 (-7%)</span>
                 </div>
               </div>
-              
+
               {/* Total Tracked Keywords */}
               <div className="border-t border-gray-200 pt-4 mt-4">
                 <div className="flex justify-between">
                   <span className="font-medium">Total Tracked Keywords</span>
                   <div>
                     <span className="font-bold text-dark text-lg">340</span>
-                    <span className="text-[#9ea8fb] ml-2 text-sm">+18 this month</span>
+                    <span className="text-[#9ea8fb] ml-2 text-sm">
+                      +18 this month
+                    </span>
                   </div>
-                </div>
-              </div>
-              
-              {/* Top Movers */}
-              <div className="border-t border-gray-200 pt-4 mt-2">
-                <h6 className="font-medium text-dark mb-3">Top Movers</h6>
-                <div className="flex flex-wrap gap-2">
-                  <span className="bg-[#9ea8fb]/10 text-[#9ea8fb] px-2 py-1 rounded text-xs">
-                    "content marketing" (+12 positions)
-                  </span>
-                  <span className="bg-[#9ea8fb]/10 text-[#9ea8fb] px-2 py-1 rounded text-xs">
-                    "seo tools" (+8 positions)
-                  </span>
-                  <span className="bg-red-100 text-red-500 px-2 py-1 rounded text-xs">
-                    "sem strategy" (-3 positions)
-                  </span>
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Average Keyword Position - Right Column */}
           <div className="bg-white p-5 rounded-lg">
-            <h5 className="font-medium text-dark mb-4">Average Keyword Position</h5>
-            
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-500">Current Visibility</div>
-                <div className="flex items-end">
-                  <span className="text-2xl font-bold text-dark">42.3</span>
-                  <span className="text-[#9ea8fb] ml-2 text-sm font-medium">+4.1</span>
-                </div>
-              </div>
-              
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-500">vs. Competition</div>
-                <div className="flex items-end">
-                  <span className="text-2xl font-bold text-dark">38.7</span>
-                  <span className="text-[#9ea8fb] ml-2 text-sm font-medium">+9%</span>
-                </div>
-              </div>
-            </div>
-            
+            <h5 className="font-medium text-dark mb-4">
+              Average Keyword Position
+            </h5>
+
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={[
-                    { week: 'Week 1', visibility: 32, competitor: 30 },
-                    { week: 'Week 2', visibility: 35, competitor: 31 },
-                    { week: 'Week 3', visibility: 38, competitor: 32 },
-                    { week: 'Week 4', visibility: 41, competitor: 34 },
-                    { week: 'Week 5', visibility: 42, competitor: 35 }
+                    { week: "Week 1", visibility: 32, competitor: 30 },
+                    { week: "Week 2", visibility: 35, competitor: 31 },
+                    { week: "Week 3", visibility: 38, competitor: 32 },
+                    { week: "Week 4", visibility: 41, competitor: 34 },
+                    { week: "Week 5", visibility: 42, competitor: 35 },
                   ]}
                   margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f5f5f5"
+                  />
                   <XAxis dataKey="week" axisLine={false} tickLine={false} />
-                  <YAxis domain={[25, 45]} axisLine={false} tickLine={false} orientation="right" />
+                  <YAxis
+                    domain={[25, 45]}
+                    axisLine={false}
+                    tickLine={false}
+                    orientation="right"
+                  />
                   <Tooltip />
-                  <Line 
-                    type="monotone" 
-                    dataKey="visibility" 
-                    stroke="#9ea8fb" 
-                    name="Your visibility" 
+                  <Line
+                    type="monotone"
+                    dataKey="visibility"
+                    stroke="#9ea8fb"
+                    name="Your visibility"
                     strokeWidth={2}
-                    dot={{ r: 4, fill: '#9ea8fb', stroke: '#fff', strokeWidth: 2 }}
+                    dot={{
+                      r: 4,
+                      fill: "#9ea8fb",
+                      stroke: "#fff",
+                      strokeWidth: 2,
+                    }}
                   />
                   {/* Add separate line for competitor */}
-                  <Line 
-                    type="monotone" 
-                    dataKey="competitor" 
-                    stroke="#eadcff" 
-                    name="Competitor avg." 
+                  <Line
+                    type="monotone"
+                    dataKey="competitor"
+                    stroke="#eadcff"
+                    name="Competitor avg."
                     strokeWidth={2}
                     strokeDasharray="5 5"
-                    dot={{ r: 4, fill: '#eadcff', stroke: '#fff', strokeWidth: 2 }}
+                    dot={{
+                      r: 4,
+                      fill: "#eadcff",
+                      stroke: "#fff",
+                      strokeWidth: 2,
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-            
-            <div className="mt-4">
-              <button className="w-full py-2 bg-[#9ea8fb] text-white rounded-md hover:bg-[#9ea8fb]/90 transition-colors text-sm font-medium">
-                View Detailed Analysis & Recommendations
-              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Conversion & ROI Metrics */}
-      <div style={{ 
-        backgroundColor: 'white',
-        padding: '24px',
-        marginBottom: '24px'
-      }}>
-        <h4 style={{
-          fontWeight: 600,
-          marginBottom: '16px',
-          fontSize: '16px',
-          color: '#111827'
-        }}>Conversion & ROI Metrics</h4>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '16px'
-        }}>
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <h4
+          style={{
+            fontWeight: 700,
+            marginBottom: "16px",
+            fontSize: "18px",
+            color: "#111827",
+          }}
+        >
+          Conversion & ROI Metrics
+        </h4>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: "16px",
+          }}
+        >
           {/* Lead Generation */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>Lead Generation</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '4px',
-              color: '#111827'
-            }}>320</div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              Lead Generation
+            </div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "4px",
+                color: "#111827",
+              }}
+            >
+              320
+            </div>
             <div className="metric-positive">+15.2% vs. March</div>
           </div>
-          
+
           {/* Assisted Conversions */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>Assisted Conversions</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '4px',
-              color: '#111827'
-            }}>86</div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              Assisted Conversions
+            </div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "4px",
+                color: "#111827",
+              }}
+            >
+              86
+            </div>
             <div className="metric-positive">+9.8% vs. March</div>
           </div>
-          
+
           {/* CPC Equivalence */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>CPC Equivalence</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '4px',
-              color: '#111827'
-            }}>$24,800</div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              CPC Equivalence
+            </div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "4px",
+                color: "#111827",
+              }}
+            >
+              $24,800
+            </div>
             <div className="metric-positive">+12.5% vs. March</div>
           </div>
-          
+
           {/* Bounce Rate - for bounce rate, increase ("+") is bad, decrease ("-") is good */}
-          <div style={{
-            backgroundColor: '#f9fafb',
-            padding: '16px',
-            borderRadius: '8px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '8px',
-              color: '#374151'
-            }}>Bounce Rate</div>
-            <div style={{
-              fontSize: '24px',
-              fontWeight: 700,
-              marginBottom: '4px',
-              color: '#111827'
-            }}>48.2%</div>
+          <div
+            style={{
+              backgroundColor: "#f9fafb",
+              padding: "16px",
+              borderRadius: "8px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "8px",
+                color: "#374151",
+              }}
+            >
+              Bounce Rate
+            </div>
+            <div
+              style={{
+                fontSize: "24px",
+                fontWeight: 700,
+                marginBottom: "4px",
+                color: "#111827",
+              }}
+            >
+              48.2%
+            </div>
             <div className="metric-negative">+2.1% vs. March</div>
           </div>
         </div>
       </div>
 
       {/* Campaign Projection */}
-      <div style={{
-        backgroundColor: 'white',
-        padding: '24px',
-        marginBottom: '24px'
-      }}>
-        <h4 style={{
-          fontWeight: 600,
-          marginBottom: '16px',
-          fontSize: '16px',
-          color: '#111827'
-        }}>Campaign Projection</h4>
-        
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '24px'
-        }}>
-          <div>
-            <h5 style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '16px',
-              color: '#374151'
-            }}>Progress vs. Goals</h5>
-            
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '8px'
-              }}>
-                <div style={{
-                  width: '100px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: '16px'
-                }}>
-                  <div style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    backgroundColor: '#9ea8fb',
-                    marginRight: '8px'
-                  }}></div>
-                  <span style={{ fontSize: '14px', color: '#374151' }}>Traffic Goal</span>
-                </div>
-                <div style={{
-                  flex: '1',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '9999px',
-                  height: '6px',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    height: '100%',
-                    width: '65%',
-                    backgroundColor: '#9ea8fb',
-                    borderRadius: '9999px',
-                    left: 0,
-                    top: 0
-                  }}></div>
-                </div>
-                <div style={{ width: '40px', textAlign: 'right', fontSize: '14px', color: '#374151', marginLeft: '8px' }}>65%</div>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '8px'
-              }}>
-                <div style={{
-                  width: '100px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: '16px'
-                }}>
-                  <div style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    backgroundColor: '#fcdc94',
-                    marginRight: '8px'
-                  }}></div>
-                  <span style={{ fontSize: '14px', color: '#374151' }}>Lead Goal</span>
-                </div>
-                <div style={{
-                  flex: '1',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '9999px',
-                  height: '6px',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    height: '100%',
-                    width: '78%',
-                    backgroundColor: '#fcdc94',
-                    borderRadius: '9999px',
-                    left: 0,
-                    top: 0
-                  }}></div>
-                </div>
-                <div style={{ width: '40px', textAlign: 'right', fontSize: '14px', color: '#374151', marginLeft: '8px' }}>78%</div>
-              </div>
-              
-              <div style={{
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                <div style={{
-                  width: '100px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginRight: '16px'
-                }}>
-                  <div style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    backgroundColor: '#eadcff',
-                    marginRight: '8px'
-                  }}></div>
-                  <span style={{ fontSize: '14px', color: '#374151' }}>Revenue</span>
-                </div>
-                <div style={{
-                  flex: '1',
-                  backgroundColor: '#e5e7eb',
-                  borderRadius: '9999px',
-                  height: '6px',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    height: '100%',
-                    width: '42%',
-                    backgroundColor: '#eadcff',
-                    borderRadius: '9999px',
-                    left: 0,
-                    top: 0
-                  }}></div>
-                </div>
-                <div style={{ width: '40px', textAlign: 'right', fontSize: '14px', color: '#374151', marginLeft: '8px' }}>42%</div>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h5 style={{
-              fontSize: '14px',
-              fontWeight: 500,
-              marginBottom: '16px',
-              color: '#374151'
-            }}>Time to Goal</h5>
-            
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '16px'
-            }}>
-              <div style={{
-                backgroundColor: '#f9fafb',
-                padding: '16px',
-                borderRadius: '8px'
-              }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  marginBottom: '8px',
-                  color: '#374151'
-                }}>Rank Improvements</div>
-                <div style={{
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  color: '#111827'
-                }}>~3 weeks</div>
-              </div>
-              
-              <div style={{
-                backgroundColor: '#f9fafb',
-                padding: '16px',
-                borderRadius: '8px'
-              }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  marginBottom: '8px',
-                  color: '#374151'
-                }}>Traffic Goals</div>
-                <div style={{
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  color: '#111827'
-                }}>~7 weeks</div>
-              </div>
-              
-              <div style={{
-                backgroundColor: '#f9fafb',
-                padding: '16px',
-                borderRadius: '8px'
-              }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  marginBottom: '8px',
-                  color: '#374151'
-                }}>Lead Growth</div>
-                <div style={{
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  color: '#111827'
-                }}>~4 weeks</div>
-              </div>
-              
-              <div style={{
-                backgroundColor: '#f9fafb',
-                padding: '16px',
-                borderRadius: '8px'
-              }}>
-                <div style={{
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  marginBottom: '8px',
-                  color: '#374151'
-                }}>Revenue Target</div>
-                <div style={{
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  color: '#111827'
-                }}>~9 weeks</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <h4
+          style={{
+            fontWeight: 700,
+            marginBottom: "16px",
+            fontSize: "18px",
+            color: "#111827",
+          }}
+        >
+          Campaign Projection
+        </h4>
 
-      {/* Wins & Cautions */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
-        <div style={{ 
-          backgroundColor: '#9ea8fb', 
-          padding: '16px', 
-          borderRadius: '8px', 
-          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-        }}>
-          <h4 style={{ 
-            fontWeight: 600, 
-            marginBottom: '12px', 
-            display: 'flex',
-            alignItems: 'center',
-            color: 'white'
-          }}>
-            <span style={{
-              width: '24px',
-              height: '24px',
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
-              borderRadius: '9999px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: '8px'
-            }}>
-              <BiCheckCircle style={{ color: 'white' }} size={18} />
-            </span>
-            Wins
-          </h4>
-          <ul style={{
-            listStyleType: 'disc',
-            paddingLeft: '20px',
-            color: 'white'
-          }}>
-            <li style={{ marginBottom: '4px' }}>4 new keywords entered top 3 positions</li>
-            <li style={{ marginBottom: '4px' }}>15% increase in lead generation MoM</li>
-            <li style={{ marginBottom: '4px' }}>Page speed improvements reduced bounce rate by 12%</li>
-            <li>New content cluster outperforming expectations by 25%</li>
-          </ul>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "24px",
+          }}
+        >
+          <div>
+            <h5
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "16px",
+                color: "#374151",
+              }}
+            >
+              Progress vs. Goals
+            </h5>
+
+            <div style={{ marginBottom: "24px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100px",
+                    display: "flex",
+                    alignItems: "center",
+                    marginRight: "16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "50%",
+                      backgroundColor: "#9ea8fb",
+                      marginRight: "8px",
+                    }}
+                  ></div>
+                  <span style={{ fontSize: "14px", color: "#374151" }}>
+                    Traffic Goal
+                  </span>
+                </div>
+                <div
+                  style={{
+                    flex: "1",
+                    backgroundColor: "#e5e7eb",
+                    borderRadius: "9999px",
+                    height: "6px",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      height: "100%",
+                      width: "65%",
+                      backgroundColor: "#9ea8fb",
+                      borderRadius: "9999px",
+                      left: 0,
+                      top: 0,
+                    }}
+                  ></div>
+                </div>
+                <div
+                  style={{
+                    width: "40px",
+                    textAlign: "right",
+                    fontSize: "14px",
+                    color: "#374151",
+                    marginLeft: "8px",
+                  }}
+                >
+                  65%
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100px",
+                    display: "flex",
+                    alignItems: "center",
+                    marginRight: "16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "50%",
+                      backgroundColor: "#fcdc94",
+                      marginRight: "8px",
+                    }}
+                  ></div>
+                  <span style={{ fontSize: "14px", color: "#374151" }}>
+                    Lead Goal
+                  </span>
+                </div>
+                <div
+                  style={{
+                    flex: "1",
+                    backgroundColor: "#e5e7eb",
+                    borderRadius: "9999px",
+                    height: "6px",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      height: "100%",
+                      width: "78%",
+                      backgroundColor: "#fcdc94",
+                      borderRadius: "9999px",
+                      left: 0,
+                      top: 0,
+                    }}
+                  ></div>
+                </div>
+                <div
+                  style={{
+                    width: "40px",
+                    textAlign: "right",
+                    fontSize: "14px",
+                    color: "#374151",
+                    marginLeft: "8px",
+                  }}
+                >
+                  78%
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: "100px",
+                    display: "flex",
+                    alignItems: "center",
+                    marginRight: "16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "10px",
+                      height: "10px",
+                      borderRadius: "50%",
+                      backgroundColor: "#eadcff",
+                      marginRight: "8px",
+                    }}
+                  ></div>
+                  <span style={{ fontSize: "14px", color: "#374151" }}>
+                    Revenue
+                  </span>
+                </div>
+                <div
+                  style={{
+                    flex: "1",
+                    backgroundColor: "#e5e7eb",
+                    borderRadius: "9999px",
+                    height: "6px",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      height: "100%",
+                      width: "42%",
+                      backgroundColor: "#eadcff",
+                      borderRadius: "9999px",
+                      left: 0,
+                      top: 0,
+                    }}
+                  ></div>
+                </div>
+                <div
+                  style={{
+                    width: "40px",
+                    textAlign: "right",
+                    fontSize: "14px",
+                    color: "#374151",
+                    marginLeft: "8px",
+                  }}
+                >
+                  42%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h5
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "16px",
+                color: "#374151",
+              }}
+            >
+              Time to Goal
+            </h5>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "16px",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#f9fafb",
+                  padding: "16px",
+                  borderRadius: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    marginBottom: "8px",
+                    color: "#374151",
+                  }}
+                >
+                  Rank Improvements
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  ~3 weeks
+                </div>
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: "#f9fafb",
+                  padding: "16px",
+                  borderRadius: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    marginBottom: "8px",
+                    color: "#374151",
+                  }}
+                >
+                  Traffic Goals
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  ~7 weeks
+                </div>
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: "#f9fafb",
+                  padding: "16px",
+                  borderRadius: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    marginBottom: "8px",
+                    color: "#374151",
+                  }}
+                >
+                  Lead Growth
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  ~4 weeks
+                </div>
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: "#f9fafb",
+                  padding: "16px",
+                  borderRadius: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 500,
+                    marginBottom: "8px",
+                    color: "#374151",
+                  }}
+                >
+                  Revenue Target
+                </div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    color: "#111827",
+                  }}
+                >
+                  ~9 weeks
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div style={{ 
-          backgroundColor: '#fcdc94', 
-          padding: '16px', 
-          borderRadius: '8px', 
-          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-        }}>
-          <h4 style={{ 
-            fontWeight: 600, 
-            marginBottom: '12px', 
-            display: 'flex',
-            alignItems: 'center',
-            color: '#111827'
-          }}>
-            <span style={{
-              width: '24px',
-              height: '24px',
-              backgroundColor: 'rgba(255, 255, 255, 0.4)',
-              borderRadius: '9999px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: '8px'
-            }}>
-              <BiErrorCircle style={{ color: '#111827' }} size={18} />
-            </span>
-            Cautions
-          </h4>
-          <ul style={{
-            listStyleType: 'disc',
-            paddingLeft: '20px',
-            color: '#111827'
-          }}>
-            <li style={{ marginBottom: '4px' }}>3 core product pages lost rankings (-5 positions)</li>
-            <li style={{ marginBottom: '4px' }}>Home page load time increased by 0.8s</li>
-            <li style={{ marginBottom: '4px' }}>Competitor launched new content hub in our space</li>
-            <li>Mobile conversion rate dropped 2.3% MoM</li>
-          </ul>
+
+        {/* Wins & Cautions */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "24px" }}>
+          {/* Wins Card */}
+          <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+            <h4 style={{ fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", color: "#111827", fontSize: "18px" }}>
+              <span style={{ width: "24px", height: "24px", backgroundColor: "rgba(0, 0, 0, 0.1)", borderRadius: "9999px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }}>
+                <BiCheckCircle style={{ color: "#111827" }} size={18} />
+              </span>
+              Wins
+            </h4>
+            <ul style={{ listStyleType: "disc", paddingLeft: "20px", color: "#111827" }}>
+              <li style={{ marginBottom: "4px" }}>4 new keywords entered top 3 positions</li>
+              <li style={{ marginBottom: "4px" }}>15% increase in lead generation MoM</li>
+              <li style={{ marginBottom: "4px" }}>Page speed improvements reduced bounce rate by 12%</li>
+              <li>New content cluster outperforming expectations by 25%</li>
+            </ul>
+          </div>
+
+          {/* Cautions Card */}
+          <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+            <h4 style={{ fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", color: "#111827", fontSize: "18px" }}>
+              <span style={{ width: "24px", height: "24px", backgroundColor: "rgba(0, 0, 0, 0.1)", borderRadius: "9999px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }}>
+                <BiErrorCircle style={{ color: "#111827" }} size={18} />
+              </span>
+              Cautions
+            </h4>
+            <ul style={{ listStyleType: "disc", paddingLeft: "20px", color: "#111827" }}>
+              <li style={{ marginBottom: "4px" }}>3 core product pages lost rankings (-5 positions)</li>
+              <li style={{ marginBottom: "4px" }}>Home page load time increased by 0.8s</li>
+              <li style={{ marginBottom: "4px" }}>Competitor launched new content hub in our space</li>
+              <li>Mobile conversion rate dropped 2.3% MoM</li>
+            </ul>
+          </div>
         </div>
       </div>
 
       {/* Recommendations + Next Steps */}
-      <div className="bg-primary/10 p-4 rounded-lg">
-        <h4 className="font-medium text-dark mb-3">Recommendations + Next Steps</h4>
-        <div className="space-y-3">
-          <div className="p-3 bg-white rounded-lg">
-            <h5 className="text-sm font-medium text-dark mb-1">Priority Actions</h5>
-            <ol className="list-decimal pl-5 text-mediumGray space-y-1">
-              <li>Implement mobile UX improvements to increase conversion rate</li>
-              <li>Accelerate content production to catch up on brief schedule</li>
-              <li>Focus link building efforts on 3 keywords that lost positions</li>
-            </ol>
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "24px",
+          marginBottom: "24px",
+        }}
+      >
+        <h4
+          style={{
+            fontWeight: 700,
+            marginBottom: "16px",
+            fontSize: "18px",
+            color: "#111827",
+          }}
+        >
+          Recommendations + Next Steps
+        </h4>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "24px",
+          }}
+        >
+          <div>
+            <h5
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "16px",
+                color: "#374151",
+              }}
+            >
+              Priority Actions
+            </h5>
+            <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px" }}>
+              <ol style={{ listStyleType: "decimal", paddingLeft: "20px", color: "#111827" }}>
+                <li style={{ marginBottom: "8px" }}>Implement mobile UX improvements to increase conversion rate</li>
+                <li style={{ marginBottom: "8px" }}>Accelerate content production to catch up on brief schedule</li>
+                <li>Focus link building efforts on 3 keywords that lost positions</li>
+              </ol>
+            </div>
           </div>
-          <div className="p-3 bg-white rounded-lg">
-            <h5 className="text-sm font-medium text-dark mb-1">Strategic Adjustments</h5>
-            <p className="text-sm text-mediumGray">Based on current trajectory, we recommend shifting 20% of content resources to focus on mobile optimization and conversion rate improvements to ensure we meet Q2 goals.</p>
+
+          <div>
+            <h5
+              style={{
+                fontSize: "14px",
+                fontWeight: 500,
+                marginBottom: "16px",
+                color: "#374151",
+              }}
+            >
+              Strategic Adjustments
+            </h5>
+            <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px" }}>
+              <p style={{ color: "#111827", fontSize: "16px" }}>
+                Based on current trajectory, we recommend shifting 20% of content resources to focus on mobile optimization and conversion rate improvements to ensure we meet Q2 goals.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1153,7 +1780,9 @@ const sampleReportContent = {
         {/* 3 Summary KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600">Traffic Growth</h4>
+            <h4 className="text-sm font-medium text-gray-600">
+              Traffic Growth
+            </h4>
             <div className="mt-2">
               <div className="text-4xl font-bold text-[#9EA8FB]">61,000</div>
               <div className="text-xs text-gray-500 mt-1">Target: 65,000</div>
@@ -1183,7 +1812,9 @@ const sampleReportContent = {
           </div>
 
           <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600">Leads Generated</h4>
+            <h4 className="text-sm font-medium text-gray-600">
+              Leads Generated
+            </h4>
             <div className="mt-2">
               <div className="text-4xl font-bold text-[#FFE4A6]">1,350</div>
               <div className="text-xs text-gray-500 mt-1">Target: 1,500</div>
@@ -1213,7 +1844,9 @@ const sampleReportContent = {
           </div>
 
           <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600">Revenue Impact</h4>
+            <h4 className="text-sm font-medium text-gray-600">
+              Revenue Impact
+            </h4>
             <div className="mt-2">
               <div className="text-4xl font-bold text-[#EADCFF]">$108,000</div>
               <div className="text-xs text-gray-500 mt-1">Target: $120,000</div>
@@ -1245,17 +1878,23 @@ const sampleReportContent = {
 
         {/* Text Summary - Moved TLDR below KPIs */}
         <div className="bg-white p-5 ">
-          <h4 className="text-lg font-medium text-dark mb-3">Executive Summary</h4>
+          <h4 className="text-lg font-bold text-dark mb-3">
+            Executive Summary
+          </h4>
           <p className="text-base text-mediumGray leading-relaxed">
-            Q1 2025 has shown strong performance across all key metrics with significant year-over-year growth.
-            Our focus on content quality and technical improvements has yielded substantial increases in organic traffic,
-            while conversion rate optimizations have successfully translated this traffic into leads and revenue.
+            Q1 2025 has shown strong performance across all key metrics with
+            significant year-over-year growth. Our focus on content quality and
+            technical improvements has yielded substantial increases in organic
+            traffic, while conversion rate optimizations have successfully
+            translated this traffic into leads and revenue.
           </p>
         </div>
 
         {/* Trendline Chart */}
         <div className="bg-white p-5  mt-6">
-          <h4 className="text-base font-medium text-dark mb-4">Performance Trends (Last 4 Quarters)</h4>
+          <h4 className="text-lg font-bold text-dark mb-4">
+            Performance Trends (Last 4 Quarters)
+          </h4>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -1268,9 +1907,27 @@ const sampleReportContent = {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="traffic" stroke="#9ea8fb" name="Traffic" />
-                <Line yAxisId="left" type="monotone" dataKey="leads" stroke="#fcdc94" name="Leads" />
-                <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#eadcff" name="Revenue ($)" />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="traffic"
+                  stroke="#9ea8fb"
+                  name="Traffic"
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="leads"
+                  stroke="#fcdc94"
+                  name="Leads"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#eadcff"
+                  name="Revenue ($)"
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1280,39 +1937,55 @@ const sampleReportContent = {
       {/* Traffic & Revenue */}
       <div className="bg-white p-6 ">
         <div className="flex justify-between items-center mb-5">
-          <h4 className="text-lg font-medium text-dark">Traffic & Revenue</h4>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="text-xs">
-              <Filter className="h-3 w-3 mr-1" />
-              Sort by Metric
-            </Button>
-          </div>
+          <h4 className="text-lg font-bold text-dark">Traffic & Revenue</h4>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
                   <div className="flex items-center">
                     Metric
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
                   <div className="flex items-center">
                     Q1 2025
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Q4 2024</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider"
+                >
+                  Q4 2024
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
                   <div className="flex items-center">
                     QoQ Change
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Q1 2024</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider"
+                >
+                  Q1 2024
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                >
                   <div className="flex items-center">
                     YoY Change
                     <ChevronDown className="h-4 w-4 ml-1" />
@@ -1322,15 +1995,23 @@ const sampleReportContent = {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Organic Traffic</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">61,000</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">52,000</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                  Organic Traffic
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  61,000
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  52,000
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +17.3%
                   </span>
                 </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">43,000</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  43,000
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +41.9%
@@ -1338,15 +2019,23 @@ const sampleReportContent = {
                 </td>
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Leads Generated</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,350</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1,150</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                  Leads Generated
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  1,350
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  1,150
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +17.4%
                   </span>
                 </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">980</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  980
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +37.8%
@@ -1354,15 +2043,23 @@ const sampleReportContent = {
                 </td>
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Conversion Rate</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.2%</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">2.1%</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                  Conversion Rate
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  2.2%
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  2.1%
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +4.8%
                   </span>
                 </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">1.9%</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  1.9%
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +15.8%
@@ -1370,15 +2067,23 @@ const sampleReportContent = {
                 </td>
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">Revenue Impact</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$108,000</td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$92,000</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                  Revenue Impact
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  $108,000
+                </td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  $92,000
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +17.4%
                   </span>
                 </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">$78,000</td>
+                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                  $78,000
+                </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
                     +38.5%
@@ -1392,18 +2097,27 @@ const sampleReportContent = {
 
       {/* Deliverables Roll Up */}
       <div className="bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-5">Deliverables Roll Up</h4>
+        <h4 className="text-lg font-bold text-dark mb-5">
+          Deliverables Roll Up
+        </h4>
         <div className="space-y-4">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-              <BiFolder size={16} className="text-dark" />
+              <FolderOpen size={16} className="text-dark" />
             </div>
             <div>
-              <p className="text-base font-medium text-dark">36 briefs delivered</p>
-              <p className="text-sm text-mediumGray">100% of quarterly target</p>
+              <p className="text-base font-medium text-dark">
+                36 briefs delivered
+              </p>
+              <p className="text-sm text-mediumGray">
+                100% of quarterly target
+              </p>
             </div>
             <div className="ml-auto">
-              <a href="/deliverables?tab=briefs" className="text-primary hover:underline text-sm flex items-center">
+              <a
+                href="/deliverables?tab=briefs"
+                className="text-primary hover:underline text-sm flex items-center"
+              >
                 <span>View All</span>
                 <ExternalLink className="h-3 w-3 ml-1" />
               </a>
@@ -1415,11 +2129,18 @@ const sampleReportContent = {
               <BiMessageRoundedDetail size={16} className="text-dark" />
             </div>
             <div>
-              <p className="text-base font-medium text-dark">24 articles published</p>
-              <p className="text-sm text-mediumGray">Average word count: 1,850</p>
+              <p className="text-base font-medium text-dark">
+                24 articles published
+              </p>
+              <p className="text-sm text-mediumGray">
+                Average word count: 1,850
+              </p>
             </div>
             <div className="ml-auto">
-              <a href="/deliverables?tab=articles" className="text-primary hover:underline text-sm flex items-center">
+              <a
+                href="/deliverables?tab=articles"
+                className="text-primary hover:underline text-sm flex items-center"
+              >
                 <span>View All</span>
                 <ExternalLink className="h-3 w-3 ml-1" />
               </a>
@@ -1428,14 +2149,19 @@ const sampleReportContent = {
 
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3">
-              <BiLinkAlt size={16} className="text-dark" />
+              <Link2 size={16} className="text-dark" />
             </div>
             <div>
-              <p className="text-base font-medium text-dark">45 backlinks secured</p>
+              <p className="text-base font-medium text-dark">
+                45 backlinks secured
+              </p>
               <p className="text-sm text-mediumGray">Average DR: 58</p>
             </div>
             <div className="ml-auto">
-              <a href="/deliverables?tab=backlinks" className="text-primary hover:underline text-sm flex items-center">
+              <a
+                href="/deliverables?tab=backlinks"
+                className="text-primary hover:underline text-sm flex items-center"
+              >
                 <span>View All</span>
                 <ExternalLink className="h-3 w-3 ml-1" />
               </a>
@@ -1447,32 +2173,40 @@ const sampleReportContent = {
       {/* Top Performing Pages */}
       <div className="bg-white p-6">
         <div className="flex justify-between items-center mb-5">
-          <h4 className="text-lg font-medium text-dark">Top Performing Pages</h4>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="text-xs">
-              <Filter className="h-3 w-3 mr-1" />
-              Sort by Traffic
-            </Button>
-          </div>
+          <h4 className="text-lg font-bold text-dark">Top Performing Pages</h4>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">URL</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
+                >
+                  URL
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20"
+                >
                   <div className="flex items-center">
                     Traffic
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20"
+                >
                   <div className="flex items-center">
                     Conversions
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20"
+                >
                   <div className="flex items-center">
                     Change
                     <ChevronDown className="h-4 w-4 ml-1" />
@@ -1483,12 +2217,24 @@ const sampleReportContent = {
             <tbody className="bg-white divide-y divide-gray-200">
               {topPerformingPages.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{page.url}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.traffic}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">{page.conversions}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                    {page.url}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
+                    {page.traffic}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
+                    {page.conversions}
+                  </td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {page.delta > 0 ? '+' : ''}{page.delta}%
+                    <span
+                      className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                        }`}
+                    >
+                      {page.delta > 0 ? "+" : ""}
+                      {page.delta}%
                     </span>
                   </td>
                 </tr>
@@ -1500,56 +2246,83 @@ const sampleReportContent = {
 
       {/* Experiments */}
       <div className="bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-5">Experiments</h4>
+        <h4 className="text-lg font-bold text-dark mb-5">Experiments</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <BiLineChart size={24} className="text-dark" />
+          <div className="p-5 bg-gray-50 rounded-lg">
+            <div className="flex flex-col items-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
+                <ChartColumn className="h-6 w-6 text-[#9EA8FB]" />
+              </div>
+              <p className="text-base font-medium text-dark text-center">Title Tag Tests</p>
+              <p className="text-sm text-mediumGray mt-2 text-center">
+                CTR +1.7 percentage points
+              </p>
             </div>
-            <p className="text-base font-medium text-dark">Title Tag Tests</p>
-            <p className="text-sm text-mediumGray mt-2">CTR +1.7 percentage points</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-gold/10 rounded-full flex items-center justify-center mb-4">
-              <BiMessageRoundedDetail size={24} className="text-dark" />
+          <div className="p-5 bg-gray-50 rounded-lg">
+            <div className="flex flex-col items-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
+                <MessageSquare className="h-6 w-6 text-[#9EA8FB]" />
+              </div>
+              <p className="text-base font-medium text-dark text-center">
+                Mobile CTA Placement
+              </p>
+              <p className="text-sm text-mediumGray mt-2 text-center">
+                Conversion +0.8 percentage points
+              </p>
             </div>
-            <p className="text-base font-bold text-dark">Mobile CTA Placement</p>
-            <p className="text-sm text-mediumGray mt-2">Conversion +0.8 percentage points</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-lavender/10 rounded-full flex items-center justify-center mb-4">
-              <BiLinkAlt size={24} className="text-dark" />
+          <div className="p-5 bg-gray-50 rounded-lg">
+            <div className="flex flex-col items-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
+                <Link2 className="h-6 w-6 text-[#9EA8FB]" />
+              </div>
+              <p className="text-base font-medium text-dark text-center">Core Web Vitals</p>
+              <p className="text-sm text-mediumGray mt-2 text-center">
+                Bounce rate -15% on key pages
+              </p>
             </div>
-            <p className="text-base font-medium text-dark">Core Web Vitals</p>
-            <p className="text-sm text-mediumGray mt-2">Bounce rate -15% on key pages</p>
           </div>
 
-          <div className="p-5 bg-[#9EA8FB]/5 rounded-lg text-center hover:border-[#9EA8FB] transition-colors">
-            <div className="w-16 h-16 mx-auto bg-[#9EA8FB]/10 rounded-full flex items-center justify-center mb-4">
-              <BiFolder size={24} className="text-dark" />
+          <div className="p-5 bg-gray-50 rounded-lg">
+            <div className="flex flex-col items-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
+                <FolderOpen className="h-6 w-6 text-[#9EA8FB]" />
+              </div>
+              <p className="text-base font-medium text-dark text-center">
+                Content Length Test
+              </p>
+              <p className="text-sm text-mediumGray mt-2 text-center">
+                Long-form +32% more conversions
+              </p>
             </div>
-            <p className="text-base font-medium text-dark">Content Length Test</p>
-            <p className="text-sm text-mediumGray mt-2">Long-form +32% more conversions</p>
           </div>
         </div>
       </div>
 
       {/* Next Quarter Roadmap */}
       <div className="bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-5">Next Quarter Roadmap</h4>
+        <h4 className="text-lg font-bold text-dark mb-5">
+          Next Quarter Roadmap
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg">
-            <h5 className="text-base font-medium text-dark mb-3">Where We Are Now</h5>
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">
+              Where We Are Now
+            </h5>
             <p className="text-base text-mediumGray mb-4 leading-relaxed">
-              Strong foundation with improved technical performance, growing organic visibility, and
-              established content production pipeline. Key conversion points optimized with clear user journeys.
+              Strong foundation with improved technical performance, growing
+              organic visibility, and established content production pipeline.
+              Key conversion points optimized with clear user journeys.
             </p>
           </div>
 
-          <div className="bg-[#9EA8FB]/5 p-5 rounded-lg">
-            <h5 className="text-base font-medium text-dark mb-3">Where We're Heading Next</h5>
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">
+              Where We&apos;re Heading Next
+            </h5>
             <ul className="list-disc pl-6 text-base text-mediumGray space-y-2">
               <li>Expand content clusters around highest-converting topics</li>
               <li>Implement advanced schema markup across all key templates</li>
@@ -1564,7 +2337,7 @@ const sampleReportContent = {
       {/* Competitor Intel */}
       <div className="bg-white p-6">
         <div className="flex justify-between items-center mb-5">
-          <h4 className="text-lg font-medium text-dark">Competitor Intel</h4>
+          <h4 className="text-lg font-bold text-dark">Competitor Intel</h4>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" className="text-xs">
               <Filter className="h-3 w-3 mr-1" />
@@ -1576,28 +2349,58 @@ const sampleReportContent = {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Competitor</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Keyword Focus</th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-gray-200">
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
+                >
+                  Competitor
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
+                >
+                  Keyword Focus
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-gray-200"
+                >
                   <div className="flex items-center">
                     Rank Change (QoQ)
                     <ChevronDown className="h-4 w-4 ml-1" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider">Notable Activity</th>
+                <th
+                  scope="col"
+                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
+                >
+                  Notable Activity
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {competitorData.map((competitor, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">{competitor.name}</td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.keywordFocus}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                    {competitor.name}
+                  </td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                    {competitor.keywordFocus}
+                  </td>
                   <td className="px-6 py-5 whitespace-nowrap">
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium ${competitor.rankChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {competitor.rankChange > 0 ? '+' : ''}{competitor.rankChange}
+                    <span
+                      className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium ${competitor.rankChange > 0
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                        }`}
+                    >
+                      {competitor.rankChange > 0 ? "+" : ""}
+                      {competitor.rankChange}
                     </span>
                   </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">{competitor.activity}</td>
+                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
+                    {competitor.activity}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1605,46 +2408,61 @@ const sampleReportContent = {
         </div>
 
         <div className="bg-gray-50 p-5 rounded-lg">
-          <h5 className="text-base font-medium text-dark mb-3">Key Takeaways</h5>
+          <h5 className="text-base font-medium text-dark mb-3">
+            Key Takeaways
+          </h5>
           <p className="text-base text-mediumGray leading-relaxed">
-            Opportunity to outrank Competitor B on Local SEO keywords where they've lost positions.
-            Competitor A is gaining ground in Technical SEO - we should accelerate our content production
-            in this area to maintain our advantage.
+            Opportunity to outrank Competitor B on Local SEO keywords where
+            they've lost positions. Competitor A is gaining ground in Technical
+            SEO - we should accelerate our content production in this area to
+            maintain our advantage.
           </p>
         </div>
       </div>
 
       {/* Risk and Tradeoffs */}
       <div className="bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">Risks and Tradeoffs</h4>
+        <h4 className="text-lg font-bold text-dark mb-4">
+          Risks and Tradeoffs
+        </h4>
         <ul className="list-disc pl-6 text-base text-mediumGray space-y-3">
           <li>
-            <span className="font-medium text-dark">Resource allocation:</span> Focusing on mobile optimization may slow content production temporarily
+            <span className="font-medium text-dark">Resource allocation:</span>{" "}
+            Focusing on mobile optimization may slow content production
+            temporarily
           </li>
           <li>
-            <span className="font-medium text-dark">Competitive pressure:</span> Competitor A's aggressive content strategy requires us to maintain quality over quantity
+            <span className="font-medium text-dark">Competitive pressure:</span>{" "}
+            Competitor A's aggressive content strategy requires us to maintain
+            quality over quantity
           </li>
           <li>
-            <span className="font-medium text-dark">Algorithm updates:</span> Recent Google updates suggest prioritizing user experience metrics over pure keyword targeting
+            <span className="font-medium text-dark">Algorithm updates:</span>{" "}
+            Recent Google updates suggest prioritizing user experience metrics
+            over pure keyword targeting
           </li>
           <li>
-            <span className="font-medium text-dark">Technical debt:</span> Legacy URL structure still impacts some sections - full migration recommended in Q3
+            <span className="font-medium text-dark">Technical debt:</span>{" "}
+            Legacy URL structure still impacts some sections - full migration
+            recommended in Q3
           </li>
         </ul>
       </div>
 
       {/* TL;DR */}
-      <div className="bg-[#9EA8FB]/20 p-6 rounded-3xl border border-gray-200">
-        <h4 className="text-lg font-medium text-dark mb-4">TL;DR</h4>
+      <div className="bg-gray-50 p-6 rounded-lg">
+        <h4 className="text-lg font-bold text-dark mb-4">TL;DR</h4>
         <p className="text-base text-mediumGray leading-relaxed">
-          Q1 2025 delivered strong results across all KPIs with traffic up 42% YoY and leads up 38% YoY.
-          Technical improvements and content quality drove performance gains. For Q2, we'll focus on mobile
-          optimization, expanding high-converting content clusters, and targeted link building for product pages.
-          Main risks include competitive pressure and potential algorithm updates favoring UX metrics.
+          Q1 2025 delivered strong results across all KPIs with traffic up 42%
+          YoY and leads up 38% YoY. Technical improvements and content quality
+          drove performance gains. For Q2, we'll focus on mobile optimization,
+          expanding high-converting content clusters, and targeted link building
+          for product pages. Main risks include competitive pressure and
+          potential algorithm updates favoring UX metrics.
         </p>
       </div>
     </div>
-  )
+  ),
 };
 
 // Slack Share Modal Component
@@ -1652,25 +2470,25 @@ const SlackShareModal = ({
   isOpen,
   onClose,
   reportTitle,
-  reportType
+  reportType,
 }: {
   isOpen: boolean;
   onClose: () => void;
   reportTitle: string;
   reportType: string;
 }) => {
-  const [channel, setChannel] = useState('#seo-updates');
-  const [message, setMessage] = useState('');
+  const [channel, setChannel] = useState("#seo-updates");
+  const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   // Generate default message based on report type and title
   useEffect(() => {
-    let defaultMessage = '';
-    if (reportType === 'weekly') {
+    let defaultMessage = "";
+    if (reportType === "weekly") {
       defaultMessage = `Here's the latest weekly SEO report: ${reportTitle}\n\nKey highlights:\n- Organic traffic up 15% week-over-week\n- 4 new keywords entered top 10 positions\n- 3 new backlinks secured`;
-    } else if (reportType === 'monthly') {
+    } else if (reportType === "monthly") {
       defaultMessage = `Monthly SEO performance report: ${reportTitle}\n\nKey highlights:\n- Organic traffic up 22% month-over-month\n- Lead generation increased by 18%\n- 12 new content pieces published`;
-    } else if (reportType === 'quarterly') {
+    } else if (reportType === "quarterly") {
       defaultMessage = `Quarterly SEO strategy & performance review: ${reportTitle}\n\nKey highlights:\n- 42% YoY traffic growth\n- 38% YoY lead growth\n- $108K revenue impact`;
     }
     setMessage(defaultMessage);
@@ -1683,7 +2501,7 @@ const SlackShareModal = ({
       setIsSending(false);
       onClose();
       // Show success message
-      alert('Report summary shared to Slack!');
+      alert("Report summary shared to Slack!");
     }, 1000);
   };
 
@@ -1693,7 +2511,8 @@ const SlackShareModal = ({
         <DialogHeader>
           <DialogTitle>Share to Slack</DialogTitle>
           <DialogDescription>
-            Share a summary of this report to Slack. Customize the message below.
+            Share a summary of this report to Slack. Customize the message
+            below.
           </DialogDescription>
         </DialogHeader>
 
@@ -1732,7 +2551,7 @@ const SlackShareModal = ({
             className="bg-[#4A154B] hover:bg-[#3a1039] text-white"
             disabled={isSending}
           >
-            {isSending ? 'Sending...' : 'Send to Slack'}
+            {isSending ? "Sending..." : "Send to Slack"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1741,14 +2560,16 @@ const SlackShareModal = ({
 };
 
 export default function Reports() {
-  const [activeTab, setActiveTab] = useState('weekly');
+  const [activeTab, setActiveTab] = useState("weekly");
   const [selectedReport, setSelectedReport] = useState<number | null>(1);
-  const [reportContent, setReportContent] = useState<React.ReactNode | null>(null);
+  const [reportContent, setReportContent] = useState<React.ReactNode | null>(
+    null
+  );
   const [selectedMonth, setSelectedMonth] = useState(monthFilterOptions[0]);
   const [filteredReports, setFilteredReports] = useState({
     weekly: reports.weekly,
     monthly: reports.monthly,
-    quarterly: reports.quarterly
+    quarterly: reports.quarterly,
   });
   const [isSlackModalOpen, setIsSlackModalOpen] = useState(false);
 
@@ -1758,33 +2579,38 @@ export default function Reports() {
   // Set initial report content and apply filters
   useEffect(() => {
     // Filter reports based on selected month
-    if (selectedMonth.value !== 'all') {
+    if (selectedMonth.value !== "all") {
       setFilteredReports({
-        weekly: reports.weekly.filter(report => report.month === selectedMonth.value),
-        monthly: reports.monthly.filter(report => report.month === selectedMonth.value),
-        quarterly: reports.quarterly // Quarterly reports aren't filtered by month
+        weekly: reports.weekly.filter(
+          (report) => report.month === selectedMonth.value
+        ),
+        monthly: reports.monthly.filter(
+          (report) => report.month === selectedMonth.value
+        ),
+        quarterly: reports.quarterly, // Quarterly reports aren't filtered by month
       });
     } else {
       setFilteredReports({
         weekly: reports.weekly,
         monthly: reports.monthly,
-        quarterly: reports.quarterly
+        quarterly: reports.quarterly,
       });
     }
   }, [selectedMonth]);
 
   // Set initial report content
   useEffect(() => {
-    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+    const currentReports =
+      filteredReports[activeTab as keyof typeof filteredReports];
 
     if (currentReports.length > 0) {
       setSelectedReport(currentReports[0].id);
 
-      if (activeTab === 'weekly') {
+      if (activeTab === "weekly") {
         setReportContent(sampleReportContent.weekly);
-      } else if (activeTab === 'monthly') {
+      } else if (activeTab === "monthly") {
         setReportContent(sampleReportContent.monthly);
-      } else if (activeTab === 'quarterly') {
+      } else if (activeTab === "quarterly") {
         setReportContent(sampleReportContent.quarterly);
       }
     } else {
@@ -1798,11 +2624,11 @@ export default function Reports() {
     setSelectedReport(reportId);
 
     // Set sample content based on report type
-    if (type === 'weekly') {
+    if (type === "weekly") {
       setReportContent(sampleReportContent.weekly);
-    } else if (type === 'monthly') {
+    } else if (type === "monthly") {
       setReportContent(sampleReportContent.monthly);
-    } else if (type === 'quarterly') {
+    } else if (type === "quarterly") {
       setReportContent(sampleReportContent.quarterly);
     }
   };
@@ -1812,18 +2638,29 @@ export default function Reports() {
   // Handle month filter change
   const handleMonthChange = (value: string) => {
     // Extract month and year from the format "Month Year" (e.g., "January 2025")
-    if (value.includes(' ')) {
-      const [month, year] = value.split(' ');
+    if (value.includes(" ")) {
+      const [month, year] = value.split(" ");
       // Convert to the format used in monthFilterOptions (e.g., "2025-01")
       const monthNumber = {
-        'January': '01', 'February': '02', 'March': '03', 'April': '04',
-        'May': '05', 'June': '06', 'July': '07', 'August': '08',
-        'September': '09', 'October': '10', 'November': '11', 'December': '12'
+        January: "01",
+        February: "02",
+        March: "03",
+        April: "04",
+        May: "05",
+        June: "06",
+        July: "07",
+        August: "08",
+        September: "09",
+        October: "10",
+        November: "11",
+        December: "12",
       }[month];
-      
+
       if (monthNumber && year) {
         const optionValue = `${year}-${monthNumber}`;
-        const selected = monthFilterOptions.find(option => option.value === optionValue);
+        const selected = monthFilterOptions.find(
+          (option) => option.value === optionValue
+        );
         if (selected) {
           setSelectedMonth(selected);
         } else {
@@ -1833,7 +2670,9 @@ export default function Reports() {
       }
     } else {
       // Handle the old format for backward compatibility
-      const selected = monthFilterOptions.find(option => option.value === value);
+      const selected = monthFilterOptions.find(
+        (option) => option.value === value
+      );
       if (selected) {
         setSelectedMonth(selected);
       }
@@ -1847,10 +2686,13 @@ export default function Reports() {
 
   // Navigate to previous report
   const navigateToPreviousReport = () => {
-    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+    const currentReports =
+      filteredReports[activeTab as keyof typeof filteredReports];
     if (!selectedReport || currentReports.length <= 1) return;
 
-    const currentIndex = currentReports.findIndex(report => report.id === selectedReport);
+    const currentIndex = currentReports.findIndex(
+      (report) => report.id === selectedReport
+    );
     if (currentIndex > 0) {
       const previousReport = currentReports[currentIndex - 1];
       handleReportSelect(previousReport.id, activeTab);
@@ -1859,10 +2701,13 @@ export default function Reports() {
 
   // Navigate to next report
   const navigateToNextReport = () => {
-    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
+    const currentReports =
+      filteredReports[activeTab as keyof typeof filteredReports];
     if (!selectedReport || currentReports.length <= 1) return;
 
-    const currentIndex = currentReports.findIndex(report => report.id === selectedReport);
+    const currentIndex = currentReports.findIndex(
+      (report) => report.id === selectedReport
+    );
     if (currentIndex < currentReports.length - 1) {
       const nextReport = currentReports[currentIndex + 1];
       handleReportSelect(nextReport.id, activeTab);
@@ -1871,18 +2716,19 @@ export default function Reports() {
 
   // Get current report title
   const getCurrentReportTitle = () => {
-    if (!selectedReport) return '';
+    if (!selectedReport) return "";
 
-    const currentReports = filteredReports[activeTab as keyof typeof filteredReports];
-    const report = currentReports.find(r => r.id === selectedReport);
-    return report?.title || '';
+    const currentReports =
+      filteredReports[activeTab as keyof typeof filteredReports];
+    const report = currentReports.find((r) => r.id === selectedReport);
+    return report?.title || "";
   };
 
   return (
     <DashboardLayout
       topNavBarProps={{
         selectedMonth: selectedMonth.label,
-        onMonthChange: handleMonthChange
+        onMonthChange: handleMonthChange,
       }}
     >
       {/* Slack Share Modal */}
@@ -1898,9 +2744,9 @@ export default function Reports() {
           <PageContainerTabs>
             <TabNavigation
               tabs={[
-                { id: 'weekly', label: 'Weekly' },
-                { id: 'monthly', label: 'Monthly' },
-                { id: 'quarterly', label: 'Quarterly' }
+                { id: "weekly", label: "Weekly" },
+                { id: "monthly", label: "Monthly" },
+                { id: "quarterly", label: "Quarterly" },
               ]}
               activeTab={activeTab}
               onTabChange={setActiveTab}
@@ -1917,72 +2763,121 @@ export default function Reports() {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-medium text-dark">
-                    {activeTab === 'weekly' && 'Weekly Reports'}
-                    {activeTab === 'monthly' && 'Monthly Reports'}
-                    {activeTab === 'quarterly' && 'Quarterly Reports'}
+                    {activeTab === "weekly" && "Weekly Reports"}
+                    {activeTab === "monthly" && "Monthly Reports"}
+                    {activeTab === "quarterly" && "Quarterly Reports"}
                   </h2>
                 </div>
 
                 <div className="space-y-4">
-                  {activeTab === 'weekly' && filteredReports.weekly.length > 0 ? (
-                    filteredReports.weekly.map(report => (
+                  {activeTab === "weekly" && filteredReports.weekly.length > 0
+                    ? filteredReports.weekly.map((report) => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
-                        onClick={() => handleReportSelect(report.id, 'weekly')}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id
+                            ? "bg-white border-4 border-[#9EA8FB]"
+                            : "bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50"
+                          }`}
+                        onClick={() =>
+                          handleReportSelect(report.id, "weekly")
+                        }
                       >
-                        <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                        <p
+                          className={`text-base ${selectedReport === report.id
+                              ? "font-medium text-primary"
+                              : "text-dark"
+                            }`}
+                        >
+                          {report.title}
+                        </p>
                         <div className="flex items-center mt-2">
                           <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
-                          <p className="text-sm text-mediumGray">{report.date}</p>
+                          <p className="text-sm text-mediumGray">
+                            {report.date}
+                          </p>
                         </div>
                       </div>
                     ))
-                  ) : activeTab === 'weekly' && (
-                    <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
-                      <p className="text-mediumGray">No weekly reports found for the selected filters.</p>
-                    </div>
-                  )}
+                    : activeTab === "weekly" && (
+                      <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
+                        <p className="text-mediumGray">
+                          No weekly reports found for the selected filters.
+                        </p>
+                      </div>
+                    )}
 
-                  {activeTab === 'monthly' && filteredReports.monthly.length > 0 ? (
-                    filteredReports.monthly.map(report => (
+                  {activeTab === "monthly" && filteredReports.monthly.length > 0
+                    ? filteredReports.monthly.map((report) => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
-                        onClick={() => handleReportSelect(report.id, 'monthly')}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id
+                            ? "bg-white border-4 border-[#9EA8FB]"
+                            : "bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50"
+                          }`}
+                        onClick={() =>
+                          handleReportSelect(report.id, "monthly")
+                        }
                       >
-                        <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                        <p
+                          className={`text-base ${selectedReport === report.id
+                              ? "font-medium text-primary"
+                              : "text-dark"
+                            }`}
+                        >
+                          {report.title}
+                        </p>
                         <div className="flex items-center mt-2">
                           <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
-                          <p className="text-sm text-mediumGray">{report.date}</p>
+                          <p className="text-sm text-mediumGray">
+                            {report.date}
+                          </p>
                         </div>
                       </div>
                     ))
-                  ) : activeTab === 'monthly' && (
-                    <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
-                      <p className="text-mediumGray">No monthly reports found for the selected filters.</p>
-                    </div>
-                  )}
+                    : activeTab === "monthly" && (
+                      <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
+                        <p className="text-mediumGray">
+                          No monthly reports found for the selected filters.
+                        </p>
+                      </div>
+                    )}
 
-                  {activeTab === 'quarterly' && filteredReports.quarterly.length > 0 ? (
-                    filteredReports.quarterly.map(report => (
+                  {activeTab === "quarterly" &&
+                    filteredReports.quarterly.length > 0
+                    ? filteredReports.quarterly.map((report) => (
                       <div
                         key={report.id}
-                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id ? 'bg-white border-4 border-[#9EA8FB]' : 'bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50'}`}
-                        onClick={() => handleReportSelect(report.id, 'quarterly')}
+                        className={`p-4 rounded-lg cursor-pointer transition-colors shadow-sm ${selectedReport === report.id
+                            ? "bg-white border-4 border-[#9EA8FB]"
+                            : "bg-white border-4 border-[#F5F5F9] hover:border-[#9EA8FB]/50"
+                          }`}
+                        onClick={() =>
+                          handleReportSelect(report.id, "quarterly")
+                        }
                       >
-                        <p className={`text-base ${selectedReport === report.id ? 'font-medium text-primary' : 'text-dark'}`}>{report.title}</p>
+                        <p
+                          className={`text-base ${selectedReport === report.id
+                              ? "font-medium text-primary"
+                              : "text-dark"
+                            }`}
+                        >
+                          {report.title}
+                        </p>
                         <div className="flex items-center mt-2">
                           <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
-                          <p className="text-sm text-mediumGray">{report.date}</p>
+                          <p className="text-sm text-mediumGray">
+                            {report.date}
+                          </p>
                         </div>
                       </div>
                     ))
-                  ) : activeTab === 'quarterly' && (
-                    <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
-                      <p className="text-mediumGray">No quarterly reports found for the selected filters.</p>
-                    </div>
-                  )}
+                    : activeTab === "quarterly" && (
+                      <div className="p-4 bg-white rounded-lg border-4 border-[#F5F5F9] shadow-sm text-center">
+                        <p className="text-mediumGray">
+                          No quarterly reports found for the selected filters.
+                        </p>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -1994,59 +2889,72 @@ export default function Reports() {
                   <div className="flex items-center">
                     <Button
                       variant="ghost"
-                      className={`mr-3 ${!selectedReport || filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) <= 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#9EA8FB]/10'}`}
+                      className={`mr-3 ${!selectedReport ||
+                          filteredReports[
+                            activeTab as keyof typeof filteredReports
+                          ].findIndex((r) => r.id === selectedReport) <= 0
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-[#9EA8FB]/10"
+                        }`}
                       onClick={navigateToPreviousReport}
-                      disabled={!selectedReport || filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) <= 0}
+                      disabled={
+                        !selectedReport ||
+                        filteredReports[
+                          activeTab as keyof typeof filteredReports
+                        ].findIndex((r) => r.id === selectedReport) <= 0
+                      }
                     >
                       <BiChevronLeft className="h-5 w-5" />
                     </Button>
                     <h2 className="text-lg md:text-xl font-medium text-dark">
-                      {activeTab === 'weekly' && selectedReport && filteredReports.weekly.find(r => r.id === selectedReport)?.title}
-                      {activeTab === 'monthly' && selectedReport && filteredReports.monthly.find(r => r.id === selectedReport)?.title}
-                      {activeTab === 'quarterly' && selectedReport && filteredReports.quarterly.find(r => r.id === selectedReport)?.title}
+                      {activeTab === "weekly" &&
+                        selectedReport &&
+                        filteredReports.weekly.find(
+                          (r) => r.id === selectedReport
+                        )?.title}
+                      {activeTab === "monthly" &&
+                        selectedReport &&
+                        filteredReports.monthly.find(
+                          (r) => r.id === selectedReport
+                        )?.title}
+                      {activeTab === "quarterly" &&
+                        selectedReport &&
+                        filteredReports.quarterly.find(
+                          (r) => r.id === selectedReport
+                        )?.title}
                     </h2>
                     <Button
                       variant="ghost"
-                      className={`ml-3 ${
-                        !selectedReport ||
-                        filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) >=
-                        filteredReports[activeTab as keyof typeof filteredReports].length - 1
-                        ? 'opacity-50 cursor-not-allowed'
-                        : 'hover:bg-[#9EA8FB]/10'
-                      }`}
+                      className={`ml-3 ${!selectedReport ||
+                          filteredReports[
+                            activeTab as keyof typeof filteredReports
+                          ].findIndex((r) => r.id === selectedReport) >=
+                          filteredReports[
+                            activeTab as keyof typeof filteredReports
+                          ].length -
+                          1
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-[#9EA8FB]/10"
+                        }`}
                       onClick={navigateToNextReport}
                       disabled={
                         !selectedReport ||
-                        filteredReports[activeTab as keyof typeof filteredReports].findIndex(r => r.id === selectedReport) >=
-                        filteredReports[activeTab as keyof typeof filteredReports].length - 1
+                        filteredReports[
+                          activeTab as keyof typeof filteredReports
+                        ].findIndex((r) => r.id === selectedReport) >=
+                        filteredReports[
+                          activeTab as keyof typeof filteredReports
+                        ].length -
+                        1
                       }
                     >
                       <BiChevronRight className="h-5 w-5" />
                     </Button>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    {/* {activeTab === 'weekly' && (
-                      <Button
-                        className="flex items-center space-x-2 bg-[#4A154B] hover:bg-[#3a1039] text-white"
-                        onClick={handleSlackShare}
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
-                          <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.687 8.834a2.528 2.528 0 0 1-2.521 2.521 2.527 2.527 0 0 1-2.522-2.521V2.522A2.527 2.527 0 0 1 15.166 0a2.528 2.528 0 0 1 2.521 2.522v6.312zM15.166 18.956a2.528 2.528 0 0 1 2.521 2.522A2.528 2.528 0 0 1 15.166 24a2.527 2.527 0 0 1-2.522-2.522v-2.522h2.522zM15.166 17.687a2.527 2.527 0 0 1-2.522-2.522 2.527 2.527 0 0 1 2.522-2.52h6.312A2.528 2.528 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.522h-6.312z" fill="currentColor" />
-                        </svg>
-                        <span>Share to Slack</span>
-                      </Button>
-                    )} */}
-                    <Button variant="outline" className="flex items-center text-sm">
-                      <BiDownload className="h-4 w-4 mr-2" />
-                      PDF
-                    </Button>
-                  </div>
                 </div>
 
                 {/* Report Content */}
-                <div className="mt-6">
-                  {reportContent}
-                </div>
+                <div className="mt-6">{reportContent}</div>
               </div>
             </div>
           </div>
@@ -2055,5 +2963,3 @@ export default function Reports() {
     </DashboardLayout>
   );
 }
-
-

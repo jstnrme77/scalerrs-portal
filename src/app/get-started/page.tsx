@@ -20,7 +20,7 @@ import {
   FileSpreadsheet,
   Slack,
   FolderOpen,
-  BarChart3
+  ChartColumn
 } from 'lucide-react';
 
 import {
@@ -63,7 +63,7 @@ export default function GetStartedPage() {
     ...link,
     icon: link.icon === 'slack' ? <Slack size={20} /> :
           link.icon === 'folder' ? <FolderOpen size={20} /> :
-          <BarChart3 size={20} />
+          <ChartColumn size={20} />
   }));
 
   return (
