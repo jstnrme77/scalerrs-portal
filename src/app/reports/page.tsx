@@ -1877,7 +1877,7 @@ const sampleReportContent = {
         </div>
 
         {/* Text Summary - Moved TLDR below KPIs */}
-        <div className="bg-white p-5 ">
+        <div className="bg-white p-6 ">
           <h4 className="text-lg font-bold text-dark mb-3">
             Executive Summary
           </h4>
@@ -2421,7 +2421,7 @@ const sampleReportContent = {
       </div>
 
       {/* Risk and Tradeoffs */}
-      <div className="bg-white p-6">
+      <div className="bg-white p-6 mb-6">
         <h4 className="text-lg font-bold text-dark mb-4">
           Risks and Tradeoffs
         </h4>
@@ -2433,7 +2433,7 @@ const sampleReportContent = {
           </li>
           <li>
             <span className="font-medium text-dark">Competitive pressure:</span>{" "}
-            Competitor A's aggressive content strategy requires us to maintain
+            Competitor A&apos;s aggressive content strategy requires us to maintain
             quality over quantity
           </li>
           <li>
@@ -2450,12 +2450,12 @@ const sampleReportContent = {
       </div>
 
       {/* TL;DR */}
-      <div className="bg-gray-50 p-6 rounded-lg">
-        <h4 className="text-lg font-bold text-dark mb-4">TL;DR</h4>
+      <div className="bg-gray-50 p-6">
+        <h4 className="text-base font-medium text-dark mb-2">TL;DR</h4>
         <p className="text-base text-mediumGray leading-relaxed">
           Q1 2025 delivered strong results across all KPIs with traffic up 42%
           YoY and leads up 38% YoY. Technical improvements and content quality
-          drove performance gains. For Q2, we'll focus on mobile optimization,
+          drove performance gains. For Q2, we&apos;ll focus on mobile optimization,
           expanding high-converting content clusters, and targeted link building
           for product pages. Main risks include competitive pressure and
           potential algorithm updates favoring UX metrics.
