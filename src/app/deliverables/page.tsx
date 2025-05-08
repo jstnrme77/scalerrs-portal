@@ -67,7 +67,7 @@ export default function DeliverablePage() {
       selectedMonth: selectedMonth,
       onMonthChange: setSelectedMonth
     };
-    
+
     // Dispatch event to communicate with layout
     window.dispatchEvent(new CustomEvent('updateTopNavBar', { detail: layoutData }));
   }, [selectedMonth]);
@@ -79,10 +79,10 @@ export default function DeliverablePage() {
       selectedMonth: selectedMonth,
       onMonthChange: setSelectedMonth
     };
-    
+
     // Immediately dispatch event on mount to initialize TopNavBar
     window.dispatchEvent(new CustomEvent('updateTopNavBar', { detail: layoutData }));
-    
+
     // Also set a timeout to dispatch the event again after a slight delay
     // This helps in case of race conditions with layout component mounting
     setTimeout(() => {
@@ -100,7 +100,7 @@ export default function DeliverablePage() {
       })),
       ...mockData2025.briefs
     ];
-    
+
     const combinedArticles = [
       ...mockArticles.map(article => ({
         ...article,
@@ -108,7 +108,7 @@ export default function DeliverablePage() {
       })),
       ...mockData2025.articles
     ];
-    
+
     const combinedBacklinks = [
       ...mockBacklinks.map(backlink => ({
         ...backlink,
@@ -116,20 +116,20 @@ export default function DeliverablePage() {
       })),
       ...mockData2025.backlinks
     ];
-    
+
     // Set combined data
     console.log('Using combined mock data for deliverables page');
     setBriefs(combinedBriefs);
     setArticles(combinedArticles);
     setBacklinks(combinedBacklinks);
-    
+
     // Also import URL Performance mock data
     const fetchURLMockData = async () => {
       const { mockURLPerformance } = await import('@/lib/mock-data');
       setUrlPerformance(mockURLPerformance);
       setLoading(false);
     };
-    
+
     fetchURLMockData();
   }, []);
 
@@ -316,9 +316,9 @@ export default function DeliverablePage() {
   return (
     <main className="flex flex-1 flex-col gap-6 p-3 md:gap-8 md:p-1">
       {/* Top-Level Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-full">
         {/* Briefs Approved Card */}
-        <div className={`rounded-[16px] border-5 p-6 bg-white ${
+        <div className={`rounded-lg border-4 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
           filteredBriefs.length > 0 &&
           (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.7
             ? 'border-[#9ea8fb]'
@@ -326,8 +326,8 @@ export default function DeliverablePage() {
               ? 'border-[#fcdc94]'
               : 'border-[#eadcff]'
         }`}>
-          <div className="flex flex-col items-center text-center">
-            <span className="text-3xl font-bold mb-2">
+          <div className="flex flex-col items-center text-center w-full">
+            <span className="text-lg font-bold mb-1 notification-text">
               {filteredBriefs.length > 0
                 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) * 100)
                 : 0}%
@@ -335,14 +335,14 @@ export default function DeliverablePage() {
             <span className="text-base font-medium">
               Briefs Approved
             </span>
-            <span className="text-sm text-gray-600 mt-1">
+            <span className="text-base text-mediumGray mt-1">
               {filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length} of {filteredBriefs.length} briefs approved
             </span>
           </div>
         </div>
 
         {/* Articles Live Card */}
-        <div className={`rounded-[16px] border-5 p-6 bg-white ${
+        <div className={`rounded-lg border-4 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
           filteredArticles.length > 0 &&
           (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.7
             ? 'border-[#9ea8fb]'
@@ -350,8 +350,8 @@ export default function DeliverablePage() {
               ? 'border-[#fcdc94]'
               : 'border-[#eadcff]'
         }`}>
-          <div className="flex flex-col items-center text-center">
-            <span className="text-3xl font-bold mb-2">
+          <div className="flex flex-col items-center text-center w-full">
+            <span className="text-lg font-bold mb-1 notification-text">
               {filteredArticles.length > 0
                 ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100)
                 : 0}%
@@ -359,14 +359,14 @@ export default function DeliverablePage() {
             <span className="text-base font-medium">
               Articles Live
             </span>
-            <span className="text-sm text-gray-600 mt-1">
+            <span className="text-base text-mediumGray mt-1">
               {filteredArticles.filter(article => article.Status === 'Live').length} of {filteredArticles.length} articles live
             </span>
           </div>
         </div>
 
         {/* Backlinks Live Card */}
-        <div className={`rounded-[16px] border-5 p-6 bg-white ${
+        <div className={`rounded-lg border-4 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
           filteredBacklinks.length > 0 &&
           (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.7
             ? 'border-[#9ea8fb]'
@@ -374,8 +374,8 @@ export default function DeliverablePage() {
               ? 'border-[#fcdc94]'
               : 'border-[#eadcff]'
         }`}>
-          <div className="flex flex-col items-center text-center">
-            <span className="text-3xl font-bold mb-2">
+          <div className="flex flex-col items-center text-center w-full">
+            <span className="text-lg font-bold mb-1 notification-text">
               {filteredBacklinks.length > 0
                 ? Math.round((filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) * 100)
                 : 0}%
@@ -383,7 +383,7 @@ export default function DeliverablePage() {
             <span className="text-base font-medium">
               Backlinks Live
             </span>
-            <span className="text-sm text-gray-600 mt-1">
+            <span className="text-base text-mediumGray mt-1">
               {filteredBacklinks.filter(backlink => backlink.Status === 'Live').length} of {filteredBacklinks.length} backlinks placed
             </span>
           </div>
@@ -417,26 +417,118 @@ export default function DeliverablePage() {
       ) : (
         <div className="page-container mb-6">
           <div className="page-container-tabs">
-            <div className="tab-navigation">
-              <div className="flex overflow-x-auto">
-                <button
-                  className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('briefs')}
-                >
-                  Briefs
-                </button>
-                <button
-                  className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('articles')}
-                >
-                  Articles
-                </button>
-                <button
-                  className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                  onClick={() => setMainTab('backlinks')}
-                >
-                  Backlinks
-                </button>
+            <div className="flex justify-between items-center">
+              <div className="tab-navigation">
+                <div className="flex overflow-x-auto">
+                  <button
+                    className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    onClick={() => setMainTab('briefs')}
+                  >
+                    Briefs
+                  </button>
+                  <button
+                    className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    onClick={() => setMainTab('articles')}
+                  >
+                    Articles
+                  </button>
+                  <button
+                    className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
+                    onClick={() => setMainTab('backlinks')}
+                  >
+                    Backlinks
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Filter - dynamically shows the appropriate filter based on active tab */}
+              <div className="ml-auto flex items-center gap-2">
+                {mainTab === 'briefs' && (
+                  <>
+                    <select
+                      className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                      value={briefStatusFilter}
+                      onChange={(e) => setBriefStatusFilter(e.target.value)}
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="Brief Approved">Approved</option>
+                      <option value="Needs Input">Needs Input</option>
+                      <option value="Review Brief">Review Brief</option>
+                      <option value="In Progress">In Progress</option>
+                    </select>
+                    {briefStatusFilter !== 'all' && (
+                      <button
+                        onClick={() => setBriefStatusFilter('all')}
+                        className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {mainTab === 'articles' && (
+                  <>
+                    <select
+                      className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                      value={articleStatusFilter}
+                      onChange={(e) => setArticleStatusFilter(e.target.value)}
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="Live">Live</option>
+                      <option value="Draft Approved">Draft Approved</option>
+                      <option value="Review Draft">Review Draft</option>
+                      <option value="In Production">In Production</option>
+                      <option value="To Be Published">To Be Published</option>
+                    </select>
+                    {articleStatusFilter !== 'all' && (
+                      <button
+                        onClick={() => setArticleStatusFilter('all')}
+                        className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {mainTab === 'backlinks' && (
+                  <>
+                    <div className="flex gap-2">
+                      <select
+                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="Live">Live</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                      <select
+                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                        value={drFilter}
+                        onChange={(e) => setDrFilter(e.target.value)}
+                      >
+                        <option value="all">All DR</option>
+                        <option value="50+">DR 50+</option>
+                        <option value="60+">DR 60+</option>
+                        <option value="70+">DR 70+</option>
+                      </select>
+                    </div>
+                    {(statusFilter !== 'all' || drFilter !== 'all') && (
+                      <button
+                        onClick={() => {
+                          setStatusFilter('all');
+                          setDrFilter('all');
+                        }}
+                        className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -473,33 +565,7 @@ export default function DeliverablePage() {
                     </div> */}
                     {/* Briefs Table */}
                     <div className="bg-white">
-                      <div className="mb-8 flex flex-wrap gap-4 p-4">
-                        <div>
-                          <select
-                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                            value={briefStatusFilter}
-                            onChange={(e) => setBriefStatusFilter(e.target.value)}
-                          >
-                            <option value="all">All Statuses</option>
-                            <option value="Brief Approved">Approved</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Needs Input">Needs Input</option>
-                            <option value="Review Brief">Review Brief</option>
-                            <option value="In Progress">In Progress</option>
-                          </select>
-                        </div>
-                        {briefStatusFilter !== 'all' && (
-                          <div className="flex items-end">
-                            <button
-                              onClick={() => setBriefStatusFilter('all')}
-                              className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
-                            >
-                              Clear Filter
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      
+
                       <Table>
                         <TableHeader className="bg-[#9EA8FB]/10">
                           <TableRow>
@@ -651,32 +717,6 @@ export default function DeliverablePage() {
                     </div> */}
                     {/* Articles Table */}
                     <div className="bg-white">
-                      <div className="mb-8 flex flex-wrap gap-4 p-4">
-                        <div>
-                          <select
-                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                            value={articleStatusFilter}
-                            onChange={(e) => setArticleStatusFilter(e.target.value)}
-                          >
-                            <option value="all">All Statuses</option>
-                            <option value="Live">Live</option>
-                            <option value="Draft Approved">Draft Approved</option>
-                            <option value="Review Draft">Review Draft</option>
-                            <option value="In Production">In Production</option>
-                            <option value="To Be Published">To Be Published</option>
-                          </select>
-                        </div>
-                        {articleStatusFilter !== 'all' && (
-                          <div className="flex items-end">
-                            <button
-                              onClick={() => setArticleStatusFilter('all')}
-                              className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
-                            >
-                              Clear Filter
-                            </button>
-                          </div>
-                        )}
-                      </div>
 
                       <Table>
                         <TableHeader className="bg-[#9EA8FB]/10">
@@ -862,45 +902,6 @@ export default function DeliverablePage() {
 
                     {/* Backlinks Table */}
                     <div className="bg-white">
-                      <div className="mb-8 flex flex-wrap gap-4 p-4">
-                        <div>
-                          <select
-                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                          >
-                            <option value="all">All Statuses</option>
-                            <option value="Live">Live</option>
-                            <option value="Scheduled">Scheduled</option>
-                            <option value="Rejected">Rejected</option>
-                          </select>
-                        </div>
-                        <div>
-                          <select
-                            className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                            value={drFilter}
-                            onChange={(e) => setDrFilter(e.target.value)}
-                          >
-                            <option value="all">All DR</option>
-                            <option value="50+">DR 50+</option>
-                            <option value="60+">DR 60+</option>
-                            <option value="70+">DR 70+</option>
-                          </select>
-                        </div>
-                        {(statusFilter !== 'all' || drFilter !== 'all') && (
-                          <div className="flex items-end">
-                            <button
-                              onClick={() => {
-                                setStatusFilter('all');
-                                setDrFilter('all');
-                              }}
-                              className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
-                            >
-                              Clear Filters
-                            </button>
-                          </div>
-                        )}
-                      </div>
 
                       <Table>
                         <TableHeader className="bg-[#9EA8FB]/10">
