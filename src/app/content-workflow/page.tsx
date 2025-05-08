@@ -7,6 +7,8 @@ import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
 import DocumentViewerModal from '@/components/modals/DocumentViewerModal';
 import useDocumentViewer from '@/hooks/useDocumentViewer';
+import TabNavigation from '@/components/ui/navigation/TabNavigation';
+import { FileText, BookOpen, Link2 } from 'lucide-react';
 
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
@@ -512,27 +514,16 @@ export default function ContentWorkflowPage() {
             <div className="tab-navigation">
               <div className="flex justify-between items-center w-full">
                 <div className="flex overflow-x-auto">
-                  <button
-                    className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                    style={{ fontSize: '16px', fontFamily: 'Roboto, sans-serif' }}
-                    onClick={() => setMainTab('briefs')}
-                  >
-                    Briefs
-                  </button>
-                  <button
-                    className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                    style={{ fontSize: '16px', fontFamily: 'Roboto, sans-serif' }}
-                    onClick={() => setMainTab('articles')}
-                  >
-                    Articles
-                  </button>
-                  <button
-                    className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                    style={{ fontSize: '16px', fontFamily: 'Roboto, sans-serif' }}
-                    onClick={() => setMainTab('backlinks')}
-                  >
-                    Backlinks
-                  </button>
+                  <TabNavigation
+                    tabs={[
+                      { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
+                      { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
+                      { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
+                    ]}
+                    activeTab={mainTab}
+                    onTabChange={setMainTab}
+                    variant="primary"
+                  />
                 </div>
 
                 {mainTab === 'backlinks' && (

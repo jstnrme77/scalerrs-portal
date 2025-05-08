@@ -2,10 +2,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance } from '@/lib/client-api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { mockBriefs, mockArticles, mockBacklinks } from '@/lib/mock-data';
 import mockData2025 from '@/mockups/content-workflow-2025';
+import TabNavigation from '@/components/ui/navigation/TabNavigation';
 
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
@@ -420,24 +421,16 @@ export default function DeliverablePage() {
             <div className="flex justify-between items-center">
               <div className="tab-navigation">
                 <div className="flex overflow-x-auto">
-                  <button
-                    className={`tab-item ${mainTab === 'briefs' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                    onClick={() => setMainTab('briefs')}
-                  >
-                    Briefs
-                  </button>
-                  <button
-                    className={`tab-item ${mainTab === 'articles' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                    onClick={() => setMainTab('articles')}
-                  >
-                    Articles
-                  </button>
-                  <button
-                    className={`tab-item ${mainTab === 'backlinks' ? 'tab-item-active' : 'tab-item-inactive'} font-semibold`}
-                    onClick={() => setMainTab('backlinks')}
-                  >
-                    Backlinks
-                  </button>
+                  <TabNavigation
+                    tabs={[
+                      { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
+                      { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
+                      { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> }
+                    ]}
+                    activeTab={mainTab}
+                    onTabChange={(tab) => setMainTab(tab as MainTab)}
+                    variant="primary"
+                  />
                 </div>
               </div>
 

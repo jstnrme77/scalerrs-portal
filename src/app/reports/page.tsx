@@ -5,17 +5,15 @@ import DashboardLayout from "@/components/DashboardLayout";
 import {
   ChevronDown,
   Calendar,
-  Download,
   ExternalLink,
   MessageSquare,
   Filter,
-  ChevronLeft,
-  ChevronRight,
   ArrowUp,
   BarChart2,
   FolderOpen,
   Link2,
   ChartColumn,
+  TrendingUp,
 } from "lucide-react";
 import {
   BarChart,
@@ -2746,9 +2744,9 @@ export default function Reports() {
           <PageContainerTabs>
             <TabNavigation
               tabs={[
-                { id: "weekly", label: "Weekly" },
-                { id: "monthly", label: "Monthly" },
-                { id: "quarterly", label: "Quarterly" },
+                { id: "weekly", label: "Weekly", icon: <Calendar size={18} /> },
+                { id: "monthly", label: "Monthly", icon: <Calendar size={18} /> },
+                { id: "quarterly", label: "Quarterly", icon: <Calendar size={18} /> },
               ]}
               activeTab={activeTab}
               onTabChange={setActiveTab}

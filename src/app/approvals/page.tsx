@@ -4,6 +4,7 @@ import { useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
+import { FileText, BookOpen, Link2 } from 'lucide-react';
 
 // Sample approval data
 const approvalItems = {
@@ -695,12 +696,12 @@ export default function Approvals() {
             <PageContainerTabs>
               <TabNavigation
                 tabs={[
-                  { id: 'keywords', label: 'Keyword' },
-                  { id: 'briefs', label: 'Briefs' },
-                  { id: 'articles', label: 'Articles' },
-                  { id: 'backlinks', label: 'Backlinks' },
+                  { id: 'keywords', label: 'Keyword', icon: <FileText size={18} /> },
+                  { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
+                  { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
+                  { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
                   // Quick Wins tab is optional per requirements
-                  ...(items.quickwins.length > 0 ? [{ id: 'quickwins', label: 'Quick Wins' }] : [])
+                  ...(items.quickwins.length > 0 ? [{ id: 'quickwins', label: 'Quick Wins', icon: <FileText size={18} /> }] : [])
                 ]}
                 activeTab={activeTab}
                 onTabChange={(tab) => {

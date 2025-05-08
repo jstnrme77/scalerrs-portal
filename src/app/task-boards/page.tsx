@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
+import { BarChart, Wrench, LightbulbIcon } from 'lucide-react';
 import { fetchTasks, fetchComments, addComment, updateTaskStatus } from '@/lib/client-api';
 // Import task types from our types file
 import {
@@ -1237,9 +1238,9 @@ export default function TaskBoards() {
         <PageContainerTabs>
           <TabNavigation
             tabs={[
-              { id: 'cro', label: 'CRO' },
-              { id: 'technicalSEO', label: 'Technical SEO' },
-              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc' }
+              { id: 'cro', label: 'CRO', icon: <BarChart size={18} /> },
+              { id: 'technicalSEO', label: 'Technical SEO', icon: <Wrench size={18} /> },
+              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', icon: <LightbulbIcon size={18} /> }
             ]}
             activeTab={activeBoard}
             onTabChange={setActiveBoard}
@@ -1250,7 +1251,7 @@ export default function TaskBoards() {
         </PageContainerTabs>
         <PageContainerBody>
           {/* Removed notification text */}
-          
+
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#000000]"></div>

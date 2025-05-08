@@ -8,6 +8,7 @@ import AdminAccess from './AdminAccess';
 import ChangePasswordModal from './ChangePasswordModal';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody } from '@/components/ui/layout/PageContainer';
+import { FileText, KeyRound, FolderArchive } from 'lucide-react';
 
 // Sample admin data
 const adminData = {
@@ -77,13 +78,13 @@ export default function Admin() {
 
       // In a real application, you would send this to an API
       console.log(`Password updated for service ID ${id}`);
-      
+
       // Show success notification
       setActionStatus({
         type: 'success',
         message: 'Password updated successfully'
       });
-      
+
       // Clear notification after a delay
       setTimeout(() => {
         setActionStatus({ type: null, message: null });
@@ -94,7 +95,7 @@ export default function Admin() {
         type: 'error',
         message: 'Failed to update password. Please try again.'
       });
-      
+
       setTimeout(() => {
         setActionStatus({ type: null, message: null });
       }, 3000);
@@ -110,7 +111,7 @@ export default function Admin() {
         });
         return;
       }
-      
+
       setData(prevData => ({
         ...prevData,
         access: [...prevData.access, {
@@ -122,12 +123,12 @@ export default function Admin() {
           editable: true
         }]
       }));
-      
+
       setActionStatus({
         type: 'success',
         message: `Access for ${newAccess.service} added successfully`
       });
-      
+
       setTimeout(() => {
         setActionStatus({ type: null, message: null });
       }, 3000);
@@ -136,7 +137,7 @@ export default function Admin() {
         type: 'error',
         message: 'Failed to add access. Please try again.'
       });
-      
+
       setTimeout(() => {
         setActionStatus({ type: null, message: null });
       }, 3000);
@@ -152,7 +153,7 @@ export default function Admin() {
         });
         return;
       }
-      
+
       setData(prevData => ({
         ...prevData,
         resources: [...prevData.resources, {
@@ -163,12 +164,12 @@ export default function Admin() {
           editable: true
         }]
       }));
-      
+
       setActionStatus({
         type: 'success',
         message: `Resource "${newResource.name}" uploaded successfully`
       });
-      
+
       setTimeout(() => {
         setActionStatus({ type: null, message: null });
       }, 3000);
@@ -177,7 +178,7 @@ export default function Admin() {
         type: 'error',
         message: 'Failed to upload resource. Please try again.'
       });
-      
+
       setTimeout(() => {
         setActionStatus({ type: null, message: null });
       }, 3000);
@@ -227,9 +228,9 @@ export default function Admin() {
       <PageContainer>
         <TabNavigation
           tabs={[
-            { id: 'agreement', label: 'Agreement' },
-            { id: 'access', label: 'Access & Logins' },
-            { id: 'resources', label: 'Resources' }
+            { id: 'agreement', label: 'Agreement', icon: <FileText size={18} /> },
+            { id: 'access', label: 'Access & Logins', icon: <KeyRound size={18} /> },
+            { id: 'resources', label: 'Resources', icon: <FolderArchive size={18} /> }
           ]}
           activeTab={activeTab}
           onTabChange={setActiveTab}

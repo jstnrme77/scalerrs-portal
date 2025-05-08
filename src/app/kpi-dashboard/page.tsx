@@ -24,7 +24,10 @@ import {
   ChevronUp,
   RefreshCw,
   AlertOctagon,
-  ExternalLink
+  ExternalLink,
+  BarChart4,
+  LineChart,
+  PieChart
 } from "lucide-react";
 
 // Sample KPI data
@@ -328,7 +331,7 @@ function KpiDashboard() {
     return `At this pace you're projected to reach the yearly traffic & leads goal by December 2024`;
   };
 
-  // Custom TopNavBar props 
+  // Custom TopNavBar props
   const topNavBarProps = {
     pathname: '/kpi-dashboard', // Set the current path
     dateView: selectedDateView.value,
@@ -353,9 +356,9 @@ function KpiDashboard() {
         <PageContainerTabs>
           <TabNavigation
             tabs={[
-              { id: 'summary', label: 'KPI Summary' },
-              { id: 'forecasting', label: 'Forecasting Model' },
-              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type' },
+              { id: 'summary', label: 'KPI Summary', icon: <BarChart4 size={18} /> },
+              { id: 'forecasting', label: 'Forecasting Model', icon: <LineChart size={18} /> },
+              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type', icon: <PieChart size={18} /> },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -945,7 +948,7 @@ function KpiDashboard() {
                             <div className="absolute right-12 bottom-8 w-20 h-20 bg-[#B1E3FF] rounded-lg transform rotate-3"></div>
                             <div className="absolute left-12 bottom-12 w-20 h-18 bg-[#A5D7A7] rounded-lg transform -rotate-3"></div>
                             <div className="absolute left-6 top-24 w-14 h-14 bg-[#F8BBD0] rounded-lg transform rotate-12"></div>
-                            
+
                             {/* Central text bubble */}
                             <div className="bg-white rounded-lg shadow-sm z-10 p-3 flex flex-col items-center justify-center">
                               <span className="text-xs text-gray-700 font-medium">Traffic</span>
@@ -990,7 +993,7 @@ function KpiDashboard() {
                             <div className="absolute right-12 bottom-8 w-18 h-18 bg-[#B1E3FF] rounded-lg transform rotate-3"></div>
                             <div className="absolute left-10 bottom-10 w-20 h-20 bg-[#A5D7A7] rounded-lg transform -rotate-3"></div>
                             <div className="absolute left-6 top-28 w-10 h-10 bg-[#F8BBD0] rounded-lg transform rotate-12"></div>
-                            
+
                             {/* Central text bubble */}
                             <div className="bg-white rounded-lg shadow-sm z-10 p-3 flex flex-col items-center justify-center">
                               <span className="text-xs text-gray-700 font-medium">Conversion</span>

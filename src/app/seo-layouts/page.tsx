@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpDown, Filter, Download, Search } from "lucide-react";
+import { ArrowUpDown, Filter, Download, Search, Link2, PenTool, ClipboardCheck, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -361,12 +361,12 @@ function DataTable({
             <TableRow>
               {columns.map((column) => {
                 // Add specific width classes based on column type
-                const widthClass = 
+                const widthClass =
                   column.key === 'mainKw' ? 'w-[25%]' :
                   column.key === 'targetUrl' ? 'w-[20%]' :
                   column.key === 'publicationStatus' ? 'w-[15%]' :
                   column.key === 'documentLink' ? 'w-[10%]' : '';
-                    
+
                 return (
                   <TableHead
                     key={column.key}
@@ -676,11 +676,15 @@ export default function SEOLayoutsPage() {
           <PageContainerTabs>
             <TabNavigation
               tabs={[
-                { id: 'uplift', label: 'Uplift Potential' },
-                { id: 'internal-link', label: 'Internal Link Map' },
-                { id: 'link-building', label: 'Link Building Targets' },
+                { id: 'uplift', label: 'Uplift Potential', icon: <ClipboardCheck size={18} /> },
+                { id: 'internal-link', label: 'Internal Link Map', icon: <PenTool size={18} /> },
+                { id: 'link-building', label: 'Link Building Targets', icon: <Link2 size={18} /> },
                 // Add custom ad-hoc views
-                ...customViews.map(view => ({ id: view.id, label: view.label }))
+                ...customViews.map(view => ({
+                  id: view.id,
+                  label: view.label,
+                  icon: view.id === 'product-prune' ? <Scissors size={18} /> : undefined
+                }))
               ]}
               activeTab={activeTab}
               onTabChange={setActiveTab}

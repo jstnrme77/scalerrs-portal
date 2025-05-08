@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 export interface TabItem {
   id: string;
   label: string;
+  icon?: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -63,6 +64,14 @@ export default function TabNavigation({
               className
             )}
           >
+            {tab.icon && (
+              <span className={cn(
+                "mr-2 inline-flex items-center",
+                activeTab === tab.id ? "text-white" : ""
+              )}>
+                {tab.icon}
+              </span>
+            )}
             {tab.label}
           </button>
         ))}
