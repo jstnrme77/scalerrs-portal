@@ -500,18 +500,20 @@ const sampleReportContent = {
             </ul>
           </div>
 
-          <div className="p-6 rounded-lg border border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
-            <h5 className="font-bold text-dark text-lg mb-1 notification-text">
-              Action Required
-            </h5>
-            <ul className="list-disc pl-6 text-base text-mediumGray">
-              <li className="font-medium">
-                Review "Top 10 SEO Strategies for 2025" brief by May 2nd
-              </li>
-              <li className="font-medium">
-                Provide feedback on the new homepage design mockup
-              </li>
-            </ul>
+          <div className="p-6 rounded-lg border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-bold text-dark text-lg mb-1 notification-text">Action Required</p>
+                <ul className="list-disc pl-6 text-base text-mediumGray">
+                  <li className="font-medium">
+                    Review "Top 10 SEO Strategies for 2025" brief by May 2nd
+                  </li>
+                  <li className="font-medium">
+                    Provide feedback on the new homepage design mockup
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
