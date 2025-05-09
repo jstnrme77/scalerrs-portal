@@ -239,7 +239,7 @@ function GlobalSummaryBanner({ counts }: {
   const categoriesCount = Object.values(counts).filter(count => count > 0).length;
 
   return (
-    <div className="p-6 rounded-lg mb-6 border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+    <div className="p-6 rounded-lg mb-6 border-8 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
       <div className="flex justify-between items-start">
         <div>
           <p className="font-bold text-dark text-lg mb-1 notification-text">Pending Approvals</p>

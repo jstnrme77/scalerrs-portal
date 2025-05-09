@@ -319,7 +319,7 @@ export default function DeliverablePage() {
       {/* Top-Level Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-full">
         {/* Briefs Approved Card */}
-        <div className={`rounded-lg border-4 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
+        <div className={`rounded-lg border-8 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
           filteredBriefs.length > 0 &&
           (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.7
             ? 'border-[#9ea8fb]'
@@ -343,7 +343,7 @@ export default function DeliverablePage() {
         </div>
 
         {/* Articles Live Card */}
-        <div className={`rounded-lg border-4 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
+        <div className={`rounded-lg border-8 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
           filteredArticles.length > 0 &&
           (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.7
             ? 'border-[#9ea8fb]'
@@ -367,7 +367,7 @@ export default function DeliverablePage() {
         </div>
 
         {/* Backlinks Live Card */}
-        <div className={`rounded-lg border-4 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
+        <div className={`rounded-lg border-8 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
           filteredBacklinks.length > 0 &&
           (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.7
             ? 'border-[#9ea8fb]'
