@@ -153,6 +153,7 @@
 - ✅ Fixed document viewer modal to work without external dependencies
 - ✅ Removed approval buttons from Content Workflow page as per requirements
 - ✅ Modified DashboardLayout to support TopNavBar customization for different pages
+- ✅ Fixed type error in Content Workflow page with TabNavigation component
 - 🔄 Improving type safety throughout the application
 
 ## Upcoming Tasks
@@ -287,3 +288,4 @@
 - Used consistent icon sizing (18px) across all tab navigation components for visual harmony
 - Selected appropriate icons for each tab that visually represent the tab's purpose (e.g., BarChart for CRO, Wrench for Technical SEO, LightbulbIcon for Strategy)
 - Ensured all tab navigation components use the same styling with icons that turn white when the tab is active
+- Fixed type error in Content Workflow page by adding proper type casting for the TabNavigation component's onTabChange prop

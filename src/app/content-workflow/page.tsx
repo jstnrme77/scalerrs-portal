@@ -521,7 +521,7 @@ export default function ContentWorkflowPage() {
                       { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
                     ]}
                     activeTab={mainTab}
-                    onTabChange={setMainTab}
+                    onTabChange={(tab) => setMainTab(tab as MainTab)}
                     variant="primary"
                   />
                 </div>
