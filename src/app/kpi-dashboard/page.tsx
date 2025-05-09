@@ -378,12 +378,10 @@ function KpiDashboard() {
                 <Card className="border-gray-200">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-sm font-medium text-gray-600">Revenue Impact</CardTitle>
-                        <div className="flex items-center text-green-600 text-sm font-medium">
-                          <ArrowUp className="h-4 w-4 mr-1" />
-                          <span>12%</span>
-                        </div>
+                      <CardTitle className="text-sm font-medium text-gray-600">Revenue Impact</CardTitle>
+                      <div className="flex items-center text-green-600 text-sm font-medium">
+                        <ArrowUp className="h-4 w-4 mr-1" />
+                        <span>12%</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -414,16 +412,14 @@ function KpiDashboard() {
                 <Card className="border-gray-200">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-sm font-medium text-gray-600">Organic Clicks</CardTitle>
-                        <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {kpiData.summary.organicTraffic.change >= 0 ? (
-                            <ArrowUp className="h-4 w-4 mr-1" />
-                          ) : (
-                            <ArrowDown className="h-4 w-4 mr-1" />
-                          )}
-                          <span>{kpiData.summary.organicTraffic.change}%</span>
-                        </div>
+                      <CardTitle className="text-sm font-medium text-gray-600">Organic Clicks</CardTitle>
+                      <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {kpiData.summary.organicTraffic.change >= 0 ? (
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                        ) : (
+                          <ArrowDown className="h-4 w-4 mr-1" />
+                        )}
+                        <span>{kpiData.summary.organicTraffic.change}%</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -454,12 +450,10 @@ function KpiDashboard() {
                 <Card className="border-gray-200">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
-                        <div className="flex items-center text-green-600 text-sm font-medium">
-                          <ArrowUp className="h-4 w-4 mr-1" />
-                          <span>0.3%</span>
-                        </div>
+                      <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
+                      <div className="flex items-center text-green-600 text-sm font-medium">
+                        <ArrowUp className="h-4 w-4 mr-1" />
+                        <span>0.3%</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -762,7 +756,7 @@ function KpiDashboard() {
                 <Card className="border border-gray-200">
                   <CardHeader>
                     <CardTitle>Forecast Based on Current Resources</CardTitle>
-                    <CardDescription>What you're projected to achieve with current deliverables and timeline</CardDescription>
+                    <CardDescription>What you&apos;re projected to achieve with current deliverables and timeline</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {/* 1. Projected Outcomes */}
