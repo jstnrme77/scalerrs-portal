@@ -7,7 +7,7 @@ import AdminResources from './AdminResources';
 import AdminAccess from './AdminAccess';
 import ChangePasswordModal from './ChangePasswordModal';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
-import PageContainer, { PageContainerHeader, PageContainerBody } from '@/components/ui/layout/PageContainer';
+import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { FileText, KeyRound, FolderArchive } from 'lucide-react';
 
 // Sample admin data
@@ -226,17 +226,24 @@ export default function Admin() {
       )}
 
       <PageContainer>
-        <TabNavigation
-          tabs={[
-            { id: 'agreement', label: 'Agreement', icon: <FileText size={18} /> },
-            { id: 'access', label: 'Access & Logins', icon: <KeyRound size={18} /> },
-            { id: 'resources', label: 'Resources', icon: <FolderArchive size={18} /> }
-          ]}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          variant="primary"
-          containerClassName="overflow-x-auto"
-        />
+        <PageContainerTabs>
+          <div className="tab-navigation">
+            <div className="flex justify-between items-center w-full">
+              <div className="flex overflow-x-auto">
+                <TabNavigation
+                  tabs={[
+                    { id: 'agreement', label: 'Agreement', icon: <FileText size={18} /> },
+                    { id: 'access', label: 'Access & Logins', icon: <KeyRound size={18} /> },
+                    { id: 'resources', label: 'Resources', icon: <FolderArchive size={18} /> }
+                  ]}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  variant="primary"
+                />
+              </div>
+            </div>
+          </div>
+        </PageContainerTabs>
 
         <PageContainerBody>
           {activeTab === 'agreement' && (

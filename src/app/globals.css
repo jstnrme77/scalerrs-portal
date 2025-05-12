@@ -534,6 +534,7 @@ button:hover, a.btn-primary:hover, a.btn-secondary:hover, a.btn-tertiary:hover {
   font-weight: 500;
   font-size: 16px !important;
   padding: 0.75rem 1.5rem;
+  border: none !important;
 }
 
 .tab-item-inactive {
@@ -543,6 +544,7 @@ button:hover, a.btn-primary:hover, a.btn-secondary:hover, a.btn-tertiary:hover {
   font-weight: 500;
   font-size: 16px !important;
   padding: 0.75rem 1.5rem;
+  border: none !important;
 }
 
 .tab-item-inactive:hover {
@@ -789,7 +791,7 @@ thead tr th:last-child {
 }
 
 /* Override for task button to ensure 12px border radius */
-.task-btn-override, 
+.task-btn-override,
 button.task-btn-override,
 .fixed.top-0 button.task-btn-override {
   border-radius: 12px !important;

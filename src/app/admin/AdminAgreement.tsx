@@ -79,46 +79,6 @@ export default function AdminAgreement({
           </div>
         ))}
       </div>
-      
-      {(settings.renewalDate || settings.planName || settings.showUpgradePrompt) && (
-        <div className="mt-8">
-          <h3 className="text-md font-medium text-dark mb-3">Plan Information</h3>
-          <Card className="bg-white border border-gray-300 shadow-none">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {settings.planName && (
-                <div>
-                  <p className="text-sm font-medium text-mediumGray">Current Plan</p>
-                  <p className="text-md font-semibold text-dark">{settings.planName}</p>
-                </div>
-              )}
-              
-              {settings.renewalDate && (
-                <div>
-                  <p className="text-sm font-medium text-mediumGray">Renewal Date</p>
-                  <p className="text-md font-semibold text-dark">
-                    {new Date(settings.renewalDate).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
-              
-              {settings.showUpgradePrompt && (
-                <div className="flex items-center">
-                  <Button 
-                    variant="default"
-                    className="font-bold rounded-[16px] text-sm"
-                  >
-                    Upgrade Plan
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Card>
-          <p className="text-xs text-mediumGray mt-2">
-            <span className="font-medium">Note:</span> Plan information is managed by the Scalerrs team. Please contact your account manager for any changes.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

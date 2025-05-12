@@ -2740,19 +2740,24 @@ export default function Reports() {
       />
 
       <PageContainer className="w-full">
-        <div ref={headerRef} className="sticky top-0 z-20 bg-white shadow-sm">
+        <div ref={headerRef} className="sticky top-0 z-20 bg-white">
           <PageContainerTabs>
-            <TabNavigation
-              tabs={[
-                { id: "weekly", label: "Weekly", icon: <Calendar size={18} /> },
-                { id: "monthly", label: "Monthly", icon: <Calendar size={18} /> },
-                { id: "quarterly", label: "Quarterly", icon: <Calendar size={18} /> },
-              ]}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              variant="primary"
-              containerClassName="flex flex-nowrap"
-            />
+            <div className="tab-navigation">
+              <div className="flex justify-between items-center w-full">
+                <div className="flex overflow-x-auto">
+                  <TabNavigation
+                    tabs={[
+                      { id: "weekly", label: "Weekly", icon: <Calendar size={18} /> },
+                      { id: "monthly", label: "Monthly", icon: <Calendar size={18} /> },
+                      { id: "quarterly", label: "Quarterly", icon: <Calendar size={18} /> },
+                    ]}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    variant="primary"
+                  />
+                </div>
+              </div>
+            </div>
           </PageContainerTabs>
         </div>
 
