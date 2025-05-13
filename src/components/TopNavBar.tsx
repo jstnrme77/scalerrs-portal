@@ -97,14 +97,25 @@ export default function TopNavBar({
   const isTaskBoardsPage = pathname === '/task-boards';
   const isKpiDashboardPage = pathname === '/kpi-dashboard';
 
-  // Client name would typically come from a user context or API
-  const clientName = user?.Name || '(Client Name)';
+  // Get the user's name from the auth context
+  // For admin@example.com, use "Admin User" as the name
+  const userName = user?.Email === 'admin@example.com' ? 'Admin User' : (user?.Name || 'User');
+
+  // Add debug logs to troubleshoot user name
+  useEffect(() => {
+    if (user) {
+      console.log('User object in TopNavBar:', user);
+      console.log('User name in TopNavBar:', user.Name);
+    } else {
+      console.log('No user object in TopNavBar');
+    }
+  }, [user]);
 
   return (
     <div className={`fixed top-0 ${sidebarExpanded ? 'left-64' : 'left-20'} right-0 h-16 bg-white dark:bg-dark border-b border-gray-200 dark:border-gray-700 z-50 flex justify-between items-center px-6 transition-all duration-300 rounded-none`}>
       <div className="flex items-center">
         {isHomePage ? (
-          <h1 className="text-lg font-medium text-[#12131C] dark:text-white">{greeting}, {clientName}</h1>
+          <h1 className="text-lg font-medium text-[#12131C] dark:text-white">{greeting}, {userName}</h1>
         ) : (
           <h1 className="text-2xl font-bold text-[#12131C] dark:text-white">{pageTitle}</h1>
         )}

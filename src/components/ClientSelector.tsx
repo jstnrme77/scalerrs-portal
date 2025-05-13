@@ -28,8 +28,13 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
     };
   }, []);
 
-  // If user is not an admin or there's only one client, don't show selector
-  if (!user || user.Role !== 'Admin' && availableClients.length <= 1) {
+  // If user is not logged in, don't show selector
+  if (!user) {
+    return null;
+  }
+
+  // For non-admin users, only show if they have multiple clients
+  if (user.Role !== 'Admin' && availableClients.length <= 1) {
     return null;
   }
 

@@ -9,7 +9,8 @@ import {
   mockKPIMetrics,
   mockURLPerformance,
   mockKeywordPerformance,
-  mockMonthlyProjections
+  mockMonthlyProjections,
+  mockClients
 } from '@/lib/mock-data';
 
 // Check if we're in a browser environment
@@ -91,8 +92,9 @@ export async function fetchTasks() {
         const tasks = await getTasks(currentUser.id, currentUser.Role, clientIds);
         return tasks;
       } else {
-        const tasks = await getTasks();
-        return tasks;
+        // If no user is logged in, return empty array or public tasks
+        console.log('No user logged in, returning empty task list');
+        return [];
       }
     }
 
@@ -446,8 +448,22 @@ export async function fetchBriefs() {
     if (process.env.NODE_ENV === 'development') {
       console.log('Development mode: Using direct Airtable access for briefs');
       const { getBriefs } = await import('@/lib/airtable');
-      const briefs = await getBriefs();
-      return briefs;
+
+      // Get current user from localStorage
+      const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+      // If user is logged in, pass user info to getBriefs
+      if (currentUser) {
+        // Ensure Client is an array
+        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
+                         (currentUser.Client ? [currentUser.Client] : []);
+        const briefs = await getBriefs(currentUser.id, currentUser.Role, clientIds);
+        return briefs;
+      } else {
+        // If no user is logged in, return empty array
+        console.log('No user logged in, returning empty briefs list');
+        return [];
+      }
     }
 
     // In production, use the API routes
@@ -460,12 +476,33 @@ export async function fetchBriefs() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+    // Get current user from localStorage
+    const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+    // Prepare headers with user information
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
+    };
+
+    // Add user information to headers if available
+    if (currentUser) {
+      headers['x-user-id'] = currentUser.id;
+      headers['x-user-role'] = currentUser.Role;
+
+      // Convert client array to JSON string
+      if (currentUser.Client) {
+        // Ensure Client is an array
+        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
+        headers['x-user-client'] = JSON.stringify(clientIds);
+      } else {
+        headers['x-user-client'] = JSON.stringify([]);
+      }
+    }
+
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-      },
+      headers,
     });
 
     clearTimeout(timeoutId);
@@ -593,8 +630,22 @@ export async function fetchArticles() {
     if (process.env.NODE_ENV === 'development') {
       console.log('Development mode: Using direct Airtable access for articles');
       const { getArticles } = await import('@/lib/airtable');
-      const articles = await getArticles();
-      return articles;
+
+      // Get current user from localStorage
+      const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+      // If user is logged in, pass user info to getArticles
+      if (currentUser) {
+        // Ensure Client is an array
+        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
+                         (currentUser.Client ? [currentUser.Client] : []);
+        const articles = await getArticles(currentUser.id, currentUser.Role, clientIds);
+        return articles;
+      } else {
+        // If no user is logged in, return empty array
+        console.log('No user logged in, returning empty articles list');
+        return [];
+      }
     }
 
     // In production, use the API routes
@@ -607,12 +658,33 @@ export async function fetchArticles() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+    // Get current user from localStorage
+    const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+    // Prepare headers with user information
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
+    };
+
+    // Add user information to headers if available
+    if (currentUser) {
+      headers['x-user-id'] = currentUser.id;
+      headers['x-user-role'] = currentUser.Role;
+
+      // Convert client array to JSON string
+      if (currentUser.Client) {
+        // Ensure Client is an array
+        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
+        headers['x-user-client'] = JSON.stringify(clientIds);
+      } else {
+        headers['x-user-client'] = JSON.stringify([]);
+      }
+    }
+
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-      },
+      headers,
     });
 
     clearTimeout(timeoutId);
@@ -1132,7 +1204,65 @@ export async function fetchMonthlyProjections() {
   }
 }
 
-// Keyword Performance API
+// Clients API
+export async function fetchClients() {
+  // Use mock data if explicitly enabled
+  if (shouldUseMockData()) {
+    console.log('Using mock clients data');
+    return mockClients;
+  }
+
+  try {
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for clients');
+      const { getClients } = await import('@/lib/airtable');
+      const clients = await getClients();
+      return clients;
+    }
+
+    // In production, use the API routes
+    const url = isNetlify()
+      ? '/.netlify/functions/get-clients'
+      : '/api/clients';
+
+    console.log('Fetching clients from:', url);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Clients data received:', data);
+    return data.clients;
+  } catch (error) {
+    console.error('Error fetching clients:', error);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (isNetlify() && isBrowser) {
+      console.log('Setting airtable-connection-issues flag in localStorage');
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
+    // Fall back to mock data
+    console.log('Falling back to mock clients data');
+    return mockClients;
+  }
+}
+
 export async function fetchKeywordPerformance() {
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {

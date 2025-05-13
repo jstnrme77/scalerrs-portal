@@ -81,6 +81,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authUser.Client = [];
       }
 
+      // Ensure the user has a Name field
+      if (!authUser.Name) {
+        console.warn('User object does not have a Name field:', authUser);
+
+        // For admin@example.com, use "Admin User" as the name
+        if (authUser.Email === 'admin@example.com') {
+          authUser.Name = 'Admin User';
+        }
+        // For client@example.com, use "Client User" as the name
+        else if (authUser.Email === 'client@example.com') {
+          authUser.Name = 'Client User';
+        }
+        // For seo@example.com, use "SEO Specialist" as the name
+        else if (authUser.Email === 'seo@example.com') {
+          authUser.Name = 'SEO Specialist';
+        }
+        // Otherwise, set a default name based on email or role
+        else {
+          authUser.Name = authUser.Email.split('@')[0] || authUser.Role || 'User';
+        }
+
+        console.log('Set default name:', authUser.Name);
+      }
+
       // Store the user in state and localStorage
       setUser(authUser);
       localStorage.setItem('scalerrs-user', JSON.stringify(authUser));
@@ -88,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('User logged in:', authUser.Name);
       console.log('User role:', authUser.Role);
       console.log('User clients:', authUser.Client);
+      console.log('Full user object:', authUser);
 
       return true;
     } catch (err) {

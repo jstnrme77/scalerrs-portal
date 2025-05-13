@@ -29,22 +29,39 @@ export async function GET(request: NextRequest) {
 
     if (!tasks || tasks.length === 0) {
       console.log('API route: No tasks found, using mock data');
-      // Filter mock data based on user role and client
+      // Filter mock data based on user role and ID
       let filteredMockTasks = [...mockTasks];
 
-      if (userRole === 'Client' && clientIds.length > 0) {
-        // Filter mock tasks by client
-        filteredMockTasks = mockTasks.filter(task => {
-          // Check if task has client field that matches any of the user's clients
-          if (task.Client) {
-            if (Array.isArray(task.Client)) {
-              return task.Client.some(client => clientIds.includes(client));
-            } else {
-              return clientIds.includes(task.Client);
+      if (userId && userRole) {
+        // For client users, filter by client IDs
+        if (userRole === 'Client' && clientIds.length > 0) {
+          // Filter mock tasks by client
+          filteredMockTasks = mockTasks.filter(task => {
+            // Check if task has client field that matches any of the user's clients
+            if (task.Client) {
+              if (Array.isArray(task.Client)) {
+                return task.Client.some(client => clientIds.includes(client));
+              } else {
+                return clientIds.includes(task.Client);
+              }
             }
-          }
-          return false;
-        });
+            return false;
+          });
+        }
+        // For non-admin users who aren't clients, only show tasks assigned to them
+        else if (userRole !== 'Admin') {
+          filteredMockTasks = mockTasks.filter(task => {
+            // Check if the task is assigned to this user
+            if (task.AssignedTo) {
+              if (Array.isArray(task.AssignedTo)) {
+                return task.AssignedTo.includes(userId);
+              } else {
+                return task.AssignedTo === userId;
+              }
+            }
+            return false;
+          });
+        }
       }
 
       return NextResponse.json({ tasks: filteredMockTasks });

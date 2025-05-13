@@ -129,7 +129,7 @@ export async function getClients() {
     const records = await base(TABLES.CLIENTS).select().all();
     console.log(`Successfully fetched ${records.length} clients from Airtable`);
 
-    return records.map((record) => ({
+    return records.map((record: any) => ({
       id: record.id,
       ...record.fields
     }));
@@ -168,7 +168,35 @@ export async function getUsers() {
 export async function getUserByEmail(email: string) {
   if (!hasAirtableCredentials) {
     console.log('Using mock data for getUserByEmail');
-    return mockUsers.find(user => user.Email && user.Email.toLowerCase() === email.toLowerCase()) || null;
+    const mockUser = mockUsers.find(user => user.Email && user.Email.toLowerCase() === email.toLowerCase()) || null;
+
+    console.log('Found mock user (no credentials):', mockUser);
+
+    // Ensure the mock user has a Name field
+    if (mockUser && !mockUser.Name) {
+      console.warn('Mock user does not have a Name field:', mockUser);
+
+      // For admin@example.com, use "Admin User" as the name
+      if (mockUser.Email === 'admin@example.com') {
+        mockUser.Name = 'Admin User';
+      }
+      // For client@example.com, use "Client User" as the name
+      else if (mockUser.Email === 'client@example.com') {
+        mockUser.Name = 'Client User';
+      }
+      // For seo@example.com, use "SEO Specialist" as the name
+      else if (mockUser.Email === 'seo@example.com') {
+        mockUser.Name = 'SEO Specialist';
+      }
+      // Otherwise, set a default name based on email
+      else {
+        mockUser.Name = mockUser.Email.split('@')[0] || 'User';
+      }
+
+      console.log('Set default name for mock user:', mockUser.Name);
+    }
+
+    return mockUser;
   }
 
   try {
@@ -187,18 +215,89 @@ export async function getUserByEmail(email: string) {
     }
 
     console.log(`Found user with email: ${email}`);
+
+    // Log the raw record to see what fields are available
+    console.log('Raw user record from Airtable:', records[0]);
+    console.log('User fields from Airtable:', records[0].fields);
+
     const user = {
       id: records[0].id,
       ...records[0].fields
     };
 
+    // Check if the user has a Name field
+    if (!user.Name) {
+      console.warn('User record does not have a Name field:', user);
+
+      // Try to find an alternative field that might contain the name
+      const possibleNameFields = ['name', 'Name', 'FullName', 'full_name', 'DisplayName', 'display_name'];
+      for (const field of possibleNameFields) {
+        if (records[0].fields[field]) {
+          console.log(`Found alternative name field: ${field}`);
+          user.Name = records[0].fields[field];
+          break;
+        }
+      }
+
+      // If still no name, use email-specific names or fallback
+      if (!user.Name && user.Email) {
+        console.log('Using email-specific names or fallback for name');
+
+        // For admin@example.com, use "Admin User" as the name
+        if (user.Email === 'admin@example.com') {
+          user.Name = 'Admin User';
+        }
+        // For client@example.com, use "Client User" as the name
+        else if (user.Email === 'client@example.com') {
+          user.Name = 'Client User';
+        }
+        // For seo@example.com, use "SEO Specialist" as the name
+        else if (user.Email === 'seo@example.com') {
+          user.Name = 'SEO Specialist';
+        }
+        // Otherwise, use email as fallback
+        else {
+          user.Name = user.Email.split('@')[0];
+        }
+      }
+    }
+
+    console.log('Processed user object:', user);
     return user;
   } catch (error: any) {
     console.error('Error fetching user by email:', error.message);
 
     // Fall back to mock data
     console.log('Falling back to mock data for getUserByEmail');
-    return mockUsers.find(user => user.Email && user.Email.toLowerCase() === email.toLowerCase()) || null;
+    const mockUser = mockUsers.find(user => user.Email && user.Email.toLowerCase() === email.toLowerCase()) || null;
+
+    console.log('Found mock user:', mockUser);
+
+    // Ensure the mock user has a Name field
+    if (mockUser && !mockUser.Name) {
+      console.warn('Mock user does not have a Name field:', mockUser);
+
+      // For admin@example.com, use "Admin User" as the name
+      if (mockUser.Email === 'admin@example.com') {
+        mockUser.Name = 'Admin User';
+      }
+      // For client@example.com, use "Client User" as the name
+      else if (mockUser.Email === 'client@example.com') {
+        mockUser.Name = 'Client User';
+      }
+      // For seo@example.com, use "SEO Specialist" as the name
+      else if (mockUser.Email === 'seo@example.com') {
+        mockUser.Name = 'SEO Specialist';
+      }
+      // Otherwise, set a default name based on email
+      else {
+        mockUser.Name = mockUser.Email.split('@')[0] || 'User';
+      }
+
+      console.log('Set default name for mock user:', mockUser.Name);
+    }
+
+    return mockUser;
   }
 }
 
@@ -253,26 +352,46 @@ export async function createUser(userData: {
 }
 
 // Task functions
-export async function getTasks(userRole?: string | null, clientIds?: string[] | null) {
+export async function getTasks(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock tasks data - no Airtable credentials');
     console.log('API Key exists:', !!apiKey);
     console.log('Base ID exists:', !!baseId);
 
-    // If user info is provided, filter mock data
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering mock tasks by client:', clientIds);
-      return mockTasks.filter(task => {
-        // Check if task has client field that matches any of the user's clients
-        if (task.Client) {
-          if (Array.isArray(task.Client)) {
-            return task.Client.some(client => clientIds.includes(client));
-          } else {
-            return clientIds.includes(task.Client);
+    // Filter mock data based on user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock tasks for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock tasks by client:', clientIds);
+        return mockTasks.filter(task => {
+          // Check if task has client field that matches any of the user's clients
+          if (task.Client) {
+            if (Array.isArray(task.Client)) {
+              return task.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(task.Client);
+            }
           }
-        }
-        return false;
-      });
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show tasks assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return mockTasks.filter(task => {
+          // Check if the task is assigned to this user
+          if (task.AssignedTo) {
+            if (Array.isArray(task.AssignedTo)) {
+              return task.AssignedTo.includes(userId);
+            } else {
+              return task.AssignedTo === userId;
+            }
+          }
+          return false;
+        });
+      }
     }
 
     return mockTasks;
@@ -282,7 +401,8 @@ export async function getTasks(userRole?: string | null, clientIds?: string[] | 
     console.log('Fetching tasks from Airtable...');
     console.log('Using base ID:', baseId);
 
-    let query = base(TABLES.TASKS).select();
+    // Build the query with appropriate filters
+    let filterFormula = '';
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
@@ -295,12 +415,25 @@ export async function getTasks(userRole?: string | null, clientIds?: string[] | 
       );
 
       // Combine filters with OR
-      const filterFormula = `OR(${clientFilters.join(',')})`;
-      console.log('Using filter formula:', filterFormula);
+      filterFormula = `OR(${clientFilters.join(',')})`;
+    }
+    // If user is not an admin or client, filter by assigned user
+    else if (userId && userRole && userRole !== 'Admin') {
+      console.log(`Filtering tasks for user: ${userId}, role: ${userRole}`);
 
+      // Filter for tasks assigned to this user
+      filterFormula = `SEARCH('${userId}', ARRAYJOIN(AssignedTo, ',')) > 0`;
+    }
+
+    // Apply the filter if one was created
+    let query;
+    if (filterFormula) {
+      console.log('Using filter formula:', filterFormula);
       query = base(TABLES.TASKS).select({
         filterByFormula: filterFormula
       });
+    } else {
+      query = base(TABLES.TASKS).select();
     }
 
     const records = await query.all();
@@ -329,20 +462,40 @@ export async function getTasks(userRole?: string | null, clientIds?: string[] | 
     // Fall back to mock data
     console.log('Falling back to mock tasks data due to error');
 
-    // If user info is provided, filter mock data
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering mock tasks by client:', clientIds);
-      return mockTasks.filter(task => {
-        // Check if task has client field that matches any of the user's clients
-        if (task.Client) {
-          if (Array.isArray(task.Client)) {
-            return task.Client.some(client => clientIds.includes(client));
-          } else {
-            return clientIds.includes(task.Client);
+    // Filter mock data based on user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock tasks for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock tasks by client:', clientIds);
+        return mockTasks.filter(task => {
+          // Check if task has client field that matches any of the user's clients
+          if (task.Client) {
+            if (Array.isArray(task.Client)) {
+              return task.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(task.Client);
+            }
           }
-        }
-        return false;
-      });
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show tasks assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return mockTasks.filter(task => {
+          // Check if the task is assigned to this user
+          if (task.AssignedTo) {
+            if (Array.isArray(task.AssignedTo)) {
+              return task.AssignedTo.includes(userId);
+            } else {
+              return task.AssignedTo === userId;
+            }
+          }
+          return false;
+        });
+      }
     }
 
     return mockTasks;
@@ -558,9 +711,43 @@ export async function getCommentsByTask(taskId: string) {
 }
 
 // Brief functions
-export async function getBriefs() {
+export async function getBriefs(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock briefs data');
+
+    // Filter mock data based on user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock briefs for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock briefs by client:', clientIds);
+        return mockBriefs.filter(brief => {
+          // Check if brief has client field that matches any of the user's clients
+          if (brief.Client) {
+            if (Array.isArray(brief.Client)) {
+              return brief.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(brief.Client);
+            }
+          }
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show briefs assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return mockBriefs.filter(brief => {
+          // Check if the brief is assigned to this user (as SEO Strategist, Content Writer, or Content Editor)
+          return (
+            (brief.SEOStrategist && brief.SEOStrategist === userId) ||
+            (brief.ContentWriter && brief.ContentWriter === userId) ||
+            (brief.ContentEditor && brief.ContentEditor === userId)
+          );
+        });
+      }
+    }
+
     return mockBriefs;
   }
 
@@ -638,8 +825,49 @@ export async function getBriefs() {
       return mockBriefs;
     }
 
-    // Proceed with fetching all records
-    const records = await base(TABLES.BRIEFS).select().all();
+    // Build the query with appropriate filters
+    let filterFormula = '';
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering briefs by client:', clientIds);
+
+      // Create a filter formula for client IDs
+      const clientFilters = clientIds.map(clientId =>
+        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+      );
+
+      // Combine filters with OR
+      filterFormula = `OR(${clientFilters.join(',')})`;
+    }
+    // If user is not an admin or client, filter by assigned user
+    else if (userId && userRole && userRole !== 'Admin') {
+      console.log(`Filtering briefs for user: ${userId}, role: ${userRole}`);
+
+      // Filter for briefs where this user is the SEO Strategist, Content Writer, or Content Editor
+      const userFilters = [
+        `SEARCH('${userId}', ARRAYJOIN({SEO Strategist}, ',')) > 0`,
+        `SEARCH('${userId}', ARRAYJOIN({Content Writer}, ',')) > 0`,
+        `SEARCH('${userId}', ARRAYJOIN({Content Editor}, ',')) > 0`
+      ];
+
+      // Combine filters with OR
+      filterFormula = `OR(${userFilters.join(',')})`;
+    }
+
+    // Apply the filter if one was created
+    let query;
+    if (filterFormula) {
+      console.log('Using filter formula:', filterFormula);
+      query = base(TABLES.BRIEFS).select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      query = base(TABLES.BRIEFS).select();
+    }
+
+    // Fetch the records
+    const records = await query.all();
     console.log(`Successfully fetched ${records.length} briefs records from Airtable`);
 
     // Log the first record to see what fields are available
@@ -685,6 +913,40 @@ export async function getBriefs() {
     console.error('Error fetching briefs:', error);
     // Fall back to mock data
     console.log('Falling back to mock briefs data');
+
+    // Filter mock data based on user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock briefs for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock briefs by client:', clientIds);
+        return mockBriefs.filter(brief => {
+          // Check if brief has client field that matches any of the user's clients
+          if (brief.Client) {
+            if (Array.isArray(brief.Client)) {
+              return brief.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(brief.Client);
+            }
+          }
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show briefs assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return mockBriefs.filter(brief => {
+          // Check if the brief is assigned to this user (as SEO Strategist, Content Writer, or Content Editor)
+          return (
+            (brief.SEOStrategist && brief.SEOStrategist === userId) ||
+            (brief.ContentWriter && brief.ContentWriter === userId) ||
+            (brief.ContentEditor && brief.ContentEditor === userId)
+          );
+        });
+      }
+    }
+
     return mockBriefs;
   }
 }
@@ -746,9 +1008,42 @@ export async function updateBriefStatus(briefId: string, status: string) {
 }
 
 // Article functions
-export async function getArticles() {
+export async function getArticles(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock articles data');
+
+    // Filter mock data based on user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock articles for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock articles by client:', clientIds);
+        return mockArticles.filter(article => {
+          // Check if article has client field that matches any of the user's clients
+          if (article.Client) {
+            if (Array.isArray(article.Client)) {
+              return article.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(article.Client);
+            }
+          }
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show articles assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return mockArticles.filter(article => {
+          // Check if the article is assigned to this user (as Writer or Editor)
+          return (
+            (article.Writer && article.Writer === userId) ||
+            (article.Editor && article.Editor === userId)
+          );
+        });
+      }
+    }
+
     return mockArticles;
   }
 
@@ -795,8 +1090,48 @@ export async function getArticles() {
       console.error('Error listing tables:', listTablesError);
     }
 
-    // Proceed with fetching all records
-    const records = await base(TABLES.ARTICLES).select().all();
+    // Build the query with appropriate filters
+    let filterFormula = '';
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering articles by client:', clientIds);
+
+      // Create a filter formula for client IDs
+      const clientFilters = clientIds.map(clientId =>
+        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+      );
+
+      // Combine filters with OR
+      filterFormula = `OR(${clientFilters.join(',')})`;
+    }
+    // If user is not an admin or client, filter by assigned user
+    else if (userId && userRole && userRole !== 'Admin') {
+      console.log(`Filtering articles for user: ${userId}, role: ${userRole}`);
+
+      // Filter for articles where this user is the Writer or Editor
+      const userFilters = [
+        `SEARCH('${userId}', ARRAYJOIN(Writer, ',')) > 0`,
+        `SEARCH('${userId}', ARRAYJOIN(Editor, ',')) > 0`
+      ];
+
+      // Combine filters with OR
+      filterFormula = `OR(${userFilters.join(',')})`;
+    }
+
+    // Apply the filter if one was created
+    let query;
+    if (filterFormula) {
+      console.log('Using filter formula:', filterFormula);
+      query = base(TABLES.ARTICLES).select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      query = base(TABLES.ARTICLES).select();
+    }
+
+    // Fetch the records
+    const records = await query.all();
     console.log(`Successfully fetched ${records.length} articles records from Airtable`);
 
     // Log the first record to see what fields are available
@@ -891,6 +1226,39 @@ export async function getArticles() {
     console.error('Error fetching articles:', error);
     // Fall back to mock data
     console.log('Falling back to mock articles data');
+
+    // Filter mock data based on user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock articles for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock articles by client:', clientIds);
+        return mockArticles.filter(article => {
+          // Check if article has client field that matches any of the user's clients
+          if (article.Client) {
+            if (Array.isArray(article.Client)) {
+              return article.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(article.Client);
+            }
+          }
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show articles assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return mockArticles.filter(article => {
+          // Check if the article is assigned to this user (as Writer or Editor)
+          return (
+            (article.Writer && article.Writer === userId) ||
+            (article.Editor && article.Editor === userId)
+          );
+        });
+      }
+    }
+
     return mockArticles;
   }
 }

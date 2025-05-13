@@ -6,17 +6,61 @@ import { mockArticles } from '@/lib/mock-data';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('API route: Fetching articles from Airtable');
     console.log('API Key exists:', !!process.env.AIRTABLE_API_KEY);
     console.log('Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
 
-    const articles = await getArticles();
+    // Get user information from the request
+    const userId = request.headers.get('x-user-id');
+    const userRole = request.headers.get('x-user-role');
+    const userClient = request.headers.get('x-user-client');
+
+    console.log('User ID:', userId);
+    console.log('User Role:', userRole);
+    console.log('User Client:', userClient);
+
+    // Parse client IDs if present
+    const clientIds = userClient ? JSON.parse(userClient) : [];
+
+    // Fetch articles with user filtering
+    const articles = await getArticles(userId, userRole, clientIds);
 
     if (!articles || articles.length === 0) {
       console.log('API route: No articles found, using mock data');
-      return NextResponse.json({ articles: mockArticles });
+
+      // Filter mock data based on user role and ID
+      let filteredMockArticles = [...mockArticles];
+
+      if (userId && userRole) {
+        // For client users, filter by client IDs
+        if (userRole === 'Client' && clientIds.length > 0) {
+          filteredMockArticles = mockArticles.filter(article => {
+            // Check if article has client field that matches any of the user's clients
+            if (article.Client) {
+              if (Array.isArray(article.Client)) {
+                return article.Client.some(client => clientIds.includes(client));
+              } else {
+                return clientIds.includes(article.Client);
+              }
+            }
+            return false;
+          });
+        }
+        // For non-admin users who aren't clients, only show articles assigned to them
+        else if (userRole !== 'Admin') {
+          filteredMockArticles = mockArticles.filter(article => {
+            // Check if the article is assigned to this user
+            return (
+              (article.Writer && article.Writer === userId) ||
+              (article.Editor && article.Editor === userId)
+            );
+          });
+        }
+      }
+
+      return NextResponse.json({ articles: filteredMockArticles });
     }
 
     console.log(`API route: Found ${articles.length} articles`);
