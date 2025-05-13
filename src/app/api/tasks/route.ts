@@ -6,17 +6,48 @@ import { mockTasks } from '@/lib/mock-data';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('API route: Fetching tasks from Airtable');
     console.log('API Key exists:', !!process.env.AIRTABLE_API_KEY);
     console.log('Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
 
-    const tasks = await getTasks();
+    // Get user information from the request
+    const userId = request.headers.get('x-user-id');
+    const userRole = request.headers.get('x-user-role');
+    const userClient = request.headers.get('x-user-client');
+
+    console.log('User ID:', userId);
+    console.log('User Role:', userRole);
+    console.log('User Client:', userClient);
+
+    // Parse client IDs if present
+    const clientIds = userClient ? JSON.parse(userClient) : [];
+
+    // Fetch tasks with user filtering
+    const tasks = await getTasks(userId, userRole, clientIds);
 
     if (!tasks || tasks.length === 0) {
       console.log('API route: No tasks found, using mock data');
-      return NextResponse.json({ tasks: mockTasks });
+      // Filter mock data based on user role and client
+      let filteredMockTasks = [...mockTasks];
+
+      if (userRole === 'Client' && clientIds.length > 0) {
+        // Filter mock tasks by client
+        filteredMockTasks = mockTasks.filter(task => {
+          // Check if task has client field that matches any of the user's clients
+          if (task.Client) {
+            if (Array.isArray(task.Client)) {
+              return task.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(task.Client);
+            }
+          }
+          return false;
+        });
+      }
+
+      return NextResponse.json({ tasks: filteredMockTasks });
     }
 
     console.log(`API route: Found ${tasks.length} tasks`);

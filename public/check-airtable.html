@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airtable Schema Checker</title>
+  <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      color: #333;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .error {
+      color: #d32f2f;
+      background-color: #ffebee;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .success {
+      color: #388e3c;
+      background-color: #e8f5e9;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Airtable Schema Checker</h1>
+  
+  <div class="form-group">
+    <label for="apiKey">Airtable API Key:</label>
+    <input type="text" id="apiKey" value="patDzIkqPGxe1t5jl.fe3e6fa1c25d7438e70de845827f7dcfa8ffb3d14baf0e17bff380bca8459175">
+  </div>
+  
+  <div class="form-group">
+    <label for="baseId">Airtable Base ID:</label>
+    <input type="text" id="baseId" value="appUtQLunL1f05FrQ">
+  </div>
+  
+  <button onclick="checkSchema()">Check Schema</button>
+  
+  <div id="result"></div>
+  
+  <script>
+    async function checkSchema() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>Checking schema...</p>';
+      
+      const apiKey = document.getElementById('apiKey').value;
+      const baseId = document.getElementById('baseId').value;
+      
+      if (!apiKey || !baseId) {
+        resultDiv.innerHTML = '<div class="error">API Key and Base ID are required</div>';
+        return;
+      }
+      
+      try {
+        // Initialize Airtable
+        Airtable.configure({ apiKey });
+        const base = Airtable.base(baseId);
+        
+        // Try to get tables by making a request to the base metadata
+        const tablesHtml = '<h2>Tables</h2><p>Fetching tables...</p>';
+        resultDiv.innerHTML = tablesHtml;
+        
+        // We'll try to fetch records from some common table names
+        const commonTables = [
+          'Users', 'Tasks', 'Comments', 'Briefs', 'Articles', 'Backlinks', 
+          'KPI Metrics', 'URL Performance', 'Keyword Performance', 'Clients'
+        ];
+        
+        let tablesFound = [];
+        let tablesHtmlContent = '<h2>Tables Found</h2><ul>';
+        
+        for (const tableName of commonTables) {
+          try {
+            const records = await base(tableName).select({ maxRecords: 1 }).firstPage();
+            tablesFound.push({ name: tableName, fields: records.length > 0 ? Object.keys(records[0].fields) : [] });
+            tablesHtmlContent += `<li>${tableName} - Found</li>`;
+          } catch (error) {
+            if (!error.message.includes('not found')) {
+              tablesHtmlContent += `<li>${tableName} - Error: ${error.message}</li>`;
+            }
+          }
+        }
+        
+        tablesHtmlContent += '</ul>';
+        
+        // Display the schema for each table found
+        let schemaHtml = '<h2>Schema Details</h2>';
+        
+        for (const table of tablesFound) {
+          schemaHtml += `<h3>${table.name}</h3>`;
+          
+          if (table.fields.length > 0) {
+            schemaHtml += '<h4>Fields:</h4><ul>';
+            for (const field of table.fields) {
+              schemaHtml += `<li>${field}</li>`;
+            }
+            schemaHtml += '</ul>';
+            
+            // Try to get a sample record
+            try {
+              const records = await base(table.name).select({ maxRecords: 1 }).firstPage();
+              if (records.length > 0) {
+                schemaHtml += '<h4>Sample Record:</h4>';
+                schemaHtml += `<pre>${JSON.stringify(records[0].fields, null, 2)}</pre>`;
+              }
+            } catch (error) {
+              schemaHtml += `<div class="error">Error fetching sample record: ${error.message}</div>`;
+            }
+          } else {
+            schemaHtml += '<p>No records found in this table</p>';
+          }
+        }
+        
+        resultDiv.innerHTML = tablesHtmlContent + schemaHtml;
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -2,19 +2,53 @@
 // Import 2025 mockup data
 import mockData2025 from '../mockups/content-workflow-2025';
 
+// Mock clients
+export const mockClients = [
+  {
+    id: 'client1',
+    Name: 'Example Client 1',
+    Industry: 'Technology',
+    Website: 'https://example1.com',
+    Status: 'Active'
+  },
+  {
+    id: 'client2',
+    Name: 'Example Client 2',
+    Industry: 'Healthcare',
+    Website: 'https://example2.com',
+    Status: 'Active'
+  },
+  {
+    id: 'client3',
+    Name: 'Example Client 3',
+    Industry: 'E-commerce',
+    Website: 'https://example3.com',
+    Status: 'Active'
+  }
+];
+
 // Mock users
 export const mockUsers = [
   {
     id: 'rec123',
     Name: 'Admin User',
     Email: 'admin@example.com',
-    Role: 'Admin'
+    Role: 'Admin',
+    Client: ['client1', 'client2', 'client3'] // Admin can access all clients
   },
   {
     id: 'rec456',
     Name: 'Client User',
     Email: 'client@example.com',
-    Role: 'Client'
+    Role: 'Client',
+    Client: ['client1'] // This client user can only access client1
+  },
+  {
+    id: 'rec789',
+    Name: 'Client User 2',
+    Email: 'client2@example.com',
+    Role: 'Client',
+    Client: ['client2'] // This client user can only access client2
   }
 ];
 
@@ -23,22 +57,24 @@ export const mockTasks = [
   {
     id: 'task1',
     Title: 'Sample Task 1',
-    Name: 'Sample Task 1',  // Add Name field to match interface
+    Name: 'Sample Task 1',
     Description: 'This is a sample task',
     Status: 'In Progress',
     AssignedTo: ['rec123'],
     Priority: 'High',
-    Category: 'Technical SEO'
+    Category: 'Technical SEO',
+    Client: ['client1'] // Assign to client1
   },
   {
     id: 'task2',
     Title: 'Sample Task 2',
-    Name: 'Sample Task 2',  // Add Name field to match interface
+    Name: 'Sample Task 2',
     Description: 'Another sample task',
     Status: 'Completed',
     AssignedTo: ['rec456'],
     Priority: 'Medium',
-    Category: 'CRO'
+    Category: 'CRO',
+    Client: ['client1'] // Assign to client1
   },
   {
     id: 'task3',
@@ -48,7 +84,30 @@ export const mockTasks = [
     Status: 'To Do',
     AssignedTo: ['rec123'],
     Priority: 'High',
-    Category: 'Strategy / Ad Hoc'
+    Category: 'Strategy / Ad Hoc',
+    Client: ['client2'] // Assign to client2
+  },
+  {
+    id: 'task4',
+    Title: 'Client 2 Task',
+    Name: 'Client 2 Task',
+    Description: 'This task is for client 2 only',
+    Status: 'In Progress',
+    AssignedTo: ['rec789'],
+    Priority: 'High',
+    Category: 'Content',
+    Client: ['client2'] // Assign to client2
+  },
+  {
+    id: 'task5',
+    Title: 'Client 3 Task',
+    Name: 'Client 3 Task',
+    Description: 'This task is for client 3 only',
+    Status: 'To Do',
+    AssignedTo: ['rec123'],
+    Priority: 'Medium',
+    Category: 'Technical SEO',
+    Client: ['client3'] // Assign to client3
   }
 ];
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 // import { ThemeProvider } from 'next-themes' - Theme switching disabled
 import { AuthProvider } from '@/context/AuthContext'
+import { ClientDataProvider } from '@/context/ClientDataContext'
 // import { themeScript } from './theme-script' - Theme switching disabled
 
 export const metadata: Metadata = {
@@ -21,7 +22,9 @@ export default function RootLayout({
       </head>
       <body className="bg-white text-text-light blue-glow-top-left blue-glow-bottom-right font-roboto" suppressHydrationWarning>
         <AuthProvider>
-          {children}
+          <ClientDataProvider>
+            {children}
+          </ClientDataProvider>
         </AuthProvider>
       </body>
     </html>

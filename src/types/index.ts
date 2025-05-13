@@ -12,19 +12,44 @@ export type ArticleStatus = 'In Production' | 'Review Draft' | 'Draft Approved' 
 // Backlink statuses
 export type BacklinkStatus = 'Live' | 'Scheduled' | 'Rejected';
 
+// Client type
+export interface Client {
+  id: string;
+  Name: string;
+  Industry?: string;
+  Website?: string;
+  Status?: 'Active' | 'Inactive';
+  ContactName?: string;
+  ContactEmail?: string;
+  ContactPhone?: string;
+  StartDate?: string;
+  EndDate?: string;
+  [key: string]: any; // Allow for additional fields from Airtable
+}
+
 // User type
 export interface User {
   id: string;
   Name: string;
   Email: string;
   Role: string;
+  Password?: string; // For authentication (not stored in plain text in production)
   CreatedAt?: string;
   'Last Login'?: string;
-  Client?: string[];
+  Client?: string | string[]; // Can be a single client ID or array of client IDs
   Notifications?: string[];
   Comments?: string[];
   Tasks?: string[];
   Briefs?: string[];
+  Articles?: string[];
+  Status?: 'Active' | 'Inactive';
+  ProfileImage?: string;
+  Phone?: string;
+  Company?: string;
+  Position?: string;
+  'Login Count'?: number;
+  LastActive?: string;
+  [key: string]: any; // Allow for additional fields from Airtable
 }
 
 // Task type
@@ -35,8 +60,21 @@ export interface Task {
   Description?: string;
   Status: string;
   Priority?: string;
+  Category?: string;
   AssignedTo?: string[];
+  Client?: string | string[];
+  DueDate?: string;
+  'Due Date'?: string;
   CreatedAt?: string;
+  'Created Time'?: string;
+  CompletedAt?: string;
+  'Completed At'?: string;
+  Attachments?: string[];
+  Comments?: string[];
+  Notes?: string;
+  Tags?: string[];
+  'Related To'?: string[];
+  [key: string]: any; // Allow for additional fields from Airtable
 }
 
 // Comment type

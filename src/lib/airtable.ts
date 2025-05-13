@@ -67,24 +67,40 @@ if (hasAirtableCredentials) {
   console.warn('Environment: ' + process.env.NODE_ENV);
 }
 
-// Table names
+// Table names for the new Airtable base (based on schema)
 export const TABLES = {
+  // User Management
   USERS: 'Users',
-  TASKS: 'Tasks',
-  COMMENTS: 'Comments',
+  CLIENTS: 'Clients',
+
+  // Content Management
   BRIEFS: 'Briefs',
   ARTICLES: 'Articles',
   BACKLINKS: 'Backlinks',
-  KPI_METRICS: 'KPI Metrics',
+  CLUSTERS: 'Clusters',
+
+  // Task Management
+  TASKS: 'Tasks',
+  COMMENTS: 'Comments',
+
+  // Performance Data
+  KEYWORDS: 'Keywords',
   URL_PERFORMANCE: 'URL Performance',
-  KEYWORD_PERFORMANCE: 'Keyword Performance',
+  KPI_METRICS: 'KPI Metrics',
+  MONTHLY_PROJECTIONS: 'Monthly Projections',
+
+  // System Tables
+  INTEGRATIONS: 'Integrations',
+  NOTIFICATIONS: 'Notifications',
+  REPORTS: 'Reports',
+  ACTIVITY_LOG: 'Activity Log'
 };
 
 // Alternative table names (in case the casing is different)
 export const ALT_TABLES = {
   KPI_METRICS: ['kpi_metrics', 'kpimetrics', 'kpi metrics', 'KPIMetrics'],
   URL_PERFORMANCE: ['url_performance', 'urlperformance', 'url performance', 'URLPerformance'],
-  KEYWORD_PERFORMANCE: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance']
+  KEYWORDS: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance', 'keywords']
 };
 
 // Import mock data from separate file
@@ -97,8 +113,35 @@ import {
   mockBacklinks,
   mockKPIMetrics,
   mockURLPerformance,
-  mockKeywordPerformance
+  mockKeywordPerformance,
+  mockClients
 } from './mock-data';
+
+// Client functions
+export async function getClients() {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock clients data - no Airtable credentials');
+    return mockClients;
+  }
+
+  try {
+    console.log('Fetching clients from Airtable...');
+    const records = await base(TABLES.CLIENTS).select().all();
+    console.log(`Successfully fetched ${records.length} clients from Airtable`);
+
+    return records.map((record) => ({
+      id: record.id,
+      ...record.fields
+    }));
+  } catch (error: any) {
+    console.error('Error fetching clients:', error);
+    console.error('Error details:', error.message || 'No error message available');
+
+    // Fall back to mock data
+    console.log('Falling back to mock clients data');
+    return mockClients;
+  }
+}
 
 // User functions
 export async function getUsers() {
@@ -121,43 +164,117 @@ export async function getUsers() {
   }
 }
 
+// Get user by email
 export async function getUserByEmail(email: string) {
   if (!hasAirtableCredentials) {
-    console.log('Using mock user data for email:', email);
-    const mockUser = mockUsers.find(user => user.Email === email);
-    return mockUser || null;
+    console.log('Using mock data for getUserByEmail');
+    return mockUsers.find(user => user.Email && user.Email.toLowerCase() === email.toLowerCase()) || null;
   }
 
   try {
+    console.log(`Fetching user with email: ${email}`);
+    // Query Airtable for the user with the matching email
     const records = await base(TABLES.USERS)
       .select({
-        filterByFormula: `{Email} = '${email}'`,
+        filterByFormula: `LOWER({Email}) = "${email.toLowerCase()}"`,
+        maxRecords: 1
       })
-      .all();
+      .firstPage();
 
     if (records.length === 0) {
+      console.log(`No user found with email: ${email}`);
       return null;
     }
 
-    return {
+    console.log(`Found user with email: ${email}`);
+    const user = {
       id: records[0].id,
-      ...records[0].fields,
+      ...records[0].fields
+    };
+
+    return user;
+  } catch (error: any) {
+    console.error('Error fetching user by email:', error.message);
+
+    // Fall back to mock data
+    console.log('Falling back to mock data for getUserByEmail');
+    return mockUsers.find(user => user.Email && user.Email.toLowerCase() === email.toLowerCase()) || null;
+  }
+}
+
+
+
+// Function to create a new user in Airtable
+export async function createUser(userData: {
+  Name: string;
+  Email: string;
+  Role: string;
+  Client?: string[];
+}) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock data for creating user:', userData);
+    // Create a mock user with an ID
+    const newUser = {
+      id: `rec${Date.now()}`,
+      ...userData,
+      Client: userData.Client || [],
+      CreatedAt: new Date().toISOString()
+    };
+    mockUsers.push(newUser);
+    return newUser;
+  }
+
+  try {
+    // Check if user with this email already exists
+    const existingUser = await getUserByEmail(userData.Email);
+    if (existingUser) {
+      throw new Error(`User with email ${userData.Email} already exists`);
+    }
+
+    // Create the user in Airtable
+    const newUser = await base(TABLES.USERS).create({
+      Name: userData.Name,
+      Email: userData.Email,
+      Role: userData.Role,
+      Client: userData.Client || [],
+      CreatedAt: new Date().toISOString()
+    });
+
+    console.log('User created successfully:', newUser.id);
+
+    return {
+      id: newUser.id,
+      ...newUser.fields
     };
   } catch (error) {
-    console.error('Error fetching user by email:', error);
-    // Fall back to mock data
-    console.log('Falling back to mock user data for email:', email);
-    const mockUser = mockUsers.find(user => user.Email === email);
-    return mockUser || null;
+    console.error('Error creating user:', error);
+    throw error;
   }
 }
 
 // Task functions
-export async function getTasks() {
+export async function getTasks(userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock tasks data - no Airtable credentials');
     console.log('API Key exists:', !!apiKey);
     console.log('Base ID exists:', !!baseId);
+
+    // If user info is provided, filter mock data
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering mock tasks by client:', clientIds);
+      return mockTasks.filter(task => {
+        // Check if task has client field that matches any of the user's clients
+        if (task.Client) {
+          if (Array.isArray(task.Client)) {
+            return task.Client.some(client => clientIds.includes(client));
+          } else {
+            return clientIds.includes(task.Client);
+          }
+        }
+        return false;
+      });
+    }
+
     return mockTasks;
   }
 
@@ -165,7 +282,28 @@ export async function getTasks() {
     console.log('Fetching tasks from Airtable...');
     console.log('Using base ID:', baseId);
 
-    const records = await base(TABLES.TASKS).select().all();
+    let query = base(TABLES.TASKS).select();
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering tasks by client:', clientIds);
+
+      // Create a filter formula for client IDs
+      // This handles the case where Client field is an array of record IDs
+      const clientFilters = clientIds.map(clientId =>
+        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+      );
+
+      // Combine filters with OR
+      const filterFormula = `OR(${clientFilters.join(',')})`;
+      console.log('Using filter formula:', filterFormula);
+
+      query = base(TABLES.TASKS).select({
+        filterByFormula: filterFormula
+      });
+    }
+
+    const records = await query.all();
     console.log(`Successfully fetched ${records.length} tasks from Airtable`);
 
     return records.map((record: any) => {
@@ -190,6 +328,23 @@ export async function getTasks() {
     console.error('Error fetching tasks from Airtable:', error);
     // Fall back to mock data
     console.log('Falling back to mock tasks data due to error');
+
+    // If user info is provided, filter mock data
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering mock tasks by client:', clientIds);
+      return mockTasks.filter(task => {
+        // Check if task has client field that matches any of the user's clients
+        if (task.Client) {
+          if (Array.isArray(task.Client)) {
+            return task.Client.some(client => clientIds.includes(client));
+          } else {
+            return clientIds.includes(task.Client);
+          }
+        }
+        return false;
+      });
+    }
+
     return mockTasks;
   }
 }
@@ -653,7 +808,6 @@ export async function getArticles() {
     // Map the records to our expected format
     return records.map((record: any) => {
       const fields = record.fields;
-      const fieldKeys = Object.keys(fields);
 
       // Process the Client field - it might be an array of record IDs in Airtable
       let clientValue = fields.Client;
@@ -1068,11 +1222,11 @@ export async function getKPIMetrics() {
           // Check if our required tables exist
           const kpiMetricsExists = availableTables.some((t: string) => t === TABLES.KPI_METRICS || t === TABLES.KPI_METRICS.toLowerCase() || t === 'KPI Metrics' || t === 'kpi metrics');
           const urlPerformanceExists = availableTables.some((t: string) => t === TABLES.URL_PERFORMANCE || t === TABLES.URL_PERFORMANCE.toLowerCase() || t === 'URL Performance' || t === 'url performance');
-          const keywordPerformanceExists = availableTables.some((t: string) => t === TABLES.KEYWORD_PERFORMANCE || t === TABLES.KEYWORD_PERFORMANCE.toLowerCase() || t === 'Keyword Performance' || t === 'keyword performance');
+          const keywordsExists = availableTables.some((t: string) => t === TABLES.KEYWORDS || t === TABLES.KEYWORDS.toLowerCase() || t === 'Keywords' || t === 'keywords');
 
           console.log(`KPI Metrics table exists: ${kpiMetricsExists}`);
           console.log(`URL Performance table exists: ${urlPerformanceExists}`);
-          console.log(`Keyword Performance table exists: ${keywordPerformanceExists}`);
+          console.log(`Keywords table exists: ${keywordsExists}`);
 
           // If tables don't exist, use mock data
           if (!kpiMetricsExists) {
@@ -1296,12 +1450,12 @@ export async function getKeywordPerformance() {
   try {
     console.log('Fetching keyword performance from Airtable...');
     console.log('Using base ID:', baseId);
-    console.log('Using table name:', TABLES.KEYWORD_PERFORMANCE);
+    console.log('Using table name:', TABLES.KEYWORDS);
 
     // Check if the table exists
     try {
       // Try different table names to find the right one
-      let tableName = TABLES.KEYWORD_PERFORMANCE;
+      let tableName = TABLES.KEYWORDS;
       let checkRecord = null;
       let tableFound = false;
 
@@ -1315,7 +1469,7 @@ export async function getKeywordPerformance() {
         console.log('Default table name not found, trying alternatives...');
 
         // If that fails, try alternative names
-        for (const altName of ALT_TABLES.KEYWORD_PERFORMANCE) {
+        for (const altName of ALT_TABLES.KEYWORDS) {
           try {
             console.log('Trying alternative table name:', altName);
             checkRecord = await base(altName).select({ maxRecords: 1 }).firstPage();
@@ -1403,8 +1557,8 @@ export async function getKeywordPerformance() {
           return mockKeywordPerformance;
         }
 
-        // Update the table name for the main query
-        TABLES.KEYWORD_PERFORMANCE = tableName;
+        // Note the table name that worked
+        console.log('Using table name for keywords:', tableName);
       } else {
         console.log('Keyword Performance table is empty. Using mock data...');
         return mockKeywordPerformance;
@@ -1424,7 +1578,7 @@ export async function getKeywordPerformance() {
     }
 
     // Proceed with fetching all records
-    const records = await base(TABLES.KEYWORD_PERFORMANCE).select().all();
+    const records = await base(TABLES.KEYWORDS).select().all();
     console.log(`Successfully fetched ${records.length} keyword performance records from Airtable`);
 
     // Map the records to our expected format

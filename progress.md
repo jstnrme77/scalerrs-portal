@@ -138,6 +138,7 @@
 - ✅ Updated KPI Dashboard tab icons to use BarChart4, LineChart, and PieChart to match tab content
 - ✅ Updated Admin page tab icons to use FileText, KeyRound, and FolderArchive to match tab content
 - ✅ Added Scissors icon to Product Prune tab in SEO Layouts page for better visual representation
+- ✅ Updated client selector dropdown to match month selector styling with fully rounded corners
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -289,3 +290,4 @@
 - Selected appropriate icons for each tab that visually represent the tab's purpose (e.g., BarChart for CRO, Wrench for Technical SEO, LightbulbIcon for Strategy)
 - Ensured all tab navigation components use the same styling with icons that turn white when the tab is active
 - Fixed type error in Content Workflow page by adding proper type casting for the TabNavigation component's onTabChange prop
+- Redesigned client selector dropdown to match the month selector styling with fully rounded corners, consistent border styling, and improved dropdown appearance

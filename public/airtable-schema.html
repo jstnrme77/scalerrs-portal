@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airtable Schema Checker</title>
+  <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      color: #333;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .error {
+      color: #d32f2f;
+      background-color: #ffebee;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .success {
+      color: #388e3c;
+      background-color: #e8f5e9;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .table-container {
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+    }
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .table-header h3 {
+      margin: 0;
+    }
+    .fields-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .field-item {
+      background-color: #f9f9f9;
+      padding: 5px 10px;
+      border-radius: 3px;
+      word-break: break-all;
+    }
+    .status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status-success {
+      background-color: #e8f5e9;
+      color: #388e3c;
+    }
+    .status-error {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+    .status-warning {
+      background-color: #fff8e1;
+      color: #f57c00;
+    }
+  </style>
+</head>
+<body>
+  <h1>Airtable Schema Checker</h1>
+  
+  <div class="form-group">
+    <label for="apiKey">Airtable API Key:</label>
+    <input type="text" id="apiKey" value="patDzIkqPGxe1t5jl.fe3e6fa1c25d7438e70de845827f7dcfa8ffb3d14baf0e17bff380bca8459175">
+  </div>
+  
+  <div class="form-group">
+    <label for="baseId">Airtable Base ID:</label>
+    <input type="text" id="baseId" value="appUtQLunL1f05FrQ">
+  </div>
+  
+  <button onclick="checkSchema()">Check Schema</button>
+  
+  <div id="result"></div>
+  
+  <script>
+    async function checkSchema() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>Checking schema...</p>';
+      
+      const apiKey = document.getElementById('apiKey').value;
+      const baseId = document.getElementById('baseId').value;
+      
+      if (!apiKey || !baseId) {
+        resultDiv.innerHTML = '<div class="error">API Key and Base ID are required</div>';
+        return;
+      }
+      
+      try {
+        // Initialize Airtable
+        Airtable.configure({ apiKey });
+        const base = Airtable.base(baseId);
+        
+        // Common table names to check
+        const commonTables = [
+          'Users', 'Tasks', 'Comments', 'Briefs', 'Articles', 'Backlinks', 
+          'KPI Metrics', 'URL Performance', 'Keywords', 'Clients',
+          'Monthly Projections', 'Clusters', 'Integrations', 'Notifications',
+          'Reports', 'Activity Log'
+        ];
+        
+        let resultsHtml = '<h2>Schema Results</h2>';
+        
+        for (const tableName of commonTables) {
+          resultsHtml += `<div class="table-container">
+            <div class="table-header">
+              <h3>${tableName}</h3>
+              <span class="status status-warning">Checking...</span>
+            </div>
+            <div id="${tableName}-result">Checking table...</div>
+          </div>`;
+        }
+        
+        resultDiv.innerHTML = resultsHtml;
+        
+        // Check each table
+        for (const tableName of commonTables) {
+          const tableResultDiv = document.getElementById(`${tableName}-result`);
+          const tableHeader = tableResultDiv.parentElement.querySelector('.status');
+          
+          try {
+            const records = await base(tableName).select({ maxRecords: 1 }).firstPage();
+            
+            if (records.length > 0) {
+              const fields = Object.keys(records[0].fields);
+              
+              tableHeader.className = 'status status-success';
+              tableHeader.textContent = 'Exists';
+              
+              let fieldsHtml = `<h4>Fields (${fields.length}):</h4>`;
+              
+              if (fields.length > 0) {
+                fieldsHtml += '<div class="fields-grid">';
+                fields.forEach(field => {
+                  fieldsHtml += `<div class="field-item">${field}</div>`;
+                });
+                fieldsHtml += '</div>';
+                
+                fieldsHtml += '<h4>Sample Record:</h4>';
+                fieldsHtml += `<pre>${JSON.stringify(records[0].fields, null, 2)}</pre>`;
+              } else {
+                fieldsHtml += '<p>No fields found in this table</p>';
+              }
+              
+              tableResultDiv.innerHTML = fieldsHtml;
+            } else {
+              tableHeader.className = 'status status-warning';
+              tableHeader.textContent = 'Empty';
+              tableResultDiv.innerHTML = '<p>Table exists but has no records</p>';
+            }
+          } catch (error) {
+            tableHeader.className = 'status status-error';
+            
+            if (error.message.includes('not found')) {
+              tableHeader.textContent = 'Not Found';
+              tableResultDiv.innerHTML = `<p>Table does not exist in this base</p>`;
+            } else if (error.message.includes('not authorized')) {
+              tableHeader.textContent = 'No Access';
+              tableResultDiv.innerHTML = `<p>You don't have permission to access this table</p>`;
+            } else {
+              tableHeader.textContent = 'Error';
+              tableResultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+          }
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>

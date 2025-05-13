@@ -46,9 +46,32 @@ const isNetlify = () => {
 
 // Tasks API
 export async function fetchTasks() {
+  // Get current user from localStorage
+  const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock tasks data');
+
+    // If user is a client, filter mock data
+    if (currentUser && currentUser.Role === 'Client' && currentUser.Client) {
+      console.log('Filtering mock tasks for client user:', currentUser.Name);
+      // Ensure Client is an array
+      const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
+
+      return mockTasks.filter(task => {
+        // Check if task has client field that matches any of the user's clients
+        if (task.Client) {
+          if (Array.isArray(task.Client)) {
+            return task.Client.some(client => clientIds.includes(client));
+          } else {
+            return clientIds.includes(task.Client);
+          }
+        }
+        return false;
+      });
+    }
+
     return mockTasks;
   }
 
@@ -59,8 +82,18 @@ export async function fetchTasks() {
       console.log('Development mode: Using direct Airtable access');
       // Import the getTasks function directly
       const { getTasks } = await import('@/lib/airtable');
-      const tasks = await getTasks();
-      return tasks;
+
+      // If user is logged in, pass user info to getTasks
+      if (currentUser) {
+        // Ensure Client is an array
+        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
+                         (currentUser.Client ? [currentUser.Client] : []);
+        const tasks = await getTasks(currentUser.id, currentUser.Role, clientIds);
+        return tasks;
+      } else {
+        const tasks = await getTasks();
+        return tasks;
+      }
     }
 
     // In production, use the API routes
@@ -75,12 +108,30 @@ export async function fetchTasks() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout - increased for Airtable API
 
+    // Prepare headers with user information
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
+    };
+
+    // Add user information to headers if available
+    if (currentUser) {
+      headers['x-user-id'] = currentUser.id;
+      headers['x-user-role'] = currentUser.Role;
+
+      // Convert client array to JSON string
+      if (currentUser.Client) {
+        // Ensure Client is an array
+        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
+        headers['x-user-client'] = JSON.stringify(clientIds);
+      } else {
+        headers['x-user-client'] = JSON.stringify([]);
+      }
+    }
+
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-      },
+      headers,
     });
 
     clearTimeout(timeoutId);

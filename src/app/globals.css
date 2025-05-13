@@ -350,6 +350,14 @@ button {
   letter-spacing: 0px !important;
 }
 
+/* Client selector button - fully rounded */
+.client-selector-button {
+  border-radius: 12px !important; /* Fully rounded */
+  -webkit-border-radius: 12px !important;
+  -moz-border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
 /* Primary CTA - Dark background with white text */
 button.btn-primary, a.btn-primary {
   background-color: #12131C !important;
@@ -702,8 +710,8 @@ div[class*="bg-"] {
   border-radius: 0 !important;
 }
 
-/* Exclude month selector from the border-radius reset */
-.fixed.top-0 button:not(.month-selector-rounded) {
+/* Exclude month selector and client selector from the border-radius reset */
+.fixed.top-0 button:not(.month-selector-rounded):not(.client-selector-button) {
   border-radius: 0 !important;
 }
 
@@ -773,9 +781,9 @@ thead tr th:last-child {
 
 /* Override for month selector in TopNavBar */
 .month-selector-rounded {
-  border-radius: 0.5rem !important;
-  -webkit-border-radius: 0.5rem !important;
-  -moz-border-radius: 0.5rem !important;
+  border-radius: 9999px !important;
+  -webkit-border-radius: 9999px !important;
+  -moz-border-radius: 9999px !important;
 }
 
 .month-dropdown {

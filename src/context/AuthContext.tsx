@@ -3,25 +3,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getUserByEmail } from '@/lib/airtable';
 
-interface User {
-  id: string;
-  Name: string;
-  Email: string;
-  Role: string;
+import { User } from '@/types';
+
+// Extended User interface for authentication context
+interface AuthUser extends User {
+  // Additional auth-specific properties can be added here
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   error: string | null;
+  // Helper function to check if user has access to specific client data
+  hasClientAccess: (clientId: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,24 +53,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // For this demo, we'll just check if the user exists in Airtable
-      // and allow login with any password
-      const user = await getUserByEmail(email);
+      // Call the login API
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (!user) {
-        setError('User not found. Please use one of the sample emails: admin@example.com or client@example.com');
+      const data = await response.json();
+
+      if (!data.success) {
+        setError(data.error || 'Invalid email or password');
         return false;
       }
 
-      // For demo purposes, we'll accept any password
-      // In a real app, you'd have a password field in Airtable and verify it here
+      // Convert to our AuthUser type
+      const authUser = data.user as unknown as AuthUser;
 
-      // Use type assertion to treat the user object as User type
-      // This assumes the Airtable record has the expected fields
-      const typedUser = user as unknown as User;
+      // Make sure Client is always an array for consistency
+      if (authUser.Client) {
+        if (!Array.isArray(authUser.Client)) {
+          authUser.Client = [authUser.Client];
+        }
+      } else {
+        authUser.Client = [];
+      }
 
-      setUser(typedUser);
-      localStorage.setItem('scalerrs-user', JSON.stringify(typedUser));
+      // Store the user in state and localStorage
+      setUser(authUser);
+      localStorage.setItem('scalerrs-user', JSON.stringify(authUser));
+
+      console.log('User logged in:', authUser.Name);
+      console.log('User role:', authUser.Role);
+      console.log('User clients:', authUser.Client);
+
       return true;
     } catch (err) {
       console.error('Login error:', err);
@@ -85,8 +105,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('scalerrs-user');
   };
 
+  // Helper function to check if user has access to specific client data
+  const hasClientAccess = (clientId: string): boolean => {
+    // If no user is logged in, deny access
+    if (!user) return false;
+
+    // Admin users have access to all client data
+    if (user.Role === 'Admin') return true;
+
+    // Client users only have access to their assigned clients
+    if (user.Role === 'Client' && user.Client) {
+      return user.Client.includes(clientId);
+    }
+
+    // Default to no access
+    return false;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, error }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, error, hasClientAccess }}>
       {children}
     </AuthContext.Provider>
   );

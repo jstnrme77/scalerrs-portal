@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import RoundedMonthSelector from '@/components/ui/custom/RoundedMonthSelector';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Download, ChevronDown } from 'lucide-react';
+import ClientSelector from '@/components/ClientSelector';
 
 interface TopNavBarProps {
   sidebarExpanded?: boolean;
@@ -110,13 +111,16 @@ export default function TopNavBar({
       </div>
 
       <div className="flex items-center space-x-4 ml-auto">
+        {/* Client selector - will only show for admin users */}
+        <ClientSelector className="mr-3" />
+
         {/* Debug element to show condition values */}
         <div className="hidden">
-          isDeliverablesPage: {String(isDeliverablesPage)}, 
+          isDeliverablesPage: {String(isDeliverablesPage)},
           onMonthChange exists: {String(!!onMonthChange)},
           shouldShow: {String((isContentWorkflowPage || isDeliverablesPage || pathname === '/reports') && !!onMonthChange)}
         </div>
-        
+
         {(isContentWorkflowPage || isDeliverablesPage || pathname === '/reports') && onMonthChange && (
           <div className="mr-3">
             <RoundedMonthSelector
@@ -128,7 +132,7 @@ export default function TopNavBar({
 
         {isKpiDashboardPage && (
           <div className="flex items-center gap-2">
-            <Select 
+            <Select
               value={dateView}
               onValueChange={(value) => {
                 if (onDateViewChange) {
@@ -139,8 +143,8 @@ export default function TopNavBar({
               <SelectTrigger className="month-selector-rounded w-[180px] h-9 flex items-center bg-white rounded-lg">
                 <Calendar className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="View">
-                  {dateView === 'monthly' ? 'Monthly View' : 
-                   dateView === 'quarterly' ? 'Quarterly View' : 
+                  {dateView === 'monthly' ? 'Monthly View' :
+                   dateView === 'quarterly' ? 'Quarterly View' :
                    'Yearly View'}
                 </SelectValue>
               </SelectTrigger>
@@ -150,8 +154,8 @@ export default function TopNavBar({
                 <SelectItem value="yearly">Yearly View</SelectItem>
               </SelectContent>
             </Select>
-            
-            <Select 
+
+            <Select
               value={comparisonPeriod}
               onValueChange={(value) => {
                 if (onComparisonChange) {
@@ -161,8 +165,8 @@ export default function TopNavBar({
             >
               <SelectTrigger className="month-selector-rounded w-[180px] h-9 flex items-center bg-white rounded-lg">
                 <SelectValue placeholder="Comparison">
-                  {comparisonPeriod === 'previous-period' ? 'Previous Period' : 
-                   comparisonPeriod === 'previous-year' ? 'Previous Year' : 
+                  {comparisonPeriod === 'previous-period' ? 'Previous Period' :
+                   comparisonPeriod === 'previous-year' ? 'Previous Year' :
                    'Custom Period'}
                 </SelectValue>
               </SelectTrigger>
@@ -172,7 +176,7 @@ export default function TopNavBar({
                 <SelectItem value="custom">Custom Period</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <button className="month-selector-rounded justify-center rounded-lg font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-[#12131C] bg-white text-[#12131C] hover:opacity-90 h-10 px-4 py-2 text-sm flex items-center">
               <Download className="h-4 w-4 mr-1" />
               Export Report
