@@ -2,13 +2,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
-import { mockBriefs2025, mockArticles2025, mockBacklinks2025 } from '@/lib/mock-data';
 import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
 import DocumentViewerModal from '@/components/modals/DocumentViewerModal';
 import useDocumentViewer from '@/hooks/useDocumentViewer';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import { FileText, BookOpen, Link2 } from 'lucide-react';
+import { useClientData } from '@/context/ClientDataContext';
 
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
@@ -16,6 +16,7 @@ type MainTab = 'briefs' | 'articles' | 'backlinks';
 export default function ContentWorkflowPage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
   const [selectedMonth, setSelectedMonth] = useState('January');
+  const { clientId, filterDataByClient } = useClientData();
 
   // State for Airtable data
   const [loading, setLoading] = useState(true);
@@ -75,20 +76,9 @@ export default function ContentWorkflowPage() {
 
         console.log('Starting to fetch content workflow data...');
 
-        // Check if we should use mock data
-        let useMockData = false;
+        // Clear any existing mock data flag to ensure we're using real data
         if (isBrowser) {
-          useMockData = localStorage.getItem('use-mock-data') === 'true';
-          if (useMockData) {
-            console.log('Using mock data based on localStorage setting');
-            // Import mock data
-            const { mockBriefs, mockArticles, mockBacklinks } = await import('@/lib/mock-data');
-            setBriefs(mockBriefs);
-            setArticles(mockArticles);
-            setBacklinks(mockBacklinks);
-            setLoading(false);
-            return;
-          }
+          localStorage.setItem('use-mock-data', 'false');
         }
 
         // Fetch each data type separately to better handle errors
@@ -100,7 +90,7 @@ export default function ContentWorkflowPage() {
         const errorMessages = [];
 
         try {
-          console.log('Fetching briefs...');
+          console.log('Fetching briefs from Airtable...');
           briefsData = await fetchBriefs();
           console.log('Briefs fetched successfully:', briefsData.length, 'records');
           logData(briefsData, 'Briefs');
@@ -109,15 +99,11 @@ export default function ContentWorkflowPage() {
           console.error('Error fetching briefs:', briefsErr);
           errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
           hasErrors = true;
-
-          // Import mock briefs as fallback
-          const { mockBriefs } = await import('@/lib/mock-data');
-          setBriefs(mockBriefs);
-          console.log('Using mock briefs data as fallback');
+          setBriefs([]);
         }
 
         try {
-          console.log('Fetching articles...');
+          console.log('Fetching articles from Airtable...');
           articlesData = await fetchArticles();
           console.log('Articles fetched successfully:', articlesData.length, 'records');
           logData(articlesData, 'Articles');
@@ -126,15 +112,11 @@ export default function ContentWorkflowPage() {
           console.error('Error fetching articles:', articlesErr);
           errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
           hasErrors = true;
-
-          // Import mock articles as fallback
-          const { mockArticles } = await import('@/lib/mock-data');
-          setArticles(mockArticles);
-          console.log('Using mock articles data as fallback');
+          setArticles([]);
         }
 
         try {
-          console.log('Fetching backlinks...');
+          console.log('Fetching backlinks from Airtable...');
           backlinksData = await fetchBacklinks();
           console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
           logData(backlinksData, 'Backlinks');
@@ -143,15 +125,11 @@ export default function ContentWorkflowPage() {
           console.error('Error fetching backlinks:', backlinksErr);
           errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
           hasErrors = true;
-
-          // Import mock backlinks as fallback
-          const { mockBacklinks } = await import('@/lib/mock-data');
-          setBacklinks(mockBacklinks);
-          console.log('Using mock backlinks data as fallback');
+          setBacklinks([]);
         }
 
         try {
-          console.log('Fetching URL performance data...');
+          console.log('Fetching URL performance data from Airtable...');
           urlPerformanceData = await fetchURLPerformance();
           console.log('URL performance data fetched successfully:', urlPerformanceData.length, 'records');
           logData(urlPerformanceData, 'URL Performance');
@@ -160,40 +138,22 @@ export default function ContentWorkflowPage() {
           console.error('Error fetching URL performance data:', urlPerformanceErr);
           errorMessages.push(`URL Performance: ${urlPerformanceErr.message || 'Unknown error'}`);
           hasErrors = true;
-
-          // Import mock URL performance data as fallback
-          const { mockURLPerformance } = await import('@/lib/mock-data');
-          setUrlPerformance(mockURLPerformance);
-          console.log('Using mock URL performance data as fallback');
+          setUrlPerformance([]);
         }
 
         // Set error message if any of the fetches failed
         if (hasErrors) {
-          setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Using sample data as fallback.`);
-          // Set a flag in localStorage to use mock data for future requests
-          if (isBrowser) {
-            localStorage.setItem('use-mock-data', 'true');
-          }
+          setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Please check your Airtable connection.`);
         }
       } catch (err: any) {
         console.error('Error in content workflow data fetching:', err);
         setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
 
-        // Import all mock data as fallback
-        try {
-          const { mockBriefs, mockArticles, mockBacklinks } = await import('@/lib/mock-data');
-          setBriefs(mockBriefs);
-          setArticles(mockArticles);
-          setBacklinks(mockBacklinks);
-          console.log('Using all mock data as fallback due to error');
-
-          // Set a flag in localStorage to use mock data for future requests
-          if (isBrowser) {
-            localStorage.setItem('use-mock-data', 'true');
-          }
-        } catch (mockErr) {
-          console.error('Error importing mock data:', mockErr);
-        }
+        // Clear the data states
+        setBriefs([]);
+        setArticles([]);
+        setBacklinks([]);
+        setUrlPerformance([]);
       } finally {
         setLoading(false);
       }
@@ -202,71 +162,47 @@ export default function ContentWorkflowPage() {
     fetchData();
   }, []);
 
-  // Filter data by selected month and other filters
+  // Filter data by selected month, client, and other filters
   useEffect(() => {
     console.log('Filtering data for month:', selectedMonth);
+    console.log('Filtering data for client:', clientId);
     console.log('Current backlinks data:', backlinks);
 
-    // Check if we're looking at 2025 data
-    const is2025Data = selectedMonth.includes('2025');
-
-    if (is2025Data) {
-      // Use 2025 mockup data
-      console.log('Using 2025 mockup data for', selectedMonth);
-
-      // Filter briefs for 2025
-      const filtered2025Briefs = mockBriefs2025.filter(brief => brief.Month === selectedMonth);
-      setFilteredBriefs(filtered2025Briefs);
-      console.log('Filtered 2025 briefs:', filtered2025Briefs.length);
-
-      // Filter articles for 2025
-      const filtered2025Articles = mockArticles2025.filter(article => article.Month === selectedMonth);
-      setFilteredArticles(filtered2025Articles);
-      console.log('Filtered 2025 articles:', filtered2025Articles.length);
-
-      // Filter backlinks for 2025
-      let filtered2025Backlinks = mockBacklinks2025.filter(backlink => backlink.Month === selectedMonth);
-
-      // Apply additional filters to 2025 backlinks
-      if (statusFilter !== 'all') {
-        filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink.Status === statusFilter);
-      }
-
-      if (drFilter !== 'all') {
-        if (drFilter === '50+') {
-          filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink['Domain Authority/Rating'] >= 50);
-        } else if (drFilter === '60+') {
-          filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink['Domain Authority/Rating'] >= 60);
-        } else if (drFilter === '70+') {
-          filtered2025Backlinks = filtered2025Backlinks.filter(backlink => backlink['Domain Authority/Rating'] >= 70);
-        }
-      }
-
-      setFilteredBacklinks(filtered2025Backlinks);
-      console.log('Filtered 2025 backlinks:', filtered2025Backlinks.length);
-
-      return; // Exit early since we're using 2025 data
-    }
-
-    // Regular filtering for non-2025 data
+    // Filter briefs by month and client
     if (briefs.length > 0) {
-      const filtered = briefs.filter(brief => brief.Month === selectedMonth);
+      // First filter by client
+      const clientFiltered = filterDataByClient(briefs);
+      console.log('Client filtered briefs:', clientFiltered.length);
+
+      // Then filter by month
+      const filtered = clientFiltered.filter(brief => brief.Month === selectedMonth);
       setFilteredBriefs(filtered);
-      console.log('Filtered briefs:', filtered.length);
+      console.log('Filtered briefs after month filter:', filtered.length);
     }
 
+    // Filter articles by month and client
     if (articles.length > 0) {
-      const filtered = articles.filter(article => article.Month === selectedMonth);
+      // First filter by client
+      const clientFiltered = filterDataByClient(articles);
+      console.log('Client filtered articles:', clientFiltered.length);
+
+      // Then filter by month
+      const filtered = clientFiltered.filter(article => article.Month === selectedMonth);
       setFilteredArticles(filtered);
-      console.log('Filtered articles:', filtered.length);
+      console.log('Filtered articles after month filter:', filtered.length);
     }
 
+    // Filter backlinks by month, client, and additional filters
     if (backlinks.length > 0) {
       console.log('Filtering backlinks for month:', selectedMonth);
       console.log('Total backlinks before filtering:', backlinks.length);
 
-      // Start with month filter
-      let filtered = backlinks.filter(backlink => {
+      // First filter by client
+      const clientFiltered = filterDataByClient(backlinks);
+      console.log('Client filtered backlinks:', clientFiltered.length);
+
+      // Then filter by month
+      let filtered = clientFiltered.filter(backlink => {
         console.log('Backlink month:', backlink.Month, 'Selected month:', selectedMonth, 'Match:', backlink.Month === selectedMonth);
         return backlink.Month === selectedMonth;
       });
@@ -294,29 +230,12 @@ export default function ContentWorkflowPage() {
       console.log('Final filtered backlinks:', filtered);
       setFilteredBacklinks(filtered);
     }
-  }, [selectedMonth, briefs, articles, backlinks, statusFilter, drFilter]);
+  }, [selectedMonth, briefs, articles, backlinks, statusFilter, drFilter, clientId, filterDataByClient]);
 
   // Handle brief status changes
   const handleBriefStatusChange = async (briefId: string, newStatus: BriefStatus) => {
     try {
       console.log(`Attempting to update brief ${briefId} status to ${newStatus}...`);
-
-      // Check if we should use mock data
-      const isBrowser = typeof window !== 'undefined';
-      const useMockData = isBrowser && localStorage.getItem('use-mock-data') === 'true';
-
-      if (useMockData) {
-        console.log('Using mock data for updating brief status');
-        // Update the local state only
-        setBriefs(prevBriefs =>
-          prevBriefs.map(brief =>
-            brief.id === briefId ? { ...brief, Status: newStatus } : brief
-          )
-        );
-
-        console.log(`Brief ${briefId} status updated to ${newStatus} (mock data)`);
-        return;
-      }
 
       // Update the status in Airtable
       const updatedBrief = await updateBriefStatus(briefId, newStatus);
@@ -332,11 +251,6 @@ export default function ContentWorkflowPage() {
       console.log(`Brief ${briefId} status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating brief status:', error);
-
-      // Set a flag to use mock data for future requests
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('use-mock-data', 'true');
-      }
 
       // Update the local state anyway to provide a good user experience
       setBriefs(prevBriefs =>
@@ -355,23 +269,6 @@ export default function ContentWorkflowPage() {
     try {
       console.log(`Attempting to update article ${articleId} status to ${newStatus}...`);
 
-      // Check if we should use mock data
-      const isBrowser = typeof window !== 'undefined';
-      const useMockData = isBrowser && localStorage.getItem('use-mock-data') === 'true';
-
-      if (useMockData) {
-        console.log('Using mock data for updating article status');
-        // Update the local state only
-        setArticles(prevArticles =>
-          prevArticles.map(article =>
-            article.id === articleId ? { ...article, Status: newStatus } : article
-          )
-        );
-
-        console.log(`Article ${articleId} status updated to ${newStatus} (mock data)`);
-        return;
-      }
-
       // Update the status in Airtable
       const updatedArticle = await updateArticleStatus(articleId, newStatus);
       console.log('Updated article:', updatedArticle);
@@ -386,11 +283,6 @@ export default function ContentWorkflowPage() {
       console.log(`Article ${articleId} status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating article status:', error);
-
-      // Set a flag to use mock data for future requests
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('use-mock-data', 'true');
-      }
 
       // Update the local state anyway to provide a good user experience
       setArticles(prevArticles =>

@@ -25,7 +25,8 @@ const shouldUseMockData = () => {
   // Try both the NEXT_PUBLIC_ version and the one from next.config.js
   const useMockData =
     process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
-    (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true');
+    (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
+    (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
 
   // Check if we're on Netlify and having issues with Airtable
   const isNetlifyWithAirtableIssues =
@@ -35,8 +36,9 @@ const shouldUseMockData = () => {
   console.log('Environment mode:', process.env.NODE_ENV);
   console.log('Using mock data:', useMockData || isNetlifyWithAirtableIssues);
 
-  // Use mock data if explicitly enabled or if we're on Netlify with Airtable issues
-  return useMockData || isNetlifyWithAirtableIssues;
+  // For this specific implementation, we want to force using real data
+  // So we'll return false regardless of the settings
+  return false;
 };
 
 // Function to determine if we're on Netlify

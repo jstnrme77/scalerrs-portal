@@ -710,108 +710,36 @@ export async function getCommentsByTask(taskId: string) {
   }
 }
 
-// Brief functions
+// Brief functions - now using Keywords table
 export async function getBriefs(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock briefs data');
-
-    // Filter mock data based on user role and ID
-    if (userId && userRole) {
-      console.log(`Filtering mock briefs for user: ${userId}, role: ${userRole}`);
-
-      // For client users, filter by client IDs
-      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-        console.log('Filtering mock briefs by client:', clientIds);
-        return mockBriefs.filter(brief => {
-          // Check if brief has client field that matches any of the user's clients
-          if (brief.Client) {
-            if (Array.isArray(brief.Client)) {
-              return brief.Client.some(client => clientIds.includes(client));
-            } else {
-              return clientIds.includes(brief.Client);
-            }
-          }
-          return false;
-        });
-      }
-
-      // For non-admin users who aren't clients, only show briefs assigned to them
-      if (userRole !== 'Admin' && userRole !== 'Client') {
-        return mockBriefs.filter(brief => {
-          // Check if the brief is assigned to this user (as SEO Strategist, Content Writer, or Content Editor)
-          return (
-            (brief.SEOStrategist && brief.SEOStrategist === userId) ||
-            (brief.ContentWriter && brief.ContentWriter === userId) ||
-            (brief.ContentEditor && brief.ContentEditor === userId)
-          );
-        });
-      }
-    }
-
     return mockBriefs;
   }
 
   try {
-    console.log('Fetching briefs from Airtable...');
+    console.log('Fetching briefs from Keywords table in Airtable...');
     console.log('Using base ID:', baseId);
-    console.log('Using table name:', TABLES.BRIEFS);
+    console.log('Using table name:', TABLES.KEYWORDS);
 
-    // Try to list all tables in the base to see what's available
-    try {
-      console.log('Attempting to list all tables in the base...');
-      // This is a workaround to list tables - we try to access a non-existent table
-      // which will fail, but the error message will contain the list of valid tables
-      try {
-        await base('__nonexistent_table__').select().firstPage();
-      } catch (listError: any) {
-        if (listError.message && listError.message.includes('Table "__nonexistent_table__" not found. Available tables:')) {
-          const availableTables = listError.message
-            .split('Available tables:')[1]
-            .trim()
-            .split(',')
-            .map((t: string) => t.trim());
-
-          console.log('Available tables in this base:', availableTables);
-
-          // Check if our required tables exist
-          const briefsExists = availableTables.some((t: string) =>
-            t === TABLES.BRIEFS ||
-            t === TABLES.BRIEFS.toLowerCase() ||
-            t === 'Briefs' ||
-            t === 'briefs'
-          );
-
-          console.log(`Briefs table exists: ${briefsExists}`);
-
-          // If table doesn't exist, use mock data
-          if (!briefsExists) {
-            console.log('Briefs table does not exist in this base. Using mock data.');
-            return mockBriefs;
-          }
-        }
-      }
-    } catch (listTablesError) {
-      console.error('Error listing tables:', listTablesError);
-    }
-
-    // Check if the table exists and we can access it
+    // Check if the Keywords table exists and we can access it
     try {
       // First, try to get just one record to verify the table exists and is accessible
-      const checkRecord = await base(TABLES.BRIEFS).select({ maxRecords: 1 }).firstPage();
-      console.log('Briefs table check:', checkRecord.length > 0 ? 'Table exists and has records' : 'Table exists but is empty');
+      const checkRecord = await base(TABLES.KEYWORDS).select({ maxRecords: 1 }).firstPage();
+      console.log('Keywords table check:', checkRecord.length > 0 ? 'Table exists and has records' : 'Table exists but is empty');
 
       if (checkRecord.length > 0) {
-        console.log('Sample Briefs record structure:', checkRecord[0].fields);
-        console.log('Available fields in Briefs:', Object.keys(checkRecord[0].fields));
+        console.log('Sample Keywords record structure:', checkRecord[0].fields);
+        console.log('Available fields in Keywords:', Object.keys(checkRecord[0].fields));
       } else {
-        console.log('Briefs table is empty. Using mock data...');
+        console.log('Keywords table is empty. Using mock data...');
         return mockBriefs;
       }
     } catch (checkError: any) {
-      console.error('Error checking Briefs table:', checkError.message);
+      console.error('Error checking Keywords table:', checkError.message);
 
       if (checkError.message && checkError.message.includes('Table not found')) {
-        console.error('The Briefs table does not exist in this base');
+        console.error('The Keywords table does not exist in this base');
         return mockBriefs;
       }
 
@@ -830,7 +758,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering briefs by client:', clientIds);
+      console.log('Filtering keywords by client:', clientIds);
 
       // Create a filter formula for client IDs
       const clientFilters = clientIds.map(clientId =>
@@ -842,9 +770,9 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     }
     // If user is not an admin or client, filter by assigned user
     else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering briefs for user: ${userId}, role: ${userRole}`);
+      console.log(`Filtering keywords for user: ${userId}, role: ${userRole}`);
 
-      // Filter for briefs where this user is the SEO Strategist, Content Writer, or Content Editor
+      // Filter for keywords where this user is assigned
       const userFilters = [
         `SEARCH('${userId}', ARRAYJOIN({SEO Strategist}, ',')) > 0`,
         `SEARCH('${userId}', ARRAYJOIN({Content Writer}, ',')) > 0`,
@@ -859,30 +787,36 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     let query;
     if (filterFormula) {
       console.log('Using filter formula:', filterFormula);
-      query = base(TABLES.BRIEFS).select({
+      query = base(TABLES.KEYWORDS).select({
         filterByFormula: filterFormula
       });
     } else {
-      query = base(TABLES.BRIEFS).select();
+      query = base(TABLES.KEYWORDS).select();
     }
 
     // Fetch the records
     const records = await query.all();
-    console.log(`Successfully fetched ${records.length} briefs records from Airtable`);
+    console.log(`Successfully fetched ${records.length} keywords records from Airtable`);
 
     // Log the first record to see what fields are available
     if (records.length > 0) {
-      console.log('First brief record fields:', records[0].fields);
-      console.log('First brief record field keys:', Object.keys(records[0].fields));
+      console.log('First keyword record fields:', records[0].fields);
+      console.log('First keyword record field keys:', Object.keys(records[0].fields));
     }
 
-    // Map the records to our expected format
-    return records.map((record: any) => {
-      const fields = record.fields;
-      const fieldKeys = Object.keys(fields);
+    // Filter and map the records to our expected Brief format
+    // We'll consider keywords with Status "Brief" or "Brief In Progress" as briefs
+    const briefRecords = records.filter((record: any) => {
+      const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
+      return status.includes('Brief') || status === 'In Progress' || status === 'Needs Input' ||
+             status === 'Review Brief' || status === 'Brief Approved';
+    });
 
-      // Log each record's fields for debugging
-      console.log(`Record ${record.id} fields:`, fieldKeys);
+    console.log(`Filtered ${briefRecords.length} records as briefs`);
+
+    // Map the records to our expected format
+    return briefRecords.map((record: any) => {
+      const fields = record.fields;
 
       // Process the Client field - it might be an array of record IDs in Airtable
       let clientValue = fields.Client;
@@ -893,60 +827,41 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
         clientValue = "Example Client";
       }
 
+      // Map the keyword status to brief status
+      let briefStatus = 'In Progress';
+      const keywordStatus = fields['Keyword/Content Status'] || fields.Status || '';
+
+      if (keywordStatus.includes('Brief')) {
+        // Extract the brief status from the keyword status
+        briefStatus = keywordStatus;
+      } else if (keywordStatus === 'Needs Input') {
+        briefStatus = 'Needs Input';
+      } else if (keywordStatus === 'Review') {
+        briefStatus = 'Review Brief';
+      } else if (keywordStatus === 'Approved') {
+        briefStatus = 'Brief Approved';
+      }
+
       // Return an object with our expected structure
       return {
         id: record.id,
-        Title: fields.Title || '',
-        SEOStrategist: fields.SEOStrategist || fields['SEO Strategist'] || '',
-        DueDate: fields.DueDate || fields['Due Date'] || '',
-        DocumentLink: fields.DocumentLink || fields['Document Link'] || '',
-        Month: fields.Month || '',
-        Status: fields.Status || 'In Progress',
+        Title: fields['Meta Title'] || fields.Keyword || fields.Title || '',
+        SEOStrategist: fields['SEO Assignee'] || fields.SEOStrategist || fields['SEO Strategist'] || '',
+        DueDate: fields['Due Date (Publication)'] || fields.DueDate || fields['Due Date'] || '',
+        DocumentLink: fields['Content Brief Link (G Doc)'] || fields.DocumentLink || fields['Document Link'] || '',
+        Month: fields['Month (Keyword Targets)'] || fields.Month || '',
+        Status: briefStatus,
         Client: clientValue,
-        ContentWriter: fields.ContentWriter || fields['Content Writer'] || '',
-        ContentEditor: fields.ContentEditor || fields['Content Editor'] || '',
+        ContentWriter: fields['Content Writer'] || fields.ContentWriter || fields.Writer || '',
+        ContentEditor: fields.ContentEditor || fields['Content Editor'] || fields.Editor || '',
         // Include all original fields as well
         ...fields
       };
     });
   } catch (error) {
-    console.error('Error fetching briefs:', error);
+    console.error('Error fetching briefs from Keywords table:', error);
     // Fall back to mock data
     console.log('Falling back to mock briefs data');
-
-    // Filter mock data based on user role and ID
-    if (userId && userRole) {
-      console.log(`Filtering mock briefs for user: ${userId}, role: ${userRole}`);
-
-      // For client users, filter by client IDs
-      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-        console.log('Filtering mock briefs by client:', clientIds);
-        return mockBriefs.filter(brief => {
-          // Check if brief has client field that matches any of the user's clients
-          if (brief.Client) {
-            if (Array.isArray(brief.Client)) {
-              return brief.Client.some(client => clientIds.includes(client));
-            } else {
-              return clientIds.includes(brief.Client);
-            }
-          }
-          return false;
-        });
-      }
-
-      // For non-admin users who aren't clients, only show briefs assigned to them
-      if (userRole !== 'Admin' && userRole !== 'Client') {
-        return mockBriefs.filter(brief => {
-          // Check if the brief is assigned to this user (as SEO Strategist, Content Writer, or Content Editor)
-          return (
-            (brief.SEOStrategist && brief.SEOStrategist === userId) ||
-            (brief.ContentWriter && brief.ContentWriter === userId) ||
-            (brief.ContentEditor && brief.ContentEditor === userId)
-          );
-        });
-      }
-    }
-
     return mockBriefs;
   }
 }
@@ -964,11 +879,11 @@ export async function updateBriefStatus(briefId: string, status: string) {
   try {
     console.log(`Updating brief ${briefId} status to ${status} in Airtable...`);
     console.log('Using base ID:', baseId);
-    console.log('Using table name:', TABLES.BRIEFS);
+    console.log('Using table name:', TABLES.KEYWORDS);
 
     // First, check if the brief exists
     try {
-      const checkRecord = await base(TABLES.BRIEFS).find(briefId);
+      const checkRecord = await base(TABLES.KEYWORDS).find(briefId);
       console.log('Found brief to update:', checkRecord.id);
       console.log('Current brief fields:', checkRecord.fields);
     } catch (findError) {
@@ -977,8 +892,8 @@ export async function updateBriefStatus(briefId: string, status: string) {
     }
 
     // Now update the brief
-    const updatedRecord = await base(TABLES.BRIEFS).update(briefId, {
-      Status: status,
+    const updatedRecord = await base(TABLES.KEYWORDS).update(briefId, {
+      'Keyword/Content Status': status,
     });
 
     console.log('Brief updated successfully:', updatedRecord.id);
@@ -1007,87 +922,47 @@ export async function updateBriefStatus(briefId: string, status: string) {
   }
 }
 
-// Article functions
+// Article functions - now using Keywords table
 export async function getArticles(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock articles data');
-
-    // Filter mock data based on user role and ID
-    if (userId && userRole) {
-      console.log(`Filtering mock articles for user: ${userId}, role: ${userRole}`);
-
-      // For client users, filter by client IDs
-      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-        console.log('Filtering mock articles by client:', clientIds);
-        return mockArticles.filter(article => {
-          // Check if article has client field that matches any of the user's clients
-          if (article.Client) {
-            if (Array.isArray(article.Client)) {
-              return article.Client.some(client => clientIds.includes(client));
-            } else {
-              return clientIds.includes(article.Client);
-            }
-          }
-          return false;
-        });
-      }
-
-      // For non-admin users who aren't clients, only show articles assigned to them
-      if (userRole !== 'Admin' && userRole !== 'Client') {
-        return mockArticles.filter(article => {
-          // Check if the article is assigned to this user (as Writer or Editor)
-          return (
-            (article.Writer && article.Writer === userId) ||
-            (article.Editor && article.Editor === userId)
-          );
-        });
-      }
-    }
-
     return mockArticles;
   }
 
   try {
-    console.log('Fetching articles from Airtable...');
+    console.log('Fetching articles from Keywords table in Airtable...');
     console.log('Using base ID:', baseId);
-    console.log('Using table name:', TABLES.ARTICLES);
+    console.log('Using table name:', TABLES.KEYWORDS);
 
-    // Try to list all tables in the base to see what's available
+    // Check if the Keywords table exists and we can access it
     try {
-      console.log('Attempting to list all tables in the base...');
-      // This is a workaround to list tables - we try to access a non-existent table
-      // which will fail, but the error message will contain the list of valid tables
-      try {
-        await base('__nonexistent_table__').select().firstPage();
-      } catch (listError: any) {
-        if (listError.message && listError.message.includes('Table "__nonexistent_table__" not found. Available tables:')) {
-          const availableTables = listError.message
-            .split('Available tables:')[1]
-            .trim()
-            .split(',')
-            .map((t: string) => t.trim());
+      // First, try to get just one record to verify the table exists and is accessible
+      const checkRecord = await base(TABLES.KEYWORDS).select({ maxRecords: 1 }).firstPage();
+      console.log('Keywords table check:', checkRecord.length > 0 ? 'Table exists and has records' : 'Table exists but is empty');
 
-          console.log('Available tables in this base:', availableTables);
-
-          // Check if our required tables exist
-          const articlesExists = availableTables.some((t: string) =>
-            t === TABLES.ARTICLES ||
-            t === TABLES.ARTICLES.toLowerCase() ||
-            t === 'Articles' ||
-            t === 'articles'
-          );
-
-          console.log(`Articles table exists: ${articlesExists}`);
-
-          // If table doesn't exist, use mock data
-          if (!articlesExists) {
-            console.log('Articles table does not exist in this base. Using mock data.');
-            return mockArticles;
-          }
-        }
+      if (checkRecord.length > 0) {
+        console.log('Sample Keywords record structure:', checkRecord[0].fields);
+        console.log('Available fields in Keywords:', Object.keys(checkRecord[0].fields));
+      } else {
+        console.log('Keywords table is empty. Using mock data...');
+        return mockArticles;
       }
-    } catch (listTablesError) {
-      console.error('Error listing tables:', listTablesError);
+    } catch (checkError: any) {
+      console.error('Error checking Keywords table:', checkError.message);
+
+      if (checkError.message && checkError.message.includes('Table not found')) {
+        console.error('The Keywords table does not exist in this base');
+        return mockArticles;
+      }
+
+      if (checkError.message && checkError.message.includes('authorized')) {
+        console.error('Authorization error. Your token may not have the correct permissions.');
+        console.error('Make sure your token has the following scopes: data.records:read, data.records:write, schema.bases:read');
+        return mockArticles;
+      }
+
+      // For other errors, fall back to mock data
+      return mockArticles;
     }
 
     // Build the query with appropriate filters
@@ -1095,7 +970,7 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering articles by client:', clientIds);
+      console.log('Filtering keywords by client:', clientIds);
 
       // Create a filter formula for client IDs
       const clientFilters = clientIds.map(clientId =>
@@ -1107,12 +982,12 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
     }
     // If user is not an admin or client, filter by assigned user
     else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering articles for user: ${userId}, role: ${userRole}`);
+      console.log(`Filtering keywords for user: ${userId}, role: ${userRole}`);
 
-      // Filter for articles where this user is the Writer or Editor
+      // Filter for keywords where this user is assigned
       const userFilters = [
-        `SEARCH('${userId}', ARRAYJOIN(Writer, ',')) > 0`,
-        `SEARCH('${userId}', ARRAYJOIN(Editor, ',')) > 0`
+        `SEARCH('${userId}', ARRAYJOIN({Content Writer}, ',')) > 0`,
+        `SEARCH('${userId}', ARRAYJOIN({Content Editor}, ',')) > 0`
       ];
 
       // Combine filters with OR
@@ -1123,25 +998,35 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
     let query;
     if (filterFormula) {
       console.log('Using filter formula:', filterFormula);
-      query = base(TABLES.ARTICLES).select({
+      query = base(TABLES.KEYWORDS).select({
         filterByFormula: filterFormula
       });
     } else {
-      query = base(TABLES.ARTICLES).select();
+      query = base(TABLES.KEYWORDS).select();
     }
 
     // Fetch the records
     const records = await query.all();
-    console.log(`Successfully fetched ${records.length} articles records from Airtable`);
+    console.log(`Successfully fetched ${records.length} keywords records from Airtable`);
 
     // Log the first record to see what fields are available
     if (records.length > 0) {
-      console.log('First article record fields:', records[0].fields);
-      console.log('First article record field keys:', Object.keys(records[0].fields));
+      console.log('First keyword record fields:', records[0].fields);
+      console.log('First keyword record field keys:', Object.keys(records[0].fields));
     }
 
+    // Filter and map the records to our expected Article format
+    // We'll consider keywords with Status containing "Article" or specific article statuses as articles
+    const articleRecords = records.filter((record: any) => {
+      const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
+      return status.includes('Article') || status === 'In Production' || status === 'Review Draft' ||
+             status === 'Client Review' || status === 'Published';
+    });
+
+    console.log(`Filtered ${articleRecords.length} records as articles`);
+
     // Map the records to our expected format
-    return records.map((record: any) => {
+    return articleRecords.map((record: any) => {
       const fields = record.fields;
 
       // Process the Client field - it might be an array of record IDs in Airtable
@@ -1153,112 +1038,44 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
         clientValue = "Example Client";
       }
 
-      // Process the Writer field - it might be an array of record IDs in Airtable
-      let writerValue = fields.Writer || fields['Writer'] || fields['Content Writer'] || '';
+      // Map the keyword status to article status
+      let articleStatus = 'In Production';
+      const keywordStatus = fields['Keyword/Content Status'] || fields.Status || '';
 
-      // Log the writer value for debugging
-      console.log('Original Writer value:', writerValue);
-
-      if (Array.isArray(writerValue) && writerValue.length > 0) {
-        // If it's an array of record IDs, just use the first one as a string
-        writerValue = writerValue[0];
-        console.log('Writer value after array processing:', writerValue);
-      } else if (!writerValue) {
-        writerValue = "Unassigned";
-      }
-
-      // Check if the writer value looks like a record ID and replace with a name
-      if (typeof writerValue === 'string' && writerValue.startsWith('rec') && writerValue.length === 17) {
-        // This is likely a record ID, use a hardcoded name based on the mock data
-        const writerMap: { [key: string]: string } = {
-          // Add mappings for known record IDs if available
-        };
-
-        // Use the mapped name if available, otherwise use a default name
-        writerValue = writerMap[writerValue] || "Alex Johnson";
-        console.log('Writer value after record ID mapping:', writerValue);
-      }
-
-      // Process the Editor field - it might be under Content Editor in Airtable
-      let editorValue = fields.Editor || fields['Editor'] || fields['Content Editor'] || '';
-
-      // Log the editor value for debugging
-      console.log('Original Editor value:', editorValue);
-
-      if (Array.isArray(editorValue) && editorValue.length > 0) {
-        // If it's an array of record IDs, just use the first one as a string
-        editorValue = editorValue[0];
-        console.log('Editor value after array processing:', editorValue);
-      } else if (!editorValue) {
-        editorValue = "Unassigned";
-      }
-
-      // Check if the editor value looks like a record ID and replace with a name
-      if (typeof editorValue === 'string' && editorValue.startsWith('rec') && editorValue.length === 17) {
-        // This is likely a record ID, use a hardcoded name based on the mock data
-        const editorMap: { [key: string]: string } = {
-          // Add mappings for known record IDs if available
-        };
-
-        // Use the mapped name if available, otherwise use a default name
-        editorValue = editorMap[editorValue] || "Jane Doe";
-        console.log('Editor value after record ID mapping:', editorValue);
+      if (keywordStatus.includes('Article')) {
+        // Extract the article status from the keyword status
+        articleStatus = keywordStatus;
+      } else if (keywordStatus === 'In Production') {
+        articleStatus = 'In Production';
+      } else if (keywordStatus === 'Review Draft') {
+        articleStatus = 'Review Draft';
+      } else if (keywordStatus === 'Client Review') {
+        articleStatus = 'Client Review';
+      } else if (keywordStatus === 'Published') {
+        articleStatus = 'Published';
       }
 
       // Return an object with our expected structure
       return {
         id: record.id,
-        Title: fields.Title || '',
-        Writer: writerValue,
-        Editor: editorValue,
-        WordCount: fields.WordCount || fields['Word Count'] || 0,
-        DueDate: fields.DueDate || fields['Due Date'] || '',
-        DocumentLink: fields.DocumentLink || fields['Document Link'] || '',
-        ArticleURL: fields.ArticleURL || fields['Article URL'] || '',
-        Month: fields.Month || '',
-        Status: fields.Status || 'In Production',
+        Title: fields['Meta Title'] || fields.Keyword || fields.Title || '',
+        Writer: fields['Content Writer'] || fields.ContentWriter || fields.Writer || '',
+        Editor: fields.ContentEditor || fields['Content Editor'] || fields.Editor || '',
+        WordCount: fields['Final Word Count'] || fields.WordCount || fields['Word Count'] || 0,
+        DueDate: fields['Due Date (Publication)'] || fields.DueDate || fields['Due Date'] || '',
+        DocumentLink: fields['Written Content (G Doc)'] || fields.DocumentLink || fields['Document Link'] || '',
+        ArticleURL: fields['Target Page URL'] || fields.ArticleURL || fields['Article URL'] || fields.URL || '',
+        Month: fields['Month (Keyword Targets)'] || fields.Month || '',
+        Status: articleStatus,
         Client: clientValue,
         // Include all original fields as well
         ...fields
       };
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
+    console.error('Error fetching articles from Keywords table:', error);
     // Fall back to mock data
     console.log('Falling back to mock articles data');
-
-    // Filter mock data based on user role and ID
-    if (userId && userRole) {
-      console.log(`Filtering mock articles for user: ${userId}, role: ${userRole}`);
-
-      // For client users, filter by client IDs
-      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-        console.log('Filtering mock articles by client:', clientIds);
-        return mockArticles.filter(article => {
-          // Check if article has client field that matches any of the user's clients
-          if (article.Client) {
-            if (Array.isArray(article.Client)) {
-              return article.Client.some(client => clientIds.includes(client));
-            } else {
-              return clientIds.includes(article.Client);
-            }
-          }
-          return false;
-        });
-      }
-
-      // For non-admin users who aren't clients, only show articles assigned to them
-      if (userRole !== 'Admin' && userRole !== 'Client') {
-        return mockArticles.filter(article => {
-          // Check if the article is assigned to this user (as Writer or Editor)
-          return (
-            (article.Writer && article.Writer === userId) ||
-            (article.Editor && article.Editor === userId)
-          );
-        });
-      }
-    }
-
     return mockArticles;
   }
 }
@@ -1276,11 +1093,11 @@ export async function updateArticleStatus(articleId: string, status: string) {
   try {
     console.log(`Updating article ${articleId} status to ${status} in Airtable...`);
     console.log('Using base ID:', baseId);
-    console.log('Using table name:', TABLES.ARTICLES);
+    console.log('Using table name:', TABLES.KEYWORDS);
 
     // First, check if the article exists
     try {
-      const checkRecord = await base(TABLES.ARTICLES).find(articleId);
+      const checkRecord = await base(TABLES.KEYWORDS).find(articleId);
       console.log('Found article to update:', checkRecord.id);
       console.log('Current article fields:', checkRecord.fields);
     } catch (findError) {
@@ -1289,8 +1106,8 @@ export async function updateArticleStatus(articleId: string, status: string) {
     }
 
     // Now update the article
-    const updatedRecord = await base(TABLES.ARTICLES).update(articleId, {
-      Status: status,
+    const updatedRecord = await base(TABLES.KEYWORDS).update(articleId, {
+      'Keyword/Content Status': status,
     });
 
     console.log('Article updated successfully:', updatedRecord.id);

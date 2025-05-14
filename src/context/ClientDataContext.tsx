@@ -53,7 +53,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
 
             setAvailableClients(userClients);
 
-            // Set default client ID to first client
+            // Set default client ID to first client only if clientId is not set
             if (userClients.length > 0 && !clientId) {
               setClientId(userClients[0].id);
             }
@@ -74,8 +74,10 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
               ...clientOptions
             ]);
 
-            // Set default client ID to 'all'
-            setClientId('all');
+            // Set default client ID to 'all' only if clientId is not set
+            if (!clientId) {
+              setClientId('all');
+            }
           }
         } catch (error) {
           console.error('Error fetching clients:', error);
@@ -98,7 +100,10 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
             setAvailableClients([
               { id: 'all', name: 'All Clients' }
             ]);
-            setClientId('all');
+
+            if (!clientId) {
+              setClientId('all');
+            }
           }
         } finally {
           setIsLoading(false);
@@ -107,7 +112,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
 
       fetchClientData();
     }
-  }, [user, clientId]);
+  }, [user]);
 
   // Function to filter data by client and user permissions
   const filterDataByClient = <T extends { Client?: string | string[]; AssignedTo?: string | string[]; Writer?: string | string[]; Editor?: string | string[]; SEOStrategist?: string | string[]; ContentWriter?: string | string[]; ContentEditor?: string | string[] }>(data: T[]): T[] => {
