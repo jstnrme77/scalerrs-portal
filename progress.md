@@ -145,6 +145,11 @@
 ### Data Integration
 - ✅ Implemented dynamic Target Page display in backlinks table using Airtable data
 - ✅ Added functional filters for backlinks by Status and Domain Rating
+- ✅ Fixed backlinks table to properly display all fields from Airtable
+- ✅ Improved field mapping in backlinks data to handle different field names
+- ✅ Enhanced month filtering to properly handle year in month filter
+- ✅ Added dynamic status filter options based on actual data
+- ✅ Improved DR filter to handle different field names for domain rating
 - 🔄 Enhancing real-time data synchronization
 - 🔄 Implementing more robust error handling
 
@@ -202,6 +207,12 @@
 - Implemented dynamic mapping between Airtable record IDs and URL paths using data from the URL Performance table
 - Added functional filters for backlinks by Status and Domain Rating with a clear filters button
 - Improved filter UI with proper state management and immediate updates when filters change
+- Enhanced backlinks table to properly display all fields from Airtable with appropriate fallbacks
+- Updated field mapping in getBacklinks function to handle different field names in Airtable
+- Improved month filtering to properly handle year in month filter (e.g., March 2024 vs March 2025)
+- Added dynamic status filter options that populate based on actual status values in the data
+- Enhanced DR filter to properly handle different field names for domain rating
+- Updated status badge styling to handle different status values (Live, Link Live, Scheduled, Rejected)
 - Standardized button styles across all pages to ensure consistent appearance and user experience
 - Updated action item indicators with color-coded circles (red, amber, green) for better visual priority indication
 - Changed card borders from colored left-only to consistent gray borders on all sides for a cleaner, more uniform look

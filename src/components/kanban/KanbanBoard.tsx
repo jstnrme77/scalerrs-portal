@@ -2,7 +2,7 @@
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ReactNode } from 'react';
+
 import BriefColumn from './BriefColumn';
 import ArticleColumn from './ArticleColumn';
 import { Brief, BriefStatus, Article, ArticleStatus } from '@/types';
@@ -16,11 +16,42 @@ interface BriefBoardProps {
 }
 
 export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: BriefBoardProps) {
+  console.log('BriefBoard received briefs:', briefs);
+  console.log('BriefBoard received selectedMonth:', selectedMonth);
+
+  // Check if briefs is undefined or empty
+  if (!briefs || briefs.length === 0) {
+    console.log('No briefs data available in BriefBoard component');
+  }
+
   // Filter briefs by status
-  const inProgressBriefs = briefs.filter(brief => brief.Status === 'In Progress');
-  const needsInputBriefs = briefs.filter(brief => brief.Status === 'Needs Input');
-  const reviewBriefs = briefs.filter(brief => brief.Status === 'Review Brief' || brief.Status === 'Needs Review');
-  const approvedBriefs = briefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved');
+  const inProgressBriefs = briefs.filter(brief =>
+    brief.Status === 'In Progress' ||
+    brief.Status === 'Brief Creation Needed'
+  );
+
+  const needsInputBriefs = briefs.filter(brief =>
+    brief.Status === 'Needs Input' ||
+    brief.Status === 'Brief Needs Revision'
+  );
+
+  const reviewBriefs = briefs.filter(brief =>
+    brief.Status === 'Review Brief' ||
+    brief.Status === 'Brief Under Internal Review' ||
+    brief.Status === 'Needs Review' ||
+    brief.Status === 'Brief Awaiting Client Review'
+  );
+
+  const approvedBriefs = briefs.filter(brief =>
+    brief.Status === 'Brief Approved' ||
+    brief.Status === 'Brief Awaiting Client Depth'
+  );
+
+  console.log('Filtered briefs by status:');
+  console.log('In Progress:', inProgressBriefs.length);
+  console.log('Needs Input:', needsInputBriefs.length);
+  console.log('Review Brief:', reviewBriefs.length);
+  console.log('Brief Approved:', approvedBriefs.length);
 
   return (
     <DndProvider backend={HTML5Backend}>

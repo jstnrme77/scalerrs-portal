@@ -1,6 +1,7 @@
 import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/constants/DragTypes';
 import { Article, ArticleStatus } from '@/types';
+import { getClientNameSync } from '@/utils/clientUtils';
 
 interface ArticleCardProps {
   article: Article;
@@ -82,7 +83,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
         <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-1">Client:</span>
           <span className="text-xs text-gray-700 truncate">
-            {typeof article.Client === 'string' ? article.Client : 'Example Client'}
+            {getClientNameSync(article['All Clients'] || article.Client)}
           </span>
         </div>
       </div>

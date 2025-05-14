@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { getClientName } from '@/utils/clientUtils';
 
 interface ClientDataContextType {
   clientId: string | null;
@@ -10,6 +11,7 @@ interface ClientDataContextType {
   isLoading: boolean;
   filterDataByClient: <T extends {
     Client?: string | string[];
+    'All Clients'?: string | string[];
     AssignedTo?: string | string[];
     Writer?: string | string[];
     Editor?: string | string[];
@@ -33,6 +35,13 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       setIsLoading(true);
 
       const fetchClientData = async () => {
+        // Initialize the client cache for the getClientName utility
+        try {
+          await getClientName('init-cache');
+          console.log('Client cache initialized');
+        } catch (error) {
+          console.error('Error initializing client cache:', error);
+        }
         try {
           // If user has Client field and is a Client role
           if (user.Client && user.Role === 'Client') {
@@ -115,29 +124,70 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
   }, [user]);
 
   // Function to filter data by client and user permissions
-  const filterDataByClient = <T extends { Client?: string | string[]; AssignedTo?: string | string[]; Writer?: string | string[]; Editor?: string | string[]; SEOStrategist?: string | string[]; ContentWriter?: string | string[]; ContentEditor?: string | string[] }>(data: T[]): T[] => {
+  const filterDataByClient = <T extends {
+    Client?: string | string[];
+    'All Clients'?: string | string[];
+    AssignedTo?: string | string[];
+    Writer?: string | string[];
+    Editor?: string | string[];
+    SEOStrategist?: string | string[];
+    ContentWriter?: string | string[];
+    ContentEditor?: string | string[]
+  }>(data: T[]): T[] => {
+    console.log('filterDataByClient called with data length:', data.length);
+    console.log('Current user:', user?.Name, 'Role:', user?.Role);
+    console.log('Selected clientId:', clientId);
+
     // If no user is logged in, return empty array
     if (!user) {
+      console.log('No user logged in, returning empty array');
       return [];
     }
 
     // If user is admin
     if (user.Role === 'Admin') {
+      console.log('User is admin');
       // If 'all' is selected or no client is selected, return all data
       if (!clientId || clientId === 'all') {
+        console.log('All clients selected, returning all data');
         return data;
       }
 
+      console.log('Admin filtering by specific client:', clientId);
       // If a specific client is selected, filter by that client
-      return data.filter(item => {
-        if (!item.Client) return false;
+      const filtered = data.filter(item => {
+        // Check 'All Clients' field first
+        if (item['All Clients']) {
+          if (Array.isArray(item['All Clients'])) {
+            const includes = item['All Clients'].includes(clientId);
+            console.log('Item All Clients is array:', item['All Clients'], 'includes clientId:', includes);
+            return includes;
+          } else {
+            const matches = item['All Clients'] === clientId;
+            console.log('Item All Clients is string:', item['All Clients'], 'matches clientId:', matches);
+            return matches;
+          }
+        }
+
+        // Fall back to Client field if 'All Clients' is not present
+        if (!item.Client) {
+          console.log('Item has no Client field:', item);
+          return false;
+        }
 
         if (Array.isArray(item.Client)) {
-          return item.Client.includes(clientId);
+          const includes = item.Client.includes(clientId);
+          console.log('Item Client is array:', item.Client, 'includes clientId:', includes);
+          return includes;
         } else {
-          return item.Client === clientId;
+          const matches = item.Client === clientId;
+          console.log('Item Client is string:', item.Client, 'matches clientId:', matches);
+          return matches;
         }
       });
+
+      console.log('Filtered data length:', filtered.length);
+      return filtered;
     }
 
     // For client users, filter by client ID
@@ -148,6 +198,16 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       if (!filterClientId) return [];
 
       return data.filter(item => {
+        // Check 'All Clients' field first
+        if (item['All Clients']) {
+          if (Array.isArray(item['All Clients'])) {
+            return item['All Clients'].includes(filterClientId);
+          } else {
+            return item['All Clients'] === filterClientId;
+          }
+        }
+
+        // Fall back to Client field if 'All Clients' is not present
         if (!item.Client) return false;
 
         if (Array.isArray(item.Client)) {
@@ -201,6 +261,16 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
 
     // If a client ID is selected, filter by that client ID
     return data.filter(item => {
+      // Check 'All Clients' field first
+      if (item['All Clients']) {
+        if (Array.isArray(item['All Clients'])) {
+          return item['All Clients'].includes(clientId);
+        } else {
+          return item['All Clients'] === clientId;
+        }
+      }
+
+      // Fall back to Client field if 'All Clients' is not present
       if (!item.Client) return false;
 
       if (Array.isArray(item.Client)) {

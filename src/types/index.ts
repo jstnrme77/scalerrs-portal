@@ -4,7 +4,22 @@ export type ContentTab = 'briefs' | 'articles';
 export type MainTab = 'content' | 'backlinks';
 
 // Brief statuses
-export type BriefStatus = 'In Progress' | 'Needs Input' | 'Review Brief' | 'Brief Approved' | 'Needs Review' | 'Approved' | 'Review Brief';
+export type BriefStatus =
+  // Status values from your Airtable
+  'Brief Creation Needed' |
+  'Brief Under Internal Review' |
+  'Brief Approved' |
+
+  // Legacy status values
+  'Brief Awaiting Client Depth' |
+  'Brief Awaiting Client Review' |
+  'Brief Needs Revision' |
+
+  // Generic status values used in the UI
+  'In Progress' |
+  'Needs Input' |
+  'Review Brief' |
+  'Needs Review';
 
 // Article statuses
 export type ArticleStatus = 'In Production' | 'Review Draft' | 'Draft Approved' | 'To Be Published' | 'Live';

@@ -802,15 +802,190 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     if (records.length > 0) {
       console.log('First keyword record fields:', records[0].fields);
       console.log('First keyword record field keys:', Object.keys(records[0].fields));
+
+      // Check specifically for the status field
+      console.log('Status field value:', records[0].fields['Keyword/Content Status']);
+      console.log('Alternative Status field value:', records[0].fields.Status);
+
+      // Check for other common field names that might contain status
+      const possibleStatusFields = [
+        'Keyword/Content Status',
+        'Status',
+        'Content Status',
+        'KeywordStatus',
+        'Keyword Status',
+        'Brief Status',
+        'Article Status'
+      ];
+
+      possibleStatusFields.forEach(fieldName => {
+        console.log(`Field "${fieldName}" exists:`, fieldName in records[0].fields);
+        if (fieldName in records[0].fields) {
+          console.log(`Field "${fieldName}" value:`, records[0].fields[fieldName]);
+        }
+      });
+
+      // Log all field names and values for the first record
+      console.log('All fields in first record:');
+      Object.entries(records[0].fields).forEach(([key, value]) => {
+        console.log(`Field: "${key}", Value:`, value);
+      });
     }
 
     // Filter and map the records to our expected Brief format
-    // We'll consider keywords with Status "Brief" or "Brief In Progress" as briefs
-    const briefRecords = records.filter((record: any) => {
+    // We'll consider keywords with Status containing "Brief" as briefs
+    // Log each record's status to debug the filtering issue
+    console.log('Checking records for Brief status...');
+    records.forEach((record: any, index) => {
       const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
-      return status.includes('Brief') || status === 'In Progress' || status === 'Needs Input' ||
-             status === 'Review Brief' || status === 'Brief Approved';
+      console.log(`Record ${index} status: "${status}", includes 'Brief': ${status.includes('Brief')}`);
     });
+
+    // Log all records for debugging
+    console.log(`Total records fetched: ${records.length}`);
+    if (records.length > 0) {
+      console.log('First 3 records field keys:');
+      records.slice(0, 3).forEach((record, index) => {
+        console.log(`Record ${index} field keys:`, Object.keys(record.fields));
+      });
+    }
+
+    // Try to find the field that contains status information
+    const statusFieldName = records.length > 0 ?
+      Object.keys(records[0].fields).find(key =>
+        key === 'Keyword/Content Status' ||
+        key === 'Status' ||
+        key.toLowerCase().includes('status')
+      ) : null;
+
+    console.log('Found status field name:', statusFieldName);
+
+    // Log all status values for debugging
+    console.log('All status values:');
+    records.forEach((record, index) => {
+      const statusValue = statusFieldName ? record.fields[statusFieldName] :
+                         (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
+      console.log(`Record ${index} status: "${statusValue}"`);
+    });
+
+    // Use the identified status field or fall back to our previous approach
+    // For debugging, log all status values first
+    console.log('All status values in records:');
+    records.forEach((record, index) => {
+      const status = statusFieldName ? record.fields[statusFieldName] :
+                    (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
+      console.log(`Record ${index} status: "${status}"`);
+    });
+
+    // Try different approaches to find briefs
+    // 1. First try to find records with status containing "Brief"
+    let briefRecords = records.filter((record: any) => {
+      if (statusFieldName && record.fields[statusFieldName]) {
+        const status = record.fields[statusFieldName];
+        return status.includes('Brief') || status.toLowerCase().includes('brief');
+      }
+
+      const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
+      return status.includes('Brief') || status.toLowerCase().includes('brief');
+    });
+
+    console.log(`Found ${briefRecords.length} briefs with status containing "Brief"`);
+
+    // Log the status values of the first few records to help debug
+    if (briefRecords.length > 0) {
+      console.log('First 3 brief records with their status:');
+      briefRecords.slice(0, 3).forEach((record, index) => {
+        const status = statusFieldName ? record.fields[statusFieldName] :
+                      (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
+        console.log(`Brief ${index} ID: ${record.id}, Status: "${status}"`);
+      });
+    }
+
+    console.log(`Found ${briefRecords.length} briefs with status containing "Brief"`);
+
+    // 2. If no briefs found, try to find records with specific brief-related statuses
+    if (briefRecords.length === 0) {
+      console.log('No briefs found with "Brief" in status, trying specific brief statuses');
+      briefRecords = records.filter((record: any) => {
+        const status = statusFieldName ? record.fields[statusFieldName] :
+                      (record.fields['Keyword/Content Status'] || record.fields.Status || '');
+
+        // Check for specific brief statuses (both exact match and case-insensitive)
+        const statusLower = status.toLowerCase();
+
+        // Check for the exact status values from your Airtable screenshot
+        return status === 'Brief Creation Needed' || statusLower === 'brief creation needed' ||
+               status === 'Brief Approved' || statusLower === 'brief approved' ||
+               status === 'Brief Under Internal Review' || statusLower === 'brief under internal review' ||
+
+               // Also check for generic brief statuses
+               status === 'In Progress' || statusLower === 'in progress' ||
+               status === 'Needs Input' || statusLower === 'needs input' ||
+               status === 'Review Brief' || statusLower === 'review brief' ||
+
+               // Add more potential brief statuses from your Airtable
+               status === 'Brief In Progress' || statusLower === 'brief in progress' ||
+               status === 'Brief Needs Input' || statusLower === 'brief needs input' ||
+               status === 'Brief Review' || statusLower === 'brief review' ||
+               status === 'Approved Brief' || statusLower === 'approved brief';
+      });
+
+      // Log the status values of the first few records to help debug
+      if (briefRecords.length > 0) {
+        console.log('First 3 brief records with specific statuses:');
+        briefRecords.slice(0, 3).forEach((record, index) => {
+          const status = statusFieldName ? record.fields[statusFieldName] :
+                        (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
+          console.log(`Brief ${index} ID: ${record.id}, Status: "${status}"`);
+        });
+      }
+
+      console.log(`Found ${briefRecords.length} briefs with specific brief statuses`);
+    }
+
+    // 3. If still no briefs found, try to find records with "brief" in any field
+    if (briefRecords.length === 0) {
+      console.log('No briefs found with specific statuses, looking for "brief" in any field');
+      briefRecords = records.filter((record: any) => {
+        // Check if any field contains "brief"
+        return Object.values(record.fields).some(value =>
+          typeof value === 'string' && value.toLowerCase().includes('brief')
+        );
+      });
+
+      console.log(`Found ${briefRecords.length} briefs with "brief" in any field`);
+    }
+
+    // 4. If still no briefs found, try to use records with specific status values from your screenshot
+    if (briefRecords.length === 0) {
+      console.log('No briefs found with any method, trying to use records with specific status values from screenshot');
+
+      // Log all status values to help debug
+      console.log('All status values in records:');
+      records.forEach((record, index) => {
+        const status = statusFieldName ? record.fields[statusFieldName] :
+                      (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
+        console.log(`Record ${index} status: "${status}"`);
+      });
+
+      // Try to find records with the exact status values from your screenshot
+      briefRecords = records.filter((record: any) => {
+        const status = statusFieldName ? record.fields[statusFieldName] :
+                      (record.fields['Keyword/Content Status'] || record.fields.Status || '');
+
+        return status === 'Brief Creation Needed' ||
+               status === 'Brief Approved' ||
+               status === 'Brief Under Internal Review';
+      });
+
+      console.log(`Found ${briefRecords.length} briefs with exact status values from screenshot`);
+    }
+
+    // 5. If still no briefs found, return all records as briefs
+    if (briefRecords.length === 0) {
+      console.log('No briefs found with any method, returning all records as briefs');
+      briefRecords = records;
+    }
 
     console.log(`Filtered ${briefRecords.length} records as briefs`);
 
@@ -818,28 +993,59 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     return briefRecords.map((record: any) => {
       const fields = record.fields;
 
-      // Process the Client field - it might be an array of record IDs in Airtable
-      let clientValue = fields.Client;
-      if (Array.isArray(clientValue) && clientValue.length > 0) {
-        // If it's an array of record IDs, just use "Example Client" as a fallback
-        clientValue = "Example Client";
-      } else if (!clientValue) {
+      // Process the Client field - check multiple possible field names
+      let clientValue = fields['All Clients'] || fields.Client || fields['Client'];
+
+      // If no client field is found, use "Example Client" as a fallback
+      if (!clientValue) {
         clientValue = "Example Client";
       }
+
+      // Log the client value for debugging
+      console.log(`Brief ${record.id} client value:`, clientValue);
 
       // Map the keyword status to brief status
       let briefStatus = 'In Progress';
       const keywordStatus = fields['Keyword/Content Status'] || fields.Status || '';
+      const keywordStatusLower = keywordStatus.toLowerCase();
 
-      if (keywordStatus.includes('Brief')) {
-        // Extract the brief status from the keyword status
-        briefStatus = keywordStatus;
-      } else if (keywordStatus === 'Needs Input') {
-        briefStatus = 'Needs Input';
-      } else if (keywordStatus === 'Review') {
+      // Map the specific Airtable status values to our four Kanban columns
+      // In Progress
+      if (keywordStatus === 'Brief Creation Needed' ||
+          keywordStatusLower === 'brief creation needed' ||
+          keywordStatus === 'Brief In Progress' ||
+          keywordStatusLower === 'brief in progress') {
+        briefStatus = 'In Progress';
+      }
+      // Review Brief
+      else if (keywordStatus === 'Brief Under Internal Review' ||
+               keywordStatusLower === 'brief under internal review' ||
+               keywordStatus === 'Brief Awaiting Client Review' ||
+               keywordStatusLower === 'brief awaiting client review' ||
+               keywordStatus === 'Brief Review' ||
+               keywordStatusLower === 'brief review') {
         briefStatus = 'Review Brief';
-      } else if (keywordStatus === 'Approved') {
+      }
+      // Needs Input
+      else if (keywordStatus === 'Brief Awaiting Client Depth' ||
+               keywordStatusLower === 'brief awaiting client depth' ||
+               keywordStatus === 'Brief Needs Revision' ||
+               keywordStatusLower === 'brief needs revision' ||
+               keywordStatus === 'Brief Needs Input' ||
+               keywordStatusLower === 'brief needs input') {
+        briefStatus = 'Needs Input';
+      }
+      // Brief Approved
+      else if (keywordStatus === 'Brief Approved' ||
+               keywordStatusLower === 'brief approved' ||
+               keywordStatus === 'Approved Brief' ||
+               keywordStatusLower === 'approved brief') {
         briefStatus = 'Brief Approved';
+      }
+      // For any other status that includes "Brief", default to In Progress
+      else if (keywordStatus.includes('Brief') || keywordStatusLower.includes('brief')) {
+        console.log(`Unmapped brief status: "${keywordStatus}", defaulting to "In Progress"`);
+        briefStatus = 'In Progress';
       }
 
       // Return an object with our expected structure
@@ -891,10 +1097,45 @@ export async function updateBriefStatus(briefId: string, status: string) {
       throw new Error(`Brief with ID ${briefId} not found`);
     }
 
+    // Check what fields are available in the record
+    const checkRecord = await base(TABLES.KEYWORDS).find(briefId);
+    console.log('Available fields in brief record:', Object.keys(checkRecord.fields));
+
+    // Check if 'Keyword/Content Status' field exists
+    const hasKeywordContentStatus = 'Keyword/Content Status' in checkRecord.fields;
+    console.log('Has Keyword/Content Status field:', hasKeywordContentStatus);
+
+    // Check for other possible status field names
+    const possibleStatusFields = [
+      'Keyword/Content Status',
+      'Status',
+      'Content Status',
+      'KeywordStatus',
+      'Keyword Status',
+      'Brief Status'
+    ];
+
+    const existingStatusFields = possibleStatusFields.filter(field => field in checkRecord.fields);
+    console.log('Existing status fields:', existingStatusFields);
+
+    // Prepare update object
+    const updateObject: Record<string, any> = {};
+
+    // Use the first available status field, preferring 'Keyword/Content Status'
+    if (hasKeywordContentStatus) {
+      updateObject['Keyword/Content Status'] = status;
+    } else if (existingStatusFields.length > 0) {
+      // Use the first available status field
+      updateObject[existingStatusFields[0]] = status;
+    } else {
+      // If no status field exists, create one
+      updateObject['Keyword/Content Status'] = status;
+    }
+
+    console.log('Updating brief with:', updateObject);
+
     // Now update the brief
-    const updatedRecord = await base(TABLES.KEYWORDS).update(briefId, {
-      'Keyword/Content Status': status,
-    });
+    const updatedRecord = await base(TABLES.KEYWORDS).update(briefId, updateObject);
 
     console.log('Brief updated successfully:', updatedRecord.id);
     console.log('Updated fields:', updatedRecord.fields);
@@ -1015,12 +1256,50 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
       console.log('First keyword record field keys:', Object.keys(records[0].fields));
     }
 
+    // Try to find the field that contains status information
+    const statusFieldName = records.length > 0 ?
+      Object.keys(records[0].fields).find(key =>
+        key === 'Keyword/Content Status' ||
+        key === 'Status' ||
+        key.toLowerCase().includes('status')
+      ) : null;
+
+    console.log('Found status field name for articles:', statusFieldName);
+
     // Filter and map the records to our expected Article format
     // We'll consider keywords with Status containing "Article" or specific article statuses as articles
     const articleRecords = records.filter((record: any) => {
+      // If we found a specific status field, use it
+      if (statusFieldName && record.fields[statusFieldName]) {
+        const status = record.fields[statusFieldName];
+        const statusLower = status.toLowerCase();
+
+        return status.includes('Article') ||
+               statusLower.includes('article') ||
+               status === 'In Production' ||
+               statusLower === 'in production' ||
+               status === 'Review Draft' ||
+               statusLower === 'review draft' ||
+               status === 'Client Review' ||
+               statusLower === 'client review' ||
+               status === 'Published' ||
+               statusLower === 'published';
+      }
+
+      // Otherwise try our previous approach
       const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
-      return status.includes('Article') || status === 'In Production' || status === 'Review Draft' ||
-             status === 'Client Review' || status === 'Published';
+      const statusLower = status.toLowerCase();
+
+      return status.includes('Article') ||
+             statusLower.includes('article') ||
+             status === 'In Production' ||
+             statusLower === 'in production' ||
+             status === 'Review Draft' ||
+             statusLower === 'review draft' ||
+             status === 'Client Review' ||
+             statusLower === 'client review' ||
+             status === 'Published' ||
+             statusLower === 'published';
     });
 
     console.log(`Filtered ${articleRecords.length} records as articles`);
@@ -1029,14 +1308,16 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
     return articleRecords.map((record: any) => {
       const fields = record.fields;
 
-      // Process the Client field - it might be an array of record IDs in Airtable
-      let clientValue = fields.Client;
-      if (Array.isArray(clientValue) && clientValue.length > 0) {
-        // If it's an array of record IDs, just use "Example Client" as a fallback
-        clientValue = "Example Client";
-      } else if (!clientValue) {
+      // Process the Client field - check multiple possible field names
+      let clientValue = fields['All Clients'] || fields.Client || fields['Client'];
+
+      // If no client field is found, use "Example Client" as a fallback
+      if (!clientValue) {
         clientValue = "Example Client";
       }
+
+      // Log the client value for debugging
+      console.log(`Article ${record.id} client value:`, clientValue);
 
       // Map the keyword status to article status
       let articleStatus = 'In Production';
@@ -1105,10 +1386,45 @@ export async function updateArticleStatus(articleId: string, status: string) {
       throw new Error(`Article with ID ${articleId} not found`);
     }
 
+    // Check what fields are available in the record
+    const checkRecord = await base(TABLES.KEYWORDS).find(articleId);
+    console.log('Available fields in article record:', Object.keys(checkRecord.fields));
+
+    // Check if 'Keyword/Content Status' field exists
+    const hasKeywordContentStatus = 'Keyword/Content Status' in checkRecord.fields;
+    console.log('Has Keyword/Content Status field:', hasKeywordContentStatus);
+
+    // Check for other possible status field names
+    const possibleStatusFields = [
+      'Keyword/Content Status',
+      'Status',
+      'Content Status',
+      'KeywordStatus',
+      'Keyword Status',
+      'Article Status'
+    ];
+
+    const existingStatusFields = possibleStatusFields.filter(field => field in checkRecord.fields);
+    console.log('Existing status fields:', existingStatusFields);
+
+    // Prepare update object
+    const updateObject: Record<string, any> = {};
+
+    // Use the first available status field, preferring 'Keyword/Content Status'
+    if (hasKeywordContentStatus) {
+      updateObject['Keyword/Content Status'] = status;
+    } else if (existingStatusFields.length > 0) {
+      // Use the first available status field
+      updateObject[existingStatusFields[0]] = status;
+    } else {
+      // If no status field exists, create one
+      updateObject['Keyword/Content Status'] = status;
+    }
+
+    console.log('Updating article with:', updateObject);
+
     // Now update the article
-    const updatedRecord = await base(TABLES.KEYWORDS).update(articleId, {
-      'Keyword/Content Status': status,
-    });
+    const updatedRecord = await base(TABLES.KEYWORDS).update(articleId, updateObject);
 
     console.log('Article updated successfully:', updatedRecord.id);
     console.log('Updated fields:', updatedRecord.fields);
@@ -1260,63 +1576,63 @@ export async function getBacklinks() {
 
       // Domain field - look for any field containing "domain" but not "rating"
       const domainField = fieldKeys.find(key =>
-        key.toLowerCase().includes('domain') && !key.toLowerCase().includes('rating')
-      );
+        key.toLowerCase().includes('domain') && !key.toLowerCase().includes('rating') && !key.toLowerCase().includes('dr')
+      ) || 'Domain URL';
 
       // Domain Rating field - look for any field containing "rating" or "dr"
       const ratingField = fieldKeys.find(key =>
-        key.toLowerCase().includes('rating') || key.toLowerCase() === 'dr'
-      );
+        key.toLowerCase().includes('dr') || key.toLowerCase().includes('rating') || key.toLowerCase().includes('authority')
+      ) || 'DR ( API )';
 
       // Link Type field - look for any field containing "type"
       const typeField = fieldKeys.find(key =>
-        key.toLowerCase().includes('type')
-      );
+        key.toLowerCase().includes('type') || key.toLowerCase().includes('link type')
+      ) || 'Link Type';
 
       // Target Page field - look for any field containing "target", "page", or "url"
       const targetField = fieldKeys.find(key =>
-        key.toLowerCase().includes('target') ||
-        key.toLowerCase().includes('page') ||
-        key.toLowerCase().includes('url')
-      );
+        key.toLowerCase().includes('target') || key.toLowerCase().includes('page url') || key.toLowerCase().includes('client target')
+      ) || 'Client Target Page URL';
 
       // Status field - look for any field containing "status"
       const statusField = fieldKeys.find(key =>
         key.toLowerCase().includes('status')
-      );
+      ) || 'Status';
 
       // Went Live On field - look for any field containing "live", "date", or "published"
       const liveField = fieldKeys.find(key =>
-        key.toLowerCase().includes('live') ||
-        key.toLowerCase().includes('date') ||
-        key.toLowerCase().includes('published')
-      );
+        key.toLowerCase().includes('live') || key.toLowerCase().includes('date') || key.toLowerCase().includes('published')
+      ) || 'Went Live On';
 
       // Notes field - look for any field containing "note", "comment", or "description"
       const notesField = fieldKeys.find(key =>
-        key.toLowerCase().includes('note') ||
-        key.toLowerCase().includes('comment') ||
-        key.toLowerCase().includes('description')
-      );
+        key.toLowerCase().includes('note') || key.toLowerCase().includes('comment') || key.toLowerCase().includes('description')
+      ) || 'Notes';
 
       // Month field - look for any field containing "month" or "period"
       const monthField = fieldKeys.find(key =>
-        key.toLowerCase().includes('month') ||
-        key.toLowerCase().includes('period')
-      );
+        key.toLowerCase().includes('month') || key.toLowerCase().includes('period')
+      ) || 'Month';
 
       // Return an object with our expected structure, using the fields we found
       // or empty values if we couldn't find a matching field
       return {
         id: record.id,
-        Domain: domainField ? fields[domainField] : '',
-        DomainRating: ratingField ? fields[ratingField] : 0,
-        LinkType: typeField ? fields[typeField] : '',
-        TargetPage: targetField ? fields[targetField] : '',
-        Status: statusField ? fields[statusField] : 'Pending',
-        WentLiveOn: liveField ? fields[liveField] : '',
-        Notes: notesField ? fields[notesField] : '',
-        Month: monthField ? fields[monthField] : '',
+        Domain: domainField && fields[domainField] ? fields[domainField] : '',
+        'Domain URL': fields['Domain URL'] || '',
+        DomainRating: ratingField && fields[ratingField] ? fields[ratingField] : 0,
+        'DR ( API )': fields['DR ( API )'] || 0,
+        'Domain Authority/Rating': fields['Domain Authority/Rating'] || fields['DR ( API )'] || 0,
+        LinkType: typeField && fields[typeField] ? fields[typeField] : '',
+        'Link Type': fields['Link Type'] || '',
+        TargetPage: targetField && fields[targetField] ? fields[targetField] : '',
+        'Client Target Page URL': fields['Client Target Page URL'] || '',
+        'Target URL': fields['Target URL'] || fields['Client Target Page URL'] || '',
+        Status: statusField && fields[statusField] ? fields[statusField] : 'Pending',
+        WentLiveOn: liveField && fields[liveField] ? fields[liveField] : '',
+        'Went Live On': fields['Went Live On'] || '',
+        Notes: notesField && fields[notesField] ? fields[notesField] : '',
+        Month: monthField && fields[monthField] ? fields[monthField] : '',
         // Include all original fields as well
         ...fields
       };
@@ -1804,5 +2120,115 @@ export async function getKeywordPerformance() {
     // Fall back to mock data
     console.log('Falling back to mock keyword performance data due to error');
     return mockKeywordPerformance;
+  }
+}
+
+// Function to get available months from Keywords table
+export async function getAvailableMonths() {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock months data (no credentials)');
+    return [
+      'July 2024',
+      'August 2024',
+      'September 2024',
+      'October 2024',
+      'November 2024',
+      'December 2024',
+      'January 2025',
+      'February 2025'
+    ];
+  }
+
+  try {
+    console.log('Fetching available months from Keywords table in Airtable...');
+
+    // Fetch records from the Keywords table
+    const records = await base(TABLES.KEYWORDS).select().all();
+    console.log(`Successfully fetched ${records.length} keyword records from Airtable`);
+
+    // Extract unique month values from the records
+    const uniqueMonths = new Set<string>();
+
+    // Log the first record to see what fields are available
+    if (records.length > 0) {
+      console.log('First keyword record fields:', records[0].fields);
+      console.log('First keyword record field keys:', Object.keys(records[0].fields));
+    }
+
+    // Try different possible field names for the month
+    records.forEach((record: any) => {
+      const fields = record.fields;
+
+      // Check for 'Month (Keyword Targets)' field first (from your screenshot)
+      const monthValue = fields['Month (Keyword Targets)'] || fields.Month || '';
+
+      if (monthValue && typeof monthValue === 'string') {
+        uniqueMonths.add(monthValue);
+      }
+    });
+
+    // Convert Set to Array and sort
+    let months = Array.from(uniqueMonths);
+
+    // If no months were found, fall back to hardcoded values
+    if (months.length === 0) {
+      console.log('No month data found in Airtable, using fallback months');
+      months = [
+        // 2024 months
+        'January 2024',
+        'February 2024',
+        'March 2024',
+        'April 2024',
+        'May 2024',
+        'June 2024',
+        'July 2024',
+        'August 2024',
+        'September 2024',
+        'October 2024',
+        'November 2024',
+        'December 2024',
+        // 2025 months
+        'January 2025',
+        'February 2025',
+        'March 2025',
+        'April 2025',
+        'May 2025',
+        'June 2025',
+        'July 2025',
+        'August 2025'
+      ];
+    }
+
+    console.log('Available months from Airtable:', months);
+    return months;
+  } catch (error) {
+    console.error('Error fetching available months:', error);
+
+    // Fall back to mock data
+    console.log('Falling back to mock months data');
+    return [
+      // 2024 months
+      'January 2024',
+      'February 2024',
+      'March 2024',
+      'April 2024',
+      'May 2024',
+      'June 2024',
+      'July 2024',
+      'August 2024',
+      'September 2024',
+      'October 2024',
+      'November 2024',
+      'December 2024',
+      // 2025 months
+      'January 2025',
+      'February 2025',
+      'March 2025',
+      'April 2025',
+      'May 2025',
+      'June 2025',
+      'July 2025',
+      'August 2025'
+    ];
   }
 }

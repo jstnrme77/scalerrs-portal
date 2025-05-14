@@ -453,13 +453,24 @@ export async function fetchBriefs() {
 
       // Get current user from localStorage
       const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+      console.log('Current user from localStorage:', currentUser);
 
       // If user is logged in, pass user info to getBriefs
       if (currentUser) {
         // Ensure Client is an array
         const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
                          (currentUser.Client ? [currentUser.Client] : []);
+        console.log('Calling getBriefs with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds);
         const briefs = await getBriefs(currentUser.id, currentUser.Role, clientIds);
+        console.log('Received briefs from Airtable:', briefs.length);
+
+        // Log the first few briefs to see what we're working with
+        if (briefs.length > 0) {
+          console.log('First 3 briefs from Airtable:', briefs.slice(0, 3));
+        } else {
+          console.log('No briefs returned from Airtable');
+        }
+
         return briefs;
       } else {
         // If no user is logged in, return empty array
@@ -1349,5 +1360,82 @@ export async function fetchKeywordPerformance() {
     // Fall back to mock data
     console.log('Falling back to mock keyword performance data');
     return mockKeywordPerformance;
+  }
+}
+
+// Available Months API
+export async function fetchAvailableMonths() {
+  // Use mock data if explicitly enabled
+  if (shouldUseMockData()) {
+    console.log('Using mock months data');
+    return [
+      'July 2024',
+      'August 2024',
+      'September 2024',
+      'October 2024',
+      'November 2024',
+      'December 2024',
+      'January 2025',
+      'February 2025'
+    ];
+  }
+
+  try {
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for available months');
+      const { getAvailableMonths } = await import('@/lib/airtable');
+      const months = await getAvailableMonths();
+      console.log('Months received from Airtable:', months);
+      return months;
+    }
+
+    // In production, use the API routes
+    const url = isNetlify()
+      ? '/.netlify/functions/get-available-months'
+      : '/api/available-months';
+
+    console.log('Fetching available months from:', url);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Available months data received:', data);
+    return data.months;
+  } catch (error) {
+    console.error('Error fetching available months:', error);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (isBrowser) {
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
+    // Fall back to mock data
+    console.log('Falling back to mock months data');
+    return [
+      'July 2024',
+      'August 2024',
+      'September 2024',
+      'October 2024',
+      'November 2024',
+      'December 2024',
+      'January 2025',
+      'February 2025'
+    ];
   }
 }

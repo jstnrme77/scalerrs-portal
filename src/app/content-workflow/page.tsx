@@ -28,6 +28,7 @@ export default function ContentWorkflowPage() {
   const [filteredBriefs, setFilteredBriefs] = useState<any[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
   const [filteredBacklinks, setFilteredBacklinks] = useState<any[]>([]);
+  const [uniqueStatuses, setUniqueStatuses] = useState<string[]>([]);
 
   // Filter states for backlinks
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -121,6 +122,15 @@ export default function ContentWorkflowPage() {
           console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
           logData(backlinksData, 'Backlinks');
           setBacklinks(backlinksData);
+
+          // Extract unique status values from backlinks data
+          const statuses = new Set<string>();
+          backlinksData.forEach(backlink => {
+            if (backlink.Status && typeof backlink.Status === 'string') {
+              statuses.add(backlink.Status);
+            }
+          });
+          setUniqueStatuses(Array.from(statuses).sort());
         } catch (backlinksErr: any) {
           console.error('Error fetching backlinks:', backlinksErr);
           errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
@@ -166,7 +176,16 @@ export default function ContentWorkflowPage() {
   useEffect(() => {
     console.log('Filtering data for month:', selectedMonth);
     console.log('Filtering data for client:', clientId);
-    console.log('Current backlinks data:', backlinks);
+    console.log('Current briefs data length:', briefs.length);
+    console.log('Current articles data length:', articles.length);
+    console.log('Current backlinks data length:', backlinks.length);
+
+    // Log the first few briefs to see what we're working with
+    if (briefs.length > 0) {
+      console.log('First 3 briefs:', briefs.slice(0, 3));
+    } else {
+      console.log('No briefs data available');
+    }
 
     // Filter briefs by month and client
     if (briefs.length > 0) {
@@ -174,8 +193,61 @@ export default function ContentWorkflowPage() {
       const clientFiltered = filterDataByClient(briefs);
       console.log('Client filtered briefs:', clientFiltered.length);
 
-      // Then filter by month
-      const filtered = clientFiltered.filter(brief => brief.Month === selectedMonth);
+      // Then filter by month - handle case where Month might be in different formats
+      const filtered = clientFiltered.filter(brief => {
+        console.log(`Brief ${brief.id} month: "${brief.Month}", selected month: "${selectedMonth}"`);
+
+        // If no month data is available, include it by default
+        if (!brief.Month) {
+          console.log(`Brief ${brief.id} has no month data, including by default`);
+          return true;
+        }
+
+        // Check for exact match first
+        if (brief.Month === selectedMonth) {
+          return true;
+        }
+
+        // Normalize both month strings for comparison
+        // Make sure brief.Month is a string before calling toLowerCase()
+        const briefMonthLower = typeof brief.Month === 'string' ? brief.Month.toLowerCase() : String(brief.Month).toLowerCase();
+        const selectedMonthLower = typeof selectedMonth === 'string' ? selectedMonth.toLowerCase() : String(selectedMonth).toLowerCase();
+
+        // Check if the normalized strings match
+        if (briefMonthLower === selectedMonthLower) {
+          return true;
+        }
+
+        // Convert brief.Month to string safely
+        const briefMonthStr = typeof brief.Month === 'string' ? brief.Month : String(brief.Month);
+        const selectedMonthStr = typeof selectedMonth === 'string' ? selectedMonth : String(selectedMonth);
+
+        // If brief month doesn't have a year but selected month does, compare just the month part
+        if (briefMonthStr && !briefMonthStr.includes(' ') && selectedMonthStr.includes(' ')) {
+          const selectedMonthName = selectedMonthStr.split(' ')[0].toLowerCase();
+          return briefMonthLower === selectedMonthName;
+        }
+
+        // If brief month has a year but selected month doesn't, compare just the month part
+        if (briefMonthStr && briefMonthStr.includes(' ') && !selectedMonthStr.includes(' ')) {
+          const briefMonthName = briefMonthStr.split(' ')[0].toLowerCase();
+          return briefMonthName === selectedMonthLower;
+        }
+
+        // Check if the month parts match regardless of year
+        if (briefMonthStr && selectedMonthStr) {
+          const briefMonthParts = briefMonthStr.toLowerCase().split(' ');
+          const selectedMonthParts = selectedMonthStr.toLowerCase().split(' ');
+
+          // Compare the month names (first part)
+          if (briefMonthParts[0] === selectedMonthParts[0]) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
       setFilteredBriefs(filtered);
       console.log('Filtered briefs after month filter:', filtered.length);
     }
@@ -186,8 +258,61 @@ export default function ContentWorkflowPage() {
       const clientFiltered = filterDataByClient(articles);
       console.log('Client filtered articles:', clientFiltered.length);
 
-      // Then filter by month
-      const filtered = clientFiltered.filter(article => article.Month === selectedMonth);
+      // Then filter by month - handle case where Month might be in different formats
+      const filtered = clientFiltered.filter(article => {
+        console.log(`Article ${article.id} month: "${article.Month}", selected month: "${selectedMonth}"`);
+
+        // If no month data is available, include it by default
+        if (!article.Month) {
+          console.log(`Article ${article.id} has no month data, including by default`);
+          return true;
+        }
+
+        // Check for exact match first
+        if (article.Month === selectedMonth) {
+          return true;
+        }
+
+        // Normalize both month strings for comparison
+        // Make sure article.Month is a string before calling toLowerCase()
+        const articleMonthLower = typeof article.Month === 'string' ? article.Month.toLowerCase() : String(article.Month).toLowerCase();
+        const selectedMonthLower = typeof selectedMonth === 'string' ? selectedMonth.toLowerCase() : String(selectedMonth).toLowerCase();
+
+        // Check if the normalized strings match
+        if (articleMonthLower === selectedMonthLower) {
+          return true;
+        }
+
+        // Convert article.Month to string safely
+        const articleMonthStr = typeof article.Month === 'string' ? article.Month : String(article.Month);
+        const selectedMonthStr = typeof selectedMonth === 'string' ? selectedMonth : String(selectedMonth);
+
+        // If article month doesn't have a year but selected month does, compare just the month part
+        if (articleMonthStr && !articleMonthStr.includes(' ') && selectedMonthStr.includes(' ')) {
+          const selectedMonthName = selectedMonthStr.split(' ')[0].toLowerCase();
+          return articleMonthLower === selectedMonthName;
+        }
+
+        // If article month has a year but selected month doesn't, compare just the month part
+        if (articleMonthStr && articleMonthStr.includes(' ') && !selectedMonthStr.includes(' ')) {
+          const articleMonthName = articleMonthStr.split(' ')[0].toLowerCase();
+          return articleMonthName === selectedMonthLower;
+        }
+
+        // Check if the month parts match regardless of year
+        if (articleMonthStr && selectedMonthStr) {
+          const articleMonthParts = articleMonthStr.toLowerCase().split(' ');
+          const selectedMonthParts = selectedMonthStr.toLowerCase().split(' ');
+
+          // Compare the month names (first part)
+          if (articleMonthParts[0] === selectedMonthParts[0]) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
       setFilteredArticles(filtered);
       console.log('Filtered articles after month filter:', filtered.length);
     }
@@ -201,28 +326,106 @@ export default function ContentWorkflowPage() {
       const clientFiltered = filterDataByClient(backlinks);
       console.log('Client filtered backlinks:', clientFiltered.length);
 
-      // Then filter by month
+      // Then filter by month - handle case where Month might be in different formats
       let filtered = clientFiltered.filter(backlink => {
-        console.log('Backlink month:', backlink.Month, 'Selected month:', selectedMonth, 'Match:', backlink.Month === selectedMonth);
-        return backlink.Month === selectedMonth;
+        console.log(`Backlink ${backlink.id} month: "${backlink.Month}", selected month: "${selectedMonth}"`);
+
+        // If no month data is available, include it by default
+        if (!backlink.Month) {
+          console.log(`Backlink ${backlink.id} has no month data, including by default`);
+          return true;
+        }
+
+        // Check for exact match first
+        if (backlink.Month === selectedMonth) {
+          return true;
+        }
+
+        // Convert backlink.Month to string safely
+        const backlinkMonthStr = typeof backlink.Month === 'string' ? backlink.Month : String(backlink.Month);
+        const selectedMonthStr = typeof selectedMonth === 'string' ? selectedMonth : String(selectedMonth);
+
+        // Parse month and year from both strings
+        const parseMonthYear = (monthStr: string) => {
+          const parts = monthStr.trim().split(/\s+/);
+          let month = '';
+          let year = '';
+
+          // Handle different formats: "March 2024", "March", "2024 March", etc.
+          if (parts.length === 1) {
+            // Only one part - assume it's the month
+            month = parts[0];
+          } else if (parts.length >= 2) {
+            // Two or more parts - find which is month and which is year
+            for (const part of parts) {
+              if (/^\d{4}$/.test(part)) {
+                // This part is a 4-digit year
+                year = part;
+              } else {
+                // Assume this part is the month
+                month = month ? `${month} ${part}` : part;
+              }
+            }
+          }
+
+          return { month: month.toLowerCase(), year };
+        };
+
+        const backlinkParsed = parseMonthYear(backlinkMonthStr);
+        const selectedParsed = parseMonthYear(selectedMonthStr);
+
+        console.log(`Parsed backlink month: "${backlinkParsed.month}", year: "${backlinkParsed.year}"`);
+        console.log(`Parsed selected month: "${selectedParsed.month}", year: "${selectedParsed.year}"`);
+
+        // If both have years and they don't match, filter out
+        if (backlinkParsed.year && selectedParsed.year && backlinkParsed.year !== selectedParsed.year) {
+          return false;
+        }
+
+        // If months match, include it
+        return backlinkParsed.month === selectedParsed.month;
       });
 
       console.log('Filtered backlinks after month filter:', filtered.length);
 
       // Apply status filter if not 'all'
       if (statusFilter !== 'all') {
-        filtered = filtered.filter(backlink => backlink.Status === statusFilter);
+        filtered = filtered.filter(backlink => {
+          // Handle different status field names and formats
+          const status = backlink.Status || '';
+
+          // Check for exact match
+          if (status === statusFilter) {
+            return true;
+          }
+
+          // Handle special cases
+          if (statusFilter === 'Link Live' && (status === 'Live' || status === 'Link Live')) {
+            return true;
+          }
+
+          return false;
+        });
         console.log('Filtered backlinks after status filter:', filtered.length);
       }
 
       // Apply DR filter if not 'all'
       if (drFilter !== 'all') {
         if (drFilter === '50+') {
-          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 50);
+          filtered = filtered.filter(backlink => {
+            const dr = Number(backlink['DR ( API )'] || backlink['Domain Authority/Rating'] || backlink.DomainRating || 0);
+            return dr >= 50;
+          });
         } else if (drFilter === '60+') {
-          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 60);
+          filtered = filtered.filter(backlink => {
+            const dr = Number(backlink['DR ( API )'] || backlink['Domain Authority/Rating'] || backlink.DomainRating || 0);
+            return dr >= 60;
+          });
         } else if (drFilter === '70+') {
-          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 70);
+          filtered = filtered.filter(backlink => {
+            const dr = Number(backlink['DR ( API )'] || backlink['Domain Authority/Rating'] || backlink.DomainRating || 0);
+            return dr >= 70;
+          });
         }
         console.log('Filtered backlinks after DR filter:', filtered.length);
       }
@@ -318,12 +521,12 @@ export default function ContentWorkflowPage() {
       // Handle different column types
       switch (sortColumn) {
         case 'Domain':
-          valueA = a['Source Domain'] || a.Domain || '';
-          valueB = b['Source Domain'] || b.Domain || '';
+          valueA = a['Domain URL'] || a['Source Domain'] || a.Domain || '';
+          valueB = b['Domain URL'] || b['Source Domain'] || b.Domain || '';
           break;
         case 'DR':
-          valueA = Number(a['Domain Authority/Rating'] || a.DomainRating || 0);
-          valueB = Number(b['Domain Authority/Rating'] || b.DomainRating || 0);
+          valueA = Number(a['DR ( API )'] || a['Domain Authority/Rating'] || a.DomainRating || 0);
+          valueB = Number(b['DR ( API )'] || b['Domain Authority/Rating'] || b.DomainRating || 0);
           break;
         case 'LinkType':
           valueA = a['Link Type'] || a.LinkType || '';
@@ -429,9 +632,16 @@ export default function ContentWorkflowPage() {
                         onChange={(e) => setStatusFilter(e.target.value)}
                       >
                         <option value="all">All Statuses</option>
-                        <option value="Live">Live</option>
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Rejected">Rejected</option>
+                        {uniqueStatuses.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                        {uniqueStatuses.length === 0 && (
+                          <>
+                            <option value="Link Live">Link Live</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Rejected">Rejected</option>
+                          </>
+                        )}
                       </select>
                     </div>
                     <div>
@@ -567,11 +777,13 @@ export default function ContentWorkflowPage() {
                                 style={{ color: '#353233' }}
                               >
                                 <td className="px-4 py-3 font-medium text-dark" style={{ fontSize: '16px' }}>
-                                  {backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}
+                                  {backlink['Domain URL'] || backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}
                                 </td>
                                 <td className="px-4 py-3" style={{ fontSize: '16px' }}>
                                   <span className="px-2 py-1 text-base font-medium bg-gray-100 rounded-full">
-                                    {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
+                                    {backlink['DR ( API )'] !== undefined ? backlink['DR ( API )'] :
+                                     (backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] :
+                                      (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A'))}
                                   </span>
                                 </td>
                                 <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
@@ -580,7 +792,7 @@ export default function ContentWorkflowPage() {
                                 <td className="px-4 py-3 text-mediumGray" style={{ fontSize: '16px' }}>
                                   {(() => {
                                     // Get the target URL from the appropriate field
-                                    const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
+                                    const targetUrl = backlink['Client Target Page URL'] || backlink['Target URL'] || backlink.TargetPage || '/';
 
                                     // Handle array of record IDs (Airtable linked records)
                                     if (Array.isArray(targetUrl) && targetUrl.length > 0) {
@@ -632,7 +844,7 @@ export default function ContentWorkflowPage() {
                                 </td>
                                 <td className="px-4 py-3 text-center" style={{ fontSize: '16px' }}>
                                   <span className={`px-2 py-1 inline-flex text-base leading-5 font-semibold rounded-[12px]
-                                    ${backlink.Status === 'Live' ? 'status-badge-green' :
+                                    ${backlink.Status === 'Live' || backlink.Status === 'Link Live' ? 'status-badge-green' :
                                     backlink.Status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
                                     backlink.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
                                     'bg-gray-100 text-gray-800'}`}>

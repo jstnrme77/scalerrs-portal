@@ -1,6 +1,7 @@
 import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/constants/DragTypes';
 import { Brief, BriefStatus } from '@/types';
+import { getClientNameSync } from '@/utils/clientUtils';
 
 interface BriefCardProps {
   brief: Brief;
@@ -95,12 +96,18 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
 
         <div className="flex items-center col-span-2">
           <span className="text-xs text-gray-500 mr-1">Client:</span>
-          <span className="text-xs text-gray-700 truncate">{typeof brief.Client === 'string' ? brief.Client : 'Example Client'}</span>
+          <span className="text-xs text-gray-700 truncate">
+            {getClientNameSync(brief['All Clients'] || brief.Client)}
+          </span>
         </div>
       </div>
 
       {/* Action buttons */}
-      {!hideActions && (brief.Status === 'Review Brief' || brief.Status === 'Needs Review') && (
+      {!hideActions && (
+        brief.Status === 'Review Brief' ||
+        brief.Status === 'Needs Review' ||
+        brief.Status === 'Brief Under Internal Review'
+      ) && (
         <>
           <div className="w-full h-px bg-gray-300 mb-5"></div>
           <div className="flex space-x-2 mb-4">
@@ -109,7 +116,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
               onClick={(e) => {
                 e.stopPropagation();
                 if (onStatusChange) {
-                  onStatusChange(brief.id, 'Approved');
+                  onStatusChange(brief.id, 'Brief Approved');
                 }
               }}
             >
@@ -123,7 +130,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
               onClick={(e) => {
                 e.stopPropagation();
                 if (onStatusChange) {
-                  onStatusChange(brief.id, 'Needs Input');
+                  onStatusChange(brief.id, 'Brief Creation Needed');
                 }
               }}
             >
