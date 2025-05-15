@@ -146,7 +146,8 @@ export async function getApprovalItemsEfficient(
 
     // Prepare query options - keep it simple to get data first
     const queryOptions: Record<string, any> = {
-      pageSize: pageSize
+      // If clientId is 'all', fetch more items to ensure we have a good representation of all clients
+      pageSize: clientId === 'all' ? Math.max(pageSize * 3, 30) : pageSize
     };
 
     // Add offset if provided
@@ -268,16 +269,35 @@ export async function getApprovalItemsEfficient(
 
     // Calculate pagination info
     const hasNextPage = !!nextOffset;
+
+    // For 'all' clients, we need to adjust the pagination calculation
+    // to account for the larger dataset
+    const adjustedPageSize = clientId === 'all' ? Math.min(pageSize, 10) : pageSize;
     const totalItems = hasNextPage ? Math.max(items.length * 5, 100) : items.length;
-    const totalPages = hasNextPage ? Math.max(page + 1, Math.ceil(totalItems / pageSize)) : page;
+    const totalPages = hasNextPage
+      ? Math.max(page + 1, Math.ceil(totalItems / adjustedPageSize))
+      : Math.max(1, Math.ceil(items.length / adjustedPageSize));
+
+    // For 'all' clients, we need to paginate the items in memory
+    let paginatedItems = items;
+    if (clientId === 'all') {
+      const adjustedPageSize = Math.min(pageSize, 10);
+      const startIndex = (page - 1) * adjustedPageSize;
+      const endIndex = startIndex + adjustedPageSize;
+      paginatedItems = items.slice(startIndex, Math.min(endIndex, items.length));
+
+      console.log(`Paginating items for 'all' clients: page ${page}, showing items ${startIndex + 1}-${Math.min(endIndex, items.length)} of ${items.length}`);
+    }
 
     const response = {
-      items,
+      items: paginatedItems,
       pagination: {
         currentPage: page,
         totalPages,
         totalItems,
-        hasNextPage,
+        hasNextPage: clientId === 'all'
+          ? page < totalPages
+          : hasNextPage,
         hasPrevPage: page > 1,
         nextOffset,
         prevOffset: page > 1 ? String(page - 1) : null

@@ -70,12 +70,12 @@ export default function GetStartedPage() {
     <div>
       {/* First row of cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        {/* Loom Walkthrough Section */}
+        {/* Video Walkthrough Section */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
             <CirclePlay className="h-6 w-6 text-[#9EA8FB]" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Loom Walkthrough</h2>
+          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Video Walkthrough</h2>
           <p className="mb-6 text-base text-[#12131C]">Learn how to use the platform with our step-by-step video walkthrough.</p>
           <Button
             variant="primary"
@@ -229,7 +229,7 @@ export default function GetStartedPage() {
       <VideoModal
         isOpen={videoModalOpen}
         onClose={() => setVideoModalOpen(false)}
-        videoUrl="https://www.loom.com/embed/3bfa83acc9fd41b7b98b803ba9197d90"
+        videoUrl="https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0"
         title="Platform Walkthrough"
       />
 

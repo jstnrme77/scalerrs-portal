@@ -10,7 +10,7 @@ export const checklistItems = [
   },
   {
     id: '2',
-    title: 'Watch Platform Walkthrough',
+    title: 'Watch Video Walkthrough',
     description: 'Learn how to navigate and use the Scalerrs portal',
     completed: true
   },

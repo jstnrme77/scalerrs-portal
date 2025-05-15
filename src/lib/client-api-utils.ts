@@ -269,7 +269,9 @@ export async function fetchApprovalItems(
 ) {
   // Create a cache key based on the parameters including clientId
   const clientKey = clientId ? `_client_${clientId}` : '';
-  const cacheKey = `approvals_${type}_${page}_${pageSize}_${offset || ''}${clientKey}`;
+  // For 'all' clients, include the page in the cache key to ensure proper pagination
+  const pageKey = clientId === 'all' ? `_page_${page}` : '';
+  const cacheKey = `approvals_${type}${pageKey}_${pageSize}_${offset || ''}${clientKey}`;
 
   // If we're not using cache, clear the cache entry first
   if (!useCache) {

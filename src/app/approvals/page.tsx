@@ -607,6 +607,12 @@ export default function Approvals() {
     approved: { ...defaultPagination },
     rejected: { ...defaultPagination }
   });
+
+  // Track main pagination for "All Clients" view
+  const [mainPagination, setMainPagination] = useState<PaginationState>({
+    ...defaultPagination
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Fetch data from Airtable when component mounts or tab changes
@@ -647,6 +653,19 @@ export default function Approvals() {
               };
               return newItems;
             });
+
+            // Update main pagination state for "All Clients" view
+            if (clientId === 'all') {
+              setMainPagination({
+                currentPage: result.pagination.currentPage,
+                totalPages: result.pagination.totalPages,
+                totalItems: result.pagination.totalItems,
+                hasNextPage: result.pagination.hasNextPage,
+                hasPrevPage: result.pagination.hasPrevPage,
+                nextOffset: result.pagination.nextOffset,
+                prevOffset: result.pagination.prevOffset
+              });
+            }
 
             // Group items by status
             const itemsByStatus: GroupedItems = {
@@ -740,6 +759,16 @@ export default function Approvals() {
 
     // No need to fetch new data, we'll just paginate the existing data in memory
     console.log(`Changed page for ${status} to ${newPage}`);
+  };
+
+  // Handle page change for the main pagination (for "All Clients" view)
+  const handlePageChange = (newPage: number) => {
+    console.log(`Changing main page to ${newPage}`);
+
+    // If we're using "All Clients", we need to fetch a new page of data
+    if (clientId === 'all') {
+      fetchData(newPage);
+    }
   };
 
   // Fetch data when component mounts, tab changes, or client changes
@@ -1085,6 +1114,23 @@ export default function Approvals() {
                       statusPagination={statusPagination}
                       onStatusPageChange={handleStatusPageChange}
                     />
+
+                    {/* Main pagination for "All Clients" view */}
+                    {clientId === 'all' && items[activeTab as keyof typeof items].length > 0 && (
+                      <div className="mt-8 flex justify-center">
+                        <Pagination
+                          currentPage={mainPagination.currentPage}
+                          totalPages={mainPagination.totalPages}
+                          onPageChange={handlePageChange}
+                          hasNextPage={mainPagination.hasNextPage}
+                          hasPreviousPage={mainPagination.hasPrevPage}
+                          totalItems={mainPagination.totalItems}
+                          pageSize={10}
+                          className="flex justify-center"
+                          showPageNumbers={true}
+                        />
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-center py-8 border border-gray-200 rounded-lg bg-gray-50">

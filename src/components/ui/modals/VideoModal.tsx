@@ -16,22 +16,35 @@ export default function VideoModal({
   videoUrl,
   title = 'Video Walkthrough'
 }: VideoModalProps) {
-  // Extract Loom video ID from URL if it's a Loom video
-  const getLoomEmbedUrl = (url: string) => {
-    // Handle different Loom URL formats
+  // Process video URL based on platform (Loom, Tella, etc.)
+  const getEmbedUrl = (url: string) => {
+    // Handle Tella video URLs
+    if (url.includes('tella.tv/video/')) {
+      // If it's already an embed URL, return as is
+      if (url.includes('/embed')) {
+        return url;
+      }
+      // Convert regular Tella URL to embed URL
+      const videoId = url.split('tella.tv/video/')[1].split('?')[0];
+      return `https://www.tella.tv/video/${videoId}/embed`;
+    }
+
+    // Handle Loom video URLs
     if (url.includes('loom.com/share/')) {
       const videoId = url.split('loom.com/share/')[1].split('?')[0];
       return `https://www.loom.com/embed/${videoId}`;
     }
+
     // If it's already an embed URL, return as is
-    if (url.includes('loom.com/embed/')) {
+    if (url.includes('loom.com/embed/') || url.includes('tella.tv/video/') && url.includes('/embed')) {
       return url;
     }
-    // For demo purposes, use a known embeddable Loom video
-    return 'https://www.loom.com/embed/3bfa83acc9fd41b7b98b803ba9197d90';
+
+    // Default fallback
+    return url;
   };
 
-  const embedUrl = getLoomEmbedUrl(videoUrl);
+  const embedUrl = getEmbedUrl(videoUrl);
 
   return (
     <EnhancedModal
@@ -47,6 +60,7 @@ export default function VideoModal({
           allowFullScreen
           className="w-full h-full rounded-md"
           title={title}
+          allow="autoplay; fullscreen"
         ></iframe>
       </div>
     </EnhancedModal>
