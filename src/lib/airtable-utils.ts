@@ -94,24 +94,25 @@ export const getAirtableClient = () => {
  * This happens if explicitly enabled or if API calls fail
  */
 export const shouldUseMockData = () => {
-  if (!isBrowser) return false;
+  // If we're on the server, check if we have valid Airtable credentials
+  if (!isBrowser) {
+    const { apiKey, baseId } = getAirtableCredentials();
+    return !apiKey || !baseId;
+  }
 
   // Check if mock data is explicitly enabled
-  // Commented out as it's not currently used
-  // const useMockData =
-  //   process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
-  //   (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
-  //   (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
+  const useMockData =
+    process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
+    (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
+    (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
 
   // Check if we're on Netlify and having issues with Airtable
-  // Commented out as it's not currently used
-  // const isNetlifyWithAirtableIssues =
-  //   isNetlify() &&
-  //   localStorage.getItem('airtable-connection-issues') === 'true';
+  const isNetlifyWithAirtableIssues =
+    isNetlify() &&
+    localStorage.getItem('airtable-connection-issues') === 'true';
 
-  // For this specific implementation, we want to force using real data
-  // So we'll return false regardless of the settings
-  return false;
+  // Return true if either condition is met
+  return useMockData || isNetlifyWithAirtableIssues;
 };
 
 /**

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockBriefs, mockArticles, mockBacklinks } from '@/lib/mock-data';
-import { getApprovalItems, updateApprovalStatus } from '@/lib/airtable';
+import { updateApprovalStatus } from '@/lib/airtable';
+import { getApprovalItemsEfficient } from '@/lib/efficient-airtable';
 
 // Configure for Netlify deployment
 export const dynamic = 'force-dynamic';
@@ -113,10 +114,31 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
     const offset = searchParams.get('offset') || undefined;
 
+    // Get client ID from query parameters
+    const clientIdParam = searchParams.get('clientId');
+
     // Get user information from the request
     const userId = request.headers.get('x-user-id');
     const userRole = request.headers.get('x-user-role');
     const userClient = request.headers.get('x-user-client');
+
+    // Use client ID from query parameters if available, otherwise use client ID from headers
+    let clientId = clientIdParam;
+    if (!clientId && userClient) {
+      try {
+        const clientIds = JSON.parse(userClient);
+        clientId = clientIds && clientIds.length > 0 ? clientIds[0] : null;
+      } catch (e) {
+        console.error('Error parsing client ID from headers:', e);
+      }
+    }
+
+    // If clientId is null or undefined, set it to 'all'
+    if (!clientId) {
+      clientId = 'all';
+    }
+
+    console.log('Using client ID:', clientId);
 
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
@@ -124,20 +146,26 @@ export async function GET(request: NextRequest) {
     console.log('Approval Type:', type);
     console.log('Page:', page, 'Page Size:', pageSize, 'Offset:', offset);
 
-    // Parse client IDs if present
-    const clientIds = userClient ? JSON.parse(userClient) : [];
-
+    // Use our new efficient Airtable integration
     try {
-      // Try to use the imported function
-      const result = await getApprovalItems(type, userId, userRole, clientIds, page, pageSize, offset);
-      console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page} of ${result.pagination.totalPages})`);
-      return NextResponse.json(result);
-    } catch (functionError) {
-      console.error('Error using imported getApprovalItems function:', functionError);
-      console.log('Falling back to local implementation');
+      console.log('Using efficient Airtable integration...');
 
-      // Use the fallback implementation
-      const result = fallbackGetApprovalItems(type, userId, userRole, clientIds, page, pageSize);
+      const result = await getApprovalItemsEfficient(
+        type as any,
+        page,
+        pageSize,
+        offset,
+        clientId || undefined
+      );
+
+      console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page})`);
+      return NextResponse.json(result);
+    } catch (airtableError) {
+      console.error('Error fetching from Airtable:', airtableError);
+
+      // Fall back to mock data if Airtable fails
+      console.log('Falling back to mock data due to Airtable error');
+      const result = fallbackGetApprovalItems(type, userId, userRole, userClient ? JSON.parse(userClient) : [], page, pageSize);
       console.log(`API route: Found ${result.items.length} ${type} approval items using fallback (page ${page} of ${result.pagination.totalPages})`);
       return NextResponse.json(result);
     }
@@ -166,7 +194,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Try to use the imported function
-      const updatedItem = await updateApprovalStatus(type, itemId, status, revisionReason);
+      const updatedItem = await updateApprovalStatus(type as any, itemId, status, revisionReason);
       return NextResponse.json({ updatedItem });
     } catch (functionError) {
       console.error('Error using imported updateApprovalStatus function:', functionError);

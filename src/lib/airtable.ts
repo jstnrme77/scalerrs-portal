@@ -1844,6 +1844,88 @@ export async function updateBacklinkStatus(backlinkId: string, status: string) {
   }
 }
 
+// Removed duplicate function - using the one at line 2790
+
+// Helper function to map Airtable status to UI status
+function mapAirtableStatusToUIStatus(airtableStatus: string): string {
+  const statusLower = airtableStatus.toLowerCase();
+
+  if (statusLower.includes('awaiting') || statusLower.includes('pending')) {
+    return 'awaiting_approval';
+  } else if (statusLower.includes('resubmit')) {
+    return 'resubmitted';
+  } else if (statusLower.includes('revision') || statusLower.includes('changes')) {
+    return 'needs_revision';
+  } else if (statusLower.includes('approved')) {
+    return 'approved';
+  } else if (statusLower.includes('rejected')) {
+    return 'rejected';
+  }
+
+  // Default to awaiting_approval if no match
+  return 'awaiting_approval';
+}
+
+// Function to update approval status in Airtable
+export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles', itemId: string, status: string, reason?: string) {
+  if (!hasAirtableCredentials) {
+    console.log(`Using mock data for updating ${type} approval status:`, itemId, status);
+    return { id: itemId, status };
+  }
+
+  try {
+    console.log(`Updating ${type} approval status for ${itemId} to ${status} in Airtable...`);
+
+    // Map UI status to Airtable status
+    let airtableStatus = '';
+
+    if (status === 'approved') {
+      if (type === 'keywords') {
+        airtableStatus = 'Keyword Approved';
+      } else if (type === 'briefs') {
+        airtableStatus = 'Brief Approved';
+      } else if (type === 'articles') {
+        airtableStatus = 'Article Approved';
+      }
+    } else if (status === 'needs_revision') {
+      if (type === 'keywords') {
+        airtableStatus = 'Keyword Needs Revision';
+      } else if (type === 'briefs') {
+        airtableStatus = 'Brief Needs Revision';
+      } else if (type === 'articles') {
+        airtableStatus = 'Article Needs Revision';
+      }
+    } else if (status === 'rejected') {
+      airtableStatus = 'Rejected';
+    }
+
+    // Prepare update object
+    const updateObject: Record<string, any> = {
+      'Approval Status': airtableStatus
+    };
+
+    // Add revision reason if provided
+    if (reason) {
+      updateObject['Revision Notes'] = reason;
+    }
+
+    // Update the record in Airtable
+    const updatedRecord = await base(TABLES.KEYWORDS).update(itemId, updateObject);
+
+    console.log(`Successfully updated ${type} approval status in Airtable:`, updatedRecord.id);
+
+    return {
+      id: updatedRecord.id,
+      status: mapAirtableStatusToUIStatus(updatedRecord.fields['Approval Status'] || '')
+    };
+  } catch (error) {
+    console.error(`Error updating ${type} approval status:`, error);
+
+    // Return the original status on error
+    return { id: itemId, status };
+  }
+}
+
 // KPI Metrics functions
 export async function getKPIMetrics() {
   if (!hasAirtableCredentials) {
@@ -2501,22 +2583,29 @@ export async function getMonthlyProjections(clientIds?: string[] | null) {
  * @param page Page number for pagination
  * @param pageSize Number of items per page
  * @param offset Offset for pagination
- * @returns Object with items and pagination info
+ * @returns Object with items and pagination info or array of items if no pagination is requested
  */
 export async function getApprovalItems(
   type: string,
-  _userId?: string | null,
+  userId?: string | null,
   userRole?: string | null,
   clientIds?: string[] | null,
-  page: number = 1,
-  pageSize: number = 10,
+  page?: number,
+  pageSize?: number,
   offset?: string
 ) {
-  // Default response structure
+  // Check if this is a simple request (no pagination) or a paginated request
+  const isPaginatedRequest = page !== undefined && pageSize !== undefined;
+
+  // Set default values for pagination if needed
+  const currentPage = page || 1;
+  const itemsPerPage = pageSize || 10;
+
+  // Default response structure for paginated requests
   const defaultResponse = {
     items: [],
     pagination: {
-      currentPage: page,
+      currentPage,
       totalPages: 1,
       totalItems: 0,
       hasNextPage: false,
@@ -2530,11 +2619,38 @@ export async function getApprovalItems(
     console.log('Using mock data for approval items (no credentials)');
 
     // Determine which mock data to use based on type
-    let mockItems: any[] = [];
-    if (type === 'briefs') {
-      mockItems = mockBriefs;
+    let mockItems: Record<string, any>[] = [];
+
+    if (type === 'keywords') {
+      mockItems = mockKeywordPerformance.map(item => ({
+        id: item.id,
+        item: item.Keyword,
+        volume: item.Volume,
+        difficulty: 'Medium',
+        status: 'awaiting_approval',
+        dateSubmitted: new Date().toISOString().split('T')[0],
+        lastUpdated: '2 days ago',
+        strategist: 'SEO Specialist'
+      }));
+    } else if (type === 'briefs') {
+      mockItems = mockBriefs.map(item => ({
+        id: item.id,
+        item: item.Title,
+        status: 'awaiting_approval',
+        dateSubmitted: new Date().toISOString().split('T')[0],
+        lastUpdated: '2 days ago',
+        strategist: item.SEOStrategist || 'SEO Specialist'
+      }));
     } else if (type === 'articles') {
-      mockItems = mockArticles;
+      mockItems = mockArticles.map(item => ({
+        id: item.id,
+        item: item.Title,
+        wordCount: item.WordCount || 1500,
+        status: 'awaiting_approval',
+        dateSubmitted: new Date().toISOString().split('T')[0],
+        lastUpdated: '3 days ago',
+        strategist: item.Writer || 'Content Writer'
+      }));
     } else if (type === 'backlinks') {
       mockItems = mockBacklinks;
     }
@@ -2553,23 +2669,28 @@ export async function getApprovalItems(
       });
     }
 
+    // If this is a simple request (no pagination), return the items directly
+    if (!isPaginatedRequest) {
+      return mockItems;
+    }
+
     // Calculate pagination
     const totalItems = mockItems.length;
-    const totalPages = Math.ceil(totalItems / pageSize);
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
     const paginatedItems = mockItems.slice(startIndex, endIndex);
 
     return {
       items: paginatedItems,
       pagination: {
-        currentPage: page,
+        currentPage,
         totalPages,
         totalItems,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-        nextOffset: page < totalPages ? String(page + 1) : null,
-        prevOffset: page > 1 ? String(page - 1) : null
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
+        nextOffset: currentPage < totalPages ? String(currentPage + 1) : null,
+        prevOffset: currentPage > 1 ? String(currentPage - 1) : null
       }
     };
   }
@@ -2579,10 +2700,8 @@ export async function getApprovalItems(
 
     // Determine which table to use based on type
     let tableName = '';
-    if (type === 'briefs') {
-      tableName = TABLES.BRIEFS;
-    } else if (type === 'articles') {
-      tableName = TABLES.ARTICLES;
+    if (type === 'keywords' || type === 'briefs' || type === 'articles') {
+      tableName = TABLES.KEYWORDS;
     } else if (type === 'backlinks') {
       tableName = TABLES.BACKLINKS;
     } else {
@@ -2592,6 +2711,7 @@ export async function getApprovalItems(
 
     // Build the query with appropriate filters
     let filterFormula = '';
+    const filterParts = [];
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
@@ -2599,52 +2719,250 @@ export async function getApprovalItems(
 
       // Create a filter formula for client IDs
       const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+        `SEARCH('${clientId}', ARRAYJOIN({All Clients}, ',')) > 0`
       );
 
-      // Combine filters with OR
-      filterFormula = `OR(${clientFilters.join(',')})`;
+      // Add client filter to filter parts
+      filterParts.push(`OR(${clientFilters.join(',')})`);
     }
 
-    // Apply the filter if one was created
-    let query;
-    if (filterFormula) {
-      console.log('Using filter formula:', filterFormula);
-      query = base(tableName).select({
-        filterByFormula: filterFormula,
-        pageSize: pageSize,
-        offset: offset
+    // Add type-specific filters - make them less restrictive to get more results
+    if (type === 'briefs') {
+      // For briefs tab, we'll use a more permissive filter
+      // We'll include records that might be briefs based on various indicators
+      filterParts.push(`
+        OR(
+          SEARCH('Brief', {Approval Status}) > 0,
+          SEARCH('brief', {Approval Status}) > 0,
+          {Approval Status} = 'Brief Creation Needed',
+          {Approval Status} = 'Brief Approved',
+          {Approval Status} = 'Brief Under Internal Review',
+          {Approval Status} = 'Brief Needs Revision',
+          {Approval Status} = 'Brief Rejected',
+          {Approval Status} = 'Brief Pending',
+          {Approval Status} = 'Brief Awaiting Approval',
+          {Approval Status} = 'Brief Resubmitted',
+          {Approval Status} = 'Content Brief',
+          {Approval Status} = 'Content Brief Needed',
+          {Approval Status} = 'Content Brief Approved',
+          {Approval Status} = 'Content Brief Under Review'
+        )
+      `);
+    } else if (type === 'articles') {
+      // For articles tab, we'll use a more permissive filter
+      filterParts.push(`
+        OR(
+          SEARCH('Article', {Approval Status}) > 0,
+          SEARCH('article', {Approval Status}) > 0,
+          {Approval Status} = 'In Production',
+          {Approval Status} = 'Review Draft',
+          {Approval Status} = 'Client Review',
+          {Approval Status} = 'Published',
+          {Approval Status} = 'Article Approved',
+          {Approval Status} = 'Article Needs Revision',
+          {Approval Status} = 'Article Rejected',
+          {Approval Status} = 'Article Pending',
+          {Approval Status} = 'Article Awaiting Approval',
+          {Approval Status} = 'Article Resubmitted',
+          {Approval Status} = 'Content',
+          {Approval Status} = 'Content Review',
+          {Approval Status} = 'Content Approved'
+        )
+      `);
+    } else if (type === 'keywords') {
+      // For keywords tab, we'll use a more permissive filter
+      filterParts.push(`
+        OR(
+          SEARCH('Keyword', {Approval Status}) > 0,
+          SEARCH('keyword', {Approval Status}) > 0,
+          {Approval Status} = 'Keyword Research',
+          {Approval Status} = 'Keyword Approved',
+          {Approval Status} = 'Keyword Under Review',
+          {Approval Status} = 'Keyword Needs Revision',
+          {Approval Status} = 'Keyword Rejected',
+          {Approval Status} = 'Keyword Pending',
+          {Approval Status} = 'Keyword Awaiting Approval',
+          {Approval Status} = 'Keyword Resubmitted',
+          {Approval Status} = 'Research',
+          {Approval Status} = 'Research Approved',
+          {Approval Status} = 'Research Under Review'
+        )
+      `);
+    }
+
+    // Combine all filter parts with AND
+    if (filterParts.length > 0) {
+      if (filterParts.length === 1) {
+        filterFormula = filterParts[0];
+      } else {
+        filterFormula = `AND(${filterParts.join(',')})`;
+      }
+    }
+
+    // Prepare query options
+    const queryOptions: Record<string, string | number | boolean | undefined> = {
+      pageSize: itemsPerPage
+    };
+
+    // Only add filter if we have one
+    if (filterFormula && filterParts.length > 0) {
+      queryOptions.filterByFormula = filterFormula;
+    }
+
+    // Only add offset if it's provided
+    if (offset) {
+      queryOptions.offset = offset;
+    }
+
+    console.log('Using query options:', queryOptions);
+    const query = base(tableName).select(queryOptions);
+
+    // Fetch only the first page of records
+    console.log('Calling query.firstPage() to fetch records...');
+    const result = await query.firstPage();
+    console.log(`Successfully fetched ${result.length} records from Airtable for ${type} approvals`);
+
+    // Get the offset for the next page
+    const nextOffset = query.offset || null;
+    console.log(`Next page offset: ${nextOffset || 'None (last page)'}`);
+
+    // Log the first record to see its structure
+    if (result.length > 0) {
+      console.log(`Sample record for ${type}:`, {
+        id: result[0].id,
+        fields: result[0].fields,
+        fieldKeys: Object.keys(result[0].fields)
       });
     } else {
-      query = base(tableName).select({
-        pageSize: pageSize,
-        offset: offset
-      });
+      console.log(`No records found for ${type} with the current filter`);
+      console.log('Filter formula:', filterFormula);
+
+      // Return empty array if no records found
+      if (isPaginatedRequest) {
+        return defaultResponse;
+      } else {
+        return [];
+      }
     }
 
-    // Fetch the records with pagination
-    const result = await query.all();
-
     // Map the records to our expected format
-    const items = result.map((record: any) => ({
-      id: record.id,
-      ...record.fields
-    }));
+    const items = result.map((record: Record<string, unknown>) => {
+      const fields = record.fields as Record<string, unknown>;
+
+      // Try to find the right field names by checking multiple possibilities
+      const getFieldValue = <T>(possibleNames: string[], defaultValue: T): T => {
+        for (const name of possibleNames) {
+          if (fields[name] !== undefined) {
+            return fields[name] as T;
+          }
+        }
+        return defaultValue;
+      };
+
+      // Common fields for all types
+      const commonFields = {
+        id: record.id,
+        item: getFieldValue([
+          'Main Keyword',
+          'Keyword',
+          'Title',
+          'Name',
+          'Content',
+          'Brief Title'
+        ], 'Untitled'),
+        status: mapAirtableStatusToUIStatus(getFieldValue([
+          'Approval Status',
+          'Status',
+          'Content Status',
+          'Keyword/Content Status'
+        ], '')),
+        dateSubmitted: getFieldValue([
+          'Created Time',
+          'Created',
+          'Date Created',
+          'Submission Date'
+        ], new Date().toISOString().split('T')[0]),
+        lastUpdated: getFieldValue([
+          'Last Updated',
+          'Last Modified',
+          'Modified Time',
+          'Last Modified Time',
+          'Update Date'
+        ], '3 days ago'),
+      };
+
+      // Type-specific fields
+      if (type === 'keywords') {
+        return {
+          ...commonFields,
+          volume: getFieldValue(['Search Volume', 'Volume', 'Monthly Volume'], 0),
+          difficulty: getFieldValue(['Difficulty', 'Keyword Difficulty', 'SEO Difficulty'], 'Medium'),
+          strategist: getFieldValue([
+            'Content Writer',
+            'Writer',
+            'SEO Strategist',
+            'SEO Specialist',
+            'Assigned To'
+          ], 'Not Assigned')
+        };
+      } else if (type === 'briefs') {
+        return {
+          ...commonFields,
+          strategist: getFieldValue([
+            'SEO Assignee',
+            'SEO Strategist',
+            'SEO Specialist',
+            'Assigned To',
+            'Brief Owner'
+          ], 'Not Assigned')
+        };
+      } else if (type === 'articles') {
+        return {
+          ...commonFields,
+          wordCount: getFieldValue([
+            'Final Word Count',
+            'Word Count',
+            'Content Length',
+            'Length'
+          ], 0),
+          strategist: getFieldValue([
+            'Content Writer',
+            'Writer',
+            'Author',
+            'Assigned To'
+          ], 'Not Assigned')
+        };
+      }
+
+      return commonFields;
+    });
+
+    // If this is a simple request (no pagination), return the items directly
+    if (!isPaginatedRequest) {
+      return items;
+    }
 
     // Calculate pagination info
-    const totalItems = items.length; // This is an approximation since Airtable doesn't provide total count
-    const totalPages = Math.ceil(totalItems / pageSize);
+    // We don't know the total count from Airtable, so we'll estimate
+    // We know there's a next page if we have an offset
+    const hasNextPage = !!nextOffset;
+
+    // For total items, we'll use a rough estimate
+    // If we have a full page and there's a next page, we'll estimate 100 items total
+    // Otherwise, we'll just use the current items length
+    const totalItems = hasNextPage ? Math.max(items.length * 5, 100) : items.length;
+    const totalPages = hasNextPage ? Math.max(currentPage + 1, Math.ceil(totalItems / itemsPerPage)) : currentPage;
 
     return {
       items,
       pagination: {
-        currentPage: page,
+        currentPage,
         totalPages,
         totalItems,
-        hasNextPage: items.length === pageSize, // If we got a full page, there might be more
-        hasPrevPage: page > 1,
-        nextOffset: items.length === pageSize ? String(page + 1) : null,
-        prevOffset: page > 1 ? String(page - 1) : null
+        hasNextPage,
+        hasPrevPage: currentPage > 1,
+        nextOffset: nextOffset,
+        prevOffset: currentPage > 1 ? String(currentPage - 1) : null
       }
     };
   } catch (error) {
@@ -2656,88 +2974,4 @@ export async function getApprovalItems(
   }
 }
 
-/**
- * Update approval status in Airtable
- * @param type Type of item to update (briefs, articles, etc.)
- * @param itemId Item ID to update
- * @param status New status value
- * @param revisionReason Optional reason for revision
- * @returns Updated item
- */
-export async function updateApprovalStatus(
-  type: string,
-  itemId: string,
-  status: string,
-  revisionReason?: string
-) {
-  if (!hasAirtableCredentials) {
-    console.log('Using mock data for updating approval status (no credentials)');
 
-    // Find the item in the appropriate mock data
-    let mockItem: any = null;
-    if (type === 'briefs') {
-      mockItem = mockBriefs.find(item => item.id === itemId);
-      if (mockItem) {
-        mockItem.Status = status;
-        if (revisionReason) {
-          mockItem.RevisionReason = revisionReason;
-        }
-      }
-    } else if (type === 'articles') {
-      mockItem = mockArticles.find(item => item.id === itemId);
-      if (mockItem) {
-        mockItem.Status = status;
-        if (revisionReason) {
-          mockItem.RevisionReason = revisionReason;
-        }
-      }
-    } else if (type === 'backlinks') {
-      mockItem = mockBacklinks.find(item => item.id === itemId);
-      if (mockItem) {
-        mockItem.Status = status;
-        if (revisionReason) {
-          mockItem.RevisionReason = revisionReason;
-        }
-      }
-    }
-
-    return mockItem;
-  }
-
-  try {
-    console.log(`Updating ${type} approval status for item ${itemId} to ${status}`);
-
-    // Determine which table to use based on type
-    let tableName = '';
-    if (type === 'briefs') {
-      tableName = TABLES.BRIEFS;
-    } else if (type === 'articles') {
-      tableName = TABLES.ARTICLES;
-    } else if (type === 'backlinks') {
-      tableName = TABLES.BACKLINKS;
-    } else {
-      throw new Error(`Unknown approval type: ${type}`);
-    }
-
-    // Prepare update object
-    const updateObject: Record<string, any> = {
-      Status: status
-    };
-
-    // Add revision reason if provided
-    if (revisionReason) {
-      updateObject.RevisionReason = revisionReason;
-    }
-
-    // Update the record in Airtable
-    const updatedRecord = await base(tableName).update(itemId, updateObject);
-
-    return {
-      id: updatedRecord.id,
-      ...updatedRecord.fields
-    };
-  } catch (error) {
-    console.error(`Error updating ${type} approval status:`, error);
-    throw error;
-  }
-}

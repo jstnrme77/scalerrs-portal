@@ -5,6 +5,7 @@
 import { fetchWithFallback, getApiUrl, getCurrentUser, prepareUserHeaders } from './api-utils';
 import { shouldUseMockData } from './airtable-utils';
 import * as mockData from './mock-data';
+import { getFromCacheOrFetch, clearCacheByPrefix } from './client-cache';
 
 /**
  * Generic function to fetch data from the API
@@ -22,7 +23,7 @@ async function fetchFromApi<T>(
 ): Promise<T> {
   // Check if we should use mock data
   if (shouldUseMockData()) {
-    console.log(`Using mock data for ${endpoint}`);
+    console.log(`Using mock data for ${endpoint} because shouldUseMockData() returned true`);
     return mockDataFallback;
   }
 
@@ -243,4 +244,103 @@ export async function fetchClients() {
 export async function fetchAvailableMonths(signal?: AbortSignal) {
   const response = await fetchFromApi<string[]>('months', {}, mockData.mockMonths, signal);
   return response;
+}
+
+
+
+/**
+ * Fetch approval items from the API with pagination and caching
+ * @param type Type of approval items to fetch (keywords, briefs, articles)
+ * @param page Page number to fetch
+ * @param pageSize Number of items per page
+ * @param offset Offset for pagination (from Airtable)
+ * @param signal Optional AbortSignal for cancellation
+ * @param useCache Whether to use cache (default: true)
+ * @returns Object with items array and pagination info
+ */
+export async function fetchApprovalItems(
+  type: string,
+  page: number = 1,
+  pageSize: number = 10,
+  offset?: string,
+  signal?: AbortSignal,
+  useCache: boolean = true, // Changed back to true now that we have data
+  clientId?: string
+) {
+  // Create a cache key based on the parameters including clientId
+  const clientKey = clientId ? `_client_${clientId}` : '';
+  const cacheKey = `approvals_${type}_${page}_${pageSize}_${offset || ''}${clientKey}`;
+
+  // If we're not using cache, clear the cache entry first
+  if (!useCache) {
+    clearCacheByPrefix(`approvals_${type}`);
+  }
+
+  // Use our caching utility to get data from cache or fetch from API
+  return getFromCacheOrFetch(
+    cacheKey,
+    async () => {
+      const queryParams = new URLSearchParams({
+        type,
+        page: page.toString(),
+        pageSize: pageSize.toString()
+      });
+
+      // Add offset if provided
+      if (offset) {
+        queryParams.append('offset', offset);
+      }
+
+      // Add client ID if provided
+      if (clientId) {
+        // Always pass the clientId, even if it's 'all'
+        queryParams.append('clientId', clientId);
+      }
+
+      // Fetch from API with fallback to mock data
+      const response = await fetchFromApi<{
+        items: any[],
+        pagination: {
+          currentPage: number;
+          totalPages: number;
+          totalItems: number;
+          hasNextPage: boolean;
+          hasPrevPage: boolean;
+          nextOffset: string | null;
+          prevOffset: string | null;
+        }
+      }>(`approvals?${queryParams.toString()}`, {}, {
+        items: type === 'briefs' ? mockData.mockBriefs :
+               type === 'articles' ? mockData.mockArticles :
+               mockData.mockKeywordPerformance,
+        pagination: {
+          currentPage: page,
+          totalPages: 1,
+          totalItems: type === 'briefs' ? mockData.mockBriefs.length :
+                      type === 'articles' ? mockData.mockArticles.length :
+                      mockData.mockKeywordPerformance.length,
+          hasNextPage: false,
+          hasPrevPage: page > 1,
+          nextOffset: null,
+          prevOffset: page > 1 ? (page - 1).toString() : null
+        }
+      }, signal);
+
+      return response;
+    },
+    // Cache for 5 minutes
+    5 * 60 * 1000
+  );
+}
+
+/**
+ * Clear the approvals cache for a specific type
+ * @param type Type of approval items to clear cache for
+ */
+export function clearApprovalsCache(type?: string) {
+  if (type) {
+    clearCacheByPrefix(`approvals_${type}`);
+  } else {
+    clearCacheByPrefix('approvals_');
+  }
 }
