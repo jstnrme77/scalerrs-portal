@@ -2,6 +2,7 @@ import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/constants/DragTypes';
 import { Brief, BriefStatus } from '@/types';
 import { getClientNameSync } from '@/utils/clientUtils';
+import { ensureUrlProtocol } from '@/utils/field-utils';
 
 interface BriefCardProps {
   brief: Brief;
@@ -154,7 +155,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   <button
                     onClick={() => {
                       if (brief.DocumentLink) {
-                        onViewDocument(brief.DocumentLink, brief.Title || 'Brief Document');
+                        onViewDocument(ensureUrlProtocol(brief.DocumentLink), brief.Title || 'Brief Document');
                       }
                     }}
                     className="inline-flex items-center text-xs text-primary hover:underline"
@@ -167,7 +168,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   </button>
                 ) : (
                   <a
-                    href={brief.DocumentLink}
+                    href={ensureUrlProtocol(brief.DocumentLink)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center text-xs text-primary hover:underline"
@@ -188,7 +189,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   <button
                     onClick={() => {
                       if (brief['FraseDocumentLink']) {
-                        onViewDocument(brief['FraseDocumentLink'], `${brief.Title || 'Brief'} - Frase Document`);
+                        onViewDocument(ensureUrlProtocol(brief['FraseDocumentLink']), `${brief.Title || 'Brief'} - Frase Document`);
                       }
                     }}
                     className="inline-flex items-center text-xs text-primary hover:underline"
@@ -201,7 +202,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   </button>
                 ) : (
                   <a
-                    href={brief['FraseDocumentLink']}
+                    href={ensureUrlProtocol(brief['FraseDocumentLink'])}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center text-xs text-primary hover:underline"

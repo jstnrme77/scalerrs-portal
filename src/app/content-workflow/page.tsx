@@ -761,6 +761,19 @@ export default function ContentWorkflowPage() {
                                         );
                                       } else if (targetUrl.startsWith('/')) {
                                         return targetUrl;
+                                      } else if (targetUrl.startsWith('www.')) {
+                                        // Handle URLs that start with www. but don't have a protocol
+                                        const processedUrl = `https://${targetUrl}`;
+                                        return (
+                                          <a
+                                            href={processedUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:underline"
+                                          >
+                                            {targetUrl.replace(/^www\.[^/]+\//, '/')}
+                                          </a>
+                                        );
                                       } else {
                                         return `/${targetUrl}`;
                                       }

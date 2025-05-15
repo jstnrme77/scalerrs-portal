@@ -11,15 +11,15 @@
  */
 export function getDisplayValue(field: string | string[] | undefined, defaultValue: string = 'Unassigned'): string {
   if (!field) return defaultValue;
-  
+
   if (typeof field === 'string') {
     return field;
   }
-  
+
   if (Array.isArray(field) && field.length > 0) {
     return typeof field[0] === 'string' ? field[0] : defaultValue;
   }
-  
+
   return defaultValue;
 }
 
@@ -62,7 +62,7 @@ export function formatRecordId(id: string): string {
  */
 export function getPriorityLevel(priority: string | number | undefined): 'high' | 'medium' | 'low' {
   if (!priority) return 'medium';
-  
+
   if (typeof priority === 'string') {
     const lowerPriority = priority.toLowerCase();
     if (lowerPriority.includes('high') || lowerPriority.includes('urgent')) {
@@ -72,7 +72,7 @@ export function getPriorityLevel(priority: string | number | undefined): 'high' 
     }
     return 'medium';
   }
-  
+
   if (typeof priority === 'number') {
     if (priority >= 8) {
       return 'high';
@@ -81,7 +81,7 @@ export function getPriorityLevel(priority: string | number | undefined): 'high' 
     }
     return 'medium';
   }
-  
+
   return 'medium';
 }
 
@@ -94,13 +94,13 @@ export function getPriorityLevel(priority: string | number | undefined): 'high' 
  */
 export function getFieldWithFallback<T>(obj: any, fields: string[], defaultValue: T): T {
   if (!obj) return defaultValue;
-  
+
   for (const field of fields) {
     if (obj[field] !== undefined && obj[field] !== null) {
       return obj[field];
     }
   }
-  
+
   return defaultValue;
 }
 
@@ -111,11 +111,38 @@ export function getFieldWithFallback<T>(obj: any, fields: string[], defaultValue
  */
 export function isValidUrl(url: string): boolean {
   if (!url) return false;
-  
+
+  // Try with the original URL
   try {
     new URL(url);
     return true;
   } catch (error) {
+    // If it fails, try adding https:// prefix and check again
+    if (url.startsWith('www.') || url.includes('.')) {
+      try {
+        new URL(`https://${url}`);
+        return true;
+      } catch (innerError) {
+        return false;
+      }
+    }
     return false;
   }
+}
+
+/**
+ * Ensure a URL has a protocol (http:// or https://)
+ * @param url URL to check and fix
+ * @returns URL with protocol
+ */
+export function ensureUrlProtocol(url: string): string {
+  if (!url) return '';
+
+  // Check if URL already has a protocol
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+
+  // Add https:// protocol if missing
+  return `https://${url}`;
 }

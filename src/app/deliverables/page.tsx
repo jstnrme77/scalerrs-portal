@@ -4,6 +4,7 @@ import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ensureUrlProtocol } from '@/utils/field-utils';
 import { mockBriefs, mockArticles, mockBacklinks } from '@/lib/mock-data';
 import mockData2025 from '@/mockups/content-workflow-2025';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
@@ -1044,6 +1045,19 @@ export default function DeliverablePage() {
                                             className="text-primary hover:underline"
                                           >
                                             {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
+                                          </a>
+                                        );
+                                      } else if (targetUrl.startsWith('www.')) {
+                                        // Handle URLs that start with www. but don't have a protocol
+                                        const processedUrl = ensureUrlProtocol(targetUrl);
+                                        return (
+                                          <a
+                                            href={processedUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:underline"
+                                          >
+                                            {targetUrl.replace(/^www\.[^/]+\//, '/')}
                                           </a>
                                         );
                                       } else if (targetUrl.startsWith('/')) {

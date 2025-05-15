@@ -1403,7 +1403,7 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
 
       // Map the keyword status to article status
       let articleStatus = 'In Production';
-      const keywordStatus = fields['Keyword/Content Status'] || fields.Status || '';
+      const keywordStatus = fields['Article Status'] || fields.Status || '';
 
       if (keywordStatus.includes('Article')) {
         // Extract the article status from the keyword status
@@ -1412,23 +1412,25 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
         articleStatus = 'In Production';
       } else if (keywordStatus === 'Review Draft') {
         articleStatus = 'Review Draft';
-      } else if (keywordStatus === 'Client Review') {
-        articleStatus = 'Client Review';
-      } else if (keywordStatus === 'Published') {
-        articleStatus = 'Published';
+      } else if (keywordStatus === 'Draft Approved') {
+        articleStatus = 'Draft Approved';
+      } else if (keywordStatus === 'To Be Published') {
+        articleStatus = 'To Be Published';
+      } else if (keywordStatus === 'Live') {
+        articleStatus = 'Live';
       }
 
       // Return an object with our expected structure
       return {
         id: record.id,
-        Title: fields['Meta Title'] || fields.Keyword || fields.Title || '',
-        Writer: fields['Content Writer'] || fields.ContentWriter || fields.Writer || '',
-        Editor: fields.ContentEditor || fields['Content Editor'] || fields.Editor || '',
-        WordCount: fields['Final Word Count'] || fields.WordCount || fields['Word Count'] || 0,
-        DueDate: fields['Due Date (Publication)'] || fields.DueDate || fields['Due Date'] || '',
-        DocumentLink: fields['Written Content (G Doc)'] || fields.DocumentLink || fields['Document Link'] || '',
-        ArticleURL: fields['Target Page URL'] || fields.ArticleURL || fields['Article URL'] || fields.URL || '',
-        Month: fields['Month (Keyword Targets)'] || fields.Month || '',
+        Title: fields['Main Keyword'],
+        Writer: fields['Content Writer'],
+        Editor: fields.ContentEditor || fields['Content Editor'],
+        WordCount: fields['Final Word Count']|| 0,
+        DueDate: fields['Due Date (Publication)'],
+        DocumentLink: fields['Written Content (G Doc)'],
+        ArticleURL: fields['Target Page URL'],
+        Month: fields['Month (Keyword Targets)'],
         Status: articleStatus,
         Client: clientValue,
         // Include all original fields as well
@@ -1716,8 +1718,8 @@ export async function getBacklinks(month?: string | null) {
 
       // Status field - look for any field containing "status"
       const statusField = fieldKeys.find(key =>
-        key.toLowerCase().includes('status')
-      ) || 'Status';
+        key.toLowerCase().includes('portal status')
+      ) || 'Portal Status';
 
       // Went Live On field - look for any field containing "live", "date", or "published"
       const liveField = fieldKeys.find(key =>

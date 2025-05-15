@@ -2,6 +2,7 @@ import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/constants/DragTypes';
 import { Article, ArticleStatus } from '@/types';
 import { getClientNameSync } from '@/utils/clientUtils';
+import { ensureUrlProtocol } from '@/utils/field-utils';
 
 interface ArticleCardProps {
   article: Article;
@@ -133,7 +134,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
           <div className="text-center mb-4">
             {article.Status === 'Live' && (article.ArticleURL || article['Article URL']) ? (
               <a
-                href={article.ArticleURL || article['Article URL']}
+                href={ensureUrlProtocol(article.ArticleURL || article['Article URL'])}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-xs text-primary hover:underline"
@@ -150,7 +151,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
                   onClick={() => {
                     const docLink = article.DocumentLink || article['Document Link'];
                     if (docLink) {
-                      onViewDocument(docLink, article.Title || 'Article Document');
+                      onViewDocument(ensureUrlProtocol(docLink), article.Title || 'Article Document');
                     }
                   }}
                   className="inline-flex items-center text-xs text-primary hover:underline"
@@ -163,7 +164,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
                 </button>
               ) : (
                 <a
-                  href={article.DocumentLink || article['Document Link']}
+                  href={ensureUrlProtocol(article.DocumentLink || article['Document Link'])}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-xs text-primary hover:underline"
