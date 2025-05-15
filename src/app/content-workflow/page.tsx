@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
+import { fetchBriefs, fetchArticles, fetchBacklinks, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
 import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
 import DocumentViewerModal from '@/components/modals/DocumentViewerModal';
@@ -24,7 +24,6 @@ export default function ContentWorkflowPage() {
   const [briefs, setBriefs] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [backlinks, setBacklinks] = useState<any[]>([]);
-  const [urlPerformance, setUrlPerformance] = useState<any[]>([]);
   const [filteredBriefs, setFilteredBriefs] = useState<any[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
   const [filteredBacklinks, setFilteredBacklinks] = useState<any[]>([]);
@@ -40,17 +39,6 @@ export default function ContentWorkflowPage() {
 
   // Use the document viewer hook
   const { documentModal, openDocumentViewer, closeDocumentViewer } = useDocumentViewer();
-
-  // Create a mapping of URL Performance record IDs to URL paths
-  const urlPathMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    urlPerformance.forEach(url => {
-      if (url.id) {
-        map[url.id] = url['URL Path'] || url.URLPath || '/';
-      }
-    });
-    return map;
-  }, [urlPerformance]);
 
   // Debug function to log data
   const logData = (data: any[], type: string) => {
@@ -86,7 +74,6 @@ export default function ContentWorkflowPage() {
         let briefsData = [];
         let articlesData = [];
         let backlinksData = [];
-        let urlPerformanceData = [];
         let hasErrors = false;
         const errorMessages = [];
 
@@ -138,18 +125,7 @@ export default function ContentWorkflowPage() {
           setBacklinks([]);
         }
 
-        try {
-          console.log('Fetching URL performance data from Airtable...');
-          urlPerformanceData = await fetchURLPerformance();
-          console.log('URL performance data fetched successfully:', urlPerformanceData.length, 'records');
-          logData(urlPerformanceData, 'URL Performance');
-          setUrlPerformance(urlPerformanceData);
-        } catch (urlPerformanceErr: any) {
-          console.error('Error fetching URL performance data:', urlPerformanceErr);
-          errorMessages.push(`URL Performance: ${urlPerformanceErr.message || 'Unknown error'}`);
-          hasErrors = true;
-          setUrlPerformance([]);
-        }
+
 
         // Set error message if any of the fetches failed
         if (hasErrors) {
@@ -163,7 +139,6 @@ export default function ContentWorkflowPage() {
         setBriefs([]);
         setArticles([]);
         setBacklinks([]);
-        setUrlPerformance([]);
       } finally {
         setLoading(false);
       }
@@ -797,24 +772,13 @@ export default function ContentWorkflowPage() {
                                     // Handle array of record IDs (Airtable linked records)
                                     if (Array.isArray(targetUrl) && targetUrl.length > 0) {
                                       const recordId = targetUrl[0];
-
-                                      // Look up the URL path from our URL Performance data
-                                      if (urlPathMap[recordId]) {
-                                        return urlPathMap[recordId];
-                                      }
-
-                                      // If we don't have a mapping, use a generic path
+                                      // Use a generic path for record IDs
                                       return `/page-${recordId.substring(0, 5)}`;
                                     }
 
                                     // Handle single record ID
                                     if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
-                                      // Look up the URL path from our URL Performance data
-                                      if (urlPathMap[targetUrl]) {
-                                        return urlPathMap[targetUrl];
-                                      }
-
-                                      // If we don't have a mapping, use a generic path
+                                      // Use a generic path for record IDs
                                       return `/page-${targetUrl.substring(0, 5)}`;
                                     }
 
