@@ -24,8 +24,42 @@ exports.handler = async function(event, context) {
     const airtable = new Airtable({ apiKey });
     const base = airtable.base(baseId);
 
-    // Get all backlinks
-    const records = await base('Backlinks').select().all();
+    // Get month parameter from query string
+    const month = event.queryStringParameters?.month;
+    console.log('Month parameter:', month);
+
+    // Build query
+    let query;
+    if (month) {
+      console.log('Filtering backlinks by month:', month);
+
+      // Extract just the month name
+      const monthOnly = month.split(' ')[0];
+
+      // Use the correct field name for backlinks
+      const monthFilters = [
+        `{Month} = '${month}'`
+      ];
+
+      // If we extracted a month name, also check for that
+      if (monthOnly && monthOnly !== month) {
+        monthFilters.push(`{Month} = '${monthOnly}'`);
+      }
+
+      // Create the filter formula
+      const filterFormula = `OR(${monthFilters.join(',')})`;
+      console.log('Month filter formula:', filterFormula);
+
+      query = base('Backlinks').select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      // No month filter, fetch all records
+      query = base('Backlinks').select();
+    }
+
+    // Get backlinks
+    const records = await query.all();
     console.log(`Found ${records.length} backlinks`);
 
     // Map records to match your Airtable schema

@@ -711,7 +711,7 @@ export async function getCommentsByTask(taskId: string) {
 }
 
 // Brief functions - now using Keywords table
-export async function getBriefs(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
+export async function getBriefs(userId?: string | null, userRole?: string | null, clientIds?: string[] | null, month?: string | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock briefs data');
     return mockBriefs;
@@ -755,6 +755,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
 
     // Build the query with appropriate filters
     let filterFormula = '';
+    let filterParts = [];
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
@@ -765,8 +766,8 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
         `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
       );
 
-      // Combine filters with OR
-      filterFormula = `OR(${clientFilters.join(',')})`;
+      // Add client filter to filter parts
+      filterParts.push(`OR(${clientFilters.join(',')})`);
     }
     // If user is not an admin or client, filter by assigned user
     else if (userId && userRole && userRole !== 'Admin') {
@@ -779,8 +780,47 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
         `SEARCH('${userId}', ARRAYJOIN({Content Editor}, ',')) > 0`
       ];
 
-      // Combine filters with OR
-      filterFormula = `OR(${userFilters.join(',')})`;
+      // Add user filter to filter parts
+      filterParts.push(`OR(${userFilters.join(',')})`);
+    }
+
+    // If month is specified, add month filter
+    if (month) {
+      console.log('Filtering keywords by month:', month);
+
+      try {
+        // Check for both exact match and month-only match
+        // For example, if month is "January 2025", we should match both "January 2025" and "January"
+        const monthOnly = month.split(' ')[0]; // Extract just the month name
+
+        // Create month filter using the correct field name
+        // The field name is "Month (Keyword Targets)" as shown in the screenshot
+        const monthFilters = [
+          `{Month (Keyword Targets)} = '${month}'`
+        ];
+
+        // If we extracted a month name, also check for that
+        if (monthOnly && monthOnly !== month) {
+          monthFilters.push(`{Month (Keyword Targets)} = '${monthOnly}'`);
+        }
+
+        // Add month filter to filter parts
+        const monthFilter = `OR(${monthFilters.join(',')})`;
+        console.log('Month filter formula:', monthFilter);
+        filterParts.push(monthFilter);
+      } catch (monthFilterError) {
+        console.error('Error creating month filter:', monthFilterError);
+        // Continue without month filter if there's an error
+      }
+    }
+
+    // Combine all filter parts with AND
+    if (filterParts.length > 0) {
+      if (filterParts.length === 1) {
+        filterFormula = filterParts[0];
+      } else {
+        filterFormula = `AND(${filterParts.join(',')})`;
+      }
     }
 
     // Apply the filter if one was created
@@ -853,12 +893,18 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     // Try to find the field that contains status information
     const statusFieldName = records.length > 0 ?
       Object.keys(records[0].fields).find(key =>
+        key === 'Brief Status' ||
         key === 'Keyword/Content Status' ||
         key === 'Status' ||
         key.toLowerCase().includes('status')
       ) : null;
 
     console.log('Found status field name:', statusFieldName);
+
+    // Log all available fields in the first record
+    if (records.length > 0) {
+      console.log('All available fields in first record:', Object.keys(records[0].fields));
+    }
 
     // Log all status values for debugging
     console.log('All status values:');
@@ -970,12 +1016,18 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
 
       // Try to find records with the exact status values from your screenshot
       briefRecords = records.filter((record: any) => {
-        const status = statusFieldName ? record.fields[statusFieldName] :
-                      (record.fields['Keyword/Content Status'] || record.fields.Status || '');
+        const status = record.fields['Brief Status'] ||
+                      (statusFieldName ? record.fields[statusFieldName] : '') ||
+                      record.fields['Keyword/Content Status'] ||
+                      record.fields.Status ||
+                      '';
 
         return status === 'Brief Creation Needed' ||
                status === 'Brief Approved' ||
-               status === 'Brief Under Internal Review';
+               status === 'Brief Under Internal Review' ||
+               status === 'In Progress' ||
+               status === 'Needs Input' ||
+               status === 'Review Brief';
       });
 
       console.log(`Found ${briefRecords.length} briefs with exact status values from screenshot`);
@@ -1004,58 +1056,68 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
       // Log the client value for debugging
       console.log(`Brief ${record.id} client value:`, clientValue);
 
-      // Map the keyword status to brief status
+      // Map the brief status to our UI status
       let briefStatus = 'In Progress';
-      const keywordStatus = fields['Keyword/Content Status'] || fields.Status || '';
-      const keywordStatusLower = keywordStatus.toLowerCase();
+
+      // First check for the 'Brief Status' field that we're now using for updates
+      const briefStatusField = fields['Brief Status'] || fields['Keyword/Content Status'] || fields.Status || '';
+      const briefStatusLower = briefStatusField.toLowerCase();
+
+      console.log(`Brief ${record.id} status field value:`, briefStatusField);
 
       // Map the specific Airtable status values to our four Kanban columns
       // In Progress
-      if (keywordStatus === 'Brief Creation Needed' ||
-          keywordStatusLower === 'brief creation needed' ||
-          keywordStatus === 'Brief In Progress' ||
-          keywordStatusLower === 'brief in progress') {
+      if (briefStatusField === 'Brief Creation Needed' ||
+          briefStatusLower === 'brief creation needed' ||
+          briefStatusField === 'Brief In Progress' ||
+          briefStatusLower === 'brief in progress' ||
+          briefStatusField === 'In Progress' ||
+          briefStatusLower === 'in progress') {
         briefStatus = 'In Progress';
       }
       // Review Brief
-      else if (keywordStatus === 'Brief Under Internal Review' ||
-               keywordStatusLower === 'brief under internal review' ||
-               keywordStatus === 'Brief Awaiting Client Review' ||
-               keywordStatusLower === 'brief awaiting client review' ||
-               keywordStatus === 'Brief Review' ||
-               keywordStatusLower === 'brief review') {
+      else if (briefStatusField === 'Brief Under Internal Review' ||
+               briefStatusLower === 'brief under internal review' ||
+               briefStatusField === 'Brief Awaiting Client Review' ||
+               briefStatusLower === 'brief awaiting client review' ||
+               briefStatusField === 'Brief Review' ||
+               briefStatusLower === 'brief review' ||
+               briefStatusField === 'Review Brief' ||
+               briefStatusLower === 'review brief') {
         briefStatus = 'Review Brief';
       }
       // Needs Input
-      else if (keywordStatus === 'Brief Awaiting Client Depth' ||
-               keywordStatusLower === 'brief awaiting client depth' ||
-               keywordStatus === 'Brief Needs Revision' ||
-               keywordStatusLower === 'brief needs revision' ||
-               keywordStatus === 'Brief Needs Input' ||
-               keywordStatusLower === 'brief needs input') {
+      else if (briefStatusField === 'Brief Awaiting Client Depth' ||
+               briefStatusLower === 'brief awaiting client depth' ||
+               briefStatusField === 'Brief Needs Revision' ||
+               briefStatusLower === 'brief needs revision' ||
+               briefStatusField === 'Brief Needs Input' ||
+               briefStatusLower === 'brief needs input' ||
+               briefStatusField === 'Needs Input' ||
+               briefStatusLower === 'needs input') {
         briefStatus = 'Needs Input';
       }
       // Brief Approved
-      else if (keywordStatus === 'Brief Approved' ||
-               keywordStatusLower === 'brief approved' ||
-               keywordStatus === 'Approved Brief' ||
-               keywordStatusLower === 'approved brief') {
+      else if (briefStatusField === 'Brief Approved' ||
+               briefStatusLower === 'brief approved' ||
+               briefStatusField === 'Approved Brief' ||
+               briefStatusLower === 'approved brief') {
         briefStatus = 'Brief Approved';
       }
       // For any other status that includes "Brief", default to In Progress
-      else if (keywordStatus.includes('Brief') || keywordStatusLower.includes('brief')) {
-        console.log(`Unmapped brief status: "${keywordStatus}", defaulting to "In Progress"`);
+      else if (briefStatusField.includes('Brief') || briefStatusLower.includes('brief')) {
+        console.log(`Unmapped brief status: "${briefStatusField}", defaulting to "In Progress"`);
         briefStatus = 'In Progress';
       }
 
       // Return an object with our expected structure
       return {
         id: record.id,
-        Title: fields['Meta Title'] || fields.Keyword || fields.Title || '',
-        SEOStrategist: fields['SEO Assignee'] || fields.SEOStrategist || fields['SEO Strategist'] || '',
-        DueDate: fields['Due Date (Publication)'] || fields.DueDate || fields['Due Date'] || '',
-        DocumentLink: fields['Content Brief Link (G Doc)'] || fields.DocumentLink || fields['Document Link'] || '',
-        Month: fields['Month (Keyword Targets)'] || fields.Month || '',
+        Title: fields['Main Keyword'],
+        SEOStrategist: fields['SEO Assignee'],
+        DueDate: fields['Due Date (Publication)'],
+        DocumentLink: fields['Content Brief Link (G Doc)'],
+        Month: fields['Month (Keyword Targets)'],
         Status: briefStatus,
         Client: clientValue,
         ContentWriter: fields['Content Writer'] || fields.ContentWriter || fields.Writer || '',
@@ -1066,6 +1128,16 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     });
   } catch (error) {
     console.error('Error fetching briefs from Keywords table:', error);
+
+    // Log more detailed error information
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    } else {
+      console.error('Unknown error type:', typeof error);
+      console.error('Error stringified:', JSON.stringify(error));
+    }
+
     // Fall back to mock data
     console.log('Falling back to mock briefs data');
     return mockBriefs;
@@ -1097,40 +1169,10 @@ export async function updateBriefStatus(briefId: string, status: string) {
       throw new Error(`Brief with ID ${briefId} not found`);
     }
 
-    // Check what fields are available in the record
-    const checkRecord = await base(TABLES.KEYWORDS).find(briefId);
-    console.log('Available fields in brief record:', Object.keys(checkRecord.fields));
-
-    // Check if 'Keyword/Content Status' field exists
-    const hasKeywordContentStatus = 'Keyword/Content Status' in checkRecord.fields;
-    console.log('Has Keyword/Content Status field:', hasKeywordContentStatus);
-
-    // Check for other possible status field names
-    const possibleStatusFields = [
-      'Keyword/Content Status',
-      'Status',
-      'Content Status',
-      'KeywordStatus',
-      'Keyword Status',
-      'Brief Status'
-    ];
-
-    const existingStatusFields = possibleStatusFields.filter(field => field in checkRecord.fields);
-    console.log('Existing status fields:', existingStatusFields);
-
-    // Prepare update object
-    const updateObject: Record<string, any> = {};
-
-    // Use the first available status field, preferring 'Keyword/Content Status'
-    if (hasKeywordContentStatus) {
-      updateObject['Keyword/Content Status'] = status;
-    } else if (existingStatusFields.length > 0) {
-      // Use the first available status field
-      updateObject[existingStatusFields[0]] = status;
-    } else {
-      // If no status field exists, create one
-      updateObject['Keyword/Content Status'] = status;
-    }
+    // Prepare update object with only Brief Status field
+    const updateObject = {
+      'Brief Status': status
+    };
 
     console.log('Updating brief with:', updateObject);
 
@@ -1164,7 +1206,7 @@ export async function updateBriefStatus(briefId: string, status: string) {
 }
 
 // Article functions - now using Keywords table
-export async function getArticles(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
+export async function getArticles(userId?: string | null, userRole?: string | null, clientIds?: string[] | null, month?: string | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock articles data');
     return mockArticles;
@@ -1208,6 +1250,7 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
 
     // Build the query with appropriate filters
     let filterFormula = '';
+    let filterParts = [];
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
@@ -1218,8 +1261,8 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
         `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
       );
 
-      // Combine filters with OR
-      filterFormula = `OR(${clientFilters.join(',')})`;
+      // Add client filter to filter parts
+      filterParts.push(`OR(${clientFilters.join(',')})`);
     }
     // If user is not an admin or client, filter by assigned user
     else if (userId && userRole && userRole !== 'Admin') {
@@ -1231,8 +1274,47 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
         `SEARCH('${userId}', ARRAYJOIN({Content Editor}, ',')) > 0`
       ];
 
-      // Combine filters with OR
-      filterFormula = `OR(${userFilters.join(',')})`;
+      // Add user filter to filter parts
+      filterParts.push(`OR(${userFilters.join(',')})`);
+    }
+
+    // If month is specified, add month filter
+    if (month) {
+      console.log('Filtering keywords by month:', month);
+
+      try {
+        // Check for both exact match and month-only match
+        // For example, if month is "January 2025", we should match both "January 2025" and "January"
+        const monthOnly = month.split(' ')[0]; // Extract just the month name
+
+        // Create month filter using the correct field name
+        // The field name is "Month (Keyword Targets)" as shown in the screenshot
+        const monthFilters = [
+          `{Month (Keyword Targets)} = '${month}'`
+        ];
+
+        // If we extracted a month name, also check for that
+        if (monthOnly && monthOnly !== month) {
+          monthFilters.push(`{Month (Keyword Targets)} = '${monthOnly}'`);
+        }
+
+        // Add month filter to filter parts
+        const monthFilter = `OR(${monthFilters.join(',')})`;
+        console.log('Month filter formula:', monthFilter);
+        filterParts.push(monthFilter);
+      } catch (monthFilterError) {
+        console.error('Error creating month filter:', monthFilterError);
+        // Continue without month filter if there's an error
+      }
+    }
+
+    // Combine all filter parts with AND
+    if (filterParts.length > 0) {
+      if (filterParts.length === 1) {
+        filterFormula = filterParts[0];
+      } else {
+        filterFormula = `AND(${filterParts.join(',')})`;
+      }
     }
 
     // Apply the filter if one was created
@@ -1453,7 +1535,7 @@ export async function updateArticleStatus(articleId: string, status: string) {
 }
 
 // Backlink functions
-export async function getBacklinks() {
+export async function getBacklinks(month?: string | null) {
   console.log('getBacklinks called');
   console.log('hasAirtableCredentials:', hasAirtableCredentials);
   console.log('baseId:', baseId);
@@ -1553,8 +1635,46 @@ export async function getBacklinks() {
       return mockBacklinks;
     }
 
-    // Proceed with fetching all records
-    const records = await base(TABLES.BACKLINKS).select().all();
+    // Build query with month filter if specified
+    let query;
+    if (month) {
+      console.log('Filtering backlinks by month:', month);
+
+      try {
+        // Check for both exact match and month-only match
+        // For example, if month is "January 2025", we should match both "January 2025" and "January"
+        const monthOnly = month.split(' ')[0]; // Extract just the month name
+
+        // Create month filter using the correct field name for backlinks
+        // The field name is "Month" for backlinks
+        const monthFilters = [
+          `{Month} = '${month}'`
+        ];
+
+        // If we extracted a month name, also check for that
+        if (monthOnly && monthOnly !== month) {
+          monthFilters.push(`{Month} = '${monthOnly}'`);
+        }
+
+        // Create the filter formula
+        const filterFormula = `OR(${monthFilters.join(',')})`;
+        console.log('Using filter formula for backlinks:', filterFormula);
+
+        query = base(TABLES.BACKLINKS).select({
+          filterByFormula: filterFormula
+        });
+      } catch (monthFilterError) {
+        console.error('Error creating month filter for backlinks:', monthFilterError);
+        // If there's an error with the filter, fetch all records
+        query = base(TABLES.BACKLINKS).select();
+      }
+    } else {
+      // No month filter, fetch all records
+      query = base(TABLES.BACKLINKS).select();
+    }
+
+    // Fetch the records
+    const records = await query.all();
     console.log(`Successfully fetched ${records.length} backlinks records from Airtable`);
 
     // Log the first record to see what fields are available
@@ -2128,6 +2248,8 @@ export async function getAvailableMonths() {
   if (!hasAirtableCredentials) {
     console.log('Using mock months data (no credentials)');
     return [
+      'May 2024',
+      'June 2024',
       'July 2024',
       'August 2024',
       'September 2024',
@@ -2142,8 +2264,24 @@ export async function getAvailableMonths() {
   try {
     console.log('Fetching available months from Keywords table in Airtable...');
 
-    // Fetch records from the Keywords table
-    const records = await base(TABLES.KEYWORDS).select().all();
+    // Use a more efficient query that only fetches the month field
+    // This significantly reduces the data transferred
+    const query = base(TABLES.KEYWORDS).select({
+      fields: ['Month (Keyword Targets)', 'Month'],
+      maxRecords: 1000, // Limit to 1000 records for faster response
+    });
+
+    // Use a timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout fetching months')), 8000);
+    });
+
+    // Race the Airtable query against the timeout
+    const records = await Promise.race([
+      query.all(),
+      timeoutPromise
+    ]) as any[];
+
     console.log(`Successfully fetched ${records.length} keyword records from Airtable`);
 
     // Extract unique month values from the records
@@ -2151,7 +2289,6 @@ export async function getAvailableMonths() {
 
     // Log the first record to see what fields are available
     if (records.length > 0) {
-      console.log('First keyword record fields:', records[0].fields);
       console.log('First keyword record field keys:', Object.keys(records[0].fields));
     }
 
@@ -2167,18 +2304,54 @@ export async function getAvailableMonths() {
       }
     });
 
-    // Convert Set to Array and sort
+    // Convert Set to Array and sort by date
     let months = Array.from(uniqueMonths);
+
+    // Sort months chronologically
+    months.sort((a, b) => {
+      // Extract year and month
+      const getYearMonth = (str: string) => {
+        const monthNames = [
+          'january', 'february', 'march', 'april', 'may', 'june',
+          'july', 'august', 'september', 'october', 'november', 'december'
+        ];
+
+        const parts = str.toLowerCase().split(' ');
+        let year = new Date().getFullYear();
+        let month = 0;
+
+        // Find the year (4-digit number)
+        const yearPart = parts.find(part => /^\d{4}$/.test(part));
+        if (yearPart) {
+          year = parseInt(yearPart);
+        }
+
+        // Find the month name
+        const monthPart = parts.find(part => monthNames.includes(part));
+        if (monthPart) {
+          month = monthNames.indexOf(monthPart);
+        }
+
+        return { year, month };
+      };
+
+      const dateA = getYearMonth(a);
+      const dateB = getYearMonth(b);
+
+      // Compare years first
+      if (dateA.year !== dateB.year) {
+        return dateA.year - dateB.year;
+      }
+
+      // If years are the same, compare months
+      return dateA.month - dateB.month;
+    });
 
     // If no months were found, fall back to hardcoded values
     if (months.length === 0) {
       console.log('No month data found in Airtable, using fallback months');
       months = [
-        // 2024 months
-        'January 2024',
-        'February 2024',
-        'March 2024',
-        'April 2024',
+        // Current and future months (most relevant)
         'May 2024',
         'June 2024',
         'July 2024',
@@ -2187,15 +2360,11 @@ export async function getAvailableMonths() {
         'October 2024',
         'November 2024',
         'December 2024',
-        // 2025 months
         'January 2025',
         'February 2025',
         'March 2025',
         'April 2025',
-        'May 2025',
-        'June 2025',
-        'July 2025',
-        'August 2025'
+        'May 2025'
       ];
     }
 
@@ -2204,14 +2373,10 @@ export async function getAvailableMonths() {
   } catch (error) {
     console.error('Error fetching available months:', error);
 
-    // Fall back to mock data
-    console.log('Falling back to mock months data');
+    // Fall back to hardcoded months
+    console.log('Falling back to hardcoded months data');
     return [
-      // 2024 months
-      'January 2024',
-      'February 2024',
-      'March 2024',
-      'April 2024',
+      // Current and future months (most relevant)
       'May 2024',
       'June 2024',
       'July 2024',
@@ -2220,15 +2385,11 @@ export async function getAvailableMonths() {
       'October 2024',
       'November 2024',
       'December 2024',
-      // 2025 months
       'January 2025',
       'February 2025',
       'March 2025',
       'April 2025',
-      'May 2025',
-      'June 2025',
-      'July 2025',
-      'August 2025'
+      'May 2025'
     ];
   }
 }

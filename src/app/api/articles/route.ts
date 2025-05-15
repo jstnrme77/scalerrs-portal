@@ -17,15 +17,20 @@ export async function GET(request: NextRequest) {
     const userRole = request.headers.get('x-user-role');
     const userClient = request.headers.get('x-user-client');
 
+    // Get month from query parameters
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get('month');
+
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
     console.log('User Client:', userClient);
+    console.log('Month filter:', month);
 
     // Parse client IDs if present
     const clientIds = userClient ? JSON.parse(userClient) : [];
 
-    // Fetch articles with user filtering
-    const articles = await getArticles(userId, userRole, clientIds);
+    // Fetch articles with user filtering and month filtering
+    const articles = await getArticles(userId, userRole, clientIds, month);
 
     if (!articles || articles.length === 0) {
       console.log('API route: No articles found, using mock data');

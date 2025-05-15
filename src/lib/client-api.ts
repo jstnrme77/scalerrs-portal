@@ -33,12 +33,16 @@ const shouldUseMockData = () => {
     isNetlify() &&
     localStorage.getItem('airtable-connection-issues') === 'true';
 
-  console.log('Environment mode:', process.env.NODE_ENV);
-  console.log('Using mock data:', useMockData || isNetlifyWithAirtableIssues);
+  // Check if we've had recent API errors
+  const hasRecentApiErrors =
+    localStorage.getItem('api-error-timestamp') &&
+    Date.now() - parseInt(localStorage.getItem('api-error-timestamp') || '0') < 60000; // Within last minute
 
-  // For this specific implementation, we want to force using real data
-  // So we'll return false regardless of the settings
-  return false;
+  console.log('Environment mode:', process.env.NODE_ENV);
+  console.log('Using mock data:', useMockData || isNetlifyWithAirtableIssues || hasRecentApiErrors);
+
+  // Return true if we should use mock data
+  return useMockData || isNetlifyWithAirtableIssues || hasRecentApiErrors;
 };
 
 // Function to determine if we're on Netlify
@@ -438,7 +442,7 @@ export async function loginUser(email: string, password: string) {
 }
 
 // Briefs API
-export async function fetchBriefs() {
+export async function fetchBriefs(month?: string) {
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock briefs data');
@@ -457,21 +461,35 @@ export async function fetchBriefs() {
 
       // If user is logged in, pass user info to getBriefs
       if (currentUser) {
-        // Ensure Client is an array
-        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
-                         (currentUser.Client ? [currentUser.Client] : []);
-        console.log('Calling getBriefs with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds);
-        const briefs = await getBriefs(currentUser.id, currentUser.Role, clientIds);
-        console.log('Received briefs from Airtable:', briefs.length);
+        try {
+          // Ensure Client is an array
+          const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
+                          (currentUser.Client ? [currentUser.Client] : []);
+          console.log('Calling getBriefs with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds, 'month:', month);
+          const briefs = await getBriefs(currentUser.id, currentUser.Role, clientIds, month);
+          console.log('Received briefs from Airtable:', briefs.length);
 
-        // Log the first few briefs to see what we're working with
-        if (briefs.length > 0) {
-          console.log('First 3 briefs from Airtable:', briefs.slice(0, 3));
-        } else {
-          console.log('No briefs returned from Airtable');
+          // Log the first few briefs to see what we're working with
+          if (briefs.length > 0) {
+            console.log('First 3 briefs from Airtable:', briefs.slice(0, 3));
+          } else {
+            console.log('No briefs returned from Airtable');
+          }
+
+          return briefs;
+        } catch (airtableError: any) {
+          console.error('Error fetching briefs from Airtable:', airtableError);
+
+          // Record the error timestamp
+          if (isBrowser) {
+            localStorage.setItem('api-error-timestamp', Date.now().toString());
+            localStorage.setItem('use-mock-data', 'true');
+          }
+
+          // If we get a 403 error, fall back to mock data
+          console.log('Falling back to mock briefs data due to Airtable error');
+          return mockBriefs;
         }
-
-        return briefs;
       } else {
         // If no user is logged in, return empty array
         console.log('No user logged in, returning empty briefs list');
@@ -480,9 +498,14 @@ export async function fetchBriefs() {
     }
 
     // In production, use the API routes
-    const url = isNetlify()
+    let url = isNetlify()
       ? '/.netlify/functions/get-briefs'
       : '/api/briefs';
+
+    // Add month parameter to URL if provided
+    if (month) {
+      url += `?month=${encodeURIComponent(month)}`;
+    }
 
     console.log('Fetching briefs from:', url);
 
@@ -631,7 +654,7 @@ export async function updateBriefStatus(briefId: string, status: string) {
 }
 
 // Articles API
-export async function fetchArticles() {
+export async function fetchArticles(month?: string) {
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock articles data');
@@ -649,11 +672,27 @@ export async function fetchArticles() {
 
       // If user is logged in, pass user info to getArticles
       if (currentUser) {
-        // Ensure Client is an array
-        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
-                         (currentUser.Client ? [currentUser.Client] : []);
-        const articles = await getArticles(currentUser.id, currentUser.Role, clientIds);
-        return articles;
+        try {
+          // Ensure Client is an array
+          const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
+                          (currentUser.Client ? [currentUser.Client] : []);
+          console.log('Calling getArticles with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds, 'month:', month);
+          const articles = await getArticles(currentUser.id, currentUser.Role, clientIds, month);
+          console.log('Received articles from Airtable:', articles.length);
+          return articles;
+        } catch (airtableError: any) {
+          console.error('Error fetching articles from Airtable:', airtableError);
+
+          // Record the error timestamp
+          if (isBrowser) {
+            localStorage.setItem('api-error-timestamp', Date.now().toString());
+            localStorage.setItem('use-mock-data', 'true');
+          }
+
+          // If we get a 403 error, fall back to mock data
+          console.log('Falling back to mock articles data due to Airtable error');
+          return mockArticles;
+        }
       } else {
         // If no user is logged in, return empty array
         console.log('No user logged in, returning empty articles list');
@@ -662,9 +701,14 @@ export async function fetchArticles() {
     }
 
     // In production, use the API routes
-    const url = isNetlify()
+    let url = isNetlify()
       ? '/.netlify/functions/get-articles'
       : '/api/articles';
+
+    // Add month parameter to URL if provided
+    if (month) {
+      url += `?month=${encodeURIComponent(month)}`;
+    }
 
     console.log('Fetching articles from:', url);
 
@@ -813,7 +857,7 @@ export async function updateArticleStatus(articleId: string, status: string) {
 }
 
 // Backlinks API
-export async function fetchBacklinks() {
+export async function fetchBacklinks(month?: string) {
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock backlinks data');
@@ -836,7 +880,8 @@ export async function fetchBacklinks() {
       const { getBacklinks } = await import('@/lib/airtable');
 
       try {
-        const backlinks = await getBacklinks();
+        console.log('Fetching backlinks with month filter:', month);
+        const backlinks = await getBacklinks(month);
         console.log('Backlinks fetched successfully, count:', backlinks.length);
 
         // Log the first backlink to see its structure
@@ -849,27 +894,33 @@ export async function fetchBacklinks() {
       } catch (airtableError: any) {
         console.error('Error fetching directly from Airtable:', airtableError);
 
-        // If we get an authorization error, fall back to mock data
-        if (airtableError.message && airtableError.message.includes('authorized')) {
-          console.error('Authorization error with Airtable. Check your API key and permissions.');
-
-          // Set a flag in localStorage to indicate Airtable connection issues
-          if (isBrowser) {
-            localStorage.setItem('airtable-connection-issues', 'true');
-          }
-
-          return mockBacklinks;
+        // Record detailed error information
+        console.error('Error details:', airtableError.message || 'No error message');
+        if (airtableError.statusCode) {
+          console.error('Status code:', airtableError.statusCode);
         }
 
-        // Re-throw other errors to be caught by the outer catch
-        throw airtableError;
+        // Record the error timestamp and set flags
+        if (isBrowser) {
+          localStorage.setItem('api-error-timestamp', Date.now().toString());
+          localStorage.setItem('use-mock-data', 'true');
+          localStorage.setItem('airtable-connection-issues', 'true');
+        }
+
+        console.log('Falling back to mock backlinks data due to Airtable error');
+        return mockBacklinks;
       }
     }
 
     // In production, use the API routes
-    const url = isNetlify()
+    let url = isNetlify()
       ? '/.netlify/functions/get-backlinks'
       : '/api/backlinks';
+
+    // Add month parameter to URL if provided
+    if (month) {
+      url += `?month=${encodeURIComponent(month)}`;
+    }
 
     console.log('Fetching backlinks from:', url);
 
@@ -1365,10 +1416,32 @@ export async function fetchKeywordPerformance() {
 
 // Available Months API
 export async function fetchAvailableMonths() {
+  // Check for cached months first
+  if (isBrowser) {
+    const cachedMonths = localStorage.getItem('cached-available-months');
+    const cacheTimestamp = localStorage.getItem('cached-months-timestamp');
+
+    // Use cache if it exists and is less than 1 hour old
+    if (cachedMonths && cacheTimestamp) {
+      const cacheAge = Date.now() - parseInt(cacheTimestamp);
+      const cacheValidityPeriod = 60 * 60 * 1000; // 1 hour in milliseconds
+
+      if (cacheAge < cacheValidityPeriod) {
+        console.log('Using cached months data');
+        try {
+          return JSON.parse(cachedMonths);
+        } catch (e) {
+          console.error('Error parsing cached months:', e);
+          // Continue to fetch fresh data if parsing fails
+        }
+      }
+    }
+  }
+
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock months data');
-    return [
+    const mockMonths = [
       'July 2024',
       'August 2024',
       'September 2024',
@@ -1378,6 +1451,14 @@ export async function fetchAvailableMonths() {
       'January 2025',
       'February 2025'
     ];
+
+    // Cache the mock data
+    if (isBrowser) {
+      localStorage.setItem('cached-available-months', JSON.stringify(mockMonths));
+      localStorage.setItem('cached-months-timestamp', Date.now().toString());
+    }
+
+    return mockMonths;
   }
 
   try {
@@ -1387,6 +1468,13 @@ export async function fetchAvailableMonths() {
       const { getAvailableMonths } = await import('@/lib/airtable');
       const months = await getAvailableMonths();
       console.log('Months received from Airtable:', months);
+
+      // Cache the months data
+      if (isBrowser && months && months.length > 0) {
+        localStorage.setItem('cached-available-months', JSON.stringify(months));
+        localStorage.setItem('cached-months-timestamp', Date.now().toString());
+      }
+
       return months;
     }
 
@@ -1398,13 +1486,13 @@ export async function fetchAvailableMonths() {
     console.log('Fetching available months from:', url);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // Reduced timeout to 10 seconds
 
     const response = await fetch(url, {
       signal: controller.signal,
       headers: {
         'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'max-age=3600', // Allow caching for 1 hour
       },
     });
 
@@ -1416,6 +1504,13 @@ export async function fetchAvailableMonths() {
 
     const data = await response.json();
     console.log('Available months data received:', data);
+
+    // Cache the months data
+    if (isBrowser && data.months && data.months.length > 0) {
+      localStorage.setItem('cached-available-months', JSON.stringify(data.months));
+      localStorage.setItem('cached-months-timestamp', Date.now().toString());
+    }
+
     return data.months;
   } catch (error) {
     console.error('Error fetching available months:', error);
@@ -1425,9 +1520,12 @@ export async function fetchAvailableMonths() {
       localStorage.setItem('airtable-connection-issues', 'true');
     }
 
-    // Fall back to mock data
-    console.log('Falling back to mock months data');
-    return [
+    // Fall back to hardcoded months
+    console.log('Falling back to hardcoded months data');
+    const fallbackMonths = [
+      // Current and future months (most relevant)
+      'May 2024',
+      'June 2024',
       'July 2024',
       'August 2024',
       'September 2024',
@@ -1435,7 +1533,18 @@ export async function fetchAvailableMonths() {
       'November 2024',
       'December 2024',
       'January 2025',
-      'February 2025'
+      'February 2025',
+      'March 2025',
+      'April 2025',
+      'May 2025'
     ];
+
+    // Cache the fallback data
+    if (isBrowser) {
+      localStorage.setItem('cached-available-months', JSON.stringify(fallbackMonths));
+      localStorage.setItem('cached-months-timestamp', Date.now().toString());
+    }
+
+    return fallbackMonths;
   }
 }

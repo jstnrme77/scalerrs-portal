@@ -22,7 +22,7 @@ interface TopNavBarProps {
 export default function TopNavBar({
   sidebarExpanded = true,
   pathname = '',
-  selectedMonth = `January ${new Date().getFullYear()}`,
+  selectedMonth,
   onMonthChange,
   onAddTask,
   dateView = 'monthly',
@@ -30,6 +30,20 @@ export default function TopNavBar({
   onDateViewChange,
   onComparisonChange
 }: TopNavBarProps) {
+  // Get current month and year for default selection if not provided
+  const getCurrentMonthYear = () => {
+    const date = new Date();
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  };
+
+  // Use the provided selectedMonth or default to current month
+  const effectiveSelectedMonth = selectedMonth || getCurrentMonthYear();
   // Get current time to determine greeting
   const [greeting, setGreeting] = useState('Good evening');
   const { user } = useAuth();
@@ -135,7 +149,7 @@ export default function TopNavBar({
         {(isContentWorkflowPage || isDeliverablesPage || pathname === '/reports') && onMonthChange && (
           <div className="mr-3">
             <RoundedMonthSelector
-              selectedMonth={selectedMonth || 'January'}
+              selectedMonth={effectiveSelectedMonth}
               onChange={onMonthChange}
             />
           </div>

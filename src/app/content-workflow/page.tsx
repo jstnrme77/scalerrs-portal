@@ -15,7 +15,20 @@ type MainTab = 'briefs' | 'articles' | 'backlinks';
 
 export default function ContentWorkflowPage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
-  const [selectedMonth, setSelectedMonth] = useState('January');
+
+  // Get current month and year for default selection
+  const getCurrentMonthYear = () => {
+    const date = new Date();
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  };
+
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthYear());
   const { clientId, filterDataByClient } = useClientData();
 
   // State for Airtable data
@@ -64,6 +77,7 @@ export default function ContentWorkflowPage() {
         setError(null);
 
         console.log('Starting to fetch content workflow data...');
+        console.log('Fetching data for month:', selectedMonth);
 
         // Clear any existing mock data flag to ensure we're using real data
         if (isBrowser) {
@@ -78,41 +92,85 @@ export default function ContentWorkflowPage() {
         const errorMessages = [];
 
         try {
-          console.log('Fetching briefs from Airtable...');
-          briefsData = await fetchBriefs();
+          console.log('Fetching briefs from Airtable for month:', selectedMonth);
+          briefsData = await fetchBriefs(selectedMonth);
           console.log('Briefs fetched successfully:', briefsData.length, 'records');
           logData(briefsData, 'Briefs');
           setBriefs(briefsData);
         } catch (briefsErr: any) {
           console.error('Error fetching briefs:', briefsErr);
+
+          // Log detailed error information
+          console.error('Error details:', briefsErr.message || 'Unknown error');
+          if (briefsErr.stack) {
+            console.error('Error stack:', briefsErr.stack);
+          }
+
+          // Set flag to use mock data
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('use-mock-data', 'true');
+            localStorage.setItem('api-error-timestamp', Date.now().toString());
+          }
+
           errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
           hasErrors = true;
-          setBriefs([]);
+
+          // Try to fetch mock data
+          try {
+            console.log('Attempting to use mock data for briefs');
+            const { mockBriefs } = await import('@/lib/mock-data');
+            setBriefs(mockBriefs);
+          } catch (mockErr) {
+            console.error('Error loading mock data:', mockErr);
+            setBriefs([]);
+          }
         }
 
         try {
-          console.log('Fetching articles from Airtable...');
-          articlesData = await fetchArticles();
+          console.log('Fetching articles from Airtable for month:', selectedMonth);
+          articlesData = await fetchArticles(selectedMonth);
           console.log('Articles fetched successfully:', articlesData.length, 'records');
           logData(articlesData, 'Articles');
           setArticles(articlesData);
         } catch (articlesErr: any) {
           console.error('Error fetching articles:', articlesErr);
+
+          // Log detailed error information
+          console.error('Error details:', articlesErr.message || 'Unknown error');
+          if (articlesErr.stack) {
+            console.error('Error stack:', articlesErr.stack);
+          }
+
+          // Set flag to use mock data
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('use-mock-data', 'true');
+            localStorage.setItem('api-error-timestamp', Date.now().toString());
+          }
+
           errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
           hasErrors = true;
-          setArticles([]);
+
+          // Try to fetch mock data
+          try {
+            console.log('Attempting to use mock data for articles');
+            const { mockArticles } = await import('@/lib/mock-data');
+            setArticles(mockArticles);
+          } catch (mockErr) {
+            console.error('Error loading mock data:', mockErr);
+            setArticles([]);
+          }
         }
 
         try {
-          console.log('Fetching backlinks from Airtable...');
-          backlinksData = await fetchBacklinks();
+          console.log('Fetching backlinks from Airtable for month:', selectedMonth);
+          backlinksData = await fetchBacklinks(selectedMonth);
           console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
           logData(backlinksData, 'Backlinks');
           setBacklinks(backlinksData);
 
           // Extract unique status values from backlinks data
           const statuses = new Set<string>();
-          backlinksData.forEach(backlink => {
+          backlinksData.forEach((backlink: Backlink) => {
             if (backlink.Status && typeof backlink.Status === 'string') {
               statuses.add(backlink.Status);
             }
@@ -120,9 +178,40 @@ export default function ContentWorkflowPage() {
           setUniqueStatuses(Array.from(statuses).sort());
         } catch (backlinksErr: any) {
           console.error('Error fetching backlinks:', backlinksErr);
+
+          // Log detailed error information
+          console.error('Error details:', backlinksErr.message || 'Unknown error');
+          if (backlinksErr.stack) {
+            console.error('Error stack:', backlinksErr.stack);
+          }
+
+          // Set flag to use mock data
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('use-mock-data', 'true');
+            localStorage.setItem('api-error-timestamp', Date.now().toString());
+          }
+
           errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
           hasErrors = true;
-          setBacklinks([]);
+
+          // Try to fetch mock data
+          try {
+            console.log('Attempting to use mock data for backlinks');
+            const { mockBacklinks } = await import('@/lib/mock-data');
+            setBacklinks(mockBacklinks);
+
+            // Extract unique status values from mock backlinks data
+            const statuses = new Set<string>();
+            mockBacklinks.forEach((backlink: Backlink) => {
+              if (backlink.Status && typeof backlink.Status === 'string') {
+                statuses.add(backlink.Status);
+              }
+            });
+            setUniqueStatuses(Array.from(statuses).sort());
+          } catch (mockErr) {
+            console.error('Error loading mock data:', mockErr);
+            setBacklinks([]);
+          }
         }
 
 
@@ -131,21 +220,37 @@ export default function ContentWorkflowPage() {
         if (hasErrors) {
           setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Please check your Airtable connection.`);
         }
-      } catch (err: any) {
+      } catch (err: Error | unknown) {
         console.error('Error in content workflow data fetching:', err);
-        setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
+
+        let errorMessage = 'Unknown error';
+        if (err instanceof Error) {
+          errorMessage = err.message;
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        } else if (err && typeof err === 'object' && 'message' in err) {
+          errorMessage = (err as { message: string }).message;
+        }
+
+        setError(`An error occurred while fetching content workflow data: ${errorMessage}`);
 
         // Clear the data states
         setBriefs([]);
         setArticles([]);
         setBacklinks([]);
+
+        // Set flag to use mock data
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('use-mock-data', 'true');
+          localStorage.setItem('api-error-timestamp', Date.now().toString());
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [selectedMonth]);
 
   // Filter data by selected month, client, and other filters
   useEffect(() => {
@@ -168,60 +273,8 @@ export default function ContentWorkflowPage() {
       const clientFiltered = filterDataByClient(briefs);
       console.log('Client filtered briefs:', clientFiltered.length);
 
-      // Then filter by month - handle case where Month might be in different formats
-      const filtered = clientFiltered.filter(brief => {
-        console.log(`Brief ${brief.id} month: "${brief.Month}", selected month: "${selectedMonth}"`);
-
-        // If no month data is available, include it by default
-        if (!brief.Month) {
-          console.log(`Brief ${brief.id} has no month data, including by default`);
-          return true;
-        }
-
-        // Check for exact match first
-        if (brief.Month === selectedMonth) {
-          return true;
-        }
-
-        // Normalize both month strings for comparison
-        // Make sure brief.Month is a string before calling toLowerCase()
-        const briefMonthLower = typeof brief.Month === 'string' ? brief.Month.toLowerCase() : String(brief.Month).toLowerCase();
-        const selectedMonthLower = typeof selectedMonth === 'string' ? selectedMonth.toLowerCase() : String(selectedMonth).toLowerCase();
-
-        // Check if the normalized strings match
-        if (briefMonthLower === selectedMonthLower) {
-          return true;
-        }
-
-        // Convert brief.Month to string safely
-        const briefMonthStr = typeof brief.Month === 'string' ? brief.Month : String(brief.Month);
-        const selectedMonthStr = typeof selectedMonth === 'string' ? selectedMonth : String(selectedMonth);
-
-        // If brief month doesn't have a year but selected month does, compare just the month part
-        if (briefMonthStr && !briefMonthStr.includes(' ') && selectedMonthStr.includes(' ')) {
-          const selectedMonthName = selectedMonthStr.split(' ')[0].toLowerCase();
-          return briefMonthLower === selectedMonthName;
-        }
-
-        // If brief month has a year but selected month doesn't, compare just the month part
-        if (briefMonthStr && briefMonthStr.includes(' ') && !selectedMonthStr.includes(' ')) {
-          const briefMonthName = briefMonthStr.split(' ')[0].toLowerCase();
-          return briefMonthName === selectedMonthLower;
-        }
-
-        // Check if the month parts match regardless of year
-        if (briefMonthStr && selectedMonthStr) {
-          const briefMonthParts = briefMonthStr.toLowerCase().split(' ');
-          const selectedMonthParts = selectedMonthStr.toLowerCase().split(' ');
-
-          // Compare the month names (first part)
-          if (briefMonthParts[0] === selectedMonthParts[0]) {
-            return true;
-          }
-        }
-
-        return false;
-      });
+      // No need to filter by month anymore since we're filtering at the database level
+      const filtered = clientFiltered;
 
       setFilteredBriefs(filtered);
       console.log('Filtered briefs after month filter:', filtered.length);
@@ -233,60 +286,8 @@ export default function ContentWorkflowPage() {
       const clientFiltered = filterDataByClient(articles);
       console.log('Client filtered articles:', clientFiltered.length);
 
-      // Then filter by month - handle case where Month might be in different formats
-      const filtered = clientFiltered.filter(article => {
-        console.log(`Article ${article.id} month: "${article.Month}", selected month: "${selectedMonth}"`);
-
-        // If no month data is available, include it by default
-        if (!article.Month) {
-          console.log(`Article ${article.id} has no month data, including by default`);
-          return true;
-        }
-
-        // Check for exact match first
-        if (article.Month === selectedMonth) {
-          return true;
-        }
-
-        // Normalize both month strings for comparison
-        // Make sure article.Month is a string before calling toLowerCase()
-        const articleMonthLower = typeof article.Month === 'string' ? article.Month.toLowerCase() : String(article.Month).toLowerCase();
-        const selectedMonthLower = typeof selectedMonth === 'string' ? selectedMonth.toLowerCase() : String(selectedMonth).toLowerCase();
-
-        // Check if the normalized strings match
-        if (articleMonthLower === selectedMonthLower) {
-          return true;
-        }
-
-        // Convert article.Month to string safely
-        const articleMonthStr = typeof article.Month === 'string' ? article.Month : String(article.Month);
-        const selectedMonthStr = typeof selectedMonth === 'string' ? selectedMonth : String(selectedMonth);
-
-        // If article month doesn't have a year but selected month does, compare just the month part
-        if (articleMonthStr && !articleMonthStr.includes(' ') && selectedMonthStr.includes(' ')) {
-          const selectedMonthName = selectedMonthStr.split(' ')[0].toLowerCase();
-          return articleMonthLower === selectedMonthName;
-        }
-
-        // If article month has a year but selected month doesn't, compare just the month part
-        if (articleMonthStr && articleMonthStr.includes(' ') && !selectedMonthStr.includes(' ')) {
-          const articleMonthName = articleMonthStr.split(' ')[0].toLowerCase();
-          return articleMonthName === selectedMonthLower;
-        }
-
-        // Check if the month parts match regardless of year
-        if (articleMonthStr && selectedMonthStr) {
-          const articleMonthParts = articleMonthStr.toLowerCase().split(' ');
-          const selectedMonthParts = selectedMonthStr.toLowerCase().split(' ');
-
-          // Compare the month names (first part)
-          if (articleMonthParts[0] === selectedMonthParts[0]) {
-            return true;
-          }
-        }
-
-        return false;
-      });
+      // No need to filter by month anymore since we're filtering at the database level
+      const filtered = clientFiltered;
 
       setFilteredArticles(filtered);
       console.log('Filtered articles after month filter:', filtered.length);
@@ -301,65 +302,8 @@ export default function ContentWorkflowPage() {
       const clientFiltered = filterDataByClient(backlinks);
       console.log('Client filtered backlinks:', clientFiltered.length);
 
-      // Then filter by month - handle case where Month might be in different formats
-      let filtered = clientFiltered.filter(backlink => {
-        console.log(`Backlink ${backlink.id} month: "${backlink.Month}", selected month: "${selectedMonth}"`);
-
-        // If no month data is available, include it by default
-        if (!backlink.Month) {
-          console.log(`Backlink ${backlink.id} has no month data, including by default`);
-          return true;
-        }
-
-        // Check for exact match first
-        if (backlink.Month === selectedMonth) {
-          return true;
-        }
-
-        // Convert backlink.Month to string safely
-        const backlinkMonthStr = typeof backlink.Month === 'string' ? backlink.Month : String(backlink.Month);
-        const selectedMonthStr = typeof selectedMonth === 'string' ? selectedMonth : String(selectedMonth);
-
-        // Parse month and year from both strings
-        const parseMonthYear = (monthStr: string) => {
-          const parts = monthStr.trim().split(/\s+/);
-          let month = '';
-          let year = '';
-
-          // Handle different formats: "March 2024", "March", "2024 March", etc.
-          if (parts.length === 1) {
-            // Only one part - assume it's the month
-            month = parts[0];
-          } else if (parts.length >= 2) {
-            // Two or more parts - find which is month and which is year
-            for (const part of parts) {
-              if (/^\d{4}$/.test(part)) {
-                // This part is a 4-digit year
-                year = part;
-              } else {
-                // Assume this part is the month
-                month = month ? `${month} ${part}` : part;
-              }
-            }
-          }
-
-          return { month: month.toLowerCase(), year };
-        };
-
-        const backlinkParsed = parseMonthYear(backlinkMonthStr);
-        const selectedParsed = parseMonthYear(selectedMonthStr);
-
-        console.log(`Parsed backlink month: "${backlinkParsed.month}", year: "${backlinkParsed.year}"`);
-        console.log(`Parsed selected month: "${selectedParsed.month}", year: "${selectedParsed.year}"`);
-
-        // If both have years and they don't match, filter out
-        if (backlinkParsed.year && selectedParsed.year && backlinkParsed.year !== selectedParsed.year) {
-          return false;
-        }
-
-        // If months match, include it
-        return backlinkParsed.month === selectedParsed.month;
-      });
+      // No need to filter by month anymore since we're filtering at the database level
+      let filtered = clientFiltered;
 
       console.log('Filtered backlinks after month filter:', filtered.length);
 
@@ -486,12 +430,32 @@ export default function ContentWorkflowPage() {
     }
   };
 
+  // Define a type for backlinks
+  interface Backlink {
+    id: string;
+    'Domain URL'?: string;
+    'Source Domain'?: string;
+    Domain?: string;
+    'DR ( API )'?: string | number;
+    'Domain Authority/Rating'?: string | number;
+    DomainRating?: string | number;
+    'Link Type'?: string;
+    LinkType?: string;
+    Status?: string;
+    'Went Live On'?: string;
+    WentLiveOn?: string;
+    Month?: string;
+    Notes?: string;
+    [key: string]: string | number | boolean | null | undefined; // Allow other properties
+  }
+
   // Function to sort backlinks data
-  const getSortedBacklinks = (backlinks: any[]) => {
+  const getSortedBacklinks = (backlinks: Backlink[]) => {
     if (!sortColumn) return backlinks;
 
     return [...backlinks].sort((a, b) => {
-      let valueA, valueB;
+      let valueA: string | number = '';
+      let valueB: string | number = '';
 
       // Handle different column types
       switch (sortColumn) {

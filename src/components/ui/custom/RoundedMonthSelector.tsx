@@ -15,77 +15,90 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Get current month and year for default selection
+  const getCurrentMonthYear = () => {
+    const date = new Date();
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  };
+
+  // Use the provided selectedMonth or default to current month
+  const effectiveSelectedMonth = selectedMonth || getCurrentMonthYear();
+
   // Default current year for fallback
   const currentYear = new Date().getFullYear();
 
-  // Fetch available months from Airtable
+  // Default months to show immediately while loading
+  const defaultMonths = [
+    // Current and next few months (most relevant)
+    'May 2024',
+    'June 2024',
+    'July 2024',
+    'August 2024',
+    'September 2024',
+    'October 2024',
+    'November 2024',
+    'December 2024',
+    'January 2025',
+    'February 2025'
+  ];
+
+  // Initialize with default months to avoid empty state
   useEffect(() => {
+    setAvailableMonths(defaultMonths);
+  }, []);
+
+  // Fetch available months from Airtable with debounce
+  useEffect(() => {
+    // Set a flag to track if the component is still mounted
+    let isMounted = true;
+
     async function fetchMonths() {
       try {
-        setLoading(true);
+        // Don't show loading state immediately to avoid flickering
+        // Only set loading to true if the fetch takes longer than 200ms
+        const loadingTimeout = setTimeout(() => {
+          if (isMounted) setLoading(true);
+        }, 200);
+
         const months = await fetchAvailableMonths();
+
+        // Clear the loading timeout
+        clearTimeout(loadingTimeout);
+
+        if (!isMounted) return;
+
         if (months && months.length > 0) {
           setAvailableMonths(months);
         } else {
           // Fallback to default months if none returned
-          setAvailableMonths([
-            // 2024 months
-            'January 2024',
-            'February 2024',
-            'March 2024',
-            'April 2024',
-            'May 2024',
-            'June 2024',
-            'July 2024',
-            'August 2024',
-            'September 2024',
-            'October 2024',
-            'November 2024',
-            'December 2024',
-            // 2025 months
-            'January 2025',
-            'February 2025',
-            'March 2025',
-            'April 2025',
-            'May 2025',
-            'June 2025',
-            'July 2025',
-            'August 2025'
-          ]);
+          setAvailableMonths(defaultMonths);
         }
       } catch (error) {
         console.error('Error fetching available months:', error);
         // Fallback to default months
-        setAvailableMonths([
-          // 2024 months
-          'January 2024',
-          'February 2024',
-          'March 2024',
-          'April 2024',
-          'May 2024',
-          'June 2024',
-          'July 2024',
-          'August 2024',
-          'September 2024',
-          'October 2024',
-          'November 2024',
-          'December 2024',
-          // 2025 months
-          'January 2025',
-          'February 2025',
-          'March 2025',
-          'April 2025',
-          'May 2025',
-          'June 2025',
-          'July 2025',
-          'August 2025'
-        ]);
+        if (isMounted) {
+          setAvailableMonths(defaultMonths);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
+    // Fetch months in the background
     fetchMonths();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Group months by year
@@ -133,9 +146,9 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
         <span className="truncate">
           {(() => {
             // If it already has a space (indicating a year is present)
-            if (selectedMonth.includes(' ')) {
+            if (effectiveSelectedMonth.includes(' ')) {
               // Extract just the month and year (in case there are multiple years)
-              const parts = selectedMonth.split(' ');
+              const parts = effectiveSelectedMonth.split(' ');
               const month = parts[0];
               // Get the last year mentioned (in case there are multiple)
               const year = parts[parts.length - 1];
@@ -143,11 +156,15 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
               return `${month} ${year}`;
             } else {
               // If no year, add the current year
-              return `${selectedMonth} ${currentYear}`;
+              return `${effectiveSelectedMonth} ${currentYear}`;
             }
           })()}
         </span>
-        <ChevronDown className="ml-1 h-3 w-3 flex-shrink-0" />
+        {loading ? (
+          <div className="ml-1 h-3 w-3 animate-spin rounded-full border border-gray-300 border-t-purple-600"></div>
+        ) : (
+          <ChevronDown className="ml-1 h-3 w-3 flex-shrink-0" />
+        )}
       </div>
 
       {isOpen && (

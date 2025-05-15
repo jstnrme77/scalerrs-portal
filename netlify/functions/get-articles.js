@@ -24,8 +24,42 @@ exports.handler = async function(event, context) {
     const airtable = new Airtable({ apiKey });
     const base = airtable.base(baseId);
 
-    // Get all articles
-    const records = await base('Articles').select().all();
+    // Get month parameter from query string
+    const month = event.queryStringParameters?.month;
+    console.log('Month parameter:', month);
+
+    // Build query
+    let query;
+    if (month) {
+      console.log('Filtering articles by month:', month);
+
+      // Extract just the month name
+      const monthOnly = month.split(' ')[0];
+
+      // Use the correct field name
+      const monthFilters = [
+        `{Month (Keyword Targets)} = '${month}'`
+      ];
+
+      // If we extracted a month name, also check for that
+      if (monthOnly && monthOnly !== month) {
+        monthFilters.push(`{Month (Keyword Targets)} = '${monthOnly}'`);
+      }
+
+      // Create the filter formula
+      const filterFormula = `OR(${monthFilters.join(',')})`;
+      console.log('Month filter formula:', filterFormula);
+
+      query = base('Articles').select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      // No month filter, fetch all records
+      query = base('Articles').select();
+    }
+
+    // Get articles
+    const records = await query.all();
     console.log(`Found ${records.length} articles`);
 
     // Map records to match your Airtable schema

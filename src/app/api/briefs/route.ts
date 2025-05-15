@@ -17,15 +17,20 @@ export async function GET(request: NextRequest) {
     const userRole = request.headers.get('x-user-role');
     const userClient = request.headers.get('x-user-client');
 
+    // Get month from query parameters
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get('month');
+
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
     console.log('User Client:', userClient);
+    console.log('Month filter:', month);
 
     // Parse client IDs if present
     const clientIds = userClient ? JSON.parse(userClient) : [];
 
-    // Fetch briefs with user filtering
-    const briefs = await getBriefs(userId, userRole, clientIds);
+    // Fetch briefs with user filtering and month filtering
+    const briefs = await getBriefs(userId, userRole, clientIds, month);
 
     if (!briefs || briefs.length === 0) {
       console.log('API route: No briefs found, using mock data');
@@ -84,12 +89,24 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    console.log(`API route: Updating brief ${briefId} status to ${status}`);
+
+    // Call the updateBriefStatus function which now uses the 'Brief Status' field
     const updatedBrief = await updateBriefStatus(briefId, status);
+    console.log('Brief updated successfully:', updatedBrief);
+
     return NextResponse.json({ brief: updatedBrief });
   } catch (error) {
     console.error('Error updating brief:', error);
+
+    // Log more detailed error information
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
     return NextResponse.json(
-      { error: 'Failed to update brief' },
+      { error: 'Failed to update brief', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
