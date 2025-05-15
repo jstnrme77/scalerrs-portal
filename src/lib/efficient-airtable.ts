@@ -38,16 +38,45 @@ function normalizeStatus(status: string): string {
   // Convert to lowercase for case-insensitive comparison
   const lowercaseStatus = status.toLowerCase();
 
-  // Map Airtable status values to our UI status values
-  if (lowercaseStatus.includes('awaiting') || lowercaseStatus.includes('pending')) {
+  // Map Airtable status values to our UI status values based on your formula
+  if (lowercaseStatus.includes('keywords awaiting client approval') ||
+      lowercaseStatus.includes('brief awaiting client depth') ||
+      lowercaseStatus.includes('brief awaiting client review') ||
+      lowercaseStatus.includes('under client review') ||
+      lowercaseStatus.includes('under editor review') ||
+      lowercaseStatus.includes('visual assets needed') ||
+      lowercaseStatus.includes('keyword to do') ||
+      lowercaseStatus.includes('keyword to validate for next month') ||
+      lowercaseStatus.includes('brief creation needed') ||
+      lowercaseStatus.includes('awaiting writer assignment') ||
+      lowercaseStatus.includes('writing in progress') ||
+      lowercaseStatus.includes('on hold') ||
+      lowercaseStatus.includes('awaiting approval')) {
     return 'awaiting_approval';
-  } else if (lowercaseStatus.includes('resubmit')) {
+  } else if (lowercaseStatus.includes('brief under internal review') ||
+             lowercaseStatus.includes('writer revision needed') ||
+             lowercaseStatus.includes('resubmit')) {
     return 'resubmitted';
-  } else if (lowercaseStatus.includes('revision') || lowercaseStatus.includes('changes')) {
+  } else if (lowercaseStatus.includes('brief needs revision') ||
+             lowercaseStatus.includes('internal linking needed') ||
+             lowercaseStatus.includes('reverse internal linking needed') ||
+             lowercaseStatus.includes('revision') ||
+             lowercaseStatus.includes('changes')) {
     return 'needs_revision';
-  } else if (lowercaseStatus.includes('approved') || lowercaseStatus.includes('approve')) {
+  } else if (lowercaseStatus.includes('keywords approved') ||
+             lowercaseStatus.includes('brief approved') ||
+             lowercaseStatus.includes('content approved') ||
+             lowercaseStatus.includes('visual assets complete') ||
+             lowercaseStatus.includes('ready for cms upload') ||
+             lowercaseStatus.includes('ready for publication') ||
+             lowercaseStatus.includes('published') ||
+             lowercaseStatus.includes('content published') ||
+             lowercaseStatus.includes('complete') ||
+             lowercaseStatus.includes('approved') ||
+             lowercaseStatus.includes('approve')) {
     return 'approved';
-  } else if (lowercaseStatus.includes('reject')) {
+  } else if (lowercaseStatus.includes('cancelled') ||
+             lowercaseStatus.includes('reject')) {
     return 'rejected';
   }
 
@@ -196,11 +225,60 @@ export async function getApprovalItemsEfficient(
     let items = result.map((record: any) => {
       const fields = record.fields;
 
-      // Common fields for all types - using more flexible field mapping
-      const rawStatus = fields['Approval Status'] || fields['Status'] || fields['Keyword/Content Status'] || 'awaiting_approval';
+      // Use the new dedicated approval fields
+      let rawStatus = 'awaiting_approval';
+      let contentType = type; // Default to the requested type
+
+      // Check for the new dedicated approval fields
+      if (fields['Keyword Approval']) {
+        rawStatus = fields['Keyword Approval'];
+        contentType = 'keywords';
+      } else if (fields['Brief Approval']) {
+        rawStatus = fields['Brief Approval'];
+        contentType = 'briefs';
+      } else if (fields['Article Approval']) {
+        rawStatus = fields['Article Approval'];
+        contentType = 'articles';
+      } else {
+        // Fallback to the old method if the new fields aren't available
+        rawStatus = fields['Approval Status'] || fields['Status'] || fields['Keyword/Content Status'] || 'awaiting_approval';
+
+        // Get the original status for content type determination
+        const originalStatus = fields['Keyword/Content Status'] || '';
+
+        // Determine the content type based on the Keyword/Content Status
+        if (originalStatus.includes('Keywords') ||
+            originalStatus === 'Keyword To Do' ||
+            originalStatus === 'Keyword To Validate For Next Month (By Client)' ||
+            originalStatus === 'Keyword Research') {
+          contentType = 'keywords';
+        } else if (originalStatus.includes('Brief') ||
+                 originalStatus === 'Brief Creation Needed' ||
+                 originalStatus === 'Awaiting Writer Assignment') {
+          contentType = 'briefs';
+        } else if (originalStatus.includes('Content') ||
+                 originalStatus === 'Writing In Progress' ||
+                 originalStatus === 'Writer Revision Needed' ||
+                 originalStatus === 'Internal Linking Needed' ||
+                 originalStatus === 'Reverse Internal Linking Needed' ||
+                 originalStatus === 'Visual Assets Needed' ||
+                 originalStatus === 'Visual Assets Complete' ||
+                 originalStatus === 'Ready for CMS Upload' ||
+                 originalStatus === 'Ready for Publication' ||
+                 originalStatus === 'Published' ||
+                 originalStatus === 'Complete') {
+          contentType = 'articles';
+        }
+      }
 
       // Normalize the status to match our UI status values
       const normalizedStatus = normalizeStatus(rawStatus);
+
+      // Get the original approval status for debugging
+      const keywordApproval = fields['Keyword Approval'] || '';
+      const briefApproval = fields['Brief Approval'] || '';
+      const articleApproval = fields['Article Approval'] || '';
+      const originalStatus = fields['Keyword/Content Status'] || '';
 
       const item = {
         id: record.id,
@@ -209,7 +287,12 @@ export async function getApprovalItemsEfficient(
         dateSubmitted: fields['Created Time'] || fields['Created'] || new Date().toISOString().split('T')[0],
         lastUpdated: fields['Last Updated'] || fields['Last Modified'] || '3 days ago',
         strategist: fields['Content Writer'] || fields['SEO Strategist'] || fields['SEO Specialist'] || fields['Assignee'] || 'Not Assigned',
-        client: fields['All Clients'] || fields['Client'] || 'Unknown Client'
+        client: fields['All Clients'] || fields['Client'] || 'Unknown Client',
+        contentType: contentType, // Add the content type
+        originalStatus: originalStatus, // Keep the original status for debugging
+        keywordApproval: keywordApproval, // Add the keyword approval status
+        briefApproval: briefApproval, // Add the brief approval status
+        articleApproval: articleApproval // Add the article approval status
       };
 
       // Log the mapped item for debugging
@@ -238,6 +321,11 @@ export async function getApprovalItemsEfficient(
 
       return item;
     });
+
+    // Filter items by their contentType to match the requested type
+    console.log(`Filtering items by content type: ${type}`);
+    items = items.filter(item => item.contentType === type);
+    console.log(`After filtering by content type, found ${items.length} items for type ${type}`);
 
     // Filter items by client if clientId is provided
     if (clientId) {

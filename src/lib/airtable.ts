@@ -1881,28 +1881,42 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
 
     if (status === 'approved') {
       if (type === 'keywords') {
-        airtableStatus = 'Keyword Approved';
+        airtableStatus = 'Approved';
       } else if (type === 'briefs') {
-        airtableStatus = 'Brief Approved';
+        airtableStatus = 'Approved';
       } else if (type === 'articles') {
-        airtableStatus = 'Article Approved';
+        airtableStatus = 'Approved';
       }
     } else if (status === 'needs_revision') {
       if (type === 'keywords') {
-        airtableStatus = 'Keyword Needs Revision';
+        airtableStatus = 'Needs Revision';
       } else if (type === 'briefs') {
-        airtableStatus = 'Brief Needs Revision';
+        airtableStatus = 'Needs Revision';
       } else if (type === 'articles') {
-        airtableStatus = 'Article Needs Revision';
+        airtableStatus = 'Needs Revision';
       }
     } else if (status === 'rejected') {
       airtableStatus = 'Rejected';
+    } else if (status === 'awaiting_approval') {
+      airtableStatus = 'Awaiting Approval';
+    } else if (status === 'resubmitted') {
+      airtableStatus = 'Resubmitted';
     }
 
-    // Prepare update object
-    const updateObject: Record<string, any> = {
-      'Approval Status': airtableStatus
-    };
+    // Prepare update object using the new dedicated approval fields
+    const updateObject: Record<string, any> = {};
+
+    // Use the appropriate field based on the content type
+    if (type === 'keywords') {
+      updateObject['Keyword Approval'] = airtableStatus;
+    } else if (type === 'briefs') {
+      updateObject['Brief Approval'] = airtableStatus;
+    } else if (type === 'articles') {
+      updateObject['Article Approval'] = airtableStatus;
+    }
+
+    // For backward compatibility, also update the Approval Status field
+    updateObject['Approval Status'] = `${type.charAt(0).toUpperCase() + type.slice(1, -1)} ${airtableStatus}`;
 
     // Add revision reason if provided
     if (reason) {
@@ -1914,9 +1928,22 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
 
     console.log(`Successfully updated ${type} approval status in Airtable:`, updatedRecord.id);
 
+    // Determine which field to check for the status
+    let statusField = '';
+    if (type === 'keywords') {
+      statusField = 'Keyword Approval';
+    } else if (type === 'briefs') {
+      statusField = 'Brief Approval';
+    } else if (type === 'articles') {
+      statusField = 'Article Approval';
+    }
+
+    // Use the appropriate field or fall back to Approval Status
+    const updatedStatus = updatedRecord.fields[statusField] || updatedRecord.fields['Approval Status'] || '';
+
     return {
       id: updatedRecord.id,
-      status: mapAirtableStatusToUIStatus(updatedRecord.fields['Approval Status'] || '')
+      status: mapAirtableStatusToUIStatus(updatedStatus)
     };
   } catch (error) {
     console.error(`Error updating ${type} approval status:`, error);

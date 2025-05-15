@@ -1,37 +1,14 @@
-import { TABLES, ALT_TABLES } from '../airtable-tables';
-import { mockMonthlyProjections } from '../mock-data';
+import { base } from './config';
+import { hasAirtableCredentials, TABLES, ALT_TABLES } from './config';
+import { mockMonthlyProjections } from './mock-data';
+import { MonthlyProjection } from './types';
+import { handleAirtableError } from './utils';
 
-// Check if we have the required API keys
-const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-const hasAirtableCredentials = !!(apiKey && baseId);
-
-// Get the Airtable base
-let base: any;
-if (typeof window !== 'undefined') {
-  // Client-side
-  if (process.env.NEXT_PUBLIC_AIRTABLE_API_KEY && process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID) {
-    const Airtable = require('airtable');
-    const airtable = new Airtable({
-      apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY,
-      endpointUrl: 'https://api.airtable.com',
-    });
-    base = airtable.base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
-  }
-} else {
-  // Server-side
-  if (apiKey && baseId) {
-    const Airtable = require('airtable');
-    const airtable = new Airtable({
-      apiKey,
-      endpointUrl: 'https://api.airtable.com',
-    });
-    base = airtable.base(baseId);
-  }
-}
-
-// Monthly Projections functions
-export async function getMonthlyProjections() {
+/**
+ * Get monthly projections from Airtable
+ * @returns Array of monthly projection objects
+ */
+export async function getMonthlyProjections(): Promise<MonthlyProjection[]> {
   if (!hasAirtableCredentials) {
     console.log('Using mock monthly projections data (no credentials)');
     return mockMonthlyProjections;
@@ -60,10 +37,10 @@ export async function getMonthlyProjections() {
           console.log('Available tables in this base:', availableTables);
 
           // Check if our required tables exist
-          const monthlyProjectionsExists = availableTables.some((t: string) => 
-            t === TABLES.MONTHLY_PROJECTIONS || 
-            t === TABLES.MONTHLY_PROJECTIONS.toLowerCase() || 
-            t === 'Monthly Projections' || 
+          const monthlyProjectionsExists = availableTables.some((t: string) =>
+            t === TABLES.MONTHLY_PROJECTIONS ||
+            t === TABLES.MONTHLY_PROJECTIONS.toLowerCase() ||
+            t === 'Monthly Projections' ||
             t === 'monthly projections' ||
             ALT_TABLES.MONTHLY_PROJECTIONS.includes(t)
           );
@@ -96,7 +73,7 @@ export async function getMonthlyProjections() {
       }
     } catch (checkError: any) {
       console.error('Error checking Monthly Projections table:', checkError.message);
-      
+
       if (checkError.message.includes('Table not found')) {
         console.error('The Monthly Projections table does not exist in this base');
         return mockMonthlyProjections;
@@ -133,9 +110,6 @@ export async function getMonthlyProjections() {
       };
     });
   } catch (error) {
-    console.error('Error fetching monthly projections:', error);
-    // Fall back to mock data
-    console.log('Falling back to mock monthly projections data due to error');
-    return mockMonthlyProjections;
+    return handleAirtableError(error, mockMonthlyProjections, 'getMonthlyProjections');
   }
 }
