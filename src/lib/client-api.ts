@@ -1481,7 +1481,7 @@ export async function fetchAvailableMonths() {
     // In production, use the API routes
     const url = isNetlify()
       ? '/.netlify/functions/get-available-months'
-      : '/api/available-months';
+      : '/api/months'; // Use the existing months API route
 
     console.log('Fetching available months from:', url);
 

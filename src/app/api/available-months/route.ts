@@ -5,6 +5,10 @@ import { NextResponse } from 'next/server';
 import { getAvailableMonths } from '@/lib/airtable';
 import { mockMonths } from '@/lib/mock-data';
 
+// Configure for Netlify deployment
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     console.log('API route: Fetching available months from Airtable');
@@ -26,13 +30,13 @@ export async function GET() {
     } catch (functionError) {
       console.error('Error using imported getAvailableMonths function:', functionError);
       console.log('Falling back to mock data');
-
+      
       // Return mock data as fallback
       return NextResponse.json({ months: mockMonths });
     }
   } catch (error) {
     console.error('Error fetching available months:', error);
-
+    
     // Return mock data as fallback
     console.log('API route: Error fetching months, using mock data');
     return NextResponse.json({ months: mockMonths });

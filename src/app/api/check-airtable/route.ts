@@ -12,8 +12,8 @@ export async function GET() {
     const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 
     if (!apiKey || !baseId) {
-      return NextResponse.json({ 
-        error: 'Airtable API key or Base ID not found in environment variables' 
+      return NextResponse.json({
+        error: 'Airtable API key or Base ID not found in environment variables'
       }, { status: 500 });
     }
 
@@ -26,40 +26,46 @@ export async function GET() {
 
     // Try to get tables by checking common table names
     const commonTables = [
-      'Users', 'Tasks', 'Comments', 'Briefs', 'Articles', 'Backlinks', 
+      'Users', 'Tasks', 'Comments', 'Briefs', 'Articles', 'Backlinks',
       'KPI Metrics', 'URL Performance', 'Keyword Performance', 'Clients',
       'Monthly Projections'
     ];
-    
+
     const tablesInfo = [];
-    
+
     for (const tableName of commonTables) {
       try {
         console.log(`Checking table: ${tableName}`);
         const records = await base(tableName).select({ maxRecords: 1 }).firstPage();
-        
+
         const tableInfo = {
           name: tableName,
           exists: true,
           fields: records.length > 0 ? Object.keys(records[0].fields) : [],
           sampleRecord: records.length > 0 ? records[0].fields : null
         };
-        
+
         tablesInfo.push(tableInfo);
         console.log(`Table ${tableName} exists with ${tableInfo.fields.length} fields`);
       } catch (error) {
-        console.log(`Table ${tableName} error:`, error.message);
-        if (!error.message.includes('not found')) {
+        // Handle the error with proper type checking
+        const errorMessage = error instanceof Error
+          ? error.message
+          : String(error);
+
+        console.log(`Table ${tableName} error:`, errorMessage);
+
+        if (!errorMessage.includes('not found')) {
           tablesInfo.push({
             name: tableName,
             exists: false,
-            error: error.message
+            error: errorMessage
           });
         }
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       apiKeyPrefix: apiKey.substring(0, 10) + '...',
       baseId,
@@ -67,9 +73,15 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error checking Airtable schema:', error);
-    return NextResponse.json({ 
+
+    // Handle the error with proper type checking
+    const errorMessage = error instanceof Error
+      ? error.message
+      : String(error);
+
+    return NextResponse.json({
       error: 'Failed to check Airtable schema',
-      details: error.message
+      details: errorMessage
     }, { status: 500 });
   }
 }

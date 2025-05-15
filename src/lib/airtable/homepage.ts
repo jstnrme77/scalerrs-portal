@@ -1,6 +1,7 @@
 import { TABLES, getAirtableClient } from '../airtable-utils';
 import { mockBriefs, mockArticles, mockBacklinks, mockTasks } from '../mock-data';
-import { formatRelativeDate, getPriorityLevel } from '../utils';
+// Using local implementations instead of imports
+// import { formatRelativeDate, getPriorityLevel } from '../utils';
 
 // Interface for homepage data
 export interface HomepageData {
@@ -69,22 +70,22 @@ export async function getHomepageData(
     return getMockHomepageData();
   }
 
+  // Initialize variables that will be used throughout the function and in error handling
+  let monthKeywordsRecords: readonly any[] = [];
+  let completedKeywords = 0;
+  let progressPercentage = 0;
+  let actionItems: any[] = [];
+  let recentBriefs: any[] = [];
+  let recentPlans: any[] = [];
+  let feedback: any[] = [];
+  let liveBacklinks = 0;
+  let liveBlogs = 0;
+
   try {
     console.log('Fetching homepage data from Airtable...');
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
     console.log('Client IDs:', clientIds);
-
-    // Initialize variables that will be used throughout the function and in error handling
-    let monthKeywordsRecords: any[] = [];
-    let completedKeywords = 0;
-    let progressPercentage = 0;
-    let actionItems: any[] = [];
-    let recentBriefs: any[] = [];
-    let recentPlans: any[] = [];
-    let feedback: any[] = [];
-    let liveBacklinks = 0;
-    let liveBlogs = 0;
 
     // Prepare filter formulas based on user role and client IDs
     let clientFilter = '';
@@ -461,19 +462,50 @@ export function getMockHomepageData(): HomepageData {
   };
 }
 
-// Helper function to map priority string to priority level
-function getPriorityLevel(priority?: string): 'high' | 'medium' | 'low' {
+// Helper function to map priority to priority level
+function getPriorityLevel(priority: any): 'high' | 'medium' | 'low' {
   if (!priority) return 'medium';
 
-  const normalizedPriority = priority.toLowerCase();
-  if (normalizedPriority.includes('high') || normalizedPriority === '1') return 'high';
-  if (normalizedPriority.includes('low') || normalizedPriority === '3') return 'low';
+  if (typeof priority === 'string') {
+    const normalizedPriority = priority.toLowerCase();
+    if (normalizedPriority.includes('high') || normalizedPriority === '1') return 'high';
+    if (normalizedPriority.includes('low') || normalizedPriority === '3') return 'low';
+    return 'medium';
+  }
+
+  if (typeof priority === 'number') {
+    if (priority === 1 || priority >= 8) return 'high';
+    if (priority === 3 || priority <= 3) return 'low';
+    return 'medium';
+  }
+
   return 'medium';
 }
 
 // Helper function to format relative dates
-function formatRelativeDate(dateString: string): string {
+function formatRelativeDate(dateInput: any): string {
+  if (!dateInput) return 'unknown date';
+
+  let dateString: string;
+
+  if (typeof dateInput === 'string') {
+    dateString = dateInput;
+  } else if (dateInput instanceof Date) {
+    dateString = dateInput.toISOString();
+  } else {
+    // Try to convert to string
+    try {
+      dateString = String(dateInput);
+    } catch (e) {
+      return 'unknown date';
+    }
+  }
+
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'invalid date';
+  }
+
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

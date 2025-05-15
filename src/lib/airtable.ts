@@ -117,6 +117,37 @@ import {
   mockClients
 } from './mock-data';
 
+// Mock data for monthly projections
+export const mockMonthlyProjections = [
+  {
+    id: 'proj1',
+    Month: 'January',
+    Year: '2024',
+    'Current Trajectory': 12500,
+    'KPI Goal/Target': 15000,
+    'Required Trajectory': 16000,
+    Client: ['client1']
+  },
+  {
+    id: 'proj2',
+    Month: 'February',
+    Year: '2024',
+    'Current Trajectory': 13200,
+    'KPI Goal/Target': 15500,
+    'Required Trajectory': 16500,
+    Client: ['client1']
+  },
+  {
+    id: 'proj3',
+    Month: 'March',
+    Year: '2024',
+    'Current Trajectory': 14000,
+    'KPI Goal/Target': 16000,
+    'Required Trajectory': 17000,
+    Client: ['client1']
+  }
+];
+
 // Client functions
 export async function getClients() {
   if (!hasAirtableCredentials) {
@@ -755,7 +786,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
 
     // Build the query with appropriate filters
     let filterFormula = '';
-    let filterParts = [];
+    const filterParts = [];
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
@@ -876,7 +907,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     // We'll consider keywords with Status containing "Brief" as briefs
     // Log each record's status to debug the filtering issue
     console.log('Checking records for Brief status...');
-    records.forEach((record: any, index) => {
+    records.forEach((record: any, index: number) => {
       const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
       console.log(`Record ${index} status: "${status}", includes 'Brief': ${status.includes('Brief')}`);
     });
@@ -885,7 +916,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     console.log(`Total records fetched: ${records.length}`);
     if (records.length > 0) {
       console.log('First 3 records field keys:');
-      records.slice(0, 3).forEach((record, index) => {
+      records.slice(0, 3).forEach((record: any, index: number) => {
         console.log(`Record ${index} field keys:`, Object.keys(record.fields));
       });
     }
@@ -908,7 +939,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
 
     // Log all status values for debugging
     console.log('All status values:');
-    records.forEach((record, index) => {
+    records.forEach((record: any, index: number) => {
       const statusValue = statusFieldName ? record.fields[statusFieldName] :
                          (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
       console.log(`Record ${index} status: "${statusValue}"`);
@@ -917,7 +948,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     // Use the identified status field or fall back to our previous approach
     // For debugging, log all status values first
     console.log('All status values in records:');
-    records.forEach((record, index) => {
+    records.forEach((record: any, index: number) => {
       const status = statusFieldName ? record.fields[statusFieldName] :
                     (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
       console.log(`Record ${index} status: "${status}"`);
@@ -940,7 +971,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     // Log the status values of the first few records to help debug
     if (briefRecords.length > 0) {
       console.log('First 3 brief records with their status:');
-      briefRecords.slice(0, 3).forEach((record, index) => {
+      briefRecords.slice(0, 3).forEach((record: any, index: number) => {
         const status = statusFieldName ? record.fields[statusFieldName] :
                       (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
         console.log(`Brief ${index} ID: ${record.id}, Status: "${status}"`);
@@ -979,7 +1010,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
       // Log the status values of the first few records to help debug
       if (briefRecords.length > 0) {
         console.log('First 3 brief records with specific statuses:');
-        briefRecords.slice(0, 3).forEach((record, index) => {
+        briefRecords.slice(0, 3).forEach((record: any, index: number) => {
           const status = statusFieldName ? record.fields[statusFieldName] :
                         (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
           console.log(`Brief ${index} ID: ${record.id}, Status: "${status}"`);
@@ -1008,7 +1039,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
 
       // Log all status values to help debug
       console.log('All status values in records:');
-      records.forEach((record, index) => {
+      records.forEach((record: any, index: number) => {
         const status = statusFieldName ? record.fields[statusFieldName] :
                       (record.fields['Keyword/Content Status'] || record.fields.Status || 'No status');
         console.log(`Record ${index} status: "${status}"`);
@@ -1250,7 +1281,7 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
 
     // Build the query with appropriate filters
     let filterFormula = '';
-    let filterParts = [];
+    const filterParts = [];
 
     // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
@@ -2393,5 +2424,320 @@ export async function getAvailableMonths() {
       'April 2025',
       'May 2025'
     ];
+  }
+}
+
+/**
+ * Get monthly projections from Airtable
+ * @param clientIds Optional client IDs to filter by
+ * @returns Array of monthly projections
+ */
+export async function getMonthlyProjections(clientIds?: string[] | null) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock monthly projections data (no credentials)');
+
+    // If client IDs are provided, filter the mock data
+    if (clientIds && clientIds.length > 0) {
+      return mockMonthlyProjections.filter(projection => {
+        if (projection.Client) {
+          if (Array.isArray(projection.Client)) {
+            return projection.Client.some(client => clientIds.includes(client));
+          } else {
+            return clientIds.includes(projection.Client);
+          }
+        }
+        return false;
+      });
+    }
+
+    return mockMonthlyProjections;
+  }
+
+  try {
+    console.log('Fetching monthly projections from Airtable...');
+
+    // Build the query with appropriate filters
+    let query;
+    if (clientIds && clientIds.length > 0) {
+      console.log('Filtering monthly projections by client:', clientIds);
+
+      // Create a filter formula for client IDs
+      const clientFilters = clientIds.map(clientId =>
+        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+      );
+
+      // Combine filters with OR
+      const filterFormula = `OR(${clientFilters.join(',')})`;
+
+      query = base(TABLES.MONTHLY_PROJECTIONS).select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      query = base(TABLES.MONTHLY_PROJECTIONS).select();
+    }
+
+    const records = await query.all();
+    console.log(`Successfully fetched ${records.length} monthly projections from Airtable`);
+
+    return records.map((record: any) => ({
+      id: record.id,
+      ...record.fields
+    }));
+  } catch (error) {
+    console.error('Error fetching monthly projections:', error);
+
+    // Fall back to mock data
+    console.log('Falling back to mock monthly projections data');
+    return mockMonthlyProjections;
+  }
+}
+
+/**
+ * Get approval items from Airtable
+ * @param type Type of approval items to fetch (briefs, articles, etc.)
+ * @param userId User ID for filtering
+ * @param userRole User role for filtering
+ * @param clientIds Client IDs for filtering
+ * @param page Page number for pagination
+ * @param pageSize Number of items per page
+ * @param offset Offset for pagination
+ * @returns Object with items and pagination info
+ */
+export async function getApprovalItems(
+  type: string,
+  _userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null,
+  page: number = 1,
+  pageSize: number = 10,
+  offset?: string
+) {
+  // Default response structure
+  const defaultResponse = {
+    items: [],
+    pagination: {
+      currentPage: page,
+      totalPages: 1,
+      totalItems: 0,
+      hasNextPage: false,
+      hasPrevPage: false,
+      nextOffset: null,
+      prevOffset: null
+    }
+  };
+
+  if (!hasAirtableCredentials) {
+    console.log('Using mock data for approval items (no credentials)');
+
+    // Determine which mock data to use based on type
+    let mockItems: any[] = [];
+    if (type === 'briefs') {
+      mockItems = mockBriefs;
+    } else if (type === 'articles') {
+      mockItems = mockArticles;
+    } else if (type === 'backlinks') {
+      mockItems = mockBacklinks;
+    }
+
+    // Filter by client if needed
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      mockItems = mockItems.filter(item => {
+        if (item.Client) {
+          if (Array.isArray(item.Client)) {
+            return item.Client.some((client: string) => clientIds.includes(client));
+          } else {
+            return clientIds.includes(item.Client);
+          }
+        }
+        return false;
+      });
+    }
+
+    // Calculate pagination
+    const totalItems = mockItems.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedItems = mockItems.slice(startIndex, endIndex);
+
+    return {
+      items: paginatedItems,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+        nextOffset: page < totalPages ? String(page + 1) : null,
+        prevOffset: page > 1 ? String(page - 1) : null
+      }
+    };
+  }
+
+  try {
+    console.log(`Fetching ${type} approval items from Airtable...`);
+
+    // Determine which table to use based on type
+    let tableName = '';
+    if (type === 'briefs') {
+      tableName = TABLES.BRIEFS;
+    } else if (type === 'articles') {
+      tableName = TABLES.ARTICLES;
+    } else if (type === 'backlinks') {
+      tableName = TABLES.BACKLINKS;
+    } else {
+      console.error(`Unknown approval type: ${type}`);
+      return defaultResponse;
+    }
+
+    // Build the query with appropriate filters
+    let filterFormula = '';
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering approval items by client:', clientIds);
+
+      // Create a filter formula for client IDs
+      const clientFilters = clientIds.map(clientId =>
+        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+      );
+
+      // Combine filters with OR
+      filterFormula = `OR(${clientFilters.join(',')})`;
+    }
+
+    // Apply the filter if one was created
+    let query;
+    if (filterFormula) {
+      console.log('Using filter formula:', filterFormula);
+      query = base(tableName).select({
+        filterByFormula: filterFormula,
+        pageSize: pageSize,
+        offset: offset
+      });
+    } else {
+      query = base(tableName).select({
+        pageSize: pageSize,
+        offset: offset
+      });
+    }
+
+    // Fetch the records with pagination
+    const result = await query.all();
+
+    // Map the records to our expected format
+    const items = result.map((record: any) => ({
+      id: record.id,
+      ...record.fields
+    }));
+
+    // Calculate pagination info
+    const totalItems = items.length; // This is an approximation since Airtable doesn't provide total count
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    return {
+      items,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        hasNextPage: items.length === pageSize, // If we got a full page, there might be more
+        hasPrevPage: page > 1,
+        nextOffset: items.length === pageSize ? String(page + 1) : null,
+        prevOffset: page > 1 ? String(page - 1) : null
+      }
+    };
+  } catch (error) {
+    console.error(`Error fetching ${type} approval items:`, error);
+
+    // Fall back to mock data
+    console.log(`Falling back to mock ${type} data for approval items`);
+    return defaultResponse;
+  }
+}
+
+/**
+ * Update approval status in Airtable
+ * @param type Type of item to update (briefs, articles, etc.)
+ * @param itemId Item ID to update
+ * @param status New status value
+ * @param revisionReason Optional reason for revision
+ * @returns Updated item
+ */
+export async function updateApprovalStatus(
+  type: string,
+  itemId: string,
+  status: string,
+  revisionReason?: string
+) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock data for updating approval status (no credentials)');
+
+    // Find the item in the appropriate mock data
+    let mockItem: any = null;
+    if (type === 'briefs') {
+      mockItem = mockBriefs.find(item => item.id === itemId);
+      if (mockItem) {
+        mockItem.Status = status;
+        if (revisionReason) {
+          mockItem.RevisionReason = revisionReason;
+        }
+      }
+    } else if (type === 'articles') {
+      mockItem = mockArticles.find(item => item.id === itemId);
+      if (mockItem) {
+        mockItem.Status = status;
+        if (revisionReason) {
+          mockItem.RevisionReason = revisionReason;
+        }
+      }
+    } else if (type === 'backlinks') {
+      mockItem = mockBacklinks.find(item => item.id === itemId);
+      if (mockItem) {
+        mockItem.Status = status;
+        if (revisionReason) {
+          mockItem.RevisionReason = revisionReason;
+        }
+      }
+    }
+
+    return mockItem;
+  }
+
+  try {
+    console.log(`Updating ${type} approval status for item ${itemId} to ${status}`);
+
+    // Determine which table to use based on type
+    let tableName = '';
+    if (type === 'briefs') {
+      tableName = TABLES.BRIEFS;
+    } else if (type === 'articles') {
+      tableName = TABLES.ARTICLES;
+    } else if (type === 'backlinks') {
+      tableName = TABLES.BACKLINKS;
+    } else {
+      throw new Error(`Unknown approval type: ${type}`);
+    }
+
+    // Prepare update object
+    const updateObject: Record<string, any> = {
+      Status: status
+    };
+
+    // Add revision reason if provided
+    if (revisionReason) {
+      updateObject.RevisionReason = revisionReason;
+    }
+
+    // Update the record in Airtable
+    const updatedRecord = await base(tableName).update(itemId, updateObject);
+
+    return {
+      id: updatedRecord.id,
+      ...updatedRecord.fields
+    };
+  } catch (error) {
+    console.error(`Error updating ${type} approval status:`, error);
+    throw error;
   }
 }

@@ -88,7 +88,9 @@ export async function fetchComments(taskId: string) {
   return fetchFromApi(
     `comments?taskId=${taskId}`,
     {},
-    mockData.mockComments.filter(comment => comment.Task === taskId)
+    mockData.mockComments.filter(comment =>
+      Array.isArray(comment.Task) && comment.Task.includes(taskId)
+    )
   );
 }
 

@@ -4,7 +4,44 @@
  */
 import { getAirtableClient, isBrowser, isNetlify, shouldUseMockData } from './airtable-utils';
 import { fetchWithFallback, getApiUrl, getCurrentUser, prepareUserHeaders } from './api-utils';
-import { formatRelativeDate, getPriorityLevel, truncateString } from './utils';
+import { truncateString, getPriorityLevel } from '../utils/field-utils';
+
+// Local implementation of formatRelativeDate
+function formatRelativeDate(dateInput: any): string {
+  if (!dateInput) return 'unknown date';
+
+  let dateString: string;
+
+  if (typeof dateInput === 'string') {
+    dateString = dateInput;
+  } else if (dateInput instanceof Date) {
+    dateString = dateInput.toISOString();
+  } else {
+    // Try to convert to string
+    try {
+      dateString = String(dateInput);
+    } catch (e) {
+      return 'unknown date';
+    }
+  }
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'invalid date';
+  }
+
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 14) return 'last week';
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 60) return 'last month';
+  return `${Math.floor(diffDays / 30)} months ago`;
+}
 
 /**
  * Test the Airtable client initialization
@@ -38,7 +75,7 @@ export function testApiUtils() {
   console.log('API URL for tasks on Netlify:', getApiUrl('tasks', true));
   console.log('Current user:', getCurrentUser());
   console.log('User headers:', prepareUserHeaders());
-  return { 
+  return {
     apiUrl: getApiUrl('tasks'),
     netlifyApiUrl: getApiUrl('tasks', true),
     currentUser: getCurrentUser(),

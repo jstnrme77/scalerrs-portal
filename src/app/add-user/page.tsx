@@ -17,8 +17,14 @@ export default function AddUser() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    // Use mock clients data
-    setClients(mockClients);
+    // Use mock clients data with proper typing
+    const typedClients: Client[] = mockClients.map(client => ({
+      ...client,
+      Status: (client.Status === 'Active' || client.Status === 'Inactive')
+        ? client.Status
+        : 'Active' // Default to 'Active' if status is not valid
+    }));
+    setClients(typedClients);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

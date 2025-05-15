@@ -134,7 +134,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
           <div className="text-center mb-4">
             {article.Status === 'Live' && (article.ArticleURL || article['Article URL']) ? (
               <a
-                href={ensureUrlProtocol(article.ArticleURL || article['Article URL'])}
+                href={ensureUrlProtocol(article.ArticleURL || article['Article URL'] || '')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-xs text-primary hover:underline"
@@ -164,7 +164,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
                 </button>
               ) : (
                 <a
-                  href={ensureUrlProtocol(article.DocumentLink || article['Document Link'])}
+                  href={ensureUrlProtocol(article.DocumentLink || article['Document Link'] || '')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center text-xs text-primary hover:underline"

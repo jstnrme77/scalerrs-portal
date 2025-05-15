@@ -53,7 +53,7 @@ export const getAirtableCredentials = () => {
 
 // Initialize Airtable singleton
 let airtableInstance: Airtable | null = null;
-let baseInstance: any = null;
+let baseInstance: Airtable.Base | null = null;
 
 /**
  * Get or initialize the Airtable client
@@ -97,15 +97,17 @@ export const shouldUseMockData = () => {
   if (!isBrowser) return false;
 
   // Check if mock data is explicitly enabled
-  const useMockData =
-    process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
-    (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
-    (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
+  // Commented out as it's not currently used
+  // const useMockData =
+  //   process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true' ||
+  //   (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
+  //   (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
 
   // Check if we're on Netlify and having issues with Airtable
-  const isNetlifyWithAirtableIssues =
-    isNetlify() &&
-    localStorage.getItem('airtable-connection-issues') === 'true';
+  // Commented out as it's not currently used
+  // const isNetlifyWithAirtableIssues =
+  //   isNetlify() &&
+  //   localStorage.getItem('airtable-connection-issues') === 'true';
 
   // For this specific implementation, we want to force using real data
   // So we'll return false regardless of the settings
@@ -186,7 +188,7 @@ export const fetchFromAirtableWithFallback = async <T>(
     console.log(`Fetching ${tableName} from Airtable...`);
 
     // Build the query
-    const query: any = {};
+    const query: Record<string, any> = {};
 
     if (options.filterFormula) {
       query.filterByFormula = options.filterFormula;
@@ -209,7 +211,7 @@ export const fetchFromAirtableWithFallback = async <T>(
     console.log(`Successfully fetched ${records.length} records from ${tableName}`);
 
     // Map records to the expected format
-    return records.map((record: any) => ({
+    return records.map((record: { id: string; fields: Record<string, unknown> }) => ({
       id: record.id,
       ...record.fields
     })) as unknown as T;

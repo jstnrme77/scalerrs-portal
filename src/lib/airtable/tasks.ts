@@ -12,14 +12,14 @@ import { mockTasks, mockComments } from '../mock-data';
 export async function getTasks(clientIds?: string | string[]) {
   // Convert clientIds to array if provided
   const clientIdArray = ensureClientIdArray(clientIds);
-  
+
   // Build filter formula if clientIds are provided
   let filterFormula = '';
   if (clientIdArray.length > 0) {
     const clientFilters = clientIdArray.map(id => `FIND("${id}", {Client})`);
     filterFormula = `OR(${clientFilters.join(',')})`;
   }
-  
+
   return fetchFromAirtableWithFallback(
     TABLES.TASKS,
     {
@@ -38,14 +38,14 @@ export async function getTasks(clientIds?: string | string[]) {
 export async function updateTaskStatus(taskId: string, newStatus: string) {
   try {
     const { base, hasCredentials } = getAirtableClient();
-    
+
     if (!hasCredentials || !base) {
       console.log('Cannot update task status (no credentials)');
       return null;
     }
 
     console.log(`Updating task ${taskId} status to ${newStatus} in Airtable...`);
-    
+
     const records = await base(TABLES.TASKS).update([
       {
         id: taskId,
@@ -89,7 +89,9 @@ export async function getCommentsByTask(taskId: string) {
     {
       filterFormula: `{Task} = "${taskId}"`
     },
-    mockComments.filter(comment => comment.Task === taskId)
+    mockComments.filter(comment =>
+      Array.isArray(comment.Task) && comment.Task.includes(taskId)
+    )
   );
 }
 
@@ -103,14 +105,14 @@ export async function getCommentsByTask(taskId: string) {
 export async function addComment(taskId: string, userId: string, text: string) {
   try {
     const { base, hasCredentials } = getAirtableClient();
-    
+
     if (!hasCredentials || !base) {
       console.log('Cannot add comment (no credentials)');
       return null;
     }
 
     console.log(`Adding comment to task ${taskId} in Airtable...`);
-    
+
     const records = await base(TABLES.COMMENTS).create([
       {
         fields: {

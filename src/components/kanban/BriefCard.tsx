@@ -168,7 +168,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   </button>
                 ) : (
                   <a
-                    href={ensureUrlProtocol(brief.DocumentLink)}
+                    href={ensureUrlProtocol(brief.DocumentLink || '')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center text-xs text-primary hover:underline"
@@ -202,7 +202,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   </button>
                 ) : (
                   <a
-                    href={ensureUrlProtocol(brief['FraseDocumentLink'])}
+                    href={ensureUrlProtocol(brief['FraseDocumentLink'] || '')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center text-xs text-primary hover:underline"

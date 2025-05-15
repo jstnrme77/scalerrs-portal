@@ -522,6 +522,22 @@ export const mockKPIMetrics = [
   }
 ];
 
+// Mock months data
+export const mockMonths = [
+  'May 2024',
+  'June 2024',
+  'July 2024',
+  'August 2024',
+  'September 2024',
+  'October 2024',
+  'November 2024',
+  'December 2024',
+  'January 2025',
+  'February 2025',
+  'March 2025',
+  'April 2025'
+];
+
 // Mock URL performance
 export const mockURLPerformance = [
   {

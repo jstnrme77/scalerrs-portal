@@ -73,10 +73,13 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
 
         if (!isMounted) return;
 
-        if (months && months.length > 0) {
+        // Check if months is an array and has items
+        if (months && Array.isArray(months) && months.length > 0) {
+          console.log('Successfully loaded months:', months);
           setAvailableMonths(months);
         } else {
-          // Fallback to default months if none returned
+          console.log('No valid months returned, using default months');
+          // Fallback to default months if none returned or invalid format
           setAvailableMonths(defaultMonths);
         }
       } catch (error) {

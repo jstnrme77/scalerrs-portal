@@ -54,8 +54,8 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
 
             // Filter clients to only include those assigned to this user
             const userClients = allClients
-              .filter(client => clientIds.includes(client.id))
-              .map(client => ({
+              .filter((client: { id: string; Name?: string }) => clientIds.includes(client.id))
+              .map((client: { id: string; Name?: string }) => ({
                 id: client.id,
                 name: client.Name || `Client ${client.id.substring(0, 5)}`
               }));
@@ -72,7 +72,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
             const allClients = await fetchClients();
 
             // Create client objects with id and name
-            const clientOptions = allClients.map(client => ({
+            const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
               id: client.id,
               name: client.Name || `Client ${client.id.substring(0, 5)}`
             }));
@@ -201,8 +201,10 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
         // Check 'All Clients' field first
         if (item['All Clients']) {
           if (Array.isArray(item['All Clients'])) {
-            return item['All Clients'].includes(filterClientId);
+            // Ensure we're checking if the array includes the string
+            return item['All Clients'].includes(filterClientId as string);
           } else {
+            // Compare string to string
             return item['All Clients'] === filterClientId;
           }
         }
@@ -211,8 +213,10 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
         if (!item.Client) return false;
 
         if (Array.isArray(item.Client)) {
-          return item.Client.includes(filterClientId);
+          // Ensure we're checking if the array includes the string
+          return item.Client.includes(filterClientId as string);
         } else {
+          // Compare string to string
           return item.Client === filterClientId;
         }
       });

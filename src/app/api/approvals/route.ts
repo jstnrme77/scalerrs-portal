@@ -1,9 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { mockBriefs, mockArticles, mockBacklinks } from '@/lib/mock-data';
 import { getApprovalItems, updateApprovalStatus } from '@/lib/airtable';
 
 // Configure for Netlify deployment
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+// Fallback implementation for getApprovalItems if the imported one doesn't work
+const fallbackGetApprovalItems = (
+  type: string,
+  userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null,
+  page: number = 1,
+  pageSize: number = 10
+) => {
+  // Determine which mock data to use based on type
+  let mockItems: any[] = [];
+  if (type === 'briefs') {
+    mockItems = mockBriefs;
+  } else if (type === 'articles') {
+    mockItems = mockArticles;
+  } else if (type === 'backlinks') {
+    mockItems = mockBacklinks;
+  }
+
+  // Filter by client if needed
+  if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+    mockItems = mockItems.filter(item => {
+      if (item.Client) {
+        if (Array.isArray(item.Client)) {
+          return item.Client.some((client: string) => clientIds.includes(client));
+        } else {
+          return clientIds.includes(item.Client);
+        }
+      }
+      return false;
+    });
+  }
+
+  // Calculate pagination
+  const totalItems = mockItems.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedItems = mockItems.slice(startIndex, endIndex);
+
+  return {
+    items: paginatedItems,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      nextOffset: page < totalPages ? String(page + 1) : null,
+      prevOffset: page > 1 ? String(page - 1) : null
+    }
+  };
+};
+
+// Fallback implementation for updateApprovalStatus if the imported one doesn't work
+const fallbackUpdateApprovalStatus = (
+  type: string,
+  itemId: string,
+  status: string,
+  revisionReason?: string
+) => {
+  // Find the item in the appropriate mock data
+  let mockItem: any = null;
+  if (type === 'briefs') {
+    mockItem = mockBriefs.find(item => item.id === itemId);
+    if (mockItem) {
+      mockItem.Status = status;
+      if (revisionReason) {
+        mockItem.RevisionReason = revisionReason;
+      }
+    }
+  } else if (type === 'articles') {
+    mockItem = mockArticles.find(item => item.id === itemId);
+    if (mockItem) {
+      mockItem.Status = status;
+      if (revisionReason) {
+        mockItem.RevisionReason = revisionReason;
+      }
+    }
+  } else if (type === 'backlinks') {
+    mockItem = mockBacklinks.find(item => item.id === itemId);
+    if (mockItem) {
+      mockItem.Status = status;
+      if (revisionReason) {
+        mockItem.RevisionReason = revisionReason;
+      }
+    }
+  }
+
+  return mockItem;
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,11 +127,20 @@ export async function GET(request: NextRequest) {
     // Parse client IDs if present
     const clientIds = userClient ? JSON.parse(userClient) : [];
 
-    // Fetch approval items with user filtering and pagination
-    const result = await getApprovalItems(type, userId, userRole, clientIds, page, pageSize, offset);
+    try {
+      // Try to use the imported function
+      const result = await getApprovalItems(type, userId, userRole, clientIds, page, pageSize, offset);
+      console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page} of ${result.pagination.totalPages})`);
+      return NextResponse.json(result);
+    } catch (functionError) {
+      console.error('Error using imported getApprovalItems function:', functionError);
+      console.log('Falling back to local implementation');
 
-    console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page} of ${result.pagination.totalPages})`);
-    return NextResponse.json(result);
+      // Use the fallback implementation
+      const result = fallbackGetApprovalItems(type, userId, userRole, clientIds, page, pageSize);
+      console.log(`API route: Found ${result.items.length} ${type} approval items using fallback (page ${page} of ${result.pagination.totalPages})`);
+      return NextResponse.json(result);
+    }
   } catch (error) {
     console.error('Error fetching approval items:', error);
     return NextResponse.json({ error: 'Failed to fetch approval items' }, { status: 500 });
@@ -62,10 +164,18 @@ export async function POST(request: NextRequest) {
 
     console.log(`Updating ${type} approval status for item ${itemId} to ${status}`);
 
-    // Update approval status
-    const updatedItem = await updateApprovalStatus(type, itemId, status, revisionReason);
+    try {
+      // Try to use the imported function
+      const updatedItem = await updateApprovalStatus(type, itemId, status, revisionReason);
+      return NextResponse.json({ updatedItem });
+    } catch (functionError) {
+      console.error('Error using imported updateApprovalStatus function:', functionError);
+      console.log('Falling back to local implementation');
 
-    return NextResponse.json({ updatedItem });
+      // Use the fallback implementation
+      const updatedItem = fallbackUpdateApprovalStatus(type, itemId, status, revisionReason);
+      return NextResponse.json({ updatedItem });
+    }
   } catch (error) {
     console.error('Error updating approval status:', error);
     return NextResponse.json({ error: 'Failed to update approval status' }, { status: 500 });

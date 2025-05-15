@@ -26,14 +26,14 @@ export async function getClientName(clientId: string | string[] | undefined): Pr
     if (!clientCache) {
       const clients = await fetchClients();
       clientCache = {};
-      
+
       // Build a map of client IDs to client names
-      clients.forEach(client => {
+      clients.forEach((client: { id?: string; Name?: string }) => {
         if (client.id && client.Name) {
           clientCache![client.id] = client.Name;
         }
       });
-      
+
       console.log('Client cache initialized with', Object.keys(clientCache).length, 'clients');
     }
 
@@ -46,7 +46,7 @@ export async function getClientName(clientId: string | string[] | undefined): Pr
     return id.length > 8 ? `${id.substring(0, 8)}...` : id;
   } catch (error) {
     console.error('Error getting client name:', error);
-    
+
     // Return a formatted version of the ID
     return id.length > 8 ? `${id.substring(0, 8)}...` : id;
   }
