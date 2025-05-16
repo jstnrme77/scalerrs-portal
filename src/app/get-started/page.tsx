@@ -7,28 +7,19 @@ import {
   VideoModal,
   FormModal,
   RoadmapModal,
-  ServicesModal,
-  GuidesModal,
   ChecklistModal
 } from '@/components/ui/modals';
-import QuickAccessLinks from '@/components/ui/QuickAccessLinks';
+
 import {
   CirclePlay,
   FileText,
   FileCheck,
-  Database,
-  FileSpreadsheet,
-  Slack,
-  FolderOpen,
-  ChartColumn
+  Database
 } from 'lucide-react';
 
 import {
   checklistItems,
-  roadmapSteps,
-  servicesTabs,
-  guides,
-  quickAccessLinks
+  roadmapSteps
 } from './data';
 
 export default function GetStartedPage() {
@@ -36,9 +27,6 @@ export default function GetStartedPage() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [roadmapModalOpen, setRoadmapModalOpen] = useState(false);
-  const [servicesModalOpen, setServicesModalOpen] = useState(false);
-  const [guidesModalOpen, setGuidesModalOpen] = useState(false);
-  const [selectedGuide, setSelectedGuide] = useState(guides[0]);
   const [checklistModalOpen, setChecklistModalOpen] = useState(false);
 
   // Checklist state
@@ -57,14 +45,6 @@ export default function GetStartedPage() {
   const completedCount = checklist.filter(item => item.completed).length;
   const totalCount = checklist.length;
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-  // Quick access links with icons
-  const quickLinks = quickAccessLinks.map(link => ({
-    ...link,
-    icon: link.icon === 'slack' ? <Slack size={20} /> :
-          link.icon === 'folder' ? <FolderOpen size={20} /> :
-          <ChartColumn size={20} />
-  }));
 
   return (
     <div>
@@ -124,55 +104,40 @@ export default function GetStartedPage() {
 
       {/* Second row of cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Service Line Breakdown */}
-        <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-            <Database className="h-6 w-6 text-[#9EA8FB]" />
-          </div>
-          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Service Line Breakdown</h2>
-          <p className="mb-4 text-base text-[#12131C]">Explore detailed analytics and insights about your service performance.</p>
-          <div className="mb-2 text-sm text-[#4F515E]">Progress: 65%</div>
-          <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-200 get-started-progress">
-            <div className="h-full bg-[#9EA8FB]" style={{ width: '65%' }}></div>
-          </div>
-          <Button
-            variant="primary"
-            size="lg"
-            className="mt-auto get-started-btn"
-            onClick={() => setServicesModalOpen(true)}
-          >
-            Explore My Services
-          </Button>
-        </div>
-
         {/* Guides Section */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm get-started-card">
           <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Guides &amp; Resources</h2>
           <p className="mb-6 text-base text-[#12131C]">Access our comprehensive library of guidelines and best practices.</p>
           <div className="mb-6 space-y-4">
-            {guides.slice(0, 2).map((guide) => (
-              <div
-                key={guide.id}
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={() => {
-                  setSelectedGuide(guide);
-                  setGuidesModalOpen(true);
-                }}
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#9EA8FB]/20">
-                  <FileText className="h-4 w-4 text-[#9EA8FB]" />
-                </div>
-                <span className="text-base text-[#12131C]">{guide.title}</span>
+            <a
+              href="https://scalerrs.notion.site/Content-Guidelines-137a627a1323816db2d2cd79d749c872"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#9EA8FB]/20">
+                <FileText className="h-4 w-4 text-[#9EA8FB]" />
               </div>
-            ))}
+              <span className="text-base text-[#12131C]">Content Guidelines</span>
+            </a>
+            <a
+              href="https://scalerrs.notion.site/Onboarding-Info-137a627a1323814f9150eaa469e0f1d3"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#9EA8FB]/20">
+                <FileText className="h-4 w-4 text-[#9EA8FB]" />
+              </div>
+              <span className="text-base text-[#12131C]">Onboarding Info</span>
+            </a>
           </div>
           <Button
             variant="primary"
             size="lg"
             className="mt-auto get-started-btn"
             onClick={() => {
-              setSelectedGuide(guides[0]);
-              setGuidesModalOpen(true);
+              window.open("https://scalerrs.notion.site/Onboarding-Info-137a627a1323814f9150eaa469e0f1d3", "_blank", "noopener,noreferrer");
             }}
           >
             Open Guides
@@ -222,9 +187,6 @@ export default function GetStartedPage() {
         </div>
       </div>
 
-      {/* Quick Access Links */}
-      <QuickAccessLinks links={quickLinks} />
-
       {/* Modals */}
       <VideoModal
         isOpen={videoModalOpen}
@@ -245,20 +207,6 @@ export default function GetStartedPage() {
         onClose={() => setRoadmapModalOpen(false)}
         title="Campaign Roadmap"
         steps={roadmapSteps}
-      />
-
-      <ServicesModal
-        isOpen={servicesModalOpen}
-        onClose={() => setServicesModalOpen(false)}
-        title="Service Line Breakdown"
-        services={servicesTabs}
-      />
-
-      <GuidesModal
-        isOpen={guidesModalOpen}
-        onClose={() => setGuidesModalOpen(false)}
-        title={selectedGuide?.title}
-        guide={selectedGuide}
       />
 
       <ChecklistModal

@@ -200,6 +200,18 @@ export const quickAccessLinks = [
     url: 'https://drive.google.com'
   },
   {
+    id: 'guides',
+    icon: 'file-text',
+    label: 'Onboarding Info',
+    url: 'https://scalerrs.notion.site/Onboarding-Info-137a627a1323814f9150eaa469e0f1d3'
+  },
+  {
+    id: 'content-guidelines',
+    icon: 'file-text',
+    label: 'Content Guidelines',
+    url: 'https://scalerrs.notion.site/Content-Guidelines-137a627a1323816db2d2cd79d749c872'
+  },
+  {
     id: 'dashboard',
     icon: 'bar-chart',
     label: 'Analytics Dashboard',
