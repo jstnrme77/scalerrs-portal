@@ -6,16 +6,14 @@ import Button from '@/components/ui/forms/Button';
 import {
   VideoModal,
   FormModal,
-  RoadmapModal,
-  ChecklistModal
+  ChecklistModal,
+  EnhancedRoadmapModal
 } from '@/components/ui/modals';
 import QuickAccessLinks from '@/components/ui/QuickAccessLinks';
 
 import {
-  CirclePlay,
   FileText,
   FileCheck,
-  Database,
   MessageSquare,
   FolderOpen,
   BarChart3,
@@ -73,27 +71,47 @@ export default function GetStartedPage() {
     }
   ];
 
+  // Video URL for the walkthrough
+  const videoUrl = "https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0";
+
   return (
     <div>
+      {/* Video Walkthrough - Embedded at the top */}
+      <div className="mb-8 flex flex-col items-center">
+        <h2 className="text-2xl font-bold text-[#12131C] mb-4">Welcome to Scalerrs Portal</h2>
+        <div className="w-full max-w-3xl aspect-video rounded-xl overflow-hidden border-8 border-[#F5F5F9] shadow-md">
+          <iframe
+            src={videoUrl}
+            className="w-full h-full border-0"
+            title="Platform Walkthrough"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+          ></iframe>
+        </div>
+        <p className="mt-3 text-base text-[#4F515E]">Watch our platform walkthrough video</p>
+      </div>
+
       {/* Quick Access Links */}
       <QuickAccessLinks links={quickLinks} />
 
       {/* First row of cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        {/* Video Walkthrough Section */}
+        {/* Quick Start Guide Section */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-            <CirclePlay className="h-6 w-6 text-[#9EA8FB]" />
+            <FileText className="h-6 w-6 text-[#9EA8FB]" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Video Walkthrough</h2>
-          <p className="mb-6 text-base text-[#12131C]">Learn how to use the platform with our step-by-step video walkthrough.</p>
+          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Quick Start Guide</h2>
+          <p className="mb-6 text-base text-[#12131C]">Get up to speed quickly with our essential tips and platform overview.</p>
           <Button
             variant="primary"
             size="lg"
             className="mt-auto get-started-btn"
-            onClick={() => setVideoModalOpen(true)}
+            onClick={() => {
+              window.open("https://scalerrs.notion.site/Quick-Start-Guide-137a627a1323814f9150eaa469e0f1d3", "_blank", "noopener,noreferrer");
+            }}
           >
-            Watch the walkthrough
+            View Quick Start Guide
           </Button>
         </div>
 
@@ -238,7 +256,7 @@ export default function GetStartedPage() {
         title="Onboarding Forms"
       />
 
-      <RoadmapModal
+      <EnhancedRoadmapModal
         isOpen={roadmapModalOpen}
         onClose={() => setRoadmapModalOpen(false)}
         title="Campaign Roadmap"
