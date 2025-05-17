@@ -1,13 +1,13 @@
 import { base } from '../config';
 import { hasAirtableCredentials, TABLES } from '../config';
-import { mockArticles } from '../mock-data';
+import { mockArticles } from '../../mock-data';
 import { Article } from '../types';
-import { 
-  handleAirtableError, 
-  createClientFilter, 
-  createUserFilter, 
-  createMonthFilter, 
-  combineFilters 
+import {
+  handleAirtableError,
+  createClientFilter,
+  createUserFilter,
+  createMonthFilter,
+  combineFilters
 } from '../utils';
 
 /**
@@ -19,9 +19,9 @@ import {
  * @returns Array of article objects
  */
 export async function getArticles(
-  userId?: string | null, 
-  userRole?: string | null, 
-  clientIds?: string[] | null, 
+  userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null,
   month?: string | null
 ): Promise<Article[]> {
   if (!hasAirtableCredentials) {

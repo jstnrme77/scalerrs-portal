@@ -201,12 +201,12 @@ export async function updateBacklinkStatus(backlinkId: string, newStatus: string
 }
 
 /**
- * Fetch URL performance data from the API
- * @returns Array of URL performance data
+ * URL Performance functionality has been removed as it's no longer used
+ * @deprecated This function is no longer used and has been removed
  */
 export async function fetchURLPerformance() {
-  const response = await fetchFromApi<{ urlPerformance: any[] }>('url-performance', {}, { urlPerformance: mockData.mockURLPerformance });
-  return response.urlPerformance;
+  console.log('URL Performance functionality has been removed');
+  return [];
 }
 
 /**

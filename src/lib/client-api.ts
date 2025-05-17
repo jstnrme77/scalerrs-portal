@@ -7,7 +7,6 @@ import {
   mockArticles,
   mockBacklinks,
   mockKPIMetrics,
-  mockURLPerformance,
   mockKeywordPerformance,
   mockMonthlyProjections,
   mockClients
@@ -1107,92 +1106,13 @@ export async function fetchKPIMetrics() {
   }
 }
 
-// URL Performance API
+/**
+ * URL Performance functionality has been removed as it's no longer used
+ * @deprecated This function is no longer used and has been removed
+ */
 export async function fetchURLPerformance() {
-  // Use mock data if explicitly enabled
-  if (shouldUseMockData()) {
-    console.log('Using mock URL performance data');
-    return mockURLPerformance;
-  }
-
-  try {
-    // In development, use direct Airtable access
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Development mode: Using direct Airtable access for URL performance');
-
-      // Check if we have the public environment variables
-      const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
-      const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-
-      console.log('Public API Key exists:', !!publicApiKey);
-      console.log('Public Base ID exists:', !!publicBaseId);
-
-      // Import the getURLPerformance function directly
-      const { getURLPerformance } = await import('@/lib/airtable');
-
-      try {
-        const urlPerformance = await getURLPerformance();
-        console.log('URL performance fetched successfully:', urlPerformance);
-        return urlPerformance;
-      } catch (airtableError: any) {
-        console.error('Error fetching directly from Airtable:', airtableError);
-
-        // If we get an authorization error, fall back to mock data
-        if (airtableError.message && airtableError.message.includes('authorized')) {
-          console.error('Authorization error with Airtable. Check your API key and permissions.');
-
-          // Set a flag in localStorage to indicate Airtable connection issues
-          if (isBrowser) {
-            localStorage.setItem('airtable-connection-issues', 'true');
-          }
-
-          return mockURLPerformance;
-        }
-
-        // Re-throw other errors to be caught by the outer catch
-        throw airtableError;
-      }
-    }
-
-    // In production, use the API routes
-    const url = isNetlify()
-      ? '/.netlify/functions/get-url-performance'
-      : '/api/url-performance';
-
-    console.log('Fetching URL performance from:', url);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-      },
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('URL performance data received:', data);
-    return data.urlPerformance;
-  } catch (error) {
-    console.error('Error fetching URL performance:', error);
-
-    // Set a flag in localStorage to indicate Airtable connection issues
-    if (isBrowser) {
-      localStorage.setItem('airtable-connection-issues', 'true');
-    }
-
-    // Fall back to mock data
-    console.log('Falling back to mock URL performance data');
-    return mockURLPerformance;
-  }
+  console.log('URL Performance functionality has been removed');
+  return [];
 }
 
 // Monthly Projections API

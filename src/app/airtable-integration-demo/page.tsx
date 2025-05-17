@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  fetchTasks, 
-  fetchBriefs, 
-  fetchArticles, 
-  fetchBacklinks, 
-  fetchKPIMetrics, 
-  fetchURLPerformance, 
-  fetchKeywordPerformance 
+import {
+  fetchTasks,
+  fetchBriefs,
+  fetchArticles,
+  fetchBacklinks,
+  fetchKPIMetrics,
+  fetchKeywordPerformance
 } from '@/lib/client-api';
 import { Task, Brief, Article, Backlink, KPIMetric, URLPerformance, KeywordPerformance } from '@/types';
 
@@ -18,7 +17,7 @@ export default function AirtableIntegrationDemo() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
@@ -26,7 +25,7 @@ export default function AirtableIntegrationDemo() {
   const [kpiMetrics, setKPIMetrics] = useState<KPIMetric[]>([]);
   const [urlPerformance, setURLPerformance] = useState<URLPerformance[]>([]);
   const [keywordPerformance, setKeywordPerformance] = useState<KeywordPerformance[]>([]);
-  
+
   const [activeTab, setActiveTab] = useState('tasks');
 
   // Fetch data
@@ -35,31 +34,31 @@ export default function AirtableIntegrationDemo() {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch tasks
         const tasksData = await fetchTasks();
         setTasks(tasksData);
-        
+
         // Fetch briefs
         const briefsData = await fetchBriefs();
         setBriefs(briefsData);
-        
+
         // Fetch articles
         const articlesData = await fetchArticles();
         setArticles(articlesData);
-        
+
         // Fetch backlinks
         const backlinksData = await fetchBacklinks();
         setBacklinks(backlinksData);
-        
+
         // Fetch KPI metrics
         const kpiMetricsData = await fetchKPIMetrics();
         setKPIMetrics(kpiMetricsData);
-        
-        // Fetch URL performance
-        const urlPerformanceData = await fetchURLPerformance();
-        setURLPerformance(urlPerformanceData);
-        
+
+        // URL Performance functionality has been removed
+        console.log('URL Performance functionality has been removed');
+        setURLPerformance([]);
+
         // Fetch keyword performance
         const keywordPerformanceData = await fetchKeywordPerformance();
         setKeywordPerformance(keywordPerformanceData);
@@ -104,7 +103,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       case 'briefs':
         return (
           <div className="p-4">
@@ -125,7 +124,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       case 'articles':
         return (
           <div className="p-4">
@@ -146,7 +145,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       case 'backlinks':
         return (
           <div className="p-4">
@@ -167,7 +166,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       case 'kpi-metrics':
         return (
           <div className="p-4">
@@ -184,7 +183,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       case 'url-performance':
         return (
           <div className="p-4">
@@ -203,7 +202,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       case 'keyword-performance':
         return (
           <div className="p-4">
@@ -222,7 +221,7 @@ export default function AirtableIntegrationDemo() {
             </div>
           </div>
         );
-      
+
       default:
         return <div className="p-4">Select a tab to view data</div>;
     }
@@ -232,7 +231,7 @@ export default function AirtableIntegrationDemo() {
     <DashboardLayout>
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-6">Airtable Integration Demo</h1>
-        
+
         {/* Tabs */}
         <div className="flex border-b mb-6">
           <button
@@ -278,7 +277,7 @@ export default function AirtableIntegrationDemo() {
             Keyword Performance
           </button>
         </div>
-        
+
         {/* Data display */}
         {renderData()}
       </div>

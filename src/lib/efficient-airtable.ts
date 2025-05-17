@@ -324,7 +324,7 @@ export async function getApprovalItemsEfficient(
 
     // Filter items by their contentType to match the requested type
     console.log(`Filtering items by content type: ${type}`);
-    items = items.filter(item => item.contentType === type);
+    items = items.filter((item: any) => item.contentType === type);
     console.log(`After filtering by content type, found ${items.length} items for type ${type}`);
 
     // Filter items by client if clientId is provided
@@ -336,7 +336,7 @@ export async function getApprovalItemsEfficient(
         console.log(`Filtering items by client: ${clientId}`);
 
         // Filter items where the client field includes the clientId
-        items = items.filter(item => {
+        items = items.filter((item: any) => {
           // Check if client is an array
           if (Array.isArray(item.client)) {
             return item.client.includes(clientId);

@@ -1,13 +1,13 @@
 import { base } from '../config';
 import { hasAirtableCredentials, TABLES } from '../config';
-import { mockBriefs, mockArticles, mockBacklinks } from '../mock-data';
+import { mockBriefs, mockArticles, mockBacklinks } from '../../mock-data';
 import { Brief, Article, Backlink } from '../types';
-import { 
-  handleAirtableError, 
-  createClientFilter, 
-  createUserFilter, 
-  createMonthFilter, 
-  combineFilters 
+import {
+  handleAirtableError,
+  createClientFilter,
+  createUserFilter,
+  createMonthFilter,
+  combineFilters
 } from '../utils';
 
 /**
@@ -19,9 +19,9 @@ import {
  * @returns Array of brief objects
  */
 export async function getBriefs(
-  userId?: string | null, 
-  userRole?: string | null, 
-  clientIds?: string[] | null, 
+  userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null,
   month?: string | null
 ): Promise<Brief[]> {
   if (!hasAirtableCredentials) {

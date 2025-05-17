@@ -58,8 +58,12 @@ if (hasAirtableCredentials) {
     });
 
     // Get the base
-    base = airtable.base(baseId);
-    console.log('Airtable client initialized with server-side credentials');
+    if (baseId) {
+      base = airtable.base(baseId);
+      console.log('Airtable client initialized with server-side credentials');
+    } else {
+      console.warn('Base ID is undefined. Cannot initialize Airtable base.');
+    }
   }
 } else {
   console.warn(`Airtable API key or Base ID not found. Using mock data for build process.`);
@@ -100,7 +104,8 @@ export const TABLES = {
 export const ALT_TABLES = {
   KPI_METRICS: ['kpi_metrics', 'kpimetrics', 'kpi metrics', 'KPIMetrics'],
   URL_PERFORMANCE: ['url_performance', 'urlperformance', 'url performance', 'URLPerformance'],
-  KEYWORDS: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance', 'keywords']
+  KEYWORDS: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance', 'keywords'],
+  MONTHLY_PROJECTIONS: ['monthly_projections', 'monthlyprojections', 'monthly projections', 'MonthlyProjections']
 };
 
 export { base, airtable };

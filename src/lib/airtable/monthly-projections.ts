@@ -1,5 +1,7 @@
 import { base } from './config';
 import { hasAirtableCredentials, TABLES, ALT_TABLES } from './config';
+// Import environment variables
+const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 import { mockMonthlyProjections } from './mock-data';
 import { MonthlyProjection } from './types';
 import { handleAirtableError } from './utils';

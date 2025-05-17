@@ -1,6 +1,6 @@
 import { base } from '../config';
 import { hasAirtableCredentials, TABLES } from '../config';
-import { mockBacklinks } from '../mock-data';
+import { mockBacklinks } from '../../mock-data';
 import { Backlink } from '../types';
 import { handleAirtableError, createMonthFilter } from '../utils';
 
@@ -98,7 +98,7 @@ export async function getBacklinks(month?: string | null): Promise<Backlink[]> {
       console.log('Filtering backlinks by month:', month);
       const monthFilter = createMonthFilter(month);
       console.log('Using filter formula for backlinks:', monthFilter);
-      
+
       query = base(TABLES.BACKLINKS).select({
         filterByFormula: monthFilter
       });

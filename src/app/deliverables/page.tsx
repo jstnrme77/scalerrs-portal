@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { fetchBriefs, fetchArticles, fetchBacklinks, fetchURLPerformance } from '@/lib/client-api';
+import { fetchBriefs, fetchArticles, fetchBacklinks } from '@/lib/client-api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -125,14 +125,9 @@ export default function DeliverablePage() {
     setArticles(combinedArticles);
     setBacklinks(combinedBacklinks);
 
-    // Also import URL Performance mock data
-    const fetchURLMockData = async () => {
-      const { mockURLPerformance } = await import('@/lib/mock-data');
-      setUrlPerformance(mockURLPerformance);
-      setLoading(false);
-    };
-
-    fetchURLMockData();
+    // URL Performance functionality has been removed
+    setUrlPerformance([]);
+    setLoading(false);
   }, []);
 
   // Fetch data from Airtable - no longer used but kept for reference
@@ -190,17 +185,9 @@ export default function DeliverablePage() {
         hasErrors = true;
       }
 
-      try {
-        console.log('Fetching URL performance data...');
-        urlPerformanceData = await fetchURLPerformance();
-        console.log('URL performance data fetched successfully:', urlPerformanceData.length, 'records');
-        logData(urlPerformanceData, 'URL Performance');
-        setUrlPerformance(urlPerformanceData);
-      } catch (urlPerformanceErr: any) {
-        console.error('Error fetching URL performance data:', urlPerformanceErr);
-        errorMessages.push(`URL Performance: ${urlPerformanceErr.message || 'Unknown error'}`);
-        hasErrors = true;
-      }
+      // URL Performance functionality has been removed
+      console.log('URL Performance functionality has been removed');
+      setUrlPerformance([]);
 
       // Set error message if any of the fetches failed
       if (hasErrors) {

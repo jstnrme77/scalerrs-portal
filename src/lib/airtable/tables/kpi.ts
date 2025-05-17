@@ -1,10 +1,10 @@
 import { base } from '../config';
 import { hasAirtableCredentials, TABLES, ALT_TABLES } from '../config';
-import { 
-  mockKPIMetrics, 
-  mockURLPerformance, 
-  mockKeywordPerformance 
-} from '../mock-data';
+import {
+  mockKPIMetrics,
+  mockURLPerformance,
+  mockKeywordPerformance
+} from '../../mock-data';
 import { KPIMetric } from '../types';
 import { handleAirtableError, createClientFilter, createMonthFilter, combineFilters } from '../utils';
 
