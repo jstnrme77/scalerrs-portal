@@ -9,12 +9,17 @@ import {
   RoadmapModal,
   ChecklistModal
 } from '@/components/ui/modals';
+import QuickAccessLinks from '@/components/ui/QuickAccessLinks';
 
 import {
   CirclePlay,
   FileText,
   FileCheck,
-  Database
+  Database,
+  MessageSquare,
+  FolderOpen,
+  BarChart3,
+  CheckSquare
 } from 'lucide-react';
 
 import {
@@ -46,8 +51,33 @@ export default function GetStartedPage() {
   const totalCount = checklist.length;
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
+  // Create quick access links with proper React node icons
+  const quickLinks = [
+    {
+      id: 'slack',
+      icon: <MessageSquare size={20} className="text-[#9EA8FB]" />,
+      label: 'Slack',
+      url: 'https://slack.com'
+    },
+    {
+      id: 'drive',
+      icon: <FolderOpen size={20} className="text-[#9EA8FB]" />,
+      label: 'Google Drive',
+      url: 'https://drive.google.com'
+    },
+    {
+      id: 'dashboard',
+      icon: <BarChart3 size={20} className="text-[#9EA8FB]" />,
+      label: 'Reporting Dashboard',
+      url: '/kpi-dashboard'
+    }
+  ];
+
   return (
     <div>
+      {/* Quick Access Links */}
+      <QuickAccessLinks links={quickLinks} />
+
       {/* First row of cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
         {/* Video Walkthrough Section */}
@@ -67,20 +97,48 @@ export default function GetStartedPage() {
           </Button>
         </div>
 
-        {/* Onboarding Forms Section */}
+        {/* Interactive Checklist - Moved to first row */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-            <FileText className="h-6 w-6 text-[#9EA8FB]" />
+            <CheckSquare className="h-6 w-6 text-[#9EA8FB]" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Onboarding Forms</h2>
-          <p className="mb-6 text-base text-[#12131C]">Complete these essential forms to set up your account and customize your experience.</p>
+          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Interactive Checklist</h2>
+          <p className="mb-6 text-base text-[#12131C]">Track your progress with our interactive checklist.</p>
+
+          {/* Progress Circle */}
+          <div className="flex flex-col items-center justify-center mb-6">
+            <div className="relative h-24 w-24">
+              {/* Background circle */}
+              <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  className="stroke-[#F0F0F7] stroke-[8px] fill-none"
+                  cx="50"
+                  cy="50"
+                  r="38"
+                ></circle>
+                <circle
+                  className="stroke-[#9EA8FB] stroke-[8px] fill-none get-started-circle"
+                  cx="50"
+                  cy="50"
+                  r="38"
+                  strokeDasharray="238.76104167282426"
+                  strokeDashoffset={238.76104167282426 - (238.76104167282426 * progressPercentage / 100)}
+                ></circle>
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold text-[#12131C]">{completedCount}/{totalCount}</span>
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-[#4F515E]">{completedCount} of {totalCount} tasks completed</p>
+          </div>
+
           <Button
             variant="primary"
             size="lg"
             className="mt-auto get-started-btn"
-            onClick={() => setFormModalOpen(true)}
+            onClick={() => setChecklistModalOpen(true)}
           >
-            Complete Forms
+            Resume Checklist
           </Button>
         </div>
 
@@ -106,6 +164,9 @@ export default function GetStartedPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Guides Section */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm get-started-card">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+            <FileText className="h-6 w-6 text-[#9EA8FB]" />
+          </div>
           <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Guides &amp; Resources</h2>
           <p className="mb-6 text-base text-[#12131C]">Access our comprehensive library of guidelines and best practices.</p>
           <div className="mb-6 space-y-4">
@@ -144,45 +205,20 @@ export default function GetStartedPage() {
           </Button>
         </div>
 
-        {/* Interactive Checklist */}
-        <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm text-center">
-          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Interactive Checklist</h2>
-          <p className="mb-6 text-base text-[#12131C]">Track your progress with our interactive checklist.</p>
-
-          {/* Centered Progress Circle */}
-          <div className="flex flex-col items-center justify-center mb-6">
-            <div className="relative h-24 w-24">
-              {/* Background circle */}
-              <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  className="stroke-[#F0F0F7] stroke-[8px] fill-none"
-                  cx="50"
-                  cy="50"
-                  r="38"
-                ></circle>
-                <circle
-                  className="stroke-[#9EA8FB] stroke-[8px] fill-none get-started-circle"
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  strokeDasharray="238.76104167282426"
-                  strokeDashoffset={238.76104167282426 - (238.76104167282426 * progressPercentage / 100)}
-                ></circle>
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold text-[#12131C]">{completedCount}/{totalCount}</span>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-[#4F515E]">{completedCount} of {totalCount} tasks completed</p>
+        {/* Onboarding Forms Section - Moved to second row */}
+        <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+            <FileText className="h-6 w-6 text-[#9EA8FB]" />
           </div>
-
+          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Onboarding Forms</h2>
+          <p className="mb-6 text-base text-[#12131C]">Complete these essential forms to set up your account and customize your experience.</p>
           <Button
             variant="primary"
             size="lg"
             className="mt-auto get-started-btn"
-            onClick={() => setChecklistModalOpen(true)}
+            onClick={() => setFormModalOpen(true)}
           >
-            Resume Checklist
+            Complete Forms
           </Button>
         </div>
       </div>
@@ -198,7 +234,7 @@ export default function GetStartedPage() {
       <FormModal
         isOpen={formModalOpen}
         onClose={() => setFormModalOpen(false)}
-        formUrl="https://forms.example.com/onboarding"
+        formUrl="https://build.fillout.com/editor/preview/utTZkyHh2cus"
         title="Onboarding Forms"
       />
 

@@ -23,7 +23,7 @@ export default function FormModal({
       title={title}
       size="full"
     >
-      <div className="w-full h-[70vh]">
+      <div className="w-full h-[80vh]">
         {/* Check if we're in a development environment */}
         {formUrl.includes('example.com') ? (
           <div className="flex flex-col items-center justify-center h-full bg-gray-50 p-6 text-center">
@@ -64,7 +64,8 @@ export default function FormModal({
             frameBorder="0"
             className="w-full h-full rounded-md"
             title={title}
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
+            allow="camera; microphone; geolocation; clipboard-read; clipboard-write"
           ></iframe>
         )}
       </div>

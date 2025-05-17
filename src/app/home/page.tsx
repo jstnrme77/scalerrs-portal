@@ -4,13 +4,36 @@ import {
   Package,
   CheckSquare,
   BarChart3,
-  Clock
+  Clock,
+  Check
 } from 'lucide-react';
 import LinkButton from '@/components/ui/forms/LinkButton';
+import Button from '@/components/ui/forms/Button';
+import { ChecklistModal } from '@/components/ui/modals';
+import { useState } from 'react';
+import { checklistItems } from './data';
 
 export default function Home() {
   // Current month for milestone tracking
   const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+
+  // Checklist state and modal state
+  const [checklist, setChecklist] = useState(checklistItems);
+  const [checklistModalOpen, setChecklistModalOpen] = useState(false);
+
+  // Handle checklist item toggle
+  const handleChecklistItemToggle = (id: string, completed: boolean) => {
+    setChecklist(
+      checklist.map(item =>
+        item.id === id ? { ...item, completed } : item
+      )
+    );
+  };
+
+  // Calculate checklist progress
+  const completedCount = checklist.filter(item => item.completed).length;
+  const totalCount = checklist.length;
+  const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   return (
     <>
@@ -55,6 +78,54 @@ export default function Home() {
         {/* Main Content Area - Mission Control Layout */}
         <div className="lg:w-2/3">
           <div className="grid gap-6 md:grid-cols-2">
+            {/* Interactive Checklist - Added from Get Started page */}
+            <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
+              <div className="flex items-center mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
+                  <CheckSquare className="h-6 w-6 text-[#9EA8FB]" />
+                </div>
+                <h2 className="text-2xl font-bold text-[#12131C]">Interactive Checklist</h2>
+              </div>
+              <p className="text-base text-[#12131C] mb-4">Track your progress with our interactive checklist.</p>
+
+              <div className="flex-grow flex flex-col items-center justify-center">
+                {/* Centered Progress Circle */}
+                <div className="relative h-24 w-24 mb-2">
+                  {/* Background circle */}
+                  <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      className="stroke-[#F0F0F7] stroke-[8px] fill-none"
+                      cx="50"
+                      cy="50"
+                      r="38"
+                    ></circle>
+                    <circle
+                      className="stroke-[#9EA8FB] stroke-[8px] fill-none get-started-circle"
+                      cx="50"
+                      cy="50"
+                      r="38"
+                      strokeDasharray="238.76104167282426"
+                      strokeDashoffset={238.76104167282426 - (238.76104167282426 * progressPercentage / 100)}
+                    ></circle>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold text-[#12131C]">{completedCount}/{totalCount}</span>
+                  </div>
+                </div>
+                <p className="text-sm text-[#4F515E]">{completedCount} of {totalCount} tasks completed</p>
+              </div>
+
+              <div className="mt-auto pt-6">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full get-started-btn"
+                  onClick={() => setChecklistModalOpen(true)}
+                >
+                  Resume Checklist
+                </Button>
+              </div>
+            </div>
             {/* Deliverables Summary Card - Priority 2 */}
             <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
@@ -284,6 +355,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Checklist Modal */}
+      <ChecklistModal
+        isOpen={checklistModalOpen}
+        onClose={() => setChecklistModalOpen(false)}
+        title="Onboarding Checklist"
+        items={checklist}
+        onItemToggle={handleChecklistItemToggle}
+      />
     </>
   );
 }

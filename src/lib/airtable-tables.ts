@@ -9,7 +9,6 @@ export const TABLES = {
   ARTICLES: 'Keywords', // Now using Keywords table for articles
   BACKLINKS: 'Backlinks',
   KPI_METRICS: 'KPI Metrics',
-  URL_PERFORMANCE: 'URL Performance',
   KEYWORD_PERFORMANCE: 'Keyword Performance',
   MONTHLY_PROJECTIONS: 'Monthly Projections',
   CLUSTERS: 'Clusters', // For SEO Layouts
@@ -27,7 +26,6 @@ export const ALT_TABLES = {
   ARTICLES: ['keywords', 'keyword', 'Keyword', 'KEYWORDS'], // Same as KEYWORDS
   BACKLINKS: ['backlinks', 'backlink', 'Backlink', 'BACKLINKS'],
   KPI_METRICS: ['kpi_metrics', 'kpimetrics', 'kpi metrics', 'KPIMetrics'],
-  URL_PERFORMANCE: ['url_performance', 'urlperformance', 'url performance', 'URLPerformance'],
   KEYWORD_PERFORMANCE: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance'],
   MONTHLY_PROJECTIONS: ['monthly_projections', 'monthlyprojections', 'monthly projections', 'MonthlyProjections'],
   CLUSTERS: ['clusters', 'cluster', 'Cluster', 'CLUSTERS'],
