@@ -257,13 +257,6 @@ export default function Sidebar() {
       {/* Debug indicator - only visible in development */}
       <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-700">
         Current path: {pathname || 'unknown'}
-        {process.env.NODE_ENV !== 'production' && (
-          <div className="mt-2">
-            <Link href="/debug" className="text-blue-400 hover:text-blue-300">
-              Debug Airtable Connection
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

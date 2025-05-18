@@ -27,6 +27,17 @@ const shouldUseMockData = () => {
     (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
     (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
 
+  // Check if connection issues flag is disabled via environment variable
+  const isConnectionIssuesFlagDisabled =
+    process.env.NEXT_PUBLIC_DISABLE_CONNECTION_ISSUES_FLAG === 'true' ||
+    (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_DISABLE_CONNECTION_ISSUES_FLAG === 'true');
+
+  // If the flag is disabled, don't check for connection issues
+  if (isConnectionIssuesFlagDisabled) {
+    console.log('Connection issues flag is disabled, not using mock data due to connection issues');
+    return useMockData;
+  }
+
   // Check if we're on Netlify and having issues with Airtable
   const isNetlifyWithAirtableIssues =
     isNetlify() &&
@@ -51,18 +62,17 @@ const isNetlify = () => {
 };
 
 // Function to clear Airtable connection issues flag
-export function clearAirtableConnectionIssues() {
+// This is not exposed via a button, but is used internally
+function clearAirtableConnectionIssuesInternal() {
   if (isBrowser) {
     localStorage.removeItem('airtable-connection-issues');
     localStorage.removeItem('api-error-timestamp');
     localStorage.removeItem('use-mock-data');
     console.log('Cleared Airtable connection issues flags');
-    // Force a page reload to apply the changes
-    window.location.reload();
     return true;
   }
   return false;
-};
+}
 
 // Tasks API
 export async function fetchTasks() {
@@ -181,7 +191,7 @@ export async function fetchTasks() {
     // Clear Airtable connection issues flag on successful API call
     if (isNetlify() && isBrowser) {
       console.log('Clearing airtable-connection-issues flag due to successful API call');
-      localStorage.removeItem('airtable-connection-issues');
+      clearAirtableConnectionIssuesInternal();
     }
 
     return data.tasks;
@@ -320,6 +330,13 @@ export async function fetchComments(taskId: string) {
 
     const data = await response.json();
     console.log('Comments data received:', data);
+
+    // Clear Airtable connection issues flag on successful API call
+    if (isNetlify() && isBrowser) {
+      console.log('Clearing airtable-connection-issues flag due to successful API call');
+      clearAirtableConnectionIssuesInternal();
+    }
+
     return data.comments;
   } catch (error) {
     console.error('Error fetching comments:', error);
@@ -440,7 +457,15 @@ export async function loginUser(email: string, password: string) {
       throw new Error(`API request failed with status ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Clear Airtable connection issues flag on successful API call
+    if (isNetlify() && isBrowser) {
+      console.log('Clearing airtable-connection-issues flag due to successful login');
+      clearAirtableConnectionIssuesInternal();
+    }
+
+    return data;
   } catch (error) {
     console.error('Error logging in:', error);
     // Fall back to mock data
