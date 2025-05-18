@@ -16,22 +16,61 @@ const getAirtableBase = () => {
 };
 
 // Helper function to map Airtable status to UI status
-const mapAirtableStatusToUIStatus = (airtableStatus) => {
-  const statusLower = airtableStatus.toLowerCase();
+const mapAirtableStatusToUIStatus = (airtableStatus, fields = null) => {
+  // If fields are provided, check for dedicated approval fields first
+  if (fields) {
+    if (fields['Keyword Approval']) {
+      return mapStatusString(fields['Keyword Approval']);
+    }
+    if (fields['Brief Approval']) {
+      return mapStatusString(fields['Brief Approval']);
+    }
+    if (fields['Article Approval']) {
+      return mapStatusString(fields['Article Approval']);
+    }
+    if (fields['Backlinks Approval']) {
+      return mapStatusString(fields['Backlinks Approval']);
+    }
+  }
 
-  if (statusLower.includes('awaiting') || statusLower.includes('pending')) {
+  // Otherwise, map the provided status string
+  return mapStatusString(airtableStatus);
+};
+
+// Helper function to map a status string to UI status
+const mapStatusString = (statusString) => {
+  if (!statusString) return 'not_started';
+
+  const statusLower = statusString.toLowerCase();
+
+  // Map to new standardized statuses
+  if (statusLower.includes('not started')) {
+    return 'not_started';
+  } else if (statusLower.includes('in progress')) {
+    return 'in_progress';
+  } else if (statusLower.includes('ready for review')) {
+    return 'ready_for_review';
+  } else if (statusLower.includes('awaiting') || statusLower.includes('pending')) {
     return 'awaiting_approval';
-  } else if (statusLower.includes('resubmit')) {
-    return 'resubmitted';
   } else if (statusLower.includes('revision') || statusLower.includes('changes')) {
-    return 'needs_revision';
+    return 'revisions_needed';
   } else if (statusLower.includes('approved')) {
     return 'approved';
+  } else if (statusLower.includes('published') || statusLower.includes('live')) {
+    return 'published';
+  }
+
+  // Legacy status mappings for backward compatibility
+  else if (statusLower.includes('resubmit')) {
+    return 'resubmitted';
+  } else if (statusLower.includes('needs revision')) {
+    return 'needs_revision';
   } else if (statusLower.includes('rejected')) {
     return 'rejected';
   }
-  
-  return 'awaiting_approval'; // Default status
+
+  // Default to not_started if no match
+  return 'not_started';
 };
 
 // Helper function to create client filter formula
@@ -39,26 +78,26 @@ const createClientFilter = (clientIds) => {
   if (!clientIds || clientIds.length === 0) {
     return '';
   }
-  
+
   const clientFilters = clientIds.map(clientId =>
     `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
   );
-  
+
   return `OR(${clientFilters.join(',')})`;
 };
 
 // Helper function to combine multiple filter parts with AND
 const combineFilters = (filterParts) => {
   const nonEmptyFilters = filterParts.filter(part => part.trim() !== '');
-  
+
   if (nonEmptyFilters.length === 0) {
     return '';
   }
-  
+
   if (nonEmptyFilters.length === 1) {
     return nonEmptyFilters[0];
   }
-  
+
   return `AND(${nonEmptyFilters.join(',')})`;
 };
 
@@ -66,67 +105,139 @@ const combineFilters = (filterParts) => {
 const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pageSize = 10, offset = null) => {
   try {
     const base = getAirtableBase();
-    const tableName = type === 'articles' ? 'Articles' : 'Keywords'; // Use Keywords table for briefs
-    
+    // Determine which table to use based on type
+    let tableName;
+    if (type === 'articles') {
+      tableName = 'Articles';
+    } else if (type === 'backlinks') {
+      tableName = 'Backlinks';
+    } else {
+      tableName = 'Keywords'; // Use Keywords table for briefs and keywords
+    }
+
     // Build filter formula based on user role and client
     let filterParts = [];
-    
+
     // Add client filter if user is not an admin and has assigned clients
     if (userRole !== 'admin' && clientIds && clientIds.length > 0) {
       filterParts.push(createClientFilter(clientIds));
     }
-    
-    // For briefs, filter by status
-    if (type === 'briefs') {
-      filterParts.push("OR({Keyword/Content Status} = 'Awaiting Approval', {Keyword/Content Status} = 'Needs Revision', {Keyword/Content Status} = 'Approved', {Keyword/Content Status} = 'Rejected')");
-    } else {
-      // For articles, filter by status
-      filterParts.push("OR(Status = 'Awaiting Approval', Status = 'Needs Revision', Status = 'Approved', Status = 'Rejected')");
+
+    // Filter by the dedicated approval fields
+    if (type === 'keywords') {
+      // Only show records with a value in the "Keyword Approval" field
+      filterParts.push("NOT({Keyword Approval} = '')");
+      console.log('Filtering keywords by Keyword Approval field');
+    } else if (type === 'briefs') {
+      // Only show records with a value in the "Brief Approval" field
+      filterParts.push("NOT({Brief Approval} = '')");
+      console.log('Filtering briefs by Brief Approval field');
+    } else if (type === 'articles') {
+      // Only show records with a value in the "Article Approval" field
+      filterParts.push("NOT({Article Approval} = '')");
+      console.log('Filtering articles by Article Approval field');
+    } else if (type === 'backlinks') {
+      // Only show records with a value in the "Backlinks Approval" field
+      filterParts.push("NOT({Backlinks Approval} = '')");
+      console.log('Filtering backlinks by Backlinks Approval field');
     }
-    
+
     // Combine all filter parts
     const filterFormula = combineFilters(filterParts);
-    
+
     // Set up query parameters
     const queryParams = {
       pageSize: pageSize
     };
-    
+
     // Add filter formula if it exists
     if (filterFormula) {
       queryParams.filterByFormula = filterFormula;
     }
-    
+
     // Add offset if provided
     if (offset) {
       queryParams.offset = offset;
     }
-    
+
     // Execute the query
     const query = base(tableName).select(queryParams);
     const records = await query.firstPage();
-    
+
     // Get pagination info
     const queryInfo = query.getPageInfo();
-    
+
     // Map records to the expected format
-    const items = records.map(record => {
+    let items = records.map(record => {
       const fields = record.fields;
-      
-      return {
+
+      const item = {
         id: record.id,
-        item: type === 'briefs' ? fields['Meta Title'] || fields['Main Keyword'] : fields.Title,
-        status: type === 'briefs' ? fields['Keyword/Content Status'] : fields.Status,
+        item: type === 'briefs' ? fields['Meta Title'] || fields['Main Keyword'] :
+              type === 'backlinks' ? fields['Domain'] || fields['Domain URL'] :
+              fields.Title,
+        status: mapAirtableStatusToUIStatus(
+          type === 'keywords' ? fields['Keyword Approval'] :
+          type === 'briefs' ? fields['Brief Approval'] :
+          type === 'articles' ? fields['Article Approval'] :
+          type === 'backlinks' ? fields['Backlinks Approval'] :
+          type === 'briefs' ? fields['Keyword/Content Status'] : fields.Status,
+          fields
+        ),
         dateSubmitted: fields['Created Time'] || fields['Created At'],
         lastUpdated: fields['Last Modified Time'] || fields['Updated At'],
-        volume: fields['Search Volume'],
-        difficulty: fields['Keyword Difficulty'],
-        strategist: type === 'briefs' ? fields['SEO Strategist'] : fields['SEO Specialist'],
-        wordCount: fields['Word Count'],
+        contentType: type, // Add the content type for filtering
         ...fields
       };
+
+      // Add type-specific fields
+      if (type === 'keywords') {
+        item.volume = fields['Search Volume'];
+        item.difficulty = fields['Keyword Difficulty'];
+        item.strategist = fields['SEO Specialist'];
+        item.keywordApproval = fields['Keyword Approval'] || '';
+      } else if (type === 'briefs') {
+        item.strategist = fields['SEO Strategist'];
+        item.briefApproval = fields['Brief Approval'] || '';
+      } else if (type === 'articles') {
+        item.wordCount = fields['Word Count'];
+        item.strategist = fields['Content Writer'] || fields['Writer'];
+        item.articleApproval = fields['Article Approval'] || '';
+      } else if (type === 'backlinks') {
+        item.domainRating = fields['DR ( API )'] || fields['Domain Authority/Rating'] || 0;
+        item.linkType = fields['Link Type'] || '';
+        item.targetPage = fields['Target URL'] || fields['Client Target Page URL'] || '';
+        item.wentLiveOn = fields['Went Live On'] || '';
+        item.notes = fields['Notes'] || '';
+        item.backlinksApproval = fields['Backlinks Approval'] || '';
+      }
+
+      return item;
     });
-    
+
+    // Additional post-processing filter to ensure we only return items with the appropriate approval field
+    console.log(`Before post-processing filter: ${items.length} items`);
+    items = items.filter(item => {
+      if (type === 'keywords' && (!item.keywordApproval || item.keywordApproval.trim() === '')) {
+        console.log(`Excluding keyword item ${item.id} because Keyword Approval field is empty`);
+        return false;
+      }
+      if (type === 'briefs' && (!item.briefApproval || item.briefApproval.trim() === '')) {
+        console.log(`Excluding brief item ${item.id} because Brief Approval field is empty`);
+        return false;
+      }
+      if (type === 'articles' && (!item.articleApproval || item.articleApproval.trim() === '')) {
+        console.log(`Excluding article item ${item.id} because Article Approval field is empty`);
+        return false;
+      }
+      if (type === 'backlinks' && (!item.backlinksApproval || item.backlinksApproval.trim() === '')) {
+        console.log(`Excluding backlink item ${item.id} because Backlinks Approval field is empty`);
+        return false;
+      }
+      return true;
+    });
+    console.log(`After post-processing filter: ${items.length} items`);
+
     // Prepare pagination info
     const pagination = {
       currentPage: page,
@@ -137,7 +248,7 @@ const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pag
       nextOffset: queryInfo.offset || null,
       prevOffset: null // We don't track previous offsets in this implementation
     };
-    
+
     return { items, pagination };
   } catch (error) {
     console.error('Error fetching approval items:', error);
@@ -149,26 +260,78 @@ const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pag
 const updateApprovalStatus = async (type, itemId, status, revisionReason = null) => {
   try {
     const base = getAirtableBase();
-    const tableName = type === 'articles' ? 'Articles' : 'Keywords'; // Use Keywords table for briefs
-    
+    // Determine which table to use based on type
+    let tableName;
+    if (type === 'articles') {
+      tableName = 'Articles';
+    } else if (type === 'backlinks') {
+      tableName = 'Backlinks';
+    } else {
+      tableName = 'Keywords'; // Use Keywords table for briefs and keywords
+    }
+
     // Prepare update object
     const updateFields = {};
-    
-    // Set the appropriate status field based on type
-    if (type === 'briefs') {
-      updateFields['Keyword/Content Status'] = status;
-    } else {
-      updateFields['Status'] = status;
+
+    // Map UI status to Airtable status
+    let airtableStatus = '';
+
+    // Map new standardized statuses
+    if (status === 'not_started') {
+      airtableStatus = 'Not Started';
+    } else if (status === 'in_progress') {
+      airtableStatus = 'In Progress';
+    } else if (status === 'ready_for_review') {
+      airtableStatus = 'Ready for Review';
+    } else if (status === 'awaiting_approval') {
+      airtableStatus = 'Awaiting Approval';
+    } else if (status === 'revisions_needed') {
+      airtableStatus = 'Revisions Needed';
+    } else if (status === 'approved') {
+      airtableStatus = 'Approved';
+    } else if (status === 'published') {
+      airtableStatus = 'Published';
     }
-    
+    // Legacy status mappings for backward compatibility
+    else if (status === 'needs_revision') {
+      airtableStatus = 'Revisions Needed'; // Map to new equivalent
+    } else if (status === 'resubmitted') {
+      airtableStatus = 'Resubmitted';
+    } else if (status === 'rejected') {
+      airtableStatus = 'Rejected';
+    } else {
+      airtableStatus = status; // Use as-is if no mapping
+    }
+
+    // Use the dedicated approval fields based on content type
+    if (type === 'keywords') {
+      updateFields['Keyword Approval'] = airtableStatus;
+    } else if (type === 'briefs') {
+      updateFields['Brief Approval'] = airtableStatus;
+    } else if (type === 'articles') {
+      updateFields['Article Approval'] = airtableStatus;
+    } else if (type === 'backlinks') {
+      updateFields['Backlinks Approval'] = airtableStatus;
+    }
+
+    // For backward compatibility, also update the general status fields
+    if (type === 'briefs') {
+      updateFields['Keyword/Content Status'] = airtableStatus;
+    } else {
+      updateFields['Status'] = airtableStatus;
+    }
+
+    // Also update the Approval Status field for consistency
+    updateFields['Approval Status'] = `${type.charAt(0).toUpperCase() + type.slice(1, -1)} ${airtableStatus}`;
+
     // Add revision reason if provided
-    if (revisionReason && (status === 'Needs Revision' || status === 'Rejected')) {
+    if (revisionReason && (airtableStatus === 'Revisions Needed' || airtableStatus === 'Rejected')) {
       updateFields['Revision Notes'] = revisionReason;
     }
-    
+
     // Update the record
     const updatedRecord = await base(tableName).update(itemId, updateFields);
-    
+
     return {
       id: updatedRecord.id,
       ...updatedRecord.fields

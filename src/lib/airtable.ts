@@ -100,7 +100,8 @@ export const TABLES = {
 export const ALT_TABLES = {
   KPI_METRICS: ['kpi_metrics', 'kpimetrics', 'kpi metrics', 'KPIMetrics'],
   URL_PERFORMANCE: ['url_performance', 'urlperformance', 'url performance', 'URLPerformance'],
-  KEYWORDS: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance', 'keywords']
+  KEYWORDS: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance', 'keywords'],
+  BACKLINKS: ['backlinks', 'back_links', 'back links', 'BackLinks']
 };
 
 // Import mock data from separate file
@@ -1605,6 +1606,7 @@ export async function getBacklinks(month?: string | null) {
           const backlinksExists = availableTables.some((t: string) =>
             t === TABLES.BACKLINKS ||
             t === TABLES.BACKLINKS.toLowerCase() ||
+            ALT_TABLES.BACKLINKS.includes(t) ||
             t === 'Backlinks' ||
             t === 'backlinks'
           );
@@ -1847,27 +1849,65 @@ export async function updateBacklinkStatus(backlinkId: string, status: string) {
 // Removed duplicate function - using the one at line 2790
 
 // Helper function to map Airtable status to UI status
-function mapAirtableStatusToUIStatus(airtableStatus: string): string {
-  const statusLower = airtableStatus.toLowerCase();
+function mapAirtableStatusToUIStatus(airtableStatus: string, fields?: Record<string, any>): string {
+  // If fields are provided, check for dedicated approval fields first
+  if (fields) {
+    if (fields['Keyword Approval']) {
+      return mapStatusString(fields['Keyword Approval']);
+    }
+    if (fields['Brief Approval']) {
+      return mapStatusString(fields['Brief Approval']);
+    }
+    if (fields['Article Approval']) {
+      return mapStatusString(fields['Article Approval']);
+    }
+    if (fields['Backlinks Approval']) {
+      return mapStatusString(fields['Backlinks Approval']);
+    }
+  }
 
-  if (statusLower.includes('awaiting') || statusLower.includes('pending')) {
+  // Otherwise, map the provided status string
+  return mapStatusString(airtableStatus);
+}
+
+// Helper function to map a status string to UI status
+function mapStatusString(statusString: string): string {
+  if (!statusString) return 'not_started';
+
+  const statusLower = statusString.toLowerCase();
+
+  // Map to new standardized statuses
+  if (statusLower.includes('not started')) {
+    return 'not_started';
+  } else if (statusLower.includes('in progress')) {
+    return 'in_progress';
+  } else if (statusLower.includes('ready for review')) {
+    return 'ready_for_review';
+  } else if (statusLower.includes('awaiting') || statusLower.includes('pending')) {
     return 'awaiting_approval';
-  } else if (statusLower.includes('resubmit')) {
-    return 'resubmitted';
   } else if (statusLower.includes('revision') || statusLower.includes('changes')) {
-    return 'needs_revision';
+    return 'revisions_needed';
   } else if (statusLower.includes('approved')) {
     return 'approved';
+  } else if (statusLower.includes('published') || statusLower.includes('live')) {
+    return 'published';
+  }
+
+  // Legacy status mappings for backward compatibility
+  else if (statusLower.includes('resubmit')) {
+    return 'resubmitted';
+  } else if (statusLower.includes('needs revision')) {
+    return 'needs_revision';
   } else if (statusLower.includes('rejected')) {
     return 'rejected';
   }
 
-  // Default to awaiting_approval if no match
-  return 'awaiting_approval';
+  // Default to not_started if no match
+  return 'not_started';
 }
 
 // Function to update approval status in Airtable
-export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles', itemId: string, status: string, reason?: string) {
+export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles' | 'backlinks', itemId: string, status: string, reason?: string) {
   if (!hasAirtableCredentials) {
     console.log(`Using mock data for updating ${type} approval status:`, itemId, status);
     return { id: itemId, status };
@@ -1879,28 +1919,29 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
     // Map UI status to Airtable status
     let airtableStatus = '';
 
-    if (status === 'approved') {
-      if (type === 'keywords') {
-        airtableStatus = 'Approved';
-      } else if (type === 'briefs') {
-        airtableStatus = 'Approved';
-      } else if (type === 'articles') {
-        airtableStatus = 'Approved';
-      }
-    } else if (status === 'needs_revision') {
-      if (type === 'keywords') {
-        airtableStatus = 'Needs Revision';
-      } else if (type === 'briefs') {
-        airtableStatus = 'Needs Revision';
-      } else if (type === 'articles') {
-        airtableStatus = 'Needs Revision';
-      }
-    } else if (status === 'rejected') {
-      airtableStatus = 'Rejected';
+    // Map new standardized statuses
+    if (status === 'not_started') {
+      airtableStatus = 'Not Started';
+    } else if (status === 'in_progress') {
+      airtableStatus = 'In Progress';
+    } else if (status === 'ready_for_review') {
+      airtableStatus = 'Ready for Review';
     } else if (status === 'awaiting_approval') {
       airtableStatus = 'Awaiting Approval';
+    } else if (status === 'revisions_needed') {
+      airtableStatus = 'Revisions Needed';
+    } else if (status === 'approved') {
+      airtableStatus = 'Approved';
+    } else if (status === 'published') {
+      airtableStatus = 'Published';
+    }
+    // Legacy status mappings for backward compatibility
+    else if (status === 'needs_revision') {
+      airtableStatus = 'Revisions Needed'; // Map to new equivalent
     } else if (status === 'resubmitted') {
       airtableStatus = 'Resubmitted';
+    } else if (status === 'rejected') {
+      airtableStatus = 'Rejected';
     }
 
     // Prepare update object using the new dedicated approval fields
@@ -1913,6 +1954,8 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
       updateObject['Brief Approval'] = airtableStatus;
     } else if (type === 'articles') {
       updateObject['Article Approval'] = airtableStatus;
+    } else if (type === 'backlinks') {
+      updateObject['Backlinks Approval'] = airtableStatus;
     }
 
     // For backward compatibility, also update the Approval Status field
@@ -1924,7 +1967,8 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
     }
 
     // Update the record in Airtable
-    const updatedRecord = await base(TABLES.KEYWORDS).update(itemId, updateObject);
+    const tableName = type === 'backlinks' ? TABLES.BACKLINKS : TABLES.KEYWORDS;
+    const updatedRecord = await base(tableName).update(itemId, updateObject);
 
     console.log(`Successfully updated ${type} approval status in Airtable:`, updatedRecord.id);
 
@@ -1936,6 +1980,8 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
       statusField = 'Brief Approval';
     } else if (type === 'articles') {
       statusField = 'Article Approval';
+    } else if (type === 'backlinks') {
+      statusField = 'Backlinks Approval';
     }
 
     // Use the appropriate field or fall back to Approval Status
@@ -2815,6 +2861,26 @@ export async function getApprovalItems(
           {Approval Status} = 'Research Under Review'
         )
       `);
+    } else if (type === 'backlinks') {
+      // For backlinks tab, we'll use a more permissive filter
+      filterParts.push(`
+        OR(
+          SEARCH('Backlink', {Approval Status}) > 0,
+          SEARCH('backlink', {Approval Status}) > 0,
+          {Approval Status} = 'Backlink Approved',
+          {Approval Status} = 'Backlink Under Review',
+          {Approval Status} = 'Backlink Needs Revision',
+          {Approval Status} = 'Backlink Rejected',
+          {Approval Status} = 'Backlink Pending',
+          {Approval Status} = 'Backlink Awaiting Approval',
+          {Approval Status} = 'Backlink Resubmitted',
+          {Backlinks Approval} != '',
+          {Link Status} = 'Pending Approval',
+          {Link Status} = 'Approved',
+          {Link Status} = 'Rejected',
+          {Link Status} = 'Needs Revision'
+        )
+      `);
     }
 
     // Combine all filter parts with AND
@@ -2958,6 +3024,38 @@ export async function getApprovalItems(
             'Author',
             'Assigned To'
           ], 'Not Assigned')
+        };
+      } else if (type === 'backlinks') {
+        return {
+          ...commonFields,
+          domainRating: getFieldValue([
+            'Domain Authority/Rating',
+            'DR ( API )',
+            'DomainRating',
+            'Domain Rating'
+          ], 0),
+          linkType: getFieldValue([
+            'Link Type',
+            'LinkType',
+            'Type'
+          ], 'Guest Post'),
+          targetPage: getFieldValue([
+            'Target URL',
+            'Client Target Page URL',
+            'TargetPage',
+            'Target Page'
+          ], ''),
+          wentLiveOn: getFieldValue([
+            'Went Live On',
+            'WentLiveOn',
+            'Live Date',
+            'Published Date'
+          ], ''),
+          notes: getFieldValue([
+            'Notes',
+            'Comments',
+            'Description'
+          ], '')
         };
       }
 

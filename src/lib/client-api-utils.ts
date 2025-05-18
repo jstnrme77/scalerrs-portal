@@ -265,13 +265,17 @@ export async function fetchApprovalItems(
   offset?: string,
   signal?: AbortSignal,
   useCache: boolean = true, // Changed back to true now that we have data
-  clientId?: string
+  clientId?: string,
+  status?: string // Add status parameter
 ) {
-  // Create a cache key based on the parameters including clientId
+  // Create a cache key based on the parameters including clientId and status
   const clientKey = clientId ? `_client_${clientId}` : '';
-  // For 'all' clients, include the page in the cache key to ensure proper pagination
-  const pageKey = clientId === 'all' ? `_page_${page}` : '';
-  const cacheKey = `approvals_${type}${pageKey}_${pageSize}_${offset || ''}${clientKey}`;
+  // Always include the page in the cache key to ensure proper pagination
+  const pageKey = `_page_${page}`;
+  const statusKey = status ? `_status_${status}` : '';
+  // Include pageSize in the cache key to ensure proper caching
+  const pageSizeKey = `_pageSize_${pageSize}`;
+  const cacheKey = `approvals_${type}${pageKey}${pageSizeKey}_${offset || ''}${clientKey}${statusKey}`;
 
   // If we're not using cache, clear the cache entry first
   if (!useCache) {
@@ -299,6 +303,11 @@ export async function fetchApprovalItems(
         queryParams.append('clientId', clientId);
       }
 
+      // Add status if provided
+      if (status) {
+        queryParams.append('status', status);
+      }
+
       // Fetch from API with fallback to mock data
       const response = await fetchFromApi<{
         items: any[],
@@ -314,12 +323,14 @@ export async function fetchApprovalItems(
       }>(`approvals?${queryParams.toString()}`, {}, {
         items: type === 'briefs' ? mockData.mockBriefs :
                type === 'articles' ? mockData.mockArticles :
+               type === 'backlinks' ? mockData.mockBacklinks :
                mockData.mockKeywordPerformance,
         pagination: {
           currentPage: page,
           totalPages: 1,
           totalItems: type === 'briefs' ? mockData.mockBriefs.length :
                       type === 'articles' ? mockData.mockArticles.length :
+                      type === 'backlinks' ? mockData.mockBacklinks.length :
                       mockData.mockKeywordPerformance.length,
           hasNextPage: false,
           hasPrevPage: page > 1,
@@ -338,11 +349,127 @@ export async function fetchApprovalItems(
 /**
  * Clear the approvals cache for a specific type
  * @param type Type of approval items to clear cache for
+ * @param clearFullDataset Whether to also clear the full dataset cache
  */
-export function clearApprovalsCache(type?: string) {
+export function clearApprovalsCache(type?: string, clearFullDataset: boolean = true) {
+  // Import the efficient-airtable functions
+  const { clearCacheForType, clearFullDatasetCache } = require('./efficient-airtable');
+
   if (type) {
+    // Clear client-side cache
     clearCacheByPrefix(`approvals_${type}`);
+
+    // Clear server-side cache if available
+    if (typeof clearCacheForType === 'function') {
+      clearCacheForType(type);
+    }
   } else {
+    // Clear all approvals cache
     clearCacheByPrefix('approvals_');
+
+    // Clear all server-side cache if available
+    if (typeof clearCacheForType === 'function') {
+      ['keywords', 'briefs', 'articles', 'backlinks'].forEach(t => clearCacheForType(t));
+    }
   }
+
+  // Optionally clear the full dataset cache
+  if (clearFullDataset && typeof clearFullDatasetCache === 'function') {
+    clearFullDatasetCache();
+  }
+}
+
+/**
+ * Update approval status via the API
+ * @param type Type of approval item (keywords, briefs, articles, backlinks)
+ * @param itemId Item ID
+ * @param status New status
+ * @param revisionReason Optional reason for revision
+ * @returns Updated item
+ */
+export async function updateApprovalStatus(
+  type: 'keywords' | 'briefs' | 'articles' | 'backlinks',
+  itemId: string,
+  status: string,
+  revisionReason?: string
+) {
+  // Prepare the request body
+  const body = {
+    type,
+    itemId,
+    status,
+    revisionReason
+  };
+
+  // Use fetchFromApi to handle the request
+  return fetchFromApi(
+    'update-approval',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    },
+    { success: true, id: itemId, status }
+  );
+}
+
+/**
+ * Fetch conversation history for an approval item
+ * @param contentType Type of content (keywords, briefs, articles, backlinks, quickwins)
+ * @param itemId Item ID
+ * @returns Array of comments
+ */
+export async function fetchConversationHistory(
+  contentType: 'keywords' | 'briefs', // Only allow Keywords and Briefs content types
+  itemId: string
+) {
+  // Create mock comments for testing
+  const mockComments = [
+    {
+      id: `comment-${Date.now()}-1`,
+      text: `This is a sample comment for ${contentType} item ${itemId}`,
+      author: 'John Doe',
+      timestamp: new Date(Date.now() - 86400000).toLocaleDateString() // 1 day ago
+    },
+    {
+      id: `comment-${Date.now()}-2`,
+      text: 'Thanks for the update. Looking good!',
+      author: 'Jane Smith',
+      timestamp: new Date(Date.now() - 43200000).toLocaleDateString() // 12 hours ago
+    }
+  ];
+
+  return fetchFromApi(
+    `conversation-history?contentType=${contentType}&itemId=${itemId}`,
+    {},
+    mockComments
+  );
+}
+
+/**
+ * Add a comment to an approval item
+ * @param contentType Type of content (keywords, briefs, articles, backlinks, quickwins)
+ * @param itemId Item ID
+ * @param text Comment text
+ * @returns Added comment
+ */
+export async function addApprovalComment(
+  contentType: 'keywords' | 'briefs', // Only allow Keywords and Briefs content types
+  itemId: string,
+  text: string
+) {
+  return fetchFromApi(
+    'add-comment',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentType, itemId, text })
+    },
+    {
+      id: `comment-${Date.now()}`,
+      text,
+      author: 'You',
+      timestamp: new Date().toLocaleDateString()
+    }
+  );
 }

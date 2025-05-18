@@ -139,6 +139,10 @@
 - ✅ Updated Admin page tab icons to use FileText, KeyRound, and FolderArchive to match tab content
 - ✅ Added Scissors icon to Product Prune tab in SEO Layouts page for better visual representation
 - ✅ Updated client selector dropdown to match month selector styling with fully rounded corners
+- ✅ Modified conversation history functionality in Approvals page to be selectively available only for Keywords and Briefs tabs
+- ✅ Removed conversation history button and functionality from Articles and Backlinks tabs
+- ✅ Added safety checks to prevent opening conversation history modal for unsupported content types
+- ✅ Updated API endpoints to reject conversation history requests for Articles and Backlinks content types
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 
@@ -336,6 +340,7 @@
 - Ensured all tab navigation components use the same styling with icons that turn white when the tab is active
 - Fixed type error in Content Workflow page by adding proper type casting for the TabNavigation component's onTabChange prop
 - Redesigned client selector dropdown to match the month selector styling with fully rounded corners, consistent border styling, and improved dropdown appearance
+- Implemented selective conversation history functionality in the Approvals page, making it available only for Keywords and Briefs tabs while completely removing it from Articles and Backlinks tabs as per requirements
 - ✅ Updated Get Started page with consistent card styling and icons
 - ✅ Added embedded video walkthrough at the top of the Get Started page
 - ✅ Enhanced Campaign Roadmap modal with visual timeline visualization

@@ -53,8 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
+      // Determine if we're running on Netlify
+      const isNetlify = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
+
+      // Use the appropriate API endpoint based on the environment
+      const loginUrl = isNetlify ? '/.netlify/functions/login' : '/api/login';
+      console.log('Using login URL:', loginUrl);
+
       // Call the login API
-      const response = await fetch('/api/login', {
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

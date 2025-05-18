@@ -7,3 +7,4 @@ export { default as EnhancedRoadmapModal } from './EnhancedRoadmapModal';
 export { default as ServicesModal } from './ServicesModal';
 export { default as GuidesModal } from './GuidesModal';
 export { default as ChecklistModal } from './ChecklistModal';
+export { default as ConversationHistoryModal } from './ConversationHistoryModal';

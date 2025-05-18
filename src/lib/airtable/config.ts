@@ -108,4 +108,29 @@ export const ALT_TABLES = {
   MONTHLY_PROJECTIONS: ['monthly_projections', 'monthlyprojections', 'monthly projections', 'MonthlyProjections']
 };
 
+/**
+ * Get the Airtable base instance
+ * This function ensures we always have a valid base instance
+ * @returns The Airtable base instance
+ */
+export function getAirtableBase() {
+  // Check if we have the required API keys
+  const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+  const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+
+  if (!apiKey || !baseId) {
+    console.error('Missing Airtable credentials');
+    throw new Error('Missing Airtable credentials');
+  }
+
+  // If we already have a base instance, return it
+  if (base) {
+    return base;
+  }
+
+  // Otherwise, create a new instance
+  const newAirtable = new Airtable({ apiKey });
+  return newAirtable.base(baseId);
+}
+
 export { base, airtable };

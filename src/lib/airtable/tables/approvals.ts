@@ -9,19 +9,19 @@ import { handleAirtableError, mapAirtableStatusToUIStatus, createClientFilter, c
  * @returns Paginated response with approval items
  */
 export async function getApprovalItems(params: GetApprovalItemsParams): Promise<PaginatedResponse<ApprovalItem> | ApprovalItem[]> {
-  const { 
-    type, 
-    status, 
-    currentPage = 1, 
-    itemsPerPage = 10, 
-    offset, 
-    userId, 
-    userRole, 
-    clientIds 
+  const {
+    type,
+    status,
+    currentPage = 1,
+    itemsPerPage = 10,
+    offset,
+    userId,
+    userRole,
+    clientIds
   } = params;
-  
+
   const isPaginatedRequest = currentPage !== undefined && itemsPerPage !== undefined;
-  
+
   // Default response for empty results
   const defaultResponse: PaginatedResponse<ApprovalItem> = {
     items: [],
@@ -63,7 +63,7 @@ export async function getApprovalItems(params: GetApprovalItemsParams): Promise<
     // If user is not an admin or client, filter by assigned user
     else if (userId && userRole && userRole !== 'Admin') {
       console.log(`Filtering for user: ${userId}, role: ${userRole}`);
-      
+
       // Different fields to check based on the type
       let userFields: string[] = [];
       if (type === 'keywords') {
@@ -73,14 +73,14 @@ export async function getApprovalItems(params: GetApprovalItemsParams): Promise<
       } else if (type === 'articles') {
         userFields = ['Content Writer', 'Writer', 'Author'];
       }
-      
+
       filterParts.push(createUserFilter(userId, userFields));
     }
 
     // If status is specified, add status filter
     if (status) {
       console.log('Filtering by status:', status);
-      
+
       // Map UI status back to Airtable status
       let airtableStatus = '';
       if (status === 'awaiting_approval') {
@@ -94,17 +94,28 @@ export async function getApprovalItems(params: GetApprovalItemsParams): Promise<
       } else if (status === 'rejected') {
         airtableStatus = 'Rejected';
       }
-      
+
       if (airtableStatus) {
-        filterParts.push(`{Approval Status} = '${airtableStatus}'`);
+        if (type === 'keywords') {
+          filterParts.push(`OR({Keyword Approval} = '${airtableStatus}', {Approval Status} = '${airtableStatus}')`);
+        } else if (type === 'briefs') {
+          filterParts.push(`OR({Brief Approval} = '${airtableStatus}', {Approval Status} = '${airtableStatus}')`);
+        } else if (type === 'articles') {
+          filterParts.push(`OR({Article Approval} = '${airtableStatus}', {Approval Status} = '${airtableStatus}')`);
+        } else {
+          filterParts.push(`{Approval Status} = '${airtableStatus}'`);
+        }
       }
     }
 
     // Add type-specific filters
     if (type === 'keywords') {
-      // For keywords tab, we'll use a more permissive filter
+      // For keywords tab, prioritize the dedicated Keyword Approval field
       filterParts.push(`
         OR(
+          // First check the dedicated Keyword Approval field
+          NOT({Keyword Approval} = ''),
+          // Then fall back to the general Approval Status field
           SEARCH('Keyword', {Approval Status}) > 0,
           SEARCH('keyword', {Approval Status}) > 0,
           {Approval Status} = 'Keyword Research',
@@ -121,8 +132,12 @@ export async function getApprovalItems(params: GetApprovalItemsParams): Promise<
         )
       `);
     } else if (type === 'briefs') {
+      // For briefs tab, prioritize the dedicated Brief Approval field
       filterParts.push(`
         OR(
+          // First check the dedicated Brief Approval field
+          NOT({Brief Approval} = ''),
+          // Then fall back to the general Approval Status field
           SEARCH('Brief', {Approval Status}) > 0,
           SEARCH('brief', {Approval Status}) > 0,
           {Approval Status} = 'Brief Creation Needed',
@@ -136,8 +151,12 @@ export async function getApprovalItems(params: GetApprovalItemsParams): Promise<
         )
       `);
     } else if (type === 'articles') {
+      // For articles tab, prioritize the dedicated Article Approval field
       filterParts.push(`
         OR(
+          // First check the dedicated Article Approval field
+          NOT({Article Approval} = ''),
+          // Then fall back to the general Approval Status field
           SEARCH('Article', {Approval Status}) > 0,
           SEARCH('article', {Approval Status}) > 0,
           {Approval Status} = 'Article Draft',
@@ -230,11 +249,16 @@ export async function getApprovalItems(params: GetApprovalItemsParams): Promise<
           'Brief Title'
         ], 'Untitled'),
         status: mapAirtableStatusToUIStatus(getFieldValue([
+          // First check the dedicated approval fields based on type
+          ...(type === 'keywords' ? ['Keyword Approval'] : []),
+          ...(type === 'briefs' ? ['Brief Approval'] : []),
+          ...(type === 'articles' ? ['Article Approval'] : []),
+          // Then fall back to the general fields
           'Approval Status',
           'Status',
           'Content Status',
           'Keyword/Content Status'
-        ], '')),
+        ], ''), record.fields as Record<string, any>),
         dateSubmitted: getFieldValue([
           'Created Time',
           'Created',

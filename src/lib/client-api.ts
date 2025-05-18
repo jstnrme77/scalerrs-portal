@@ -404,18 +404,11 @@ export async function loginUser(email: string, password: string) {
   }
 
   try {
-    // For now, we'll just use mock data for authentication on Netlify
-    // In a real app, you'd create a Netlify Function for authentication
-    if (isNetlify()) {
-      console.log('Using mock user data for login on Netlify:', email);
-      const user = mockUsers.find(u => u.Email === email);
-      if (user) {
-        return { user };
-      }
-      throw new Error('Invalid email or password');
-    }
+    // Use the Netlify function for authentication when on Netlify
+    const loginUrl = isNetlify() ? '/.netlify/functions/login' : '/api/auth';
+    console.log('Using login URL:', loginUrl);
 
-    const response = await fetch('/api/auth', {
+    const response = await fetch(loginUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

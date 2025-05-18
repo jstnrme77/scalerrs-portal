@@ -4,7 +4,8 @@ export {
   TABLES,
   ALT_TABLES,
   base,
-  airtable
+  airtable,
+  getAirtableBase
 } from './config';
 
 // Re-export types

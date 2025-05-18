@@ -114,6 +114,9 @@ export async function GET(request: NextRequest) {
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
     const offset = searchParams.get('offset') || undefined;
 
+    // Get status parameter
+    const status = searchParams.get('status') || undefined;
+
     // Get client ID from query parameters
     const clientIdParam = searchParams.get('clientId');
 
@@ -155,7 +158,9 @@ export async function GET(request: NextRequest) {
         page,
         pageSize,
         offset,
-        clientId || undefined
+        clientId || undefined,
+        undefined, // cacheTime - use default
+        status
       );
 
       console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page})`);
