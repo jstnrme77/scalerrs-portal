@@ -106,13 +106,23 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
 
   // Group months by year
   const groupedMonths = availableMonths.reduce<Record<string, string[]>>((acc, month) => {
-    const parts = month.split(' ');
-    if (parts.length >= 2) {
-      const year = parts[parts.length - 1];
-      if (!acc[year]) {
-        acc[year] = [];
+    // Skip null or undefined months
+    if (!month) return acc;
+
+    // Ensure month is a string
+    const monthStr = String(month);
+
+    try {
+      const parts = monthStr.split(' ');
+      if (parts.length >= 2) {
+        const year = parts[parts.length - 1];
+        if (!acc[year]) {
+          acc[year] = [];
+        }
+        acc[year].push(monthStr);
       }
-      acc[year].push(month);
+    } catch (error) {
+      console.error('Error processing month:', month, error);
     }
     return acc;
   }, {});
@@ -148,18 +158,29 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
       >
         <span className="truncate">
           {(() => {
-            // If it already has a space (indicating a year is present)
-            if (effectiveSelectedMonth.includes(' ')) {
-              // Extract just the month and year (in case there are multiple years)
-              const parts = effectiveSelectedMonth.split(' ');
-              const month = parts[0];
-              // Get the last year mentioned (in case there are multiple)
-              const year = parts[parts.length - 1];
-              // Return the cleaned format
-              return `${month} ${year}`;
-            } else {
-              // If no year, add the current year
-              return `${effectiveSelectedMonth} ${currentYear}`;
+            try {
+              // Ensure we have a string
+              const monthStr = String(effectiveSelectedMonth || '');
+
+              // If it already has a space (indicating a year is present)
+              if (monthStr.includes(' ')) {
+                // Extract just the month and year (in case there are multiple years)
+                const parts = monthStr.split(' ');
+                const month = parts[0];
+                // Get the last year mentioned (in case there are multiple)
+                const year = parts[parts.length - 1];
+                // Return the cleaned format
+                return `${month} ${year}`;
+              } else if (monthStr.trim()) {
+                // If no year but we have a month, add the current year
+                return `${monthStr} ${currentYear}`;
+              } else {
+                // Fallback to current month and year
+                return getCurrentMonthYear();
+              }
+            } catch (error) {
+              console.error('Error formatting selected month:', error);
+              return getCurrentMonthYear();
             }
           })()}
         </span>
