@@ -107,12 +107,10 @@ const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pag
     const base = getAirtableBase();
     // Determine which table to use based on type
     let tableName;
-    if (type === 'articles') {
-      tableName = 'Articles';
-    } else if (type === 'backlinks') {
+    if (type === 'backlinks') {
       tableName = 'Backlinks';
     } else {
-      tableName = 'Keywords'; // Use Keywords table for briefs and keywords
+      tableName = 'Keywords'; // Use Keywords table for briefs, articles, and keywords
     }
 
     // Build filter formula based on user role and client
@@ -127,14 +125,20 @@ const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pag
     if (type === 'keywords') {
       // Only show records with a value in the "Keyword Approval" field
       filterParts.push("NOT({Keyword Approval} = '')");
+      // For Keywords table, also filter by Content Type
+      filterParts.push("{Content Type} = 'Keyword'");
       console.log('Filtering keywords by Keyword Approval field');
     } else if (type === 'briefs') {
       // Only show records with a value in the "Brief Approval" field
       filterParts.push("NOT({Brief Approval} = '')");
+      // For Keywords table, also filter by Content Type
+      filterParts.push("{Content Type} = 'Brief'");
       console.log('Filtering briefs by Brief Approval field');
     } else if (type === 'articles') {
       // Only show records with a value in the "Article Approval" field
       filterParts.push("NOT({Article Approval} = '')");
+      // For Keywords table, also filter by Content Type
+      filterParts.push("{Content Type} = 'Article'");
       console.log('Filtering articles by Article Approval field');
     } else if (type === 'backlinks') {
       // Only show records with a value in the "Backlinks Approval" field
@@ -173,9 +177,10 @@ const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pag
 
       const item = {
         id: record.id,
-        item: type === 'briefs' ? fields['Meta Title'] || fields['Main Keyword'] :
+        item: type === 'briefs' ? fields['Meta Title'] || fields['Main Keyword'] || fields['Title'] :
+              type === 'articles' ? fields['Main Keyword'] || fields['Title'] :
               type === 'backlinks' ? fields['Domain'] || fields['Domain URL'] :
-              fields.Title,
+              fields['Main Keyword'] || fields.Title,
         status: mapAirtableStatusToUIStatus(
           type === 'keywords' ? fields['Keyword Approval'] :
           type === 'briefs' ? fields['Brief Approval'] :
@@ -197,12 +202,14 @@ const getApprovalItems = async (type, userId, userRole, clientIds, page = 1, pag
         item.strategist = fields['SEO Specialist'];
         item.keywordApproval = fields['Keyword Approval'] || '';
       } else if (type === 'briefs') {
-        item.strategist = fields['SEO Strategist'];
+        item.strategist = fields['SEO Strategist'] || fields['SEO Specialist'] || '';
         item.briefApproval = fields['Brief Approval'] || '';
+        item.documentLink = fields['Content Brief Link (G Doc)'] || fields['Document Link'] || '';
       } else if (type === 'articles') {
-        item.wordCount = fields['Word Count'];
-        item.strategist = fields['Content Writer'] || fields['Writer'];
+        item.wordCount = fields['Word Count'] || fields['WordCount'] || 0;
+        item.strategist = fields['Content Writer'] || fields['Writer'] || fields['SEO Strategist'] || fields['SEO Specialist'] || '';
         item.articleApproval = fields['Article Approval'] || '';
+        item.documentLink = fields['Content Link (G Doc)'] || fields['Document Link'] || '';
       } else if (type === 'backlinks') {
         item.domainRating = fields['DR ( API )'] || fields['Domain Authority/Rating'] || 0;
         item.linkType = fields['Link Type'] || '';
@@ -262,12 +269,10 @@ const updateApprovalStatus = async (type, itemId, status, revisionReason = null)
     const base = getAirtableBase();
     // Determine which table to use based on type
     let tableName;
-    if (type === 'articles') {
-      tableName = 'Articles';
-    } else if (type === 'backlinks') {
+    if (type === 'backlinks') {
       tableName = 'Backlinks';
     } else {
-      tableName = 'Keywords'; // Use Keywords table for briefs and keywords
+      tableName = 'Keywords'; // Use Keywords table for briefs, articles, and keywords
     }
 
     // Prepare update object

@@ -5,7 +5,7 @@ exports.handler = async (event, context) => {
   // Set CORS headers
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, x-user-id, x-user-role, x-user-client',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Content-Type': 'application/json'
   };
@@ -21,6 +21,15 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('Netlify function: update-approval called');
+
+    // Get user information from headers
+    const userId = event.headers['x-user-id'];
+    const userRole = event.headers['x-user-role'];
+    const userClient = event.headers['x-user-client'];
+
+    console.log('User ID:', userId);
+    console.log('User Role:', userRole);
+    console.log('User Client:', userClient);
 
     // Parse request body
     const body = JSON.parse(event.body);

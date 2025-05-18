@@ -68,6 +68,21 @@
   to = "/.netlify/functions/debug-env"
   status = 200
 
+[[redirects]]
+  from = "/api/clients"
+  to = "/.netlify/functions/get-clients"
+  status = 200
+
+[[redirects]]
+  from = "/api/months"
+  to = "/.netlify/functions/get-available-months"
+  status = 200
+
+[[redirects]]
+  from = "/api/conversation-history"
+  to = "/.netlify/functions/get-conversation-history"
+  status = 200
+
 # Handle all other routes
 [[redirects]]
   from = "/*"
