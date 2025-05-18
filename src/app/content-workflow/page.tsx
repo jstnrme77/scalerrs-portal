@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
-import { fetchBriefs, fetchArticles, updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
+import { updateBriefStatus, updateArticleStatus } from '@/lib/client-api';
 import { BriefBoard, ArticleBoard } from '@/components/kanban/KanbanBoard';
 import { BriefStatus, ArticleStatus } from '@/types';
 import DocumentViewerModal from '@/components/modals/DocumentViewerModal';
@@ -87,7 +87,48 @@ export default function ContentWorkflowPage() {
 
         try {
           console.log('Fetching briefs from Airtable for month:', selectedMonth);
-          briefsData = await fetchBriefs(selectedMonth);
+
+          // Create a controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            console.log('Fetch briefs timeout after 20 seconds');
+            controller.abort();
+          }, 20000);
+
+          // Use a direct fetch to the Netlify function with a timeout
+          let url = '/.netlify/functions/get-briefs';
+          if (selectedMonth) {
+            url += `?month=${encodeURIComponent(selectedMonth)}`;
+          }
+
+          console.log('Fetching briefs directly from:', url);
+
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache',
+            }
+          });
+
+          // Clear the timeout
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log('Briefs data received:', data);
+
+          // Check if the response indicates it's mock data
+          if (data.isMockData) {
+            console.warn('Received mock data from server:', data.error);
+            errorMessages.push(`Briefs: ${data.error || 'Server returned mock data'}`);
+            hasErrors = true;
+          }
+
+          briefsData = data.briefs || [];
           console.log('Briefs fetched successfully:', briefsData.length, 'records');
           logData(briefsData, 'Briefs');
           setBriefs(briefsData);
@@ -122,7 +163,48 @@ export default function ContentWorkflowPage() {
 
         try {
           console.log('Fetching articles from Airtable for month:', selectedMonth);
-          articlesData = await fetchArticles(selectedMonth);
+
+          // Create a controller for timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            console.log('Fetch articles timeout after 20 seconds');
+            controller.abort();
+          }, 20000);
+
+          // Use a direct fetch to the Netlify function with a timeout
+          let url = '/.netlify/functions/get-articles';
+          if (selectedMonth) {
+            url += `?month=${encodeURIComponent(selectedMonth)}`;
+          }
+
+          console.log('Fetching articles directly from:', url);
+
+          const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              'Cache-Control': 'no-cache',
+            }
+          });
+
+          // Clear the timeout
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log('Articles data received:', data);
+
+          // Check if the response indicates it's mock data
+          if (data.isMockData) {
+            console.warn('Received mock data from server:', data.error);
+            errorMessages.push(`Articles: ${data.error || 'Server returned mock data'}`);
+            hasErrors = true;
+          }
+
+          articlesData = data.articles || [];
           console.log('Articles fetched successfully:', articlesData.length, 'records');
           logData(articlesData, 'Articles');
           setArticles(articlesData);
