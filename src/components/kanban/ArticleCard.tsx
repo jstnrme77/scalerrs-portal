@@ -55,42 +55,64 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
           `${getMonthAbbreviation(new Date(dueDate as string).getMonth())} ${new Date(dueDate as string).getDate()}`
           : 'No date'}</span>
         <span className="text-xs text-gray-400 mr-1">•</span>
-        <span className="text-xs text-primary">{selectedMonth}</span>
-        {/* {(article.WordCount || article['Word Count']) && (
-          <>
-            <span className="text-xs text-gray-400 mr-1">•</span>
-            <span className="text-xs text-gray-500">{article.WordCount || article['Word Count']} words</span>
-          </>
-        )} */}
+        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-md font-medium">{selectedMonth}</span>
       </div>
 
       <div className="flex flex-col gap-y-2 mb-4">
         <div className="flex items-center">
           <span className="text-xs text-gray-500 mr-1">Writer:</span>
-          <span className="text-xs text-gray-700 truncate">
-            {article['Content Writer'] || article.Writer || 'Unassigned'}
-          </span>
+          <div className="flex items-center">
+            <div className="w-5 h-5 rounded-full bg-gray-200 mr-1.5 flex items-center justify-center text-xs text-gray-600 overflow-hidden">
+              {article['Content Writer'] || article.Writer ?
+                (typeof article['Content Writer'] === 'string' ? article['Content Writer'].charAt(0).toUpperCase() :
+                 typeof article.Writer === 'string' ? article.Writer.charAt(0).toUpperCase() : 'U') : 'U'}
+            </div>
+            <span className="text-xs text-gray-700 truncate">
+              {article['Content Writer'] || article.Writer || 'Unassigned'}
+            </span>
+          </div>
         </div>
 
-        {(article.WordCount || article['Word Count']) && (
+        {(article.WordCount || article['Word Count'] || article['Final Word Count']) && (
           <div className="flex items-center">
             <span className="text-xs text-gray-500 mr-1">Word Count:</span>
             <span className="text-xs text-gray-700 truncate">
-              {article.WordCount || article['Word Count']}
+              {article.WordCount || article['Word Count'] || article['Final Word Count']}
             </span>
           </div>
         )}
 
-        <div className="flex items-center">
-          <span className="text-xs text-gray-500 mr-1">Client:</span>
-          <span className="text-xs text-gray-700 truncate">
-            {getClientNameSync(article['All Clients'] || article.Client)}
-          </span>
-        </div>
+        {(article['Written Content (G Doc)'] || article.DocumentLink || article['Document Link']) && (
+          <div className="flex items-center">
+            <span className="text-xs text-gray-500 mr-1">Google Doc:</span>
+            <a
+              href={ensureUrlProtocol(article['Written Content (G Doc)'] || article.DocumentLink || article['Document Link'] || '')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary truncate hover:underline"
+            >
+              View Document
+            </a>
+          </div>
+        )}
+
+        {(article['Target Page URL'] || article.ArticleURL || article['Article URL']) && (
+          <div className="flex items-center">
+            <span className="text-xs text-gray-500 mr-1">Article URL:</span>
+            <a
+              href={ensureUrlProtocol(article['Target Page URL'] || article.ArticleURL || article['Article URL'] || '')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary truncate hover:underline"
+            >
+              View Article
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Action buttons */}
-      {!hideActions && article.Status === 'Review Draft' && (
+      {!hideActions && (article.Status === 'Under Editor Review' || article.Status === 'Review Draft') && (
         <>
           <div className="w-full h-px bg-gray-300 mb-5"></div>
           <div className="flex space-x-2 mb-4">
@@ -99,7 +121,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
               onClick={(e) => {
                 e.stopPropagation();
                 if (onStatusChange) {
-                  onStatusChange(article.id, 'Draft Approved');
+                  onStatusChange(article.id, 'Content Approved');
                 }
               }}
             >
@@ -113,7 +135,7 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
               onClick={(e) => {
                 e.stopPropagation();
                 if (onStatusChange) {
-                  onStatusChange(article.id, 'In Production');
+                  onStatusChange(article.id, 'Writer Revision Needed');
                 }
               }}
             >
@@ -127,12 +149,12 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
       )}
 
       {/* View Document/Article link */}
-      {(article.Status === 'Live' && (article.ArticleURL || article['Article URL'])) ||
+      {((article.Status === 'Published' || article.Status === 'Live' || article.Status === 'Complete' || article.Status === 'Content Published' || article.Status === 'Reverse Internal Linking Needed') && (article.ArticleURL || article['Article URL'])) ||
        (article.DocumentLink || article['Document Link']) ? (
         <>
           <div className="w-full h-px bg-gray-300 mb-5"></div>
           <div className="text-center mb-4">
-            {article.Status === 'Live' && (article.ArticleURL || article['Article URL']) ? (
+            {(article.Status === 'Published' || article.Status === 'Live' || article.Status === 'Complete' || article.Status === 'Content Published' || article.Status === 'Reverse Internal Linking Needed') && (article.ArticleURL || article['Article URL']) ? (
               <a
                 href={ensureUrlProtocol(article.ArticleURL || article['Article URL'] || '')}
                 target="_blank"

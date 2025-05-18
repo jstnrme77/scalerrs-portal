@@ -56,9 +56,9 @@ exports.handler = async function(event, context) {
     const airtable = new Airtable({ apiKey });
     const base = airtable.base(baseId);
 
-    // Update the brief in the Keywords table with Brief Status field
+    // Update the brief in the Keywords table with Keyword/Content Status field
     const updatedRecord = await base('Keywords').update(briefId, {
-      'Brief Status': status
+      'Keyword/Content Status': status
     });
 
     return {

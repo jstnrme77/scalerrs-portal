@@ -126,7 +126,7 @@ export default function TopNavBar({
   }, [user]);
 
   return (
-    <div className={`fixed top-0 ${sidebarExpanded ? 'left-64' : 'left-20'} right-0 h-16 bg-white dark:bg-dark border-b border-gray-200 dark:border-gray-700 z-50 flex justify-between items-center px-6 transition-all duration-300 rounded-none`}>
+    <div className={`fixed top-0 ${sidebarExpanded ? 'left-64' : 'left-20'} right-0 h-16 bg-white dark:bg-dark border-b border-gray-200 dark:border-gray-700 z-50 flex justify-between items-center px-6 transition-all duration-300 rounded-none`} style={{ zIndex: 9000 }}>
       <div className="flex items-center">
         {isHomePage ? (
           <h1 className="text-lg font-medium text-[#12131C] dark:text-white">{greeting}, {userName}</h1>

@@ -2,6 +2,7 @@
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ChevronRight } from 'lucide-react';
 
 import BriefColumn from './BriefColumn';
 import ArticleColumn from './ArticleColumn';
@@ -24,89 +25,150 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
     console.log('No briefs data available in BriefBoard component');
   }
 
-  // Filter briefs by status
-  const inProgressBriefs = briefs.filter(brief =>
+  // Filter briefs by status using the new Keyword/Content Status values
+  const briefCreationNeededBriefs = briefs.filter(brief =>
+    brief.Status === 'Brief Creation Needed' ||
     brief.Status === 'In Progress' ||
-    brief.Status === 'Brief Creation Needed'
+    brief.Status === 'New' ||
+    brief.Status === 'Refresh'
   );
 
-  const needsInputBriefs = briefs.filter(brief =>
-    brief.Status === 'Needs Input' ||
-    brief.Status === 'Brief Needs Revision'
-  );
-
-  const reviewBriefs = briefs.filter(brief =>
-    brief.Status === 'Review Brief' ||
+  const briefUnderInternalReviewBriefs = briefs.filter(brief =>
     brief.Status === 'Brief Under Internal Review' ||
-    brief.Status === 'Needs Review' ||
-    brief.Status === 'Brief Awaiting Client Review'
+    brief.Status === 'Review Brief'
   );
 
-  const approvedBriefs = briefs.filter(brief =>
-    brief.Status === 'Brief Approved' ||
+  const briefAwaitingClientDepthBriefs = briefs.filter(brief =>
     brief.Status === 'Brief Awaiting Client Depth'
   );
 
+  const briefAwaitingClientReviewBriefs = briefs.filter(brief =>
+    brief.Status === 'Brief Awaiting Client Review' ||
+    brief.Status === 'Needs Review'
+  );
+
+  const briefNeedsRevisionBriefs = briefs.filter(brief =>
+    brief.Status === 'Brief Needs Revision' ||
+    brief.Status === 'Needs Input'
+  );
+
+  const briefApprovedBriefs = briefs.filter(brief =>
+    brief.Status === 'Brief Approved'
+  );
+
   console.log('Filtered briefs by status:');
-  console.log('In Progress:', inProgressBriefs.length);
-  console.log('Needs Input:', needsInputBriefs.length);
-  console.log('Review Brief:', reviewBriefs.length);
-  console.log('Brief Approved:', approvedBriefs.length);
+  console.log('Brief Creation Needed:', briefCreationNeededBriefs.length);
+  console.log('Brief Under Internal Review:', briefUnderInternalReviewBriefs.length);
+  console.log('Brief Awaiting Client Depth:', briefAwaitingClientDepthBriefs.length);
+  console.log('Brief Awaiting Client Review:', briefAwaitingClientReviewBriefs.length);
+  console.log('Brief Needs Revision:', briefNeedsRevisionBriefs.length);
+  console.log('Brief Approved:', briefApprovedBriefs.length);
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {/* In Progress Column */}
-        <BriefColumn
-          title="In Progress"
-          status="In Progress"
-          briefs={inProgressBriefs}
-          selectedMonth={selectedMonth}
-          bgColor="bg-white"
-          onStatusChange={onStatusChange}
-          count={inProgressBriefs.length}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+      <div className="relative">
+        {/* Horizontal scrollable container */}
+        <div className="overflow-x-auto pb-4 -mx-4 px-4">
+          {/* Kanban board with fixed-width columns */}
+          <div className="flex space-x-6 min-w-max">
+            {/* Brief Creation Needed Column */}
+            <div className="w-80">
+              <BriefColumn
+                title="Brief Creation Needed"
+                status="Brief Creation Needed"
+                briefs={briefCreationNeededBriefs}
+                selectedMonth={selectedMonth}
+                bgColor="bg-white"
+                onStatusChange={onStatusChange}
+                count={briefCreationNeededBriefs.length}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* Needs Input Column */}
-        <BriefColumn
-          title="Needs Input"
-          status="Needs Input"
-          briefs={needsInputBriefs}
-          selectedMonth={selectedMonth}
-          bgColor="bg-white"
-          onStatusChange={onStatusChange}
-          count={needsInputBriefs.length}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Brief Under Internal Review Column */}
+            <div className="w-80">
+              <BriefColumn
+                title="Brief Under Internal Review"
+                status="Brief Under Internal Review"
+                briefs={briefUnderInternalReviewBriefs}
+                selectedMonth={selectedMonth}
+                bgColor="bg-white"
+                onStatusChange={onStatusChange}
+                count={briefUnderInternalReviewBriefs.length}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* Review Brief Column */}
-        <BriefColumn
-          title="Review Brief"
-          status="Review Brief"
-          briefs={reviewBriefs}
-          selectedMonth={selectedMonth}
-          bgColor="bg-white"
-          onStatusChange={onStatusChange}
-          count={reviewBriefs.length}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Brief Awaiting Client Depth Column */}
+            <div className="w-80">
+              <BriefColumn
+                title="Brief Awaiting Client Depth"
+                status="Brief Awaiting Client Depth"
+                briefs={briefAwaitingClientDepthBriefs}
+                selectedMonth={selectedMonth}
+                bgColor="bg-white"
+                onStatusChange={onStatusChange}
+                count={briefAwaitingClientDepthBriefs.length}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* Brief Approved Column */}
-        <BriefColumn
-          title="Brief Approved"
-          status="Brief Approved"
-          briefs={approvedBriefs}
-          selectedMonth={selectedMonth}
-          bgColor="bg-white"
-          onStatusChange={onStatusChange}
-          count={approvedBriefs.length}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Brief Awaiting Client Review Column */}
+            <div className="w-80">
+              <BriefColumn
+                title="Brief Awaiting Client Review"
+                status="Brief Awaiting Client Review"
+                briefs={briefAwaitingClientReviewBriefs}
+                selectedMonth={selectedMonth}
+                bgColor="bg-white"
+                onStatusChange={onStatusChange}
+                count={briefAwaitingClientReviewBriefs.length}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Brief Needs Revision Column */}
+            <div className="w-80">
+              <BriefColumn
+                title="Brief Needs Revision"
+                status="Brief Needs Revision"
+                briefs={briefNeedsRevisionBriefs}
+                selectedMonth={selectedMonth}
+                bgColor="bg-white"
+                onStatusChange={onStatusChange}
+                count={briefNeedsRevisionBriefs.length}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Brief Approved Column */}
+            <div className="w-80">
+              <BriefColumn
+                title="Brief Approved"
+                status="Brief Approved"
+                briefs={briefApprovedBriefs}
+                selectedMonth={selectedMonth}
+                bgColor="bg-white"
+                onStatusChange={onStatusChange}
+                count={briefApprovedBriefs.length}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Visual indicator for horizontal scrolling */}
+        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <div className="bg-gradient-to-l from-gray-100 to-transparent w-12 h-24 opacity-75 rounded-l-lg flex items-center justify-center">
+            <ChevronRight className="h-6 w-6 text-gray-400 animate-pulse" />
+          </div>
+        </div>
       </div>
     </DndProvider>
   );
@@ -121,75 +183,298 @@ interface ArticleBoardProps {
 }
 
 export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: ArticleBoardProps) {
-  // Filter articles by status
-  const inProductionArticles = articles.filter(article => article.Status === 'In Production');
-  const reviewDraftArticles = articles.filter(article => article.Status === 'Review Draft');
-  const draftApprovedArticles = articles.filter(article => article.Status === 'Draft Approved');
-  const toBePublishedArticles = articles.filter(article => article.Status === 'To Be Published');
-  const liveArticles = articles.filter(article => article.Status === 'Live');
+  // Filter articles by status using the new Keyword/Content Status values
+  const awaitingWriterAssignmentArticles = articles.filter(article => article.Status === 'Awaiting Writer Assignment');
+  const writingInProgressArticles = articles.filter(article => article.Status === 'Writing In Progress' || article.Status === 'In Production');
+  const underClientReviewArticles = articles.filter(article => article.Status === 'Under Client Review');
+  const underEditorReviewArticles = articles.filter(article => article.Status === 'Under Editor Review' || article.Status === 'Review Draft');
+  const writerRevisionNeededArticles = articles.filter(article => article.Status === 'Writer Revision Needed');
+  const contentApprovedArticles = articles.filter(article => article.Status === 'Content Approved' || article.Status === 'Draft Approved');
+  const visualAssetsNeededArticles = articles.filter(article => article.Status === 'Visual Assets Needed');
+  const visualAssetsCompleteArticles = articles.filter(article => article.Status === 'Visual Assets Complete');
+  const readyForCmsUploadArticles = articles.filter(article => article.Status === 'Ready for CMS Upload');
+  const internalLinkingNeededArticles = articles.filter(article => article.Status === 'Internal Linking Needed');
+  const readyForPublicationArticles = articles.filter(article => article.Status === 'Ready for Publication' || article.Status === 'To Be Published');
+  const publishedArticles = articles.filter(article => article.Status === 'Published' || article.Status === 'Live');
+  const reverseInternalLinkingNeededArticles = articles.filter(article => article.Status === 'Reverse Internal Linking Needed');
+  const completeArticles = articles.filter(article => article.Status === 'Complete');
+  const cancelledArticles = articles.filter(article => article.Status === 'Cancelled');
+  const onHoldArticles = articles.filter(article => article.Status === 'On Hold');
+  const contentPublishedArticles = articles.filter(article => article.Status === 'Content Published');
+
+  // Count articles in each status
+  console.log('Articles by status:');
+  console.log('Awaiting Writer Assignment:', awaitingWriterAssignmentArticles.length);
+  console.log('Writing In Progress:', writingInProgressArticles.length);
+  console.log('Under Client Review:', underClientReviewArticles.length);
+  console.log('Under Editor Review:', underEditorReviewArticles.length);
+  console.log('Writer Revision Needed:', writerRevisionNeededArticles.length);
+  console.log('Content Approved:', contentApprovedArticles.length);
+  console.log('Visual Assets Needed:', visualAssetsNeededArticles.length);
+  console.log('Visual Assets Complete:', visualAssetsCompleteArticles.length);
+  console.log('Ready for CMS Upload:', readyForCmsUploadArticles.length);
+  console.log('Internal Linking Needed:', internalLinkingNeededArticles.length);
+  console.log('Ready for Publication:', readyForPublicationArticles.length);
+  console.log('Published:', publishedArticles.length);
+  console.log('Reverse Internal Linking Needed:', reverseInternalLinkingNeededArticles.length);
+  console.log('Complete:', completeArticles.length);
+  console.log('Cancelled:', cancelledArticles.length);
+  console.log('On Hold:', onHoldArticles.length);
+  console.log('Content Published:', contentPublishedArticles.length);
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-        {/* In Production Column */}
-        <ArticleColumn
-          title="In Production"
-          status="In Production"
-          articles={inProductionArticles}
-          bgColor="bg-white"
-          selectedMonth={selectedMonth}
-          onStatusChange={onStatusChange}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+      <div className="relative">
+        {/* Horizontal scrollable container */}
+        <div className="overflow-x-auto pb-4 -mx-4 px-4">
+          {/* Kanban board with fixed-width columns */}
+          <div className="flex space-x-6 min-w-max">
+            {/* Awaiting Writer Assignment Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Awaiting Writer Assignment"
+                status="Awaiting Writer Assignment"
+                articles={awaitingWriterAssignmentArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* Review Draft Column */}
-        <ArticleColumn
-          title="Review Draft"
-          status="Review Draft"
-          articles={reviewDraftArticles}
-          bgColor="bg-white"
-          selectedMonth={selectedMonth}
-          onStatusChange={onStatusChange}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Writing In Progress Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Writing In Progress"
+                status="Writing In Progress"
+                articles={writingInProgressArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* Draft Approved Column */}
-        <ArticleColumn
-          title="Draft Approved"
-          status="Draft Approved"
-          articles={draftApprovedArticles}
-          bgColor="bg-white"
-          selectedMonth={selectedMonth}
-          onStatusChange={onStatusChange}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Under Client Review Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Under Client Review"
+                status="Under Client Review"
+                articles={underClientReviewArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* To Be Published Column */}
-        <ArticleColumn
-          title="To Be Published"
-          status="To Be Published"
-          articles={toBePublishedArticles}
-          bgColor="bg-white"
-          selectedMonth={selectedMonth}
-          onStatusChange={onStatusChange}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Under Editor Review Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Under Editor Review"
+                status="Under Editor Review"
+                articles={underEditorReviewArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
 
-        {/* Live Column */}
-        <ArticleColumn
-          title="Live"
-          status="Live"
-          articles={liveArticles}
-          bgColor="bg-white"
-          selectedMonth={selectedMonth}
-          onStatusChange={onStatusChange}
-          hideActions={hideActions}
-          onViewDocument={onViewDocument}
-        />
+            {/* Writer Revision Needed Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Writer Revision Needed"
+                status="Writer Revision Needed"
+                articles={writerRevisionNeededArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Content Approved Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Content Approved"
+                status="Content Approved"
+                articles={contentApprovedArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Visual Assets Needed Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Visual Assets Needed"
+                status="Visual Assets Needed"
+                articles={visualAssetsNeededArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Visual Assets Complete Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Visual Assets Complete"
+                status="Visual Assets Complete"
+                articles={visualAssetsCompleteArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Ready for CMS Upload Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Ready for CMS Upload"
+                status="Ready for CMS Upload"
+                articles={readyForCmsUploadArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Internal Linking Needed Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Internal Linking Needed"
+                status="Internal Linking Needed"
+                articles={internalLinkingNeededArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Ready for Publication Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Ready for Publication"
+                status="Ready for Publication"
+                articles={readyForPublicationArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Published Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Published"
+                status="Published"
+                articles={publishedArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Reverse Internal Linking Needed Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Reverse Internal Linking Needed"
+                status="Reverse Internal Linking Needed"
+                articles={reverseInternalLinkingNeededArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Complete Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Complete"
+                status="Complete"
+                articles={completeArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Cancelled Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Cancelled"
+                status="Cancelled"
+                articles={cancelledArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* On Hold Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="On Hold"
+                status="On Hold"
+                articles={onHoldArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+
+            {/* Content Published Column */}
+            <div className="w-80">
+              <ArticleColumn
+                title="Content Published"
+                status="Content Published"
+                articles={contentPublishedArticles}
+                bgColor="bg-white"
+                selectedMonth={selectedMonth}
+                onStatusChange={onStatusChange}
+                hideActions={hideActions}
+                onViewDocument={onViewDocument}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Visual indicator for horizontal scrolling */}
+        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <div className="bg-gradient-to-l from-gray-100 to-transparent w-12 h-24 opacity-75 rounded-l-lg flex items-center justify-center">
+            <ChevronRight className="h-6 w-6 text-gray-400 animate-pulse" />
+          </div>
+        </div>
       </div>
     </DndProvider>
   );

@@ -5,24 +5,53 @@ export type MainTab = 'content' | 'backlinks';
 
 // Brief statuses
 export type BriefStatus =
-  // Status values from your Airtable
+  // Main workflow statuses from Keyword/Content Status field
   'Brief Creation Needed' |
   'Brief Under Internal Review' |
-  'Brief Approved' |
-
-  // Legacy status values
   'Brief Awaiting Client Depth' |
   'Brief Awaiting Client Review' |
   'Brief Needs Revision' |
+  'Brief Approved' |
 
-  // Generic status values used in the UI
+  // Legacy status values for backward compatibility
   'In Progress' |
   'Needs Input' |
   'Review Brief' |
-  'Needs Review';
+  'Needs Review' |
+  'New' |
+  'Refresh';
 
 // Article statuses
-export type ArticleStatus = 'In Production' | 'Review Draft' | 'Draft Approved' | 'To Be Published' | 'Live';
+export type ArticleStatus =
+  // Main workflow statuses from Keyword/Content Status field
+  'Awaiting Writer Assignment' |
+  'Writing In Progress' |
+  'Under Client Review' |
+  'Under Editor Review' |
+  'Writer Revision Needed' |
+  'Content Approved' |
+  'Visual Assets Needed' |
+  'Visual Assets Complete' |
+  'Ready for CMS Upload' |
+  'Internal Linking Needed' |
+  'Ready for Publication' |
+  'Published' |
+  'Reverse Internal Linking Needed' |
+  'Complete' |
+  'Cancelled' |
+  'On Hold' |
+  'Content Published' |
+
+  // Legacy statuses for backward compatibility
+  'In Production' |
+  'Review Draft' |
+  'Draft Approved' |
+  'To Be Published' |
+  'Live' |
+  'Not Started' |
+  'Client Review' |
+  'Needs Revision' |
+  'Resubmitted';
 
 // Backlink statuses
 export type BacklinkStatus = 'Live' | 'Scheduled' | 'Rejected';

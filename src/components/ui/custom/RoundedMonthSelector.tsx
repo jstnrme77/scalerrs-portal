@@ -172,22 +172,28 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
 
       {isOpen && (
         <div
-          className="absolute right-0 top-10 w-52 bg-white shadow-lg z-50 border border-gray-200 rounded-2xl overflow-hidden"
+          className="absolute left-0 top-full mt-1 bg-white shadow-lg z-50 border border-gray-200 rounded-2xl overflow-hidden month-selector-dropdown"
+          style={{
+            width: '240px',
+            zIndex: 9999,
+            paddingRight: '16px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+          }}
         >
-          <div className="py-1 max-h-80 overflow-y-auto">
+          <div className="py-1 max-h-80 overflow-y-auto" style={{ paddingRight: '8px' }}>
             {loading ? (
-              <div className="px-3 py-2 text-sm text-gray-700">Loading months...</div>
+              <div className="px-3 py-2 text-sm text-gray-700" style={{ paddingRight: '20px' }}>Loading months...</div>
             ) : sortedYears.length > 0 ? (
               sortedYears.map(year => (
                 <div key={year}>
-                  <div className="px-3 py-1.5 font-bold text-primary bg-primary/5 border-b border-gray-200" style={{ fontSize: '14px' }}>
+                  <div className="px-3 py-1.5 font-bold text-primary bg-primary/5 border-b border-gray-200" style={{ fontSize: '14px', paddingRight: '20px' }}>
                     {year}
                   </div>
                   {groupedMonths[year].map((monthYear) => (
                     <div
                       key={monthYear}
                       className="block w-full text-left px-3 py-1.5 text-gray-800 hover:bg-gray-50 cursor-pointer"
-                      style={{ fontSize: '14px' }}
+                      style={{ fontSize: '14px', paddingRight: '20px' }}
                       onClick={() => {
                         onChange(monthYear);
                         setIsOpen(false);
@@ -199,7 +205,7 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
                 </div>
               ))
             ) : (
-              <div className="px-3 py-2 text-sm text-gray-700">No months available</div>
+              <div className="px-3 py-2 text-sm text-gray-700" style={{ paddingRight: '20px' }}>No months available</div>
             )}
           </div>
         </div>

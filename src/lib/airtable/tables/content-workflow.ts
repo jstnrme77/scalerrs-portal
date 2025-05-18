@@ -170,30 +170,49 @@ export async function getBriefs(
       }
 
       // Map the brief status to our UI status
-      let briefStatus = 'In Progress';
+      let briefStatus = 'Brief Creation Needed';
 
-      // First check for the 'Brief Status' field that we're now using for updates
-      const briefStatusField = fields['Brief Status'] || fields['Keyword/Content Status'] || fields.Status || '';
+      // Use the "Keyword/Content Status" field as the primary source of status information
+      const briefStatusField = fields['Keyword/Content Status'] || fields['Brief Status'] || fields.Status || '';
       const briefStatusLower = briefStatusField.toLowerCase();
 
-      // Map the specific Airtable status values to our four Kanban columns
-      if (briefStatusField.includes('In Progress') || briefStatusLower.includes('in progress') ||
+      // Use the status values from the "Keyword/Content Status" field
+      if (briefStatusField === 'Brief Creation Needed') {
+        briefStatus = 'Brief Creation Needed';
+      }
+      else if (briefStatusField === 'Brief Under Internal Review') {
+        briefStatus = 'Brief Under Internal Review';
+      }
+      else if (briefStatusField === 'Brief Awaiting Client Depth') {
+        briefStatus = 'Brief Awaiting Client Depth';
+      }
+      else if (briefStatusField === 'Brief Awaiting Client Review') {
+        briefStatus = 'Brief Awaiting Client Review';
+      }
+      else if (briefStatusField === 'Brief Needs Revision') {
+        briefStatus = 'Brief Needs Revision';
+      }
+      else if (briefStatusField === 'Brief Approved') {
+        briefStatus = 'Brief Approved';
+      }
+      // Legacy status mappings for backward compatibility
+      else if (briefStatusField.includes('In Progress') || briefStatusLower.includes('in progress') ||
           briefStatusField.includes('Creation Needed') || briefStatusLower.includes('creation needed')) {
-        briefStatus = 'In Progress';
+        briefStatus = 'Brief Creation Needed';
       }
       else if (briefStatusField.includes('Review') || briefStatusLower.includes('review')) {
-        briefStatus = 'Review Brief';
+        briefStatus = 'Brief Under Internal Review';
       }
       else if (briefStatusField.includes('Needs Input') || briefStatusLower.includes('needs input') ||
                briefStatusField.includes('Revision') || briefStatusLower.includes('revision')) {
-        briefStatus = 'Needs Input';
+        briefStatus = 'Brief Needs Revision';
       }
       else if (briefStatusField.includes('Approved') || briefStatusLower.includes('approved')) {
         briefStatus = 'Brief Approved';
       }
-      // For any other status that includes "Brief", default to In Progress
+      // For any other status that includes "Brief", default to Brief Creation Needed
       else if (briefStatusField.includes('Brief') || briefStatusLower.includes('brief')) {
-        briefStatus = 'In Progress';
+        briefStatus = 'Brief Creation Needed';
       }
 
       // Return an object with our expected structure
@@ -246,9 +265,9 @@ export async function updateBriefStatus(briefId: string, status: string): Promis
       throw new Error(`Brief with ID ${briefId} not found`);
     }
 
-    // Prepare update object with only Brief Status field
+    // Always use 'Keyword/Content Status' field for brief status
     const updateObject = {
-      'Brief Status': status
+      'Keyword/Content Status': status
     };
 
     console.log('Updating brief with:', updateObject);

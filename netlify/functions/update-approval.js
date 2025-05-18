@@ -1,5 +1,5 @@
 // Netlify function to update approval status in Airtable
-const { updateApprovalStatus } = require('../../.netlify/server/chunks/airtable.js');
+const { updateApprovalStatus } = require('./utils/airtable.js');
 
 exports.handler = async (event, context) => {
   // Set CORS headers
@@ -21,11 +21,11 @@ exports.handler = async (event, context) => {
 
   try {
     console.log('Netlify function: update-approval called');
-    
+
     // Parse request body
     const body = JSON.parse(event.body);
     const { type, itemId, status, revisionReason } = body;
-    
+
     if (!type || !itemId || !status) {
       return {
         statusCode: 400,
@@ -33,12 +33,12 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({ error: 'Missing required fields: type, itemId, and status are required' })
       };
     }
-    
+
     console.log(`Updating ${type} approval status for item ${itemId} to ${status}`);
-    
+
     // Update approval status
     const updatedItem = await updateApprovalStatus(type, itemId, status, revisionReason);
-    
+
     return {
       statusCode: 200,
       headers,
@@ -46,7 +46,7 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('Error in update-approval function:', error);
-    
+
     return {
       statusCode: 500,
       headers,

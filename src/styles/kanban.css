@@ -1,0 +1,202 @@
+/* Kanban board styles */
+.kanban-container {
+  position: relative;
+  width: 100%;
+  z-index: 1; /* Ensure kanban board is below the fixed header */
+}
+
+/* Fix for z-index issues with sidebar */
+.page-container-tabs {
+  z-index: 45 !important; /* Higher than kanban board but lower than dropdowns */
+}
+
+/* Ensure fixed header container's page-container-tabs has correct padding */
+.fixed-header-container .page-container-tabs {
+  padding: 0.75rem 1rem !important;
+}
+
+/* Fixed header container styles */
+.fixed-header-container {
+  position: fixed;
+  background-color: var(--container-bg, white);
+  z-index: 40;
+  transition: left 0.3s ease;
+  width: calc(100% - 256px - 16px); /* Adjust width based on sidebar width and add margin */
+  margin-left: 16px; /* Add margin to create visual separation from sidebar */
+  top: 64px; /* Position directly below the top navbar */
+  bottom: auto;
+  overflow: visible; /* Ensure dropdowns aren't cut off */
+  /* Create a solid background that extends to the top navbar */
+  border-top-left-radius: 0; /* Remove border radius to create seamless connection */
+  border-top-right-radius: 0; /* Remove border radius to create seamless connection */
+  box-shadow: none; /* Remove shadow to create seamless connection */
+}
+
+/* Adjust width when sidebar is collapsed */
+@media (max-width: 1024px) {
+  .fixed-header-container {
+    width: calc(100% - 80px - 16px); /* Adjust for collapsed sidebar and margin */
+  }
+}
+
+/* Tab navigation container styles */
+.tab-navigation-container {
+  background-color: var(--container-bg, white);
+  z-index: 40;
+  transition: box-shadow 0.3s ease;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+/* Month selector in tab navigation */
+.page-container-tabs .month-selector-rounded {
+  min-width: 140px;
+  margin-left: 0.5rem;
+}
+
+/* Ensure month selector dropdown is visible */
+.relative .absolute {
+  z-index: 9999 !important;
+  overflow: visible !important;
+}
+
+/* Ensure parent containers don't clip the dropdown */
+.page-container-tabs {
+  overflow: visible !important;
+}
+
+.fixed-header-container {
+  overflow: visible !important;
+}
+
+/* Ensure TopNavBar elements are above other elements */
+.fixed.top-0 {
+  z-index: 9000 !important;
+}
+
+/* Ensure client selector dropdown is visible */
+.client-selector-dropdown {
+  z-index: 10000 !important;
+  position: absolute !important;
+}
+
+/* Fix for month selector dropdown positioning */
+.page-container-tabs .relative {
+  position: relative !important;
+}
+
+/* Ensure dropdown appears below the button with proper spacing */
+.month-selector-dropdown,
+div.month-selector-dropdown,
+.page-container-tabs .month-selector-dropdown {
+  position: absolute !important;
+  left: 0 !important;
+  top: calc(100% + 4px) !important;
+  width: 240px !important;
+  transform: none !important;
+  margin-right: 16px !important;
+  right: auto !important;
+  padding-right: 16px !important;
+}
+
+/* Shadow effect for scrolled state */
+.scrolled {
+  box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.15), 0 2px 6px -1px rgba(0, 0, 0, 0.1);
+  animation: shadowFadeIn 0.3s ease forwards;
+}
+
+/* Add a subtle animation for the shadow transition */
+@keyframes shadowFadeIn {
+  from { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+  to { box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.15), 0 2px 6px -1px rgba(0, 0, 0, 0.1); }
+}
+
+/* Smooth scrolling for all browsers */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  touch-action: pan-x;
+}
+
+/* Custom scrollbar for WebKit browsers */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 20px;
+}
+
+/* Fade effect for scroll indicator */
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-pulse {
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    padding-bottom: 1rem;
+  }
+
+  .w-80 {
+    width: 85vw;
+    min-width: 280px;
+    max-width: 320px;
+  }
+
+  /* Adjust fixed header for mobile */
+  .fixed-header-container {
+    left: 8px !important;
+    width: calc(100% - 16px) !important;
+    margin-left: 0 !important;
+    top: 64px !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+  }
+
+  /* Adjust padding for mobile header elements */
+  .fixed-header-container > div {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  /* Adjust tab navigation container padding for mobile */
+  .fixed-header-container .page-container-tabs {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Add extra space for mobile to account for the fixed header */
+  .page-container {
+    margin-top: 106px !important;
+  }
+
+  /* Adjust month selector for mobile */
+  .page-container-tabs > .flex {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-container-tabs .month-selector-rounded {
+    margin-left: 0;
+    margin-top: 0.75rem;
+    width: 100%;
+  }
+
+  /* Ensure dropdown is properly positioned on mobile */
+  .page-container-tabs .month-selector-dropdown {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

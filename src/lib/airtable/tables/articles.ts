@@ -171,21 +171,56 @@ export async function getArticles(
 
       // Map the keyword status to article status
       let articleStatus = 'In Production';
-      const keywordStatus = fields['Article Status'] || fields.Status || '';
+      const keywordStatus = fields['Keyword/Content Status'] || fields['Article Status'] || fields.Status || '';
 
-      if (keywordStatus.includes('Article')) {
-        // Extract the article status from the keyword status
+      // Use the status values from the "Keyword/Content Status" field
+      if (keywordStatus === 'Awaiting Writer Assignment') {
+        articleStatus = 'Awaiting Writer Assignment';
+      } else if (keywordStatus === 'Writing In Progress') {
+        articleStatus = 'Writing In Progress';
+      } else if (keywordStatus === 'Under Client Review') {
+        articleStatus = 'Under Client Review';
+      } else if (keywordStatus === 'Under Editor Review') {
+        articleStatus = 'Under Editor Review';
+      } else if (keywordStatus === 'Writer Revision Needed') {
+        articleStatus = 'Writer Revision Needed';
+      } else if (keywordStatus === 'Content Approved') {
+        articleStatus = 'Content Approved';
+      } else if (keywordStatus === 'Visual Assets Needed') {
+        articleStatus = 'Visual Assets Needed';
+      } else if (keywordStatus === 'Visual Assets Complete') {
+        articleStatus = 'Visual Assets Complete';
+      } else if (keywordStatus === 'Ready for CMS Upload') {
+        articleStatus = 'Ready for CMS Upload';
+      } else if (keywordStatus === 'Internal Linking Needed') {
+        articleStatus = 'Internal Linking Needed';
+      } else if (keywordStatus === 'Ready for Publication') {
+        articleStatus = 'Ready for Publication';
+      } else if (keywordStatus === 'Published') {
+        articleStatus = 'Published';
+      } else if (keywordStatus === 'Reverse Internal Linking Needed') {
+        articleStatus = 'Reverse Internal Linking Needed';
+      } else if (keywordStatus === 'Complete') {
+        articleStatus = 'Complete';
+      } else if (keywordStatus === 'Cancelled') {
+        articleStatus = 'Cancelled';
+      } else if (keywordStatus === 'On Hold') {
+        articleStatus = 'On Hold';
+      } else if (keywordStatus === 'Content Published') {
+        articleStatus = 'Content Published';
+      } else if (keywordStatus.includes('Article')) {
+        // Extract the article status from the keyword status for backward compatibility
         articleStatus = keywordStatus;
       } else if (keywordStatus === 'In Production') {
-        articleStatus = 'In Production';
+        articleStatus = 'Writing In Progress'; // Map to new status
       } else if (keywordStatus === 'Review Draft') {
-        articleStatus = 'Review Draft';
+        articleStatus = 'Under Editor Review'; // Map to new status
       } else if (keywordStatus === 'Draft Approved') {
-        articleStatus = 'Draft Approved';
+        articleStatus = 'Content Approved'; // Map to new status
       } else if (keywordStatus === 'To Be Published') {
-        articleStatus = 'To Be Published';
+        articleStatus = 'Ready for Publication'; // Map to new status
       } else if (keywordStatus === 'Live') {
-        articleStatus = 'Live';
+        articleStatus = 'Published'; // Map to new status
       }
 
       // Return an object with our expected structure
@@ -243,36 +278,11 @@ export async function updateArticleStatus(articleId: string, status: string): Pr
     const checkRecord = await base(TABLES.KEYWORDS).find(articleId);
     console.log('Available fields in article record:', Object.keys(checkRecord.fields));
 
-    // Check if 'Keyword/Content Status' field exists
-    const hasKeywordContentStatus = 'Keyword/Content Status' in checkRecord.fields;
-    console.log('Has Keyword/Content Status field:', hasKeywordContentStatus);
-
-    // Check for other possible status field names
-    const possibleStatusFields = [
-      'Keyword/Content Status',
-      'Status',
-      'Content Status',
-      'KeywordStatus',
-      'Keyword Status',
-      'Article Status'
-    ];
-
-    const existingStatusFields = possibleStatusFields.filter(field => field in checkRecord.fields);
-    console.log('Existing status fields:', existingStatusFields);
-
-    // Prepare update object
-    const updateObject: Record<string, any> = {};
-
-    // Use the first available status field, preferring 'Keyword/Content Status'
-    if (hasKeywordContentStatus) {
-      updateObject['Keyword/Content Status'] = status;
-    } else if (existingStatusFields.length > 0) {
-      // Use the first available status field
-      updateObject[existingStatusFields[0]] = status;
-    } else {
-      // If no status field exists, create one
-      updateObject['Keyword/Content Status'] = status;
-    }
+    // Always use 'Keyword/Content Status' field for article status
+    // This ensures we're consistently using the same field for status updates
+    const updateObject: Record<string, any> = {
+      'Keyword/Content Status': status
+    };
 
     console.log('Updating article with:', updateObject);
 

@@ -3,6 +3,7 @@ import { ItemTypes } from '@/constants/DragTypes';
 import { Brief, BriefStatus } from '@/types';
 import { getClientNameSync } from '@/utils/clientUtils';
 import { ensureUrlProtocol } from '@/utils/field-utils';
+import { FileText } from 'lucide-react';
 
 interface BriefCardProps {
   brief: Brief;
@@ -86,13 +87,18 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
       <div className="flex items-center text-xs text-gray-500 mb-4">
         <span className="mr-1">Due {brief.DueDate ? formatDate(brief.DueDate) : 'No date'}</span>
         <span className="text-xs text-gray-400 mr-1">•</span>
-        <span className="text-xs text-primary">{selectedMonth}</span>
+        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-md font-medium">{selectedMonth}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-x-2 gap-y-2 mb-4">
         <div className="flex items-center col-span-2">
           <span className="text-xs text-gray-500 mr-1">SEO Strategist:</span>
-          <span className="text-xs text-gray-700 truncate">{getDisplayName(brief['SEO Strategist'])}</span>
+          <span className="text-xs text-gray-700 truncate">{getDisplayName(brief['SEO Strategist'] || brief['SEO Assignee'])}</span>
+        </div>
+
+        <div className="flex items-center col-span-2">
+          <span className="text-xs text-gray-500 mr-1">Content Writer:</span>
+          <span className="text-xs text-gray-700 truncate">{getDisplayName(brief['Content Writer'] || brief.ContentWriter)}</span>
         </div>
 
         <div className="flex items-center col-span-2">
@@ -101,6 +107,20 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
             {getClientNameSync(brief['All Clients'] || brief.Client)}
           </span>
         </div>
+
+        {brief['Target Page URL'] && (
+          <div className="flex items-center col-span-2">
+            <span className="text-xs text-gray-500 mr-1">Target URL:</span>
+            <a
+              href={ensureUrlProtocol(brief['Target Page URL'])}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary truncate hover:underline"
+            >
+              {brief['Target Page URL']}
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Action buttons */}
@@ -145,7 +165,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
       )}
 
       {/* Document links */}
-      {(brief.DocumentLink || brief['FraseDocumentLink']) && (
+      {(brief.DocumentLink || brief['FraseDocumentLink'] || brief['Content Brief Link (G Doc)'] || brief['Frase Link']) && (
         <>
           <div className="w-full h-px bg-gray-300 mb-5"></div>
           <div className="flex flex-col space-y-3 mb-4">
@@ -183,6 +203,20 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
               </div>
             )}
 
+            {brief['Content Brief Link (G Doc)'] && (
+              <div className="text-center">
+                <a
+                  href={ensureUrlProtocol(brief['Content Brief Link (G Doc)'] || '')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-xs text-primary hover:underline"
+                >
+                  <FileText size={14} className="mr-1" />
+                  View Brief
+                </a>
+              </div>
+            )}
+
             {brief['FraseDocumentLink'] && (
               <div className="text-center">
                 {onViewDocument ? (
@@ -214,6 +248,20 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                     View Frase Document
                   </a>
                 )}
+              </div>
+            )}
+
+            {brief['Frase Link'] && (
+              <div className="text-center">
+                <a
+                  href={ensureUrlProtocol(brief['Frase Link'] || '')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-xs text-primary hover:underline"
+                >
+                  <FileText size={14} className="mr-1" />
+                  Frase Link
+                </a>
               </div>
             )}
           </div>

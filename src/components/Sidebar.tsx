@@ -158,7 +158,7 @@ export default function Sidebar() {
 
   return (
     <div
-      className={`flex flex-col ${isExpanded ? 'w-64' : 'w-20'} bg-[#1E1E2D] text-white h-screen fixed left-0 top-0 border-r border-gray-700 transition-all duration-300 ease-in-out z-10`}
+      className={`flex flex-col ${isExpanded ? 'w-64' : 'w-20'} bg-[#1E1E2D] text-white h-screen fixed left-0 top-0 border-r border-gray-700 transition-all duration-300 ease-in-out z-50`}
     >
       <div className={`flex items-center ${isExpanded ? 'justify-center' : 'justify-center'} h-16 border-b border-gray-700 overflow-hidden px-4 relative`}>
         {isExpanded ? (

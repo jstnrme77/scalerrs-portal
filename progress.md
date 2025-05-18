@@ -150,6 +150,10 @@
 - ✅ Enhanced month filtering to properly handle year in month filter
 - ✅ Added dynamic status filter options based on actual data
 - ✅ Improved DR filter to handle different field names for domain rating
+- ✅ Updated article status functionality to use "Keyword/Content Status" field from Airtable
+- ✅ Updated brief status functionality to use "Keyword/Content Status" field from Airtable
+- ✅ Implemented new status values for articles and briefs based on Airtable field
+- ✅ Updated kanban board columns to reflect the exact status values from Airtable
 - 🔄 Enhancing real-time data synchronization
 - 🔄 Implementing more robust error handling
 
@@ -336,3 +340,8 @@
 - ✅ Added embedded video walkthrough at the top of the Get Started page
 - ✅ Enhanced Campaign Roadmap modal with visual timeline visualization
 - ✅ Replaced Video Walkthrough card with Quick Start Guide card
+- ✅ Updated Content Workflow page to use "Keyword/Content Status" field from Airtable for both articles and briefs
+- ✅ Implemented new kanban board columns for articles with statuses: Awaiting Writer Assignment, Writing In Progress, Under Client Review, Under Editor Review, Writer Revision Needed, Content Approved, Visual Assets Needed, Visual Assets Complete, Ready for CMS Upload, Internal Linking Needed, Ready for Publication, Published, Reverse Internal Linking Needed, Complete, Cancelled, On Hold, Content Published
+- ✅ Implemented new kanban board columns for briefs with statuses: Brief Creation Needed, Brief Under Internal Review, Brief Awaiting Client Depth, Brief Awaiting Client Review, Brief Needs Revision, Brief Approved
+- ✅ Updated status mapping functions to handle both new status values and legacy status values for backward compatibility
+- ✅ Enhanced kanban board styling with appropriate colors for different status categories

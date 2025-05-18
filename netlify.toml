@@ -49,6 +49,18 @@
   to = "/.netlify/functions/get-url-performance"
   status = 200
 
+[[redirects]]
+  from = "/api/approvals"
+  to = "/.netlify/functions/get-approvals"
+  status = 200
+  methods = ["GET"]
+
+[[redirects]]
+  from = "/api/approvals"
+  to = "/.netlify/functions/update-approval"
+  status = 200
+  methods = ["POST", "PUT", "PATCH"]
+
 # Handle all other routes
 [[redirects]]
   from = "/*"

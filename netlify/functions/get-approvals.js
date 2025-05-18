@@ -1,5 +1,5 @@
 // Netlify function to get approval items from Airtable
-const { getApprovalItems } = require('../../.netlify/server/chunks/airtable.js');
+const { getApprovalItems } = require('./utils/airtable.js');
 
 exports.handler = async (event, context) => {
   // Set CORS headers
