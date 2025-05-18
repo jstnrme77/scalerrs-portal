@@ -10,6 +10,7 @@ import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import { FileText, BookOpen } from 'lucide-react';
 import { useClientData } from '@/context/ClientDataContext';
 import RoundedMonthSelector from '@/components/ui/custom/RoundedMonthSelector';
+import MockDataNotification from '@/components/ui/custom/MockDataNotification';
 import '@/styles/kanban.css';
 
 // Define types for tabs
@@ -103,12 +104,37 @@ export default function ContentWorkflowPage() {
 
           console.log('Fetching briefs directly from:', url);
 
+          // Get current user from localStorage
+          const currentUser = typeof window !== 'undefined' ?
+            JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+          // Prepare headers with user information
+          const headers: Record<string, string> = {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+          };
+
+          // Add user information to headers if available
+          if (currentUser) {
+            console.log('Adding user headers for briefs fetch:', currentUser.id, currentUser.Role);
+            headers['x-user-id'] = currentUser.id || '';
+            headers['x-user-role'] = currentUser.Role || '';
+
+            // Convert client to JSON string if it's an array
+            if (currentUser.Client) {
+              const clientIds = Array.isArray(currentUser.Client)
+                ? currentUser.Client
+                : [currentUser.Client];
+              headers['x-user-client'] = JSON.stringify(clientIds);
+              console.log('Adding client header:', JSON.stringify(clientIds));
+            }
+          } else {
+            console.log('No user found in localStorage');
+          }
+
           const response = await fetch(url, {
             signal: controller.signal,
-            headers: {
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache',
-            }
+            headers
           });
 
           // Clear the timeout
@@ -125,6 +151,17 @@ export default function ContentWorkflowPage() {
           if (data.isMockData) {
             console.warn('Received mock data from server:', data.error);
             errorMessages.push(`Briefs: ${data.error || 'Server returned mock data'}`);
+            hasErrors = true;
+
+            // Show a notification to the user that we're using mock data
+            if (typeof window !== 'undefined') {
+              // Set a flag in localStorage to indicate we're using mock data
+              localStorage.setItem('using-mock-data', 'true');
+              localStorage.setItem('mock-data-reason', data.error || 'No matching data found');
+            }
+          } else if (data.briefs && data.briefs.length === 0) {
+            console.warn('No briefs found for the selected month:', selectedMonth);
+            errorMessages.push(`No briefs found for ${selectedMonth}`);
             hasErrors = true;
           }
 
@@ -179,12 +216,37 @@ export default function ContentWorkflowPage() {
 
           console.log('Fetching articles directly from:', url);
 
+          // Get current user from localStorage
+          const currentUser = typeof window !== 'undefined' ?
+            JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+          // Prepare headers with user information
+          const headers: Record<string, string> = {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+          };
+
+          // Add user information to headers if available
+          if (currentUser) {
+            console.log('Adding user headers for articles fetch:', currentUser.id, currentUser.Role);
+            headers['x-user-id'] = currentUser.id || '';
+            headers['x-user-role'] = currentUser.Role || '';
+
+            // Convert client to JSON string if it's an array
+            if (currentUser.Client) {
+              const clientIds = Array.isArray(currentUser.Client)
+                ? currentUser.Client
+                : [currentUser.Client];
+              headers['x-user-client'] = JSON.stringify(clientIds);
+              console.log('Adding client header:', JSON.stringify(clientIds));
+            }
+          } else {
+            console.log('No user found in localStorage');
+          }
+
           const response = await fetch(url, {
             signal: controller.signal,
-            headers: {
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache',
-            }
+            headers
           });
 
           // Clear the timeout
@@ -201,6 +263,17 @@ export default function ContentWorkflowPage() {
           if (data.isMockData) {
             console.warn('Received mock data from server:', data.error);
             errorMessages.push(`Articles: ${data.error || 'Server returned mock data'}`);
+            hasErrors = true;
+
+            // Show a notification to the user that we're using mock data
+            if (typeof window !== 'undefined') {
+              // Set a flag in localStorage to indicate we're using mock data
+              localStorage.setItem('using-mock-data', 'true');
+              localStorage.setItem('mock-data-reason', data.error || 'No matching data found');
+            }
+          } else if (data.articles && data.articles.length === 0) {
+            console.warn('No articles found for the selected month:', selectedMonth);
+            errorMessages.push(`No articles found for ${selectedMonth}`);
             hasErrors = true;
           }
 
@@ -415,7 +488,8 @@ export default function ContentWorkflowPage() {
   return (
     <DashboardLayout>
 
-
+      {/* Mock Data Notification */}
+      <MockDataNotification />
 
       {/* Document Viewer Modal */}
       <DocumentViewerModal

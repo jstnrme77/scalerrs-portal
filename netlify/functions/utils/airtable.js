@@ -1,8 +1,25 @@
 // Shared Airtable utility functions for Netlify Functions
 const Airtable = require('airtable');
+const { TABLES } = require('./constants');
+const { getFieldValue, mapAirtableStatusToUIStatus, createClientFilter, combineFilters } = require('./airtable-utils');
 
-// Initialize Airtable with API key from environment variables
+// Singleton instances for connection pooling
+let airtableInstance = null;
+let baseInstance = null;
+
+/**
+ * Initialize Airtable with API key from environment variables
+ * Uses connection pooling to avoid creating new connections for each request
+ * @returns {Object} Airtable base instance
+ */
 const getAirtableBase = () => {
+  // Log environment variables for debugging
+  console.log('Environment variables:');
+  console.log('AIRTABLE_API_KEY exists:', !!process.env.AIRTABLE_API_KEY);
+  console.log('AIRTABLE_BASE_ID exists:', !!process.env.AIRTABLE_BASE_ID);
+  console.log('NEXT_PUBLIC_AIRTABLE_API_KEY exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_API_KEY);
+  console.log('NEXT_PUBLIC_AIRTABLE_BASE_ID exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
+
   const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
 
@@ -11,8 +28,19 @@ const getAirtableBase = () => {
     throw new Error('Missing Airtable credentials');
   }
 
-  const airtable = new Airtable({ apiKey });
-  return airtable.base(baseId);
+  // Reuse existing instance if available
+  if (!airtableInstance) {
+    console.log('Creating new Airtable instance');
+    airtableInstance = new Airtable({
+      apiKey,
+      requestTimeout: 30000 // 30 second timeout
+    });
+    baseInstance = airtableInstance.base(baseId);
+  } else {
+    console.log('Reusing existing Airtable instance');
+  }
+
+  return baseInstance;
 };
 
 // Helper function to map Airtable status to UI status
