@@ -50,6 +50,20 @@ const isNetlify = () => {
   return window.location.hostname.includes('netlify.app');
 };
 
+// Function to clear Airtable connection issues flag
+export function clearAirtableConnectionIssues() {
+  if (isBrowser) {
+    localStorage.removeItem('airtable-connection-issues');
+    localStorage.removeItem('api-error-timestamp');
+    localStorage.removeItem('use-mock-data');
+    console.log('Cleared Airtable connection issues flags');
+    // Force a page reload to apply the changes
+    window.location.reload();
+    return true;
+  }
+  return false;
+};
+
 // Tasks API
 export async function fetchTasks() {
   // Get current user from localStorage
@@ -162,6 +176,12 @@ export async function fetchTasks() {
     if (!data.tasks) {
       console.error('No tasks found in response:', data);
       throw new Error('No tasks found in response');
+    }
+
+    // Clear Airtable connection issues flag on successful API call
+    if (isNetlify() && isBrowser) {
+      console.log('Clearing airtable-connection-issues flag due to successful API call');
+      localStorage.removeItem('airtable-connection-issues');
     }
 
     return data.tasks;

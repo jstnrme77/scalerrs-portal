@@ -5,11 +5,11 @@
 
 [build.environment]
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
-  # Actual Airtable credentials
-  AIRTABLE_API_KEY = "patqy7ZJYDeMGRytK.c1b179191942edb6036729dd354759474477d71333d7031e70a2cc47c5b4e644"
-  AIRTABLE_BASE_ID = "appMRsu00KNlqAg3A"
-  NEXT_PUBLIC_AIRTABLE_API_KEY = "patqy7ZJYDeMGRytK.c1b179191942edb6036729dd354759474477d71333d7031e70a2cc47c5b4e644"
-  NEXT_PUBLIC_AIRTABLE_BASE_ID = "appMRsu00KNlqAg3A"
+  # Updated Airtable credentials
+  AIRTABLE_API_KEY = "patDzIkqPGxe1t5jl.fe3e6fa1c25d7438e70de845827f7dcfa8ffb3d14baf0e17bff380bca8459175"
+  AIRTABLE_BASE_ID = "appUtQLunL1f05FrQ"
+  NEXT_PUBLIC_AIRTABLE_API_KEY = "patDzIkqPGxe1t5jl.fe3e6fa1c25d7438e70de845827f7dcfa8ffb3d14baf0e17bff380bca8459175"
+  NEXT_PUBLIC_AIRTABLE_BASE_ID = "appUtQLunL1f05FrQ"
   NEXT_PUBLIC_USE_MOCK_DATA = "false"
 
 [[plugins]]
@@ -60,6 +60,11 @@
   to = "/.netlify/functions/update-approval"
   status = 200
   methods = ["POST", "PUT", "PATCH"]
+
+[[redirects]]
+  from = "/api/debug-env"
+  to = "/.netlify/functions/debug-env"
+  status = 200
 
 # Handle all other routes
 [[redirects]]
