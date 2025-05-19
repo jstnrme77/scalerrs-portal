@@ -76,7 +76,8 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
               const controller = new AbortController();
               const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-              const allClients = await fetchClients();
+              // Pass the signal to fetchClients
+              const allClients = await fetchClients(controller.signal);
               clearTimeout(timeoutId);
 
               console.log('Successfully fetched clients:', allClients.length);

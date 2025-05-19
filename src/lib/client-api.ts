@@ -1223,7 +1223,7 @@ export async function fetchMonthlyProjections() {
 }
 
 // Clients API
-export async function fetchClients() {
+export async function fetchClients(signal?: AbortSignal) {
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock clients data');
@@ -1244,18 +1244,19 @@ export async function fetchClients() {
 
     console.log('Fetching clients from:', url);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    // Use the provided signal or create a new one
+    const controller = !signal ? new AbortController() : undefined;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 15000) : undefined;
 
     const response = await fetch(url, {
-      signal: controller.signal,
+      signal: signal || (controller ? controller.signal : undefined),
       headers: {
         'Accept': 'application/json',
         'Cache-Control': 'no-cache',
       },
     });
 
-    clearTimeout(timeoutId);
+    if (timeoutId) clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
@@ -1367,7 +1368,7 @@ export async function fetchKeywordPerformance() {
 }
 
 // Available Months API
-export async function fetchAvailableMonths() {
+export async function fetchAvailableMonths(signal?: AbortSignal) {
   // Check for cached months first
   if (isBrowser) {
     const cachedMonths = localStorage.getItem('cached-available-months');
@@ -1435,18 +1436,19 @@ export async function fetchAvailableMonths() {
 
     console.log('Fetching available months from:', url);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // Reduced timeout to 10 seconds
+    // Use the provided signal or create a new one
+    const controller = !signal ? new AbortController() : undefined;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : undefined; // Reduced timeout to 10 seconds
 
     const response = await fetch(url, {
-      signal: controller.signal,
+      signal: signal || (controller ? controller.signal : undefined),
       headers: {
         'Accept': 'application/json',
         'Cache-Control': 'max-age=3600', // Allow caching for 1 hour
       },
     });
 
-    clearTimeout(timeoutId);
+    if (timeoutId) clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
