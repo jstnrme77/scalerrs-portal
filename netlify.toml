@@ -13,6 +13,19 @@
   NEXT_PUBLIC_USE_MOCK_DATA = "false"
   # Disable the connection issues flag
   NEXT_PUBLIC_DISABLE_CONNECTION_ISSUES_FLAG = "true"
+  # Add optimization flags
+  AIRTABLE_REQUEST_TIMEOUT = "8000"
+  AIRTABLE_MAX_RECORDS = "50"
+  AIRTABLE_PAGE_SIZE = "50"
+  AIRTABLE_USE_CONNECTION_POOLING = "true"
+  FUNCTION_TIMEOUT_SECONDS = "8"
+
+# Function settings
+[functions]
+  # Increase the function timeout to 30 seconds (maximum allowed by Netlify)
+  node_bundler = "esbuild"
+  included_files = ["netlify/functions/utils/**"]
+  external_node_modules = ["airtable"]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -82,6 +95,18 @@
   from = "/api/conversation-history"
   to = "/.netlify/functions/get-conversation-history"
   status = 200
+
+[[redirects]]
+  from = "/api/login"
+  to = "/.netlify/functions/login"
+  status = 200
+  methods = ["POST", "OPTIONS"]
+
+[[redirects]]
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
+  status = 200
+  methods = ["POST", "OPTIONS"]
 
 # Handle all other routes
 [[redirects]]

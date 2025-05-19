@@ -441,14 +441,16 @@ export async function loginUser(email: string, password: string) {
   }
 
   try {
-    // Use the Netlify function for authentication when on Netlify
-    const loginUrl = isNetlify() ? '/.netlify/functions/login' : '/api/auth';
+    // Always use the /api/login endpoint which will be redirected appropriately by Netlify
+    // This ensures consistent behavior across environments
+    const loginUrl = '/api/login';
     console.log('Using login URL:', loginUrl);
 
     const response = await fetch(loginUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
       body: JSON.stringify({ email, password }),
     });

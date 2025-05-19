@@ -53,21 +53,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // Determine if we're running on Netlify
-      const isNetlify = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
-
-      // Use the appropriate API endpoint based on the environment
-      const loginUrl = isNetlify ? '/.netlify/functions/login' : '/api/login';
+      // Always use the /api/login endpoint which will be redirected appropriately by Netlify
+      // This ensures consistent behavior across environments
+      const loginUrl = '/api/login';
       console.log('Using login URL:', loginUrl);
 
-      // Call the login API
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Call the login API with retry logic
+      let response;
+      let retryCount = 0;
+      const maxRetries = 2;
+
+      while (retryCount <= maxRetries) {
+        try {
+          response = await fetch(loginUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+            },
+            body: JSON.stringify({ email, password }),
+          });
+
+          // If successful, break out of retry loop
+          break;
+        } catch (fetchError) {
+          retryCount++;
+          console.error(`Login fetch error (attempt ${retryCount}/${maxRetries + 1}):`, fetchError);
+
+          // If we've reached max retries, throw the error
+          if (retryCount > maxRetries) {
+            throw fetchError;
+          }
+
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        }
+      }
+
+      if (!response) {
+        throw new Error('Failed to connect to authentication service');
+      }
+
+      if (!response.ok) {
+        console.error(`Login failed with status: ${response.status}`);
+        throw new Error(`Authentication failed with status ${response.status}`);
+      }
 
       const data = await response.json();
 
