@@ -6,14 +6,6 @@ import { User } from '@/types';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Add cache control headers to prevent caching
-export const headers = {
-  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-  'Pragma': 'no-cache',
-  'Expires': '0',
-  'Surrogate-Control': 'no-store'
-};
-
 export async function POST(request: Request) {
   console.log('Login API route called');
 
@@ -26,10 +18,16 @@ export async function POST(request: Request) {
       password = body.password;
     } catch (parseError) {
       console.error('Error parsing request body:', parseError);
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: false,
         error: 'Invalid request format'
       }, { status: 400 });
+
+      // Add cache control headers
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     console.log('Login attempt for email:', email);
@@ -37,10 +35,16 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!email || !password) {
       console.log('Missing required fields');
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: false,
         error: 'Email and password are required'
       }, { status: 400 });
+
+      // Add cache control headers
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     // Get user by email
@@ -49,20 +53,32 @@ export async function POST(request: Request) {
     // If no user found, return error
     if (!user) {
       console.log('No user found with email:', email);
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: false,
         error: 'Invalid email or password'
       }, { status: 401 });
+
+      // Add cache control headers
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     // Check password (in a real app, you would hash passwords)
     // For development, we're using plain text passwords
     if (user.Password !== password) {
       console.log('Password mismatch for user:', email);
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: false,
         error: 'Invalid email or password'
       }, { status: 401 });
+
+      // Add cache control headers
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     console.log('Successful login for user:', user.Name, '(', user.Email, ')');
@@ -73,16 +89,31 @@ export async function POST(request: Request) {
     // Remove sensitive data before returning
     const { Password, ...safeUserData } = user;
 
-    return NextResponse.json({
+    // Create response with cache control headers
+    const response = NextResponse.json({
       success: true,
       user: safeUserData
     });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    response.headers.set('Surrogate-Control', 'no-store');
+
+    return response;
   } catch (error: any) {
     console.error('Login error:', error);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: false,
       error: `Error during login: ${error.message}`
     }, { status: 500 });
+
+    // Add cache control headers
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   }
 }
