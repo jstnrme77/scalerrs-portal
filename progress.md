@@ -143,6 +143,11 @@
 - ✅ Removed conversation history button and functionality from Articles and Backlinks tabs
 - ✅ Added safety checks to prevent opening conversation history modal for unsupported content types
 - ✅ Updated API endpoints to reject conversation history requests for Articles and Backlinks content types
+- ✅ Standardized Kanban card header sizes across all columns in Content Workflow page
+- ✅ Increased column width from 384px to 400px for better text display in Kanban headers
+- ✅ Fixed URL display in Kanban cards to show friendly names instead of full URLs
+- ✅ Added URL formatting for Frase document links to display "Frase Document" instead of long URLs
+- ✅ Improved text truncation in Kanban headers with consistent styling
 - 🔄 Refining responsive behavior on smaller screens
 - 🔄 Improving accessibility features
 

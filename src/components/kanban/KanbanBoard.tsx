@@ -72,7 +72,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
           {/* Kanban board with fixed-width columns */}
           <div className="flex space-x-6 min-w-max">
             {/* Brief Creation Needed Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <BriefColumn
                 title="Brief Creation Needed"
                 status="Brief Creation Needed"
@@ -87,7 +87,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
             </div>
 
             {/* Brief Under Internal Review Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <BriefColumn
                 title="Brief Under Internal Review"
                 status="Brief Under Internal Review"
@@ -102,7 +102,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
             </div>
 
             {/* Brief Awaiting Client Depth Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <BriefColumn
                 title="Brief Awaiting Client Depth"
                 status="Brief Awaiting Client Depth"
@@ -117,7 +117,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
             </div>
 
             {/* Brief Awaiting Client Review Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <BriefColumn
                 title="Brief Awaiting Client Review"
                 status="Brief Awaiting Client Review"
@@ -132,7 +132,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
             </div>
 
             {/* Brief Needs Revision Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <BriefColumn
                 title="Brief Needs Revision"
                 status="Brief Needs Revision"
@@ -147,7 +147,7 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
             </div>
 
             {/* Brief Approved Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <BriefColumn
                 title="Brief Approved"
                 status="Brief Approved"
@@ -230,7 +230,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
           {/* Kanban board with fixed-width columns */}
           <div className="flex space-x-6 min-w-max">
             {/* Awaiting Writer Assignment Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Awaiting Writer Assignment"
                 status="Awaiting Writer Assignment"
@@ -244,7 +244,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Writing In Progress Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Writing In Progress"
                 status="Writing In Progress"
@@ -258,7 +258,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Under Client Review Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Under Client Review"
                 status="Under Client Review"
@@ -272,7 +272,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Under Editor Review Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Under Editor Review"
                 status="Under Editor Review"
@@ -286,7 +286,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Writer Revision Needed Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Writer Revision Needed"
                 status="Writer Revision Needed"
@@ -300,7 +300,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Content Approved Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Content Approved"
                 status="Content Approved"
@@ -314,7 +314,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Visual Assets Needed Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Visual Assets Needed"
                 status="Visual Assets Needed"
@@ -328,7 +328,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Visual Assets Complete Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Visual Assets Complete"
                 status="Visual Assets Complete"
@@ -342,7 +342,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Ready for CMS Upload Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Ready for CMS Upload"
                 status="Ready for CMS Upload"
@@ -356,7 +356,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Internal Linking Needed Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Internal Linking Needed"
                 status="Internal Linking Needed"
@@ -370,7 +370,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Ready for Publication Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Ready for Publication"
                 status="Ready for Publication"
@@ -384,7 +384,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Published Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Published"
                 status="Published"
@@ -398,7 +398,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Reverse Internal Linking Needed Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Reverse Internal Linking Needed"
                 status="Reverse Internal Linking Needed"
@@ -412,7 +412,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Complete Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Complete"
                 status="Complete"
@@ -426,7 +426,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Cancelled Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Cancelled"
                 status="Cancelled"
@@ -440,7 +440,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* On Hold Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="On Hold"
                 status="On Hold"
@@ -454,7 +454,7 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
             </div>
 
             {/* Content Published Column */}
-            <div className="w-80">
+            <div className="w-[400px]">
               <ArticleColumn
                 title="Content Published"
                 status="Content Published"

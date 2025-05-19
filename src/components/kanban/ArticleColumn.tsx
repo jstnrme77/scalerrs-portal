@@ -164,18 +164,17 @@ export default function ArticleColumn({
       className={`w-full rounded-lg ${isOver ? 'ring-2 ring-primary' : ''} border ${statusColor}`}
     >
       <div className="flex flex-col">
-        <div className={`flex items-center justify-between px-3 py-2 ${headerBgColor} rounded-t-lg`}>
-          <h3 className="text-sm font-medium">
+        <div className={`${headerBgColor} rounded-t-lg kanban-column-header`}>
+          <h3>
             {title}
           </h3>
-          <span className="px-2 py-0.5 text-xs font-medium bg-white bg-opacity-60 rounded">
+          <span className="count-badge">
             {articles.length}
           </span>
         </div>
-        <div className="h-px bg-gray-200 w-full mt-1"></div>
       </div>
 
-      <div className={`${statusColor} rounded-b-lg p-3 mt-2`}>
+      <div className={`${statusColor} rounded-b-lg p-3`}>
         {articles.map((article) => (
           <ArticleCard
             key={article.id}

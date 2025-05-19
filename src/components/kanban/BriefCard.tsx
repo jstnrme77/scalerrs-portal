@@ -53,6 +53,28 @@ const getDisplayName = (field: string | string[] | undefined): string => {
   return 'Unassigned';
 };
 
+// Helper function to truncate URLs in titles
+const formatTitle = (title: string): string => {
+  // Check if the title is a URL (specifically a Frase URL)
+  if (title.startsWith('https://app.frase.io/') || title.startsWith('http://app.frase.io/')) {
+    return 'Frase Document';
+  }
+
+  // Check if it's any other URL
+  if (title.startsWith('https://') || title.startsWith('http://')) {
+    // Extract domain name
+    try {
+      const url = new URL(title);
+      return `Document from ${url.hostname}`;
+    } catch (e) {
+      // If URL parsing fails, truncate the URL
+      return title.length > 40 ? title.substring(0, 37) + '...' : title;
+    }
+  }
+
+  return title;
+};
+
 export default function BriefCard({ brief, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: BriefCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.BRIEF_CARD,
@@ -80,7 +102,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
         </div>
       )}
 
-      <h4 className="font-medium text-gray-800 text-base mt-2 mb-5">{brief.Title}</h4>
+      <h4 className="font-medium text-gray-800 text-base mt-2 mb-5">{formatTitle(brief.Title)}</h4>
 
       <div className="w-full h-px bg-gray-300 mb-5"></div>
 
@@ -175,7 +197,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   <button
                     onClick={() => {
                       if (brief.DocumentLink) {
-                        onViewDocument(ensureUrlProtocol(brief.DocumentLink), brief.Title || 'Brief Document');
+                        onViewDocument(ensureUrlProtocol(brief.DocumentLink), formatTitle(brief.Title) || 'Brief Document');
                       }
                     }}
                     className="inline-flex items-center text-xs text-primary hover:underline"
@@ -223,7 +245,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
                   <button
                     onClick={() => {
                       if (brief['FraseDocumentLink']) {
-                        onViewDocument(ensureUrlProtocol(brief['FraseDocumentLink']), `${brief.Title || 'Brief'} - Frase Document`);
+                        onViewDocument(ensureUrlProtocol(brief['FraseDocumentLink']), `${formatTitle(brief.Title) || 'Brief'} - Frase Document`);
                       }
                     }}
                     className="inline-flex items-center text-xs text-primary hover:underline"

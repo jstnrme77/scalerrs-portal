@@ -144,13 +144,52 @@ div.month-selector-dropdown,
   animation: fadeInOut 2s ease-in-out infinite;
 }
 
+/* Kanban column header styles */
+.kanban-column-header {
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(229, 231, 235, 1);
+}
+
+.kanban-column-header h3 {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  padding-right: 12px;
+  max-width: 85%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.kanban-column-header .count-badge {
+  min-width: 28px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .overflow-x-auto {
     padding-bottom: 1rem;
   }
 
-  .w-80 {
+  .w-[400px] {
     width: 85vw;
     min-width: 280px;
     max-width: 320px;
