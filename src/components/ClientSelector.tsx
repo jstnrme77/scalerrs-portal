@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useClientData } from '@/context/ClientDataContext';
 import { useAuth } from '@/context/AuthContext';
+import { fetchClients } from '@/lib/client-api';
 
 interface ClientSelectorProps {
   className?: string;
@@ -10,9 +11,63 @@ interface ClientSelectorProps {
 
 export default function ClientSelector({ className = '' }: ClientSelectorProps) {
   const { user } = useAuth();
-  const { clientId, setClientId, availableClients, isLoading } = useClientData();
+  const { clientId, setClientId, availableClients: contextClients, isLoading: contextLoading } = useClientData();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Local state for clients in case we need to fetch them directly
+  const [localClients, setLocalClients] = useState<{ id: string; name: string }[]>([]);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [localClientId, setLocalClientId] = useState<string | null>(null);
+
+  // Use either context values or local values
+  const availableClients = contextClients.length > 1 ? contextClients : localClients;
+  const isLoading = contextLoading || localLoading;
+
+  // Fetch clients directly if context doesn't provide them
+  useEffect(() => {
+    // Only fetch if user is admin and context doesn't have clients
+    if (user?.Role === 'Admin' && contextClients.length <= 1 && !contextLoading) {
+      const fetchClientData = async () => {
+        try {
+          setLocalLoading(true);
+          console.log('Fetching clients directly from ClientSelector component');
+
+          // Clear any Airtable connection issues flag
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('airtable-connection-issues');
+            localStorage.removeItem('use-mock-data');
+          }
+
+          const allClients = await fetchClients();
+          console.log('ClientSelector: Fetched clients directly:', allClients.length);
+
+          // Create client options
+          const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
+            id: client.id,
+            name: client.Name || `Client ${client.id.substring(0, 5)}`
+          }));
+
+          // Add "All Clients" option
+          setLocalClients([
+            { id: 'all', name: 'All Clients' },
+            ...clientOptions
+          ]);
+
+          // Set default client ID if not already set
+          if (!localClientId) {
+            setLocalClientId('all');
+          }
+        } catch (error) {
+          console.error('Error fetching clients directly:', error);
+        } finally {
+          setLocalLoading(false);
+        }
+      };
+
+      fetchClientData();
+    }
+  }, [user, contextClients, contextLoading, localClientId]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -39,7 +94,8 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
   }
 
   // Find the current client name
-  const currentClient = availableClients.find(client => client.id === clientId);
+  const effectiveClientId = contextClients.length > 1 ? clientId : localClientId;
+  const currentClient = availableClients.find(client => client.id === effectiveClientId);
   const currentClientName = currentClient ? currentClient.name : 'Select Client';
 
   return (
@@ -88,11 +144,16 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
               <div
                 key={client.id}
                 onClick={() => {
-                  setClientId(client.id);
+                  // Use context or local state based on which one we're using
+                  if (contextClients.length > 1) {
+                    setClientId(client.id);
+                  } else {
+                    setLocalClientId(client.id);
+                  }
                   setIsOpen(false);
                 }}
                 className={`block w-full text-left px-3 py-1.5 text-gray-800 hover:bg-gray-50 cursor-pointer ${
-                  clientId === client.id ? 'bg-gray-50' : ''
+                  effectiveClientId === client.id ? 'bg-gray-50' : ''
                 }`}
                 style={{ fontSize: '14px', zIndex: 10000 }}
               >

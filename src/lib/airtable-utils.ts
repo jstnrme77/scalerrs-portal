@@ -17,11 +17,12 @@ export const DEFAULT_CACHE_DURATION = 5 * 60 * 1000;
 export const isBrowser = typeof window !== 'undefined';
 
 /**
- * Check if we're on Netlify
+ * Check if we're on a cloud deployment (Netlify or Vercel)
  */
 export const isNetlify = () => {
   if (!isBrowser) return false;
-  return window.location.hostname.includes('netlify.app');
+  return window.location.hostname.includes('netlify.app') ||
+         window.location.hostname.includes('vercel.app');
 };
 
 /**
@@ -30,6 +31,12 @@ export const isNetlify = () => {
 export const getAirtableCredentials = () => {
   const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+
+  console.log('Environment variables check:');
+  console.log('- AIRTABLE_API_KEY exists:', !!process.env.AIRTABLE_API_KEY);
+  console.log('- NEXT_PUBLIC_AIRTABLE_API_KEY exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_API_KEY);
+  console.log('- AIRTABLE_BASE_ID exists:', !!process.env.AIRTABLE_BASE_ID);
+  console.log('- NEXT_PUBLIC_AIRTABLE_BASE_ID exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
 
   // For debugging purposes, log the first few characters of the token and the base ID
   if (apiKey) {
@@ -40,14 +47,23 @@ export const getAirtableCredentials = () => {
     if (!apiKey.startsWith('pat')) {
       console.warn('Warning: API key does not appear to be a personal access token (should start with "pat")');
     }
+  } else {
+    console.error('No Airtable API key found in environment variables!');
   }
 
-  console.log('Using Airtable base ID:', baseId);
+  if (baseId) {
+    console.log('Using Airtable base ID:', baseId);
+  } else {
+    console.error('No Airtable base ID found in environment variables!');
+  }
+
+  const hasCredentials = !!(apiKey && baseId);
+  console.log('Has valid Airtable credentials:', hasCredentials);
 
   return {
     apiKey,
     baseId,
-    hasCredentials: !!(apiKey && baseId)
+    hasCredentials
   };
 };
 
@@ -106,13 +122,18 @@ export const shouldUseMockData = () => {
     (typeof window !== 'undefined' && (window as any).env?.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
     (typeof window !== 'undefined' && localStorage.getItem('use-mock-data') === 'true');
 
-  // Check if we're on Netlify and having issues with Airtable
-  const isNetlifyWithAirtableIssues =
-    isNetlify() &&
-    localStorage.getItem('airtable-connection-issues') === 'true';
+  // Check if we're having issues with Airtable
+  const hasAirtableIssues = localStorage.getItem('airtable-connection-issues') === 'true';
+
+  // For debugging
+  console.log('shouldUseMockData check:', {
+    useMockData,
+    hasAirtableIssues,
+    result: useMockData || hasAirtableIssues
+  });
 
   // Return true if either condition is met
-  return useMockData || isNetlifyWithAirtableIssues;
+  return useMockData || hasAirtableIssues;
 };
 
 /**
@@ -172,13 +193,17 @@ export const fetchFromAirtableWithFallback = async <T>(
   mockData: T
 ): Promise<T> => {
   // Check if we should use mock data
-  if (shouldUseMockData()) {
+  const useMock = shouldUseMockData();
+  console.log(`Should use mock data for ${tableName}? ${useMock}`);
+
+  if (useMock) {
     console.log(`Using mock data for ${tableName}`);
     return mockData;
   }
 
   // Get Airtable client
   const { base, hasCredentials } = getAirtableClient();
+  console.log(`Airtable client for ${tableName}: hasCredentials=${hasCredentials}`);
 
   if (!hasCredentials || !base) {
     console.log(`No Airtable credentials for ${tableName}, using mock data`);

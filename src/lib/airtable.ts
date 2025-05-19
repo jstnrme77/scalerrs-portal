@@ -151,6 +151,14 @@ export const mockMonthlyProjections = [
 
 // Client functions
 export async function getClients() {
+  console.log('getClients function called');
+  console.log('Environment variables check:');
+  console.log('- AIRTABLE_API_KEY exists:', !!process.env.AIRTABLE_API_KEY);
+  console.log('- NEXT_PUBLIC_AIRTABLE_API_KEY exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_API_KEY);
+  console.log('- AIRTABLE_BASE_ID exists:', !!process.env.AIRTABLE_BASE_ID);
+  console.log('- NEXT_PUBLIC_AIRTABLE_BASE_ID exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
+  console.log('hasAirtableCredentials:', hasAirtableCredentials);
+
   if (!hasAirtableCredentials) {
     console.log('Using mock clients data - no Airtable credentials');
     return mockClients;
@@ -158,16 +166,50 @@ export async function getClients() {
 
   try {
     console.log('Fetching clients from Airtable...');
+    console.log('Using base:', !!base);
+    console.log('Using table:', TABLES.CLIENTS);
+
+    // Check if base is properly initialized
+    if (!base) {
+      throw new Error('Airtable base is not initialized');
+    }
+
     const records = await base(TABLES.CLIENTS).select().all();
     console.log(`Successfully fetched ${records.length} clients from Airtable`);
 
-    return records.map((record: any) => ({
+    // Log the first record for debugging
+    if (records.length > 0) {
+      console.log('Sample client record:', {
+        id: records[0].id,
+        fields: records[0].fields
+      });
+    }
+
+    const clients = records.map((record: any) => ({
       id: record.id,
       ...record.fields
     }));
+
+    console.log(`Mapped ${clients.length} client records`);
+
+    // Clear any Airtable connection issues flag since we successfully fetched data
+    if (typeof window !== 'undefined') {
+      console.log('Clearing airtable-connection-issues flag');
+      localStorage.removeItem('airtable-connection-issues');
+      localStorage.removeItem('use-mock-data');
+    }
+
+    return clients;
   } catch (error: any) {
     console.error('Error fetching clients:', error);
     console.error('Error details:', error.message || 'No error message available');
+    console.error('Error stack:', error.stack);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (typeof window !== 'undefined') {
+      console.log('Setting airtable-connection-issues flag in localStorage');
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
 
     // Fall back to mock data
     console.log('Falling back to mock clients data');

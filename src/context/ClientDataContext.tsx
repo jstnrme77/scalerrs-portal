@@ -82,11 +82,20 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
 
               console.log('Successfully fetched clients:', allClients.length);
 
+              // Clear any Airtable connection issues flag since we successfully fetched data
+              if (typeof window !== 'undefined') {
+                console.log('Clearing airtable-connection-issues flag');
+                localStorage.removeItem('airtable-connection-issues');
+                localStorage.removeItem('use-mock-data');
+              }
+
               // Create client objects with id and name
               const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
                 id: client.id,
                 name: client.Name || `Client ${client.id.substring(0, 5)}`
               }));
+
+              console.log('Client options:', clientOptions);
 
               // Add "All Clients" option at the beginning
               setAvailableClients([
