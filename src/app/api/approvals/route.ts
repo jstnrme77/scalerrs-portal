@@ -164,7 +164,15 @@ export async function GET(request: NextRequest) {
       );
 
       console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page})`);
-      return NextResponse.json(result);
+
+      // Create response with cache control headers
+      const response = NextResponse.json(result);
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     } catch (airtableError) {
       console.error('Error fetching from Airtable:', airtableError);
 
@@ -172,11 +180,22 @@ export async function GET(request: NextRequest) {
       console.log('Falling back to mock data due to Airtable error');
       const result = fallbackGetApprovalItems(type, userId, userRole, userClient ? JSON.parse(userClient) : [], page, pageSize);
       console.log(`API route: Found ${result.items.length} ${type} approval items using fallback (page ${page} of ${result.pagination.totalPages})`);
-      return NextResponse.json(result);
+
+      // Create response with cache control headers
+      const response = NextResponse.json(result);
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
   } catch (error) {
     console.error('Error fetching approval items:', error);
-    return NextResponse.json({ error: 'Failed to fetch approval items' }, { status: 500 });
+    const response = NextResponse.json({ error: 'Failed to fetch approval items' }, { status: 500 });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   }
 }
 
@@ -189,10 +208,13 @@ export async function POST(request: NextRequest) {
     const { type, itemId, status, revisionReason } = body;
 
     if (!type || !itemId || !status) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Missing required fields: type, itemId, and status are required' },
         { status: 400 }
       );
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      return response;
     }
 
     console.log(`Updating ${type} approval status for item ${itemId} to ${status}`);
@@ -200,17 +222,26 @@ export async function POST(request: NextRequest) {
     try {
       // Try to use the imported function
       const updatedItem = await updateApprovalStatus(type as any, itemId, status, revisionReason);
-      return NextResponse.json({ updatedItem });
+      const response = NextResponse.json({ updatedItem });
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      return response;
     } catch (functionError) {
       console.error('Error using imported updateApprovalStatus function:', functionError);
       console.log('Falling back to local implementation');
 
       // Use the fallback implementation
       const updatedItem = fallbackUpdateApprovalStatus(type, itemId, status, revisionReason);
-      return NextResponse.json({ updatedItem });
+      const response = NextResponse.json({ updatedItem });
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      return response;
     }
   } catch (error) {
     console.error('Error updating approval status:', error);
-    return NextResponse.json({ error: 'Failed to update approval status' }, { status: 500 });
+    const response = NextResponse.json({ error: 'Failed to update approval status' }, { status: 500 });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   }
 }

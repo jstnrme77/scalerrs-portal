@@ -139,13 +139,13 @@ export async function fetchWithFallback<T>(
 /**
  * Get the appropriate API URL based on environment
  * @param endpoint The API endpoint
- * @param isNetlifyDeployment Whether we're on Netlify
+ * @param isNetlifyDeployment Whether we're on Netlify (deprecated, always use Next.js API routes on Vercel)
  * @returns The full API URL
  */
-export function getApiUrl(endpoint: string, isNetlifyDeployment: boolean = isNetlify()): string {
-  return isNetlifyDeployment
-    ? `/.netlify/functions/${endpoint}`
-    : `/api/${endpoint}`;
+export function getApiUrl(endpoint: string, isNetlifyDeployment: boolean = false): string {
+  // Always use Next.js API routes for Vercel deployment
+  // This ensures consistent behavior across environments
+  return `/api/${endpoint}`;
 }
 
 /**

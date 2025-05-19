@@ -277,6 +277,8 @@ export async function fetchApprovalItems(
   const pageSizeKey = `_pageSize_${pageSize}`;
   const cacheKey = `approvals_${type}${pageKey}${pageSizeKey}_${offset || ''}${clientKey}${statusKey}`;
 
+  console.log('Using cache key:', cacheKey);
+
   // If we're not using cache, clear the cache entry first
   if (!useCache) {
     clearCacheByPrefix(`approvals_${type}`);

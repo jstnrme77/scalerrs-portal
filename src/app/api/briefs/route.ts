@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     console.log('API route: Fetching briefs from Airtable');
     console.log('API Key exists:', !!process.env.AIRTABLE_API_KEY);
     console.log('Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
+    console.log('Request URL:', request.url);
+    console.log('Request method:', request.method);
 
     // Get user information from the request
     const userId = request.headers.get('x-user-id');
@@ -66,15 +68,29 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({ briefs: filteredMockBriefs });
+      const response = NextResponse.json({ briefs: filteredMockBriefs });
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      return response;
     }
 
     console.log(`API route: Found ${briefs.length} briefs`);
-    return NextResponse.json({ briefs });
+
+    // Create response with cache control headers
+    const response = NextResponse.json({ briefs });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   } catch (error) {
     console.error('Error fetching briefs:', error);
     console.log('API route: Error fetching briefs, using mock data');
-    return NextResponse.json({ briefs: mockBriefs });
+    const response = NextResponse.json({ briefs: mockBriefs });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    return response;
   }
 }
 

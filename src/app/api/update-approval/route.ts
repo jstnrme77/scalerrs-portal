@@ -9,18 +9,30 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!type || !itemId || !status) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Missing required fields: type, itemId, or status' },
         { status: 400 }
       );
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     // Validate type
     if (!['keywords', 'briefs', 'articles', 'backlinks'].includes(type)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Invalid type. Must be one of: keywords, briefs, articles, backlinks' },
         { status: 400 }
       );
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     // Call the Airtable function to update the status
@@ -31,20 +43,32 @@ export async function POST(request: NextRequest) {
       revisionReason
     );
 
-    // Return success response
-    return NextResponse.json({
+    // Create success response with cache control headers
+    const response = NextResponse.json({
       success: true,
       id: itemId,
       status,
       result
     });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   } catch (error) {
     console.error('Error updating approval status:', error);
 
-    // Return error response
-    return NextResponse.json(
+    // Create error response with cache control headers
+    const response = NextResponse.json(
       { error: 'Failed to update approval status', details: (error as Error).message },
       { status: 500 }
     );
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   }
 }

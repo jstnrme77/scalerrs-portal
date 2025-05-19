@@ -55,10 +55,13 @@ const shouldUseMockData = () => {
   return useMockData || isNetlifyWithAirtableIssues || hasRecentApiErrors;
 };
 
-// Function to determine if we're on Netlify
+// Function to determine if we're on Netlify or Vercel
 const isNetlify = () => {
   if (!isBrowser) return false;
-  return window.location.hostname.includes('netlify.app');
+
+  // Check for Netlify or Vercel hostnames
+  return window.location.hostname.includes('netlify.app') ||
+         window.location.hostname.includes('vercel.app');
 };
 
 // Function to clear Airtable connection issues flag
@@ -535,10 +538,8 @@ export async function fetchBriefs(month?: string) {
       }
     }
 
-    // In production, use the API routes
-    let url = isNetlify()
-      ? '/.netlify/functions/get-briefs'
-      : '/api/briefs';
+    // In production, always use the Next.js API routes
+    let url = '/api/briefs';
 
     // Add month parameter to URL if provided
     if (month) {
@@ -641,10 +642,8 @@ export async function updateBriefStatus(briefId: string, status: string) {
       }
     }
 
-    // In production, use the API routes
-    const url = isNetlify()
-      ? '/.netlify/functions/update-brief'
-      : '/api/briefs';
+    // In production, always use the Next.js API routes
+    const url = '/api/briefs';
 
     console.log('Updating brief status at:', url);
 
@@ -738,10 +737,8 @@ export async function fetchArticles(month?: string) {
       }
     }
 
-    // In production, use the API routes
-    let url = isNetlify()
-      ? '/.netlify/functions/get-articles'
-      : '/api/articles';
+    // In production, always use the Next.js API routes
+    let url = '/api/articles';
 
     // Add month parameter to URL if provided
     if (month) {
@@ -844,10 +841,8 @@ export async function updateArticleStatus(articleId: string, status: string) {
       }
     }
 
-    // In production, use the API routes
-    const url = isNetlify()
-      ? '/.netlify/functions/update-article'
-      : '/api/articles';
+    // In production, always use the Next.js API routes
+    const url = '/api/articles';
 
     console.log('Updating article status at:', url);
 

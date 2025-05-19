@@ -96,13 +96,13 @@ export default function ContentWorkflowPage() {
             controller.abort();
           }, 20000);
 
-          // Use a direct fetch to the Netlify function with a timeout
-          let url = '/.netlify/functions/get-briefs';
+          // Use Next.js API routes in Vercel environment
+          let url = '/api/briefs';
           if (selectedMonth) {
             url += `?month=${encodeURIComponent(selectedMonth)}`;
           }
 
-          console.log('Fetching briefs directly from:', url);
+          console.log('Fetching briefs from API route:', url);
 
           // Get current user from localStorage
           const currentUser = typeof window !== 'undefined' ?
@@ -208,13 +208,13 @@ export default function ContentWorkflowPage() {
             controller.abort();
           }, 20000);
 
-          // Use a direct fetch to the Netlify function with a timeout
-          let url = '/.netlify/functions/get-articles';
+          // Use Next.js API routes in Vercel environment
+          let url = '/api/articles';
           if (selectedMonth) {
             url += `?month=${encodeURIComponent(selectedMonth)}`;
           }
 
-          console.log('Fetching articles directly from:', url);
+          console.log('Fetching articles from API route:', url);
 
           // Get current user from localStorage
           const currentUser = typeof window !== 'undefined' ?

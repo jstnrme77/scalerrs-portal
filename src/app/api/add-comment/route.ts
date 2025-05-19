@@ -29,18 +29,30 @@ export async function POST(request: NextRequest) {
 
     // Validate parameters
     if (!contentType || !itemId || !text) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Missing required parameters: contentType, itemId, and text' },
         { status: 400 }
       );
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     // Only allow Keywords and Briefs content types
     if (contentType !== 'keywords' && contentType !== 'briefs') {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'Adding comments is only available for Keywords and Briefs content types' },
         { status: 400 }
       );
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     // Get the current user
@@ -59,8 +71,8 @@ export async function POST(request: NextRequest) {
       CreatedTime: new Date().toISOString()
     });
 
-    // Return the created comment
-    return NextResponse.json({
+    // Create response with the created comment
+    const response = NextResponse.json({
       id: result.id,
       text,
       author,
@@ -68,11 +80,23 @@ export async function POST(request: NextRequest) {
       contentType,
       itemId
     });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   } catch (error) {
     console.error('Error adding comment:', error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: 'Failed to add comment' },
       { status: 500 }
     );
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   }
 }
