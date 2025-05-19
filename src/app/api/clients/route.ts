@@ -12,14 +12,38 @@ export async function GET() {
 
     if (!clients || clients.length === 0) {
       console.log('API route: No clients found, using mock data');
-      return NextResponse.json({ clients: mockClients });
+
+      // Create response with cache control headers
+      const response = NextResponse.json({ clients: mockClients });
+
+      // Add cache control headers to prevent caching
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+
+      return response;
     }
 
     console.log(`API route: Found ${clients.length} clients`);
-    return NextResponse.json({ clients });
+
+    // Create response with cache control headers
+    const response = NextResponse.json({ clients });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   } catch (error) {
     console.error('Error fetching clients:', error);
     console.log('API route: Error fetching clients, using mock data');
-    return NextResponse.json({ clients: mockClients });
+
+    // Create response with cache control headers
+    const response = NextResponse.json({ clients: mockClients });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+
+    return response;
   }
 }

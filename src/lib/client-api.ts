@@ -1239,10 +1239,8 @@ export async function fetchClients() {
       return clients;
     }
 
-    // In production, use the API routes
-    const url = isNetlify()
-      ? '/.netlify/functions/get-clients'
-      : '/api/clients';
+    // In production, always use the Next.js API routes
+    const url = '/api/clients';
 
     console.log('Fetching clients from:', url);
 
@@ -1432,10 +1430,8 @@ export async function fetchAvailableMonths() {
       return months;
     }
 
-    // In production, use the API routes
-    const url = isNetlify()
-      ? '/.netlify/functions/get-available-months'
-      : '/api/months'; // Use the existing months API route
+    // In production, always use the Next.js API routes
+    const url = '/api/months';
 
     console.log('Fetching available months from:', url);
 
@@ -1456,16 +1452,16 @@ export async function fetchAvailableMonths() {
       throw new Error(`API request failed with status ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Available months data received:', data);
+    const months = await response.json();
+    console.log('Available months data received:', months);
 
     // Cache the months data
-    if (isBrowser && data.months && data.months.length > 0) {
-      localStorage.setItem('cached-available-months', JSON.stringify(data.months));
+    if (isBrowser && months && months.length > 0) {
+      localStorage.setItem('cached-available-months', JSON.stringify(months));
       localStorage.setItem('cached-months-timestamp', Date.now().toString());
     }
 
-    return data.months;
+    return months;
   } catch (error) {
     console.error('Error fetching available months:', error);
 

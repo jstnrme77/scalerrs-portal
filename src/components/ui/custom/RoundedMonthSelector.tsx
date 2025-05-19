@@ -14,6 +14,7 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Get current month and year for default selection
   const getCurrentMonthYear = () => {
@@ -66,10 +67,16 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
           if (isMounted) setLoading(true);
         }, 200);
 
-        const months = await fetchAvailableMonths();
+        // Create an AbortController for the fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-        // Clear the loading timeout
+        console.log('Fetching available months from API...');
+        const months = await fetchAvailableMonths(controller.signal);
+
+        // Clear the timeouts
         clearTimeout(loadingTimeout);
+        clearTimeout(timeoutId);
 
         if (!isMounted) return;
 
@@ -77,13 +84,23 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
         if (months && Array.isArray(months) && months.length > 0) {
           console.log('Successfully loaded months:', months);
           setAvailableMonths(months);
+          setError(null);
         } else {
           console.log('No valid months returned, using default months');
           // Fallback to default months if none returned or invalid format
           setAvailableMonths(defaultMonths);
+          setError('Could not load months from server');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching available months:', error);
+
+        // Set a more user-friendly error message
+        if (error.name === 'AbortError') {
+          setError('Request timed out. Using default months.');
+        } else {
+          setError('Failed to load months. Using default months.');
+        }
+
         // Fallback to default months
         if (isMounted) {
           setAvailableMonths(defaultMonths);
@@ -186,6 +203,8 @@ export default function RoundedMonthSelector({ selectedMonth, onChange }: Rounde
         </span>
         {loading ? (
           <div className="ml-1 h-3 w-3 animate-spin rounded-full border border-gray-300 border-t-purple-600"></div>
+        ) : error ? (
+          <div className="ml-1 h-3 w-3 flex-shrink-0 text-red-500" title={error}>!</div>
         ) : (
           <ChevronDown className="ml-1 h-3 w-3 flex-shrink-0" />
         )}

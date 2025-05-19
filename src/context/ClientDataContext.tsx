@@ -69,19 +69,38 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
           } else if (user.Role === 'Admin') {
             // For admin users, fetch all clients from Airtable
             const { fetchClients } = await import('@/lib/client-api');
-            const allClients = await fetchClients();
+            console.log('Fetching clients for admin user...');
 
-            // Create client objects with id and name
-            const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
-              id: client.id,
-              name: client.Name || `Client ${client.id.substring(0, 5)}`
-            }));
+            try {
+              // Create an AbortController for the fetch request
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-            // Add "All Clients" option at the beginning
-            setAvailableClients([
-              { id: 'all', name: 'All Clients' },
-              ...clientOptions
-            ]);
+              const allClients = await fetchClients();
+              clearTimeout(timeoutId);
+
+              console.log('Successfully fetched clients:', allClients.length);
+
+              // Create client objects with id and name
+              const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
+                id: client.id,
+                name: client.Name || `Client ${client.id.substring(0, 5)}`
+              }));
+
+              // Add "All Clients" option at the beginning
+              setAvailableClients([
+                { id: 'all', name: 'All Clients' },
+                ...clientOptions
+              ]);
+            } catch (error) {
+              console.error('Error fetching clients:', error);
+              setIsLoading(false);
+
+              // Set a fallback client list with just "All Clients"
+              setAvailableClients([
+                { id: 'all', name: 'All Clients' }
+              ]);
+            }
 
             // Set default client ID to 'all' only if clientId is not set
             if (!clientId) {
