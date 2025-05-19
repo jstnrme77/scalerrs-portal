@@ -441,8 +441,7 @@ export async function loginUser(email: string, password: string) {
   }
 
   try {
-    // Always use the /api/login endpoint which will be redirected appropriately by Netlify
-    // This ensures consistent behavior across environments
+    // With Vercel, we can always use the Next.js API route
     const loginUrl = '/api/login';
     console.log('Using login URL:', loginUrl);
 

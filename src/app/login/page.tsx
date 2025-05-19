@@ -21,6 +21,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      // With Vercel, we can simply use the AuthContext login function
       const success = await login(email, password);
 
       if (success) {
@@ -30,7 +31,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('An error occurred during login');
+      setError('An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
     }

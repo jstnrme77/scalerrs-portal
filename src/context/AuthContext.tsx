@@ -53,8 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // Always use the /api/login endpoint which will be redirected appropriately by Netlify
-      // This ensures consistent behavior across environments
+      // With Vercel, we can always use the Next.js API route
       const loginUrl = '/api/login';
       console.log('Using login URL:', loginUrl);
 

@@ -85,6 +85,13 @@ async function getUserByEmail(email) {
 
 // Handler for the Netlify function
 exports.handler = async (event, context) => {
+  // Log request details for debugging
+  console.log('Login function called with:');
+  console.log('- HTTP Method:', event.httpMethod);
+  console.log('- Path:', event.path);
+  console.log('- Headers:', JSON.stringify(event.headers));
+  console.log('- Query String Parameters:', JSON.stringify(event.queryStringParameters));
+
   // Set execution timeout to avoid Netlify's 10s limit
   const EXECUTION_TIMEOUT = 8000; // 8 seconds
   const executionStart = Date.now();
@@ -107,9 +114,16 @@ exports.handler = async (event, context) => {
 
     // Handle preflight OPTIONS request
     if (event.httpMethod === 'OPTIONS') {
+      console.log('Handling OPTIONS request with CORS headers');
       return {
         statusCode: 204,
-        headers
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Cache-Control',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
       };
     }
 
