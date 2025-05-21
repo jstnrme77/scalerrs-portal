@@ -2688,6 +2688,92 @@ export async function getMonthlyProjections(clientIds?: string[] | null) {
     return mockMonthlyProjections;
   }
 }
+// Mock activity logs data
+const mockActivityLogs = [
+  {
+    id: 'log1',
+    Timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+    Description: 'Brief for "SEO Strategy for E-commerce" has been approved',
+    Category: 'brief_updates',
+    UserSource: 'John Smith'
+  },
+  {
+    id: 'log2',
+    Timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    Description: 'New backlink opportunity identified for client website',
+    Category: 'backlink_updates',
+    UserSource: { name: 'Emma Johnson' }
+  },
+  {
+    id: 'log3',
+    Timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
+    Description: 'Content article "Top 10 SEO Strategies" submitted for review',
+    Category: 'content_updates',
+    UserSource: 'Michael Brown'
+  },
+  {
+    id: 'log4',
+    Timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    Description: 'Monthly SEO performance report generated',
+    Category: 'reports',
+    UserSource: { name: 'Sarah Davis' }
+  },
+  {
+    id: 'log5',
+    Timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(), // 2 days ago
+    Description: 'New keyword cluster created for product pages',
+    Category: 'keyword_updates',
+    UserSource: 'Alex Wilson'
+  }
+];
+
+/**
+ * Get the latest activity logs from Airtable
+ * @param limit Optional number of logs to return (default: 10)
+ * @param clientIds Optional client IDs to filter by
+ * @returns Array of activity logs
+ */
+export const getLatestActivityLogs = async (limit: number = 10, clientIds?: string[] | null) => {
+  // If we don't have Airtable credentials, return mock data
+  if (!hasAirtableCredentials || !base) {
+    console.log('Using mock activity logs data');
+    return mockActivityLogs;
+  }
+
+  try {
+    // Get the Activity Log table
+    const table = base(TABLES.ACTIVITY_LOG);
+
+    // Build the filter formula if clientIds are provided
+    let filterFormula = '';
+    if (clientIds && clientIds.length > 0) {
+      // Create a formula that checks if any of the client IDs are in the Client field
+      // Note: Adjust field name if different in your Airtable
+      const clientFormulas = clientIds.map(id => `FIND("${id}", {Client})`).join(', ');
+      filterFormula = `OR(${clientFormulas})`;
+    }
+
+    // Fetch records from Airtable
+    const records = await table.select({
+      filterByFormula: filterFormula || '',
+      sort: [{ field: 'Timestamp', direction: 'desc' }],
+      maxRecords: limit
+    }).all();
+
+    // Map the records to our data structure
+    return records.map((record: any) => ({
+      id: record.id,
+      Timestamp: record.get('Timestamp') as string,
+      Description: record.get('Description') as string,
+      Category: record.get('Category') as string,
+      UserSource: record.get('UserSource') as string | { name: string },
+      // Add any other fields you need from the Activity Log table
+    }));
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    return mockActivityLogs;
+  }
+}
 
 /**
  * Get approval items from Airtable

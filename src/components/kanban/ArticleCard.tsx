@@ -1,3 +1,4 @@
+import React from 'react';
 import { useDrag } from 'react-dnd';
 import { ItemTypes } from '@/constants/DragTypes';
 import { Article, ArticleStatus } from '@/types';
@@ -93,11 +94,14 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
                 
                 if (Array.isArray(writer) && writer.length > 0) {
                   if (typeof writer[0] === 'string') return writer[0].charAt(0).toUpperCase();
-                  if (writer[0] && typeof writer[0] === 'object' && writer[0].name) return writer[0].name.charAt(0).toUpperCase();
+                  // Use type assertion to handle objects with name property
+                  if (writer[0] && typeof writer[0] === 'object' && 'name' in (writer[0] as Record<string, any>)) {
+                    return ((writer[0] as Record<string, any>).name as string).charAt(0).toUpperCase();
+                  }
                 }
                 
-                if (typeof writer === 'object' && writer !== null && 'name' in writer) {
-                  return writer.name.charAt(0).toUpperCase();
+                if (typeof writer === 'object' && writer !== null && 'name' in (writer as Record<string, any>)) {
+                  return ((writer as Record<string, any>).name as string).charAt(0).toUpperCase();
                 }
                 
                 return 'U';
@@ -106,22 +110,32 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
             <span className="text-xs text-gray-700 truncate">
               {(() => {
                 const writer = article['Content Writer'] || article.Writer;
-                if (!writer) return 'Unassigned';
+                if (!writer) return 'Unassigned' as React.ReactNode;
                 
-                if (typeof writer === 'string') return writer;
+                if (typeof writer === 'string') return writer as React.ReactNode;
                 
                 if (Array.isArray(writer) && writer.length > 0) {
-                  if (typeof writer[0] === 'string') return writer[0];
-                  if (writer[0] && typeof writer[0] === 'object' && writer[0].name) {
-                    return writer.map(w => w.name).join(', ');
+                  if (typeof writer[0] === 'string') return writer[0] as React.ReactNode;
+                  if (writer[0] && typeof writer[0] === 'object' && 'name' in (writer[0] as Record<string, any>)) {
+                    // Type-safe mapping of array elements
+                    return writer.map(w => {
+                      if (typeof w === 'object' && w !== null && 'name' in (w as Record<string, any>)) {
+                        return (w as Record<string, any>).name as string;
+                      }
+                      return typeof w === 'string' ? w : 'Unknown';
+                    }).join(', ') as React.ReactNode;
                   }
+                  return 'Unknown Writer' as React.ReactNode;
                 }
                 
-                if (typeof writer === 'object' && writer !== null && 'name' in writer) {
-                  return writer.name;
+                if (typeof writer === 'object' && writer !== null) {
+                  if ('name' in (writer as Record<string, any>)) {
+                    return ((writer as Record<string, any>).name as string) as React.ReactNode;
+                  }
+                  return JSON.stringify(writer) as React.ReactNode;
                 }
                 
-                return 'Unassigned';
+                return 'Unassigned' as React.ReactNode;
               })()}
             </span>
           </div>
