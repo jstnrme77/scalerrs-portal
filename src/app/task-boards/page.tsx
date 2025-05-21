@@ -5,7 +5,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { BarChart, Wrench, LightbulbIcon } from 'lucide-react';
-import { fetchTasks, fetchComments, addComment, updateTaskStatus } from '@/lib/client-api';
+import { fetchWQATasks, updateWQATaskStatus, addWQATaskComment, clearWQATasksCache } from '@/lib/client-api-utils';
+import { useClientData } from '@/context/ClientDataContext';
 // Import task types from our types file
 import {
   Task,
@@ -362,20 +363,8 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
       const fetchTaskComments = async () => {
         try {
           setLoading(true);
-          const commentsData = await fetchComments(taskId.toString());
-
-          // Map Airtable comments to our Comment type
-          const mappedComments: Comment[] = commentsData.map((comment: any) => ({
-            id: comment.id,
-            author: comment.User?.[0] || 'Anonymous',
-            text: comment.Comment || '',
-            timestamp: comment.CreatedAt || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          }));
-
-          setTaskComments(mappedComments.length > 0 ? mappedComments : comments);
-        } catch (err) {
-          console.error('Error fetching comments:', err);
-          // Fall back to existing comments
+          // In a real implementation, this would fetch comments from an API
+          // For now, we'll just use the provided comments
           setTaskComments(comments);
         } finally {
           setLoading(false);
@@ -390,32 +379,29 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
     if (!newComment.trim()) return;
 
     try {
-      // Add comment to Airtable
-      const result = await addComment(
-        taskId.toString(),
-        'current-user', // User ID - using a placeholder since we don't have real auth
-        newComment
-      );
+      // In a real implementation, this would call an API to add the comment
+      // For now, we'll just add it to the local state
+      // await addComment(taskId.toString(), newComment);
+      await addWQATaskComment(taskId.toString(), newComment);
 
-      // Update local state
-      const newCommentObj: Comment = {
-        id: result.id || Date.now(),
-        author: 'You', // This would be the current user in a real app
+      const newCommentObj = {
+        id: `comment-${Date.now()}`,
+        author: 'You',
         text: newComment,
-        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        timestamp: new Date().toLocaleDateString()
       };
 
       setTaskComments([...taskComments, newCommentObj]);
       setNewComment('');
-    } catch (err) {
-      console.error('Error adding comment:', err);
+    } catch (error) {
+      console.error('Error adding comment:', error);
 
       // Still update UI for better UX
-      const newCommentObj: Comment = {
-        id: Date.now(),
-        author: 'You', // This would be the current user in a real app
+      const newCommentObj = {
+        id: `comment-${Date.now()}`,
+        author: 'You',
         text: newComment,
-        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        timestamp: new Date().toLocaleDateString()
       };
 
       setTaskComments([...taskComments, newCommentObj]);
@@ -458,14 +444,14 @@ function CommentsSection({ comments, taskId }: { comments: Comment[], taskId: nu
             <input
               type="text"
               placeholder="Add a comment..."
-              className="flex-1 border border-gray-200 rounded-l-[12px] p-2 text-base focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="flex-1 border border-gray-200 rounded-lg p-2 text-base focus:outline-none focus:ring-1 focus:ring-gray-400"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
             />
             <button
               onClick={handleAddComment}
               disabled={!newComment.trim() || loading}
-              className="bg-[#000000] text-white px-4 py-2 rounded-r-[12px] text-base font-medium disabled:opacity-50"
+              className="bg-[#000000] text-white px-4 py-2 rounded-lg text-base font-medium disabled:opacity-50"
             >
               {loading ? 'Posting...' : 'Post'}
             </button>
@@ -1027,76 +1013,93 @@ function AddTaskModal({
     </div>
   );
 }
-
 export default function TaskBoards() {
-  const [boards, setBoards] = useState<Record<string, Task[]>>({
-    technicalSEO: [],
-    cro: [],
-    strategyAdHoc: []
-  });
   const [activeBoard, setActiveBoard] = useState('technicalSEO');
+  const [boards, setBoards] = useState<Record<string, Task[]>>(taskBoards);
   const [addTaskModal, setAddTaskModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Get client data context for filtering by client
+  const { clientId } = useClientData();
 
-  // Fetch tasks from Airtable
+  // Fetch tasks from API
   useEffect(() => {
-    const fetchTasksData = async () => {
+    const fetchTasksForBoard = async () => {
+      setLoading(true);
+      setError('');
+      
       try {
-        setLoading(true);
-        setError(null);
-
-        console.log('Fetching tasks from Airtable...');
-        // Fetch tasks from Airtable
-        const tasksData = await fetchTasks();
-        console.log(`Fetched ${tasksData.length} tasks from Airtable`);
-
-        // Organize tasks by board
-        const organizedTasks: Record<string, Task[]> = {
-          technicalSEO: [],
-          cro: [],
-          strategyAdHoc: []
-        };
-
-        // Map Airtable tasks to our Task type
-        tasksData.forEach((task: AirtableTask) => {
-          console.log('Processing task:', task.id, task.Title || task.Name);
-
-          // Use our mapping function to convert Airtable task to our Task type
-          const mappedTask = mapAirtableTaskToTask(task);
-
-          // Determine which board this task belongs to
-          const category = task.Category || task.Type || '';
-
-          if (category.includes('Technical') || category.includes('SEO')) {
-            organizedTasks.technicalSEO.push(mappedTask);
-          } else if (category.includes('CRO') || category.includes('Conversion')) {
-            organizedTasks.cro.push(mappedTask);
-          } else if (category.includes('Strategy') || category.includes('Ad Hoc')) {
-            organizedTasks.strategyAdHoc.push(mappedTask);
-          } else {
-            // Default to Technical SEO if no category is specified
-            organizedTasks.technicalSEO.push(mappedTask);
-          }
+        // Fetch tasks for the active board from Airtable
+        const response = await fetchWQATasks(activeBoard);
+        
+        // Extract tasks from the response
+        const tasks = response && response.tasks ? response.tasks : [];
+        
+        // Update the boards state with the fetched tasks
+        setBoards(prev => {
+          const newBoards = { ...prev };
+          
+          // Map the Airtable tasks to our Task type
+          const mappedTasks = Array.isArray(tasks) ? tasks.map((task: any) => {
+            // Extract the task fields
+            const {
+              id,
+              Name,
+              Status,
+              'Assigned To': AssignedTo,
+              Date: dateLogged,
+              Priority: priority,
+              Impact: impact,
+              Effort: effort,
+              Comments: comments = [],
+              Actions: actions,
+              Notes: notes,
+              'Completed Date': completedDate
+            } = task;
+            
+            // Map to our Task type
+            let mappedTask: any = {
+              id,
+              task: Name || '',
+              status: Status as TaskStatus || 'Not Started',
+              // Handle AssignedTo which can be an object with id, email, name properties
+              assignedTo: AssignedTo ? 
+                (typeof AssignedTo === 'object' ? 
+                  (AssignedTo.name || `${AssignedTo.email || 'User'}`) : 
+                  String(AssignedTo)
+                ) : 'Not Assigned',
+              dateLogged: dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+              // Use actual values from Airtable for priority, impact, and effort
+              priority: priority ? (priority as TaskPriority) : 'Medium',
+              impact: impact !== undefined && impact !== null ? 
+                (typeof impact === 'number' ? impact : 
+                  (typeof impact === 'string' ? parseInt(impact, 10) || 3 : 3)) : 3,
+              effort: effort ? (effort as TaskEffort) : 'M',
+              comments: Array.isArray(comments) ? comments.map((comment: any, index: number) => ({
+                id: comment.id || index,
+                author: comment.author || 'User',
+                text: comment.text || comment.toString(),
+                timestamp: comment.timestamp || new Date().toLocaleDateString()
+              })) : [],
+              notes: notes || ''
+            };
+            
+            // Add completedDate if Status is Done
+            if (Status === 'Done') {
+              mappedTask.completedDate = completedDate || 
+                new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              mappedTask = mappedTask as CompletedTask;
+            } else {
+              mappedTask = mappedTask as ActiveTask;
+            }
+            
+            return mappedTask;
+          }) : [];
+          
+          newBoards[activeBoard as keyof typeof boards] = mappedTasks;
+          return newBoards;
         });
-
-        console.log('Organized tasks:', {
-          technicalSEO: organizedTasks.technicalSEO.length,
-          cro: organizedTasks.cro.length,
-          strategyAdHoc: organizedTasks.strategyAdHoc.length
-        });
-
-        // If we have no tasks, fall back to sample data
-        if (
-          organizedTasks.technicalSEO.length === 0 &&
-          organizedTasks.cro.length === 0 &&
-          organizedTasks.strategyAdHoc.length === 0
-        ) {
-          console.log('No tasks found in Airtable, using sample data');
-          setBoards(taskBoards);
-        } else {
-          setBoards(organizedTasks);
-        }
       } catch (err: any) {
         console.error('Error fetching tasks:', err);
         setError(`An error occurred while fetching tasks: ${err.message}`);
@@ -1109,7 +1112,7 @@ export default function TaskBoards() {
       }
     };
 
-    fetchTasksData();
+    fetchTasksForBoard();
   }, []);
 
   // We'll always show the Strategy/Ad Hoc tab regardless of whether there are tasks
@@ -1119,7 +1122,7 @@ export default function TaskBoards() {
     try {
       console.log(`Updating task ${id} status to ${newStatus}`);
       // Update task status in Airtable
-      await updateTaskStatus(id.toString(), newStatus);
+      await updateWQATaskStatus(id.toString(), newStatus);
       console.log(`Task ${id} status updated successfully`);
 
       // Update local state
@@ -1196,8 +1199,8 @@ export default function TaskBoards() {
 
   const handleAddTask = async (task: Task) => {
     try {
-      // In a real implementation, you would add the task to Airtable here
-      // For now, we'll just update the local state
+      // In a real implementation, this would call an API to add the task
+      // For now, we'll just add it to the local state
       setBoards(prev => {
         const newBoards = { ...prev };
         newBoards[activeBoard as keyof typeof boards] = [

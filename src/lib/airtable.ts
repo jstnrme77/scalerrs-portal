@@ -490,45 +490,53 @@ export async function getWQATasks(userId?: string | null, userRole?: string | nu
     console.log('Fetching WQA tasks from Airtable...');
     console.log('Using base ID:', baseId);
 
-    // Base filter for WQA tasks
-    let wqaFilter = "OR(" +
-      "SEARCH('WQA', ARRAYJOIN(Tags, ',')) > 0," +
-      "Type = 'WQA'" +
-      ")";
-
-    // Additional filters based on user role
-    let userFilter = '';
-
-    // If user is a client, filter by client
+    // For the WQA table, we'll skip the type/tags filtering since those fields don't exist
+    // We'll just fetch all records from the WQA table
+    let filterFormula = '';
+    
+    // Add user-specific filters if needed
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
       console.log('Filtering WQA tasks by client:', clientIds);
-
-      // Create a filter formula for client IDs
-      const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
-      );
-
-      // Combine filters with OR
-      userFilter = `OR(${clientFilters.join(',')})`;      
-    }
-    // If user is not an admin or client, filter by assigned user
+      
+      // If the WQA table has a Client field, we can filter by it
+      // Otherwise, we'll just fetch all records
+      try {
+        const clientFilters = clientIds.map(clientId =>
+          `SEARCH('${clientId}', {Client})`
+        );
+        
+        filterFormula = `OR(${clientFilters.join(',')})`;  
+        console.log('Using client filter:', filterFormula);
+      } catch (error) {
+        console.warn('Error creating client filter, fetching all records instead:', error);
+      }
+    } 
+    // If user is not an admin or client, filter by assigned user if possible
     else if (userId && userRole && userRole !== 'Admin') {
       console.log(`Filtering WQA tasks for user: ${userId}, role: ${userRole}`);
-
-      // Filter for tasks assigned to this user
-      userFilter = `SEARCH('${userId}', ARRAYJOIN(AssignedTo, ',')) > 0`;
-    }
-
-    // Combine WQA filter with user filter if present
-    let filterFormula = wqaFilter;
-    if (userFilter) {
-      filterFormula = `AND(${wqaFilter}, ${userFilter})`;
+      
+      // If the WQA table has an Assigned To field, we can filter by it
+      try {
+        filterFormula = `SEARCH('${userId}', {Assigned To})`;  
+        console.log('Using assigned user filter:', filterFormula);
+      } catch (error) {
+        console.warn('Error creating assigned user filter, fetching all records instead:', error);
+      }
     }
 
     console.log('Using filter formula:', filterFormula);
-    const query = base(TABLES.TASKS).select({
-      filterByFormula: filterFormula
-    });
+    // Use WQA table instead of TASKS table
+    let query;
+    if (filterFormula) {
+      query = base('WQA').select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      // If no filter formula, just select all records
+      query = base('WQA').select();
+    }
+    
+    console.log('Querying WQA table in Airtable');
 
     const records = await query.all();
     console.log(`Successfully fetched ${records.length} WQA tasks from Airtable`);

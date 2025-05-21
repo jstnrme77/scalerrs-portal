@@ -475,3 +475,166 @@ export async function addApprovalComment(
     }
   );
 }
+
+/**
+ * Fetch WQA task data for the Task Boards page
+ * @param boardType Type of task board to fetch (technicalSEO, cro, strategyAdHoc)
+ * @param signal Optional AbortSignal for cancellation
+ * @param useCache Whether to use cached data
+ * @returns Array of WQA tasks for the specified board type
+ */
+export async function fetchWQATasks(
+  boardType: string,
+  signal?: AbortSignal,
+  useCache: boolean = true
+) {
+  // Create a cache key based on the board type
+  const cacheKey = `wqa_tasks_${boardType}`;
+
+  return getFromCacheOrFetch(
+    cacheKey,
+    async () => {
+      // Prepare the API endpoint with board type as a query parameter
+      const endpoint = `wqa-tasks?type=${encodeURIComponent(boardType)}`;
+      
+      // Use the generic fetchFromApi function to make the request
+      const response = await fetchFromApi(
+        endpoint,
+        { method: 'GET' },
+        // Fallback mock data based on board type
+        mockData.mockTasks.filter(task => {
+          // Filter mock tasks based on board type
+          // This is just for fallback purposes
+          if (boardType === 'technicalSEO') {
+            return task.Type === 'Technical SEO' || task.Type === 'WQA';
+          } else if (boardType === 'cro') {
+            return task.Type === 'CRO';
+          } else if (boardType === 'strategyAdHoc') {
+            return task.Type === 'Strategy' || task.Type === 'Ad Hoc';
+          }
+          return false;
+        }),
+        signal
+      );
+
+      return response;
+    },
+    // Cache for 5 minutes
+    5 * 60 * 1000,
+    useCache
+  );
+}
+
+/**
+ * Update WQA task status via the API
+ * @param taskId Task ID
+ * @param newStatus New status
+ * @returns Updated task
+ */
+export async function updateWQATaskStatus(taskId: string, newStatus: string) {
+  // Clear the cache for all board types when updating a task
+  clearWQATasksCache();
+  
+  return fetchFromApi(
+    'wqa-tasks/update-status',
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, newStatus })
+    },
+    { success: true, id: taskId, status: newStatus }
+  );
+}
+
+/**
+ * Add a comment to a WQA task
+ * @param taskId Task ID
+ * @param text Comment text
+ * @returns Added comment
+ */
+export async function addWQATaskComment(taskId: string, text: string) {
+  return fetchFromApi(
+    'wqa-tasks/add-comment',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, text })
+    },
+    {
+      id: `comment-${Date.now()}`,
+      text,
+      author: 'You',
+      timestamp: new Date().toLocaleDateString()
+    }
+  );
+}
+
+/**
+ * Clear the WQA tasks cache
+ */
+export function clearWQATasksCache() {
+  clearCacheByPrefix('wqa_tasks_');
+}
+
+/**
+ * Fetch task board data from the API with caching
+ * @param boardType Type of task board to fetch (technicalSEO, cro, strategyAdHoc)
+ * @param signal Optional AbortSignal for cancellation
+ * @param useCache Whether to use cached data
+ * @returns Array of tasks for the specified board type
+ */
+export async function fetchTaskBoardData(
+  boardType: string,
+  signal?: AbortSignal,
+  useCache: boolean = true
+) {
+  // Create a cache key based on the board type
+  const cacheKey = `taskboard_${boardType}`;
+
+  return getFromCacheOrFetch(
+    cacheKey,
+    async () => {
+      // Prepare the API endpoint with board type as a query parameter
+      const endpoint = `tasks/board?type=${encodeURIComponent(boardType)}`;
+      
+      // Use the generic fetchFromApi function to make the request
+      const response = await fetchFromApi(
+        endpoint,
+        { method: 'GET' },
+        // Fallback mock data based on board type
+        mockData.mockTasks.filter(task => {
+          // Filter mock tasks based on board type
+          // This is just for fallback purposes
+          if (boardType === 'technicalSEO') {
+            return task.Type === 'Technical SEO';
+          } else if (boardType === 'cro') {
+            return task.Type === 'CRO';
+          } else if (boardType === 'strategyAdHoc') {
+            return task.Type === 'Strategy' || task.Type === 'Ad Hoc';
+          }
+          return false;
+        }),
+        signal
+      );
+
+      return response;
+    },
+    // Cache for 5 minutes
+    5 * 60 * 1000,
+    useCache
+  );
+}
+
+/**
+ * Clear the task boards cache for a specific board type
+ * @param boardType Type of board to clear cache for
+ */
+export function clearTaskBoardCache(boardType?: string) {
+  if (boardType) {
+    // Clear cache for specific board type
+    clearCacheByPrefix(`taskboard_${boardType}`);
+  } else {
+    // Clear all task board caches
+    clearCacheByPrefix('taskboard_');
+  }
+}
