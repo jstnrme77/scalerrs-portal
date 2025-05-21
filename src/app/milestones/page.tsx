@@ -27,7 +27,7 @@ export default function MilestonesPage() {
         </div>
         
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-          <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: '63%' }}></div>
+          <div className="bg-primary h-2.5 rounded-full" style={{ width: '63%' }}></div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -40,7 +40,7 @@ export default function MilestonesPage() {
                   <span>50%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '50%' }}></div>
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: '50%' }}></div>
                 </div>
               </div>
               
@@ -50,7 +50,7 @@ export default function MilestonesPage() {
                   <span>38%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '38%' }}></div>
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: '38%' }}></div>
                 </div>
               </div>
               
@@ -60,7 +60,7 @@ export default function MilestonesPage() {
                   <span>50%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '50%' }}></div>
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: '50%' }}></div>
                 </div>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function MilestonesPage() {
                   <span>40%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '40%' }}></div>
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: '40%' }}></div>
                 </div>
               </div>
               
@@ -85,7 +85,7 @@ export default function MilestonesPage() {
                   <span>33%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '33%' }}></div>
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: '33%' }}></div>
                 </div>
               </div>
               
@@ -95,7 +95,7 @@ export default function MilestonesPage() {
                   <span>67%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '67%' }}></div>
+                  <div className="bg-primary h-1.5 rounded-full" style={{ width: '67%' }}></div>
                 </div>
               </div>
             </div>
