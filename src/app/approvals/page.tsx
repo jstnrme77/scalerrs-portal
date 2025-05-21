@@ -769,9 +769,34 @@ function ApprovalTable({
                           <div className="text-base text-dark">
                             {activeTab === 'articles' ? (
                               // For Articles, show "Writer" instead of "Assigned to"
-                              item.writer || item.strategist
+                              (() => {
+                                if (!item.writer && !item.strategist) return 'Unassigned';
+                                if (typeof item.writer === 'string') return item.writer;
+                                
+                                // Handle writer as object or array
+                                if (item.writer) {
+                                  if (Array.isArray(item.writer)) {
+                                    return item.writer.map(w => w.name).join(', ') || 'Unknown Writer';
+                                  }
+                                  return item.writer.name || 'Unknown Writer';
+                                }
+                                
+                                // Fall back to strategist
+                                if (typeof item.strategist === 'string') return item.strategist;
+                                if (Array.isArray(item.strategist)) {
+                                  return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
+                                }
+                                return item.strategist?.name || 'Unknown Strategist';
+                              })()
                             ) : (
-                              item.strategist
+                              (() => {
+                                if (!item.strategist) return 'Unassigned';
+                                if (typeof item.strategist === 'string') return item.strategist;
+                                if (Array.isArray(item.strategist)) {
+                                  return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
+                                }
+                                return item.strategist.name || 'Unknown Strategist';
+                              })()
                             )}
                           </div>
                         </td>
@@ -875,8 +900,8 @@ interface ApprovalItem {
   status: string;
   dateSubmitted?: string;
   lastUpdated?: string;
-  strategist?: string;
-  writer?: string;
+  strategist?: string | { id: string; name: string; email: string } | Array<{ id: string; name: string; email: string }>;
+  writer?: string | { id: string; name: string; email: string } | Array<{ id: string; name: string; email: string }>;
   volume?: number;
   difficulty?: string;
   wordCount?: number;

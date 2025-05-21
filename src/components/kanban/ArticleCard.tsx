@@ -85,12 +85,44 @@ export default function ArticleCard({ article, selectedMonth, onStatusChange, hi
           <span className="text-xs text-gray-500 mr-1">Writer:</span>
           <div className="flex items-center">
             <div className="w-5 h-5 rounded-full bg-gray-200 mr-1.5 flex items-center justify-center text-xs text-gray-600 overflow-hidden">
-              {article['Content Writer'] || article.Writer ?
-                (typeof article['Content Writer'] === 'string' ? article['Content Writer'].charAt(0).toUpperCase() :
-                 typeof article.Writer === 'string' ? article.Writer.charAt(0).toUpperCase() : 'U') : 'U'}
+              {(() => {
+                const writer = article['Content Writer'] || article.Writer;
+                if (!writer) return 'U';
+                
+                if (typeof writer === 'string') return writer.charAt(0).toUpperCase();
+                
+                if (Array.isArray(writer) && writer.length > 0) {
+                  if (typeof writer[0] === 'string') return writer[0].charAt(0).toUpperCase();
+                  if (writer[0] && typeof writer[0] === 'object' && writer[0].name) return writer[0].name.charAt(0).toUpperCase();
+                }
+                
+                if (typeof writer === 'object' && writer !== null && 'name' in writer) {
+                  return writer.name.charAt(0).toUpperCase();
+                }
+                
+                return 'U';
+              })()}
             </div>
             <span className="text-xs text-gray-700 truncate">
-              {article['Content Writer'] || article.Writer || 'Unassigned'}
+              {(() => {
+                const writer = article['Content Writer'] || article.Writer;
+                if (!writer) return 'Unassigned';
+                
+                if (typeof writer === 'string') return writer;
+                
+                if (Array.isArray(writer) && writer.length > 0) {
+                  if (typeof writer[0] === 'string') return writer[0];
+                  if (writer[0] && typeof writer[0] === 'object' && writer[0].name) {
+                    return writer.map(w => w.name).join(', ');
+                  }
+                }
+                
+                if (typeof writer === 'object' && writer !== null && 'name' in writer) {
+                  return writer.name;
+                }
+                
+                return 'Unassigned';
+              })()}
             </span>
           </div>
         </div>

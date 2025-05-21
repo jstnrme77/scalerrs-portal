@@ -36,18 +36,33 @@ const formatDate = (dateString?: string): string => {
   }
 };
 
-// Helper function to get display name from a field that could be string, array, or undefined
-const getDisplayName = (field: string | string[] | undefined): string => {
+// Helper function to get display name from a field that could be string, array, object, or undefined
+const getDisplayName = (field: any): string => {
   if (!field) return 'Unassigned';
 
-  // If it's a string, just return it (we're handling record IDs in the airtable.ts file now)
+  // If it's a string, just return it
   if (typeof field === 'string') {
     return field;
   }
 
-  // If it's an array, return the first item
+  // If it's an array of strings
   if (Array.isArray(field) && field.length > 0) {
-    return typeof field[0] === 'string' ? field[0] : 'Unassigned';
+    // If array of strings
+    if (typeof field[0] === 'string') {
+      return field.join(', ');
+    }
+    
+    // If array of objects with name property
+    if (field[0] && typeof field[0] === 'object' && 'name' in field[0]) {
+      return field.map((item: any) => item.name).join(', ');
+    }
+    
+    return 'Unassigned';
+  }
+  
+  // If it's an object with a name property
+  if (typeof field === 'object' && field !== null && 'name' in field) {
+    return field.name;
   }
 
   return 'Unassigned';
