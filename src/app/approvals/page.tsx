@@ -1370,8 +1370,22 @@ export default function Approvals() {
 
   const handleApprove = async (id: string) => {
     try {
-      // Call Airtable API to update the status
-      await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'approved');
+      let airtableStatus = 'Brief Approved'; // Default status
+      switch (activeTab) {
+        case 'keywords':
+          airtableStatus = 'Keyword Approvals';
+          break;
+        case 'briefs':
+          airtableStatus = 'Brief Approvals';
+          break;
+        case 'articles':
+          airtableStatus = 'Article Approvals';
+          break;
+        case 'backlinks':
+          airtableStatus = 'Backlink Approvals'; // Assumed for consistency
+          break;
+      }
+      await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
 
       // Update local state
       setItems(prev => {
@@ -1381,7 +1395,7 @@ export default function Approvals() {
         if (itemIndex !== -1) {
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
-            status: 'approved',
+            status: 'approved', // Local state can remain 'approved' for UI consistency
             dateApproved: new Date().toISOString().split('T')[0]
           };
         }
@@ -1462,8 +1476,22 @@ export default function Approvals() {
     // Process each selected item
     for (const id of currentTabSelections) {
       try {
-        // Call Airtable API to update the status
-        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'approved');
+        let airtableStatus = 'Brief Approved'; // Default status
+        switch (activeTab) {
+          case 'keywords':
+            airtableStatus = 'Keyword Approvals';
+            break;
+          case 'briefs':
+            airtableStatus = 'Brief Approvals';
+            break;
+          case 'articles':
+            airtableStatus = 'Article Approvals';
+            break;
+          case 'backlinks':
+            airtableStatus = 'Backlink Approvals'; // Assumed for consistency
+            break;
+        }
+        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
       } catch (error) {
         console.error(`Error approving item ${id}:`, error);
       }
@@ -1479,7 +1507,7 @@ export default function Approvals() {
         if (itemIndex !== -1 && ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(newItems[activeTab as keyof typeof items][itemIndex].status)) {
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
-            status: 'approved',
+            status: 'approved', // Local state can remain 'approved' for UI consistency
             dateApproved: new Date().toISOString().split('T')[0]
           };
         }
@@ -1503,8 +1531,7 @@ export default function Approvals() {
       // Process each selected item
       for (const id of currentTabSelections) {
         try {
-          // Call Airtable API to update the status
-          await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'revisions_needed', reason);
+          await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'Brief Needs Revision', reason);
         } catch (error) {
           console.error(`Error requesting changes for item ${id}:`, error);
         }
@@ -1512,13 +1539,13 @@ export default function Approvals() {
     } else {
       // Update a single item
       try {
-        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', rejectionModal.itemId, 'revisions_needed', reason);
+        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', rejectionModal.itemId, 'Brief Needs Revision', reason);
       } catch (error) {
         console.error(`Error requesting changes for item ${rejectionModal.itemId}:`, error);
       }
     }
 
-    // Update local state
+    // Update local state after all successful (or attempted) API calls
     setItems(prev => {
       const newItems = { ...prev };
 

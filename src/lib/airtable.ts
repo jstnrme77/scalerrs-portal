@@ -375,8 +375,6 @@ export async function getUserByEmail(email: string) {
   }
 }
 
-
-
 // Function to create a new user in Airtable
 export async function createUser(userData: {
   Name: string;
@@ -483,7 +481,6 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
       console.log('Filtering tasks by client:', clientIds);
 
       // Create a filter formula for client IDs
-      // This handles the case where Client field is an array of record IDs
       const clientFilters = clientIds.map(clientId =>
         `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
       );
@@ -749,7 +746,7 @@ export async function getCommentsByTask(taskId: string) {
     const comments = records.map((record: any) => {
       const fields = record.fields;
 
-      // Log each record to help debug
+      // Log each record to see what fields are available
       console.log('Processing comment record:', record.id, fields);
 
       // Log the specific fields we're looking for
@@ -916,52 +913,6 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     if (records.length > 0) {
       console.log('First keyword record fields:', records[0].fields);
       console.log('First keyword record field keys:', Object.keys(records[0].fields));
-
-      // Check specifically for the status field
-      console.log('Status field value:', records[0].fields['Keyword/Content Status']);
-      console.log('Alternative Status field value:', records[0].fields.Status);
-
-      // Check for other common field names that might contain status
-      const possibleStatusFields = [
-        'Keyword/Content Status',
-        'Status',
-        'Content Status',
-        'KeywordStatus',
-        'Keyword Status',
-        'Brief Status',
-        'Article Status'
-      ];
-
-      possibleStatusFields.forEach(fieldName => {
-        console.log(`Field "${fieldName}" exists:`, fieldName in records[0].fields);
-        if (fieldName in records[0].fields) {
-          console.log(`Field "${fieldName}" value:`, records[0].fields[fieldName]);
-        }
-      });
-
-      // Log all field names and values for the first record
-      console.log('All fields in first record:');
-      Object.entries(records[0].fields).forEach(([key, value]) => {
-        console.log(`Field: "${key}", Value:`, value);
-      });
-    }
-
-    // Filter and map the records to our expected Brief format
-    // We'll consider keywords with Status containing "Brief" as briefs
-    // Log each record's status to debug the filtering issue
-    console.log('Checking records for Brief status...');
-    records.forEach((record: any, index: number) => {
-      const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
-      console.log(`Record ${index} status: "${status}", includes 'Brief': ${status.includes('Brief')}`);
-    });
-
-    // Log all records for debugging
-    console.log(`Total records fetched: ${records.length}`);
-    if (records.length > 0) {
-      console.log('First 3 records field keys:');
-      records.slice(0, 3).forEach((record: any, index: number) => {
-        console.log(`Record ${index} field keys:`, Object.keys(record.fields));
-      });
     }
 
     // Try to find the field that contains status information
@@ -1027,27 +978,16 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     if (briefRecords.length === 0) {
       console.log('No briefs found with "Brief" in status, trying specific brief statuses');
       briefRecords = records.filter((record: any) => {
-        const status = statusFieldName ? record.fields[statusFieldName] :
-                      (record.fields['Keyword/Content Status'] || record.fields.Status || '');
+        const status = record.fields['Brief Status'] ||
+                      (statusFieldName ? record.fields[statusFieldName] : '') ||
+                      record.fields['Keyword/Content Status'] ||
+                      record.fields.Status ||
+                      '';
 
-        // Check for specific brief statuses (both exact match and case-insensitive)
-        const statusLower = status.toLowerCase();
-
-        // Check for the exact status values from your Airtable screenshot
-        return status === 'Brief Creation Needed' || statusLower === 'brief creation needed' ||
-               status === 'Brief Approved' || statusLower === 'brief approved' ||
-               status === 'Brief Under Internal Review' || statusLower === 'brief under internal review' ||
-
-               // Also check for generic brief statuses
-               status === 'In Progress' || statusLower === 'in progress' ||
-               status === 'Needs Input' || statusLower === 'needs input' ||
-               status === 'Review Brief' || statusLower === 'review brief' ||
-
-               // Add more potential brief statuses from your Airtable
-               status === 'Brief In Progress' || statusLower === 'brief in progress' ||
-               status === 'Brief Needs Input' || statusLower === 'brief needs input' ||
-               status === 'Brief Review' || statusLower === 'brief review' ||
-               status === 'Approved Brief' || statusLower === 'approved brief';
+        return status === 'Brief Creation Needed' || status === 'Brief Approved' || status === 'Brief Under Internal Review' ||
+               status === 'In Progress' || status === 'Needs Input' || status === 'Review Brief' ||
+               status === 'Brief In Progress' || status === 'Brief Needs Input' || status === 'Brief Review' ||
+               status === 'Approved Brief' || status === 'Brief Needs Revision';
       });
 
       // Log the status values of the first few records to help debug
@@ -1207,9 +1147,6 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
     if (error instanceof Error) {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
-    } else {
-      console.error('Unknown error type:', typeof error);
-      console.error('Error stringified:', JSON.stringify(error));
     }
 
     // Fall back to mock data
@@ -1361,8 +1298,8 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
         // For example, if month is "January 2025", we should match both "January 2025" and "January"
         const monthOnly = month.split(' ')[0]; // Extract just the month name
 
-        // Create month filter using the correct field name
-        // The field name is "Month (Keyword Targets)" as shown in the screenshot
+        // Create month filter using the correct field name for backlinks
+        // The field name is "Month" for backlinks
         const monthFilters = [
           `{Month (Keyword Targets)} = '${month}'`
         ];
@@ -1372,13 +1309,14 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
           monthFilters.push(`{Month (Keyword Targets)} = '${monthOnly}'`);
         }
 
-        // Add month filter to filter parts
-        const monthFilter = `OR(${monthFilters.join(',')})`;
-        console.log('Month filter formula:', monthFilter);
-        filterParts.push(monthFilter);
+        // Create the filter formula
+        const filterFormula = `OR(${monthFilters.join(',')})`;
+        console.log('Using filter formula for backlinks:', filterFormula);
+
+        filterParts.push(filterFormula);
       } catch (monthFilterError) {
-        console.error('Error creating month filter:', monthFilterError);
-        // Continue without month filter if there's an error
+        console.error('Error creating month filter for backlinks:', monthFilterError);
+        // If there's an error with the filter, fetch all records
       }
     }
 
@@ -1956,88 +1894,105 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
   }
 
   try {
-    console.log(`Updating ${type} approval status for ${itemId} to ${status} in Airtable...`);
+    console.log(`Attempting to update ${type} (itemId: ${itemId}) in Airtable. Received UI status: "${status}", reason: "${reason || 'N/A'}"`);
 
-    // Map UI status to Airtable status
-    let airtableStatus = '';
-
-    // Map new standardized statuses
-    if (status === 'not_started') {
-      airtableStatus = 'Not Started';
-    } else if (status === 'in_progress') {
-      airtableStatus = 'In Progress';
-    } else if (status === 'ready_for_review') {
-      airtableStatus = 'Ready for Review';
-    } else if (status === 'awaiting_approval') {
-      airtableStatus = 'Awaiting Approval';
-    } else if (status === 'revisions_needed') {
-      airtableStatus = 'Revisions Needed';
-    } else if (status === 'approved') {
-      airtableStatus = 'Approved';
-    } else if (status === 'published') {
-      airtableStatus = 'Published';
-    }
-    // Legacy status mappings for backward compatibility
-    else if (status === 'needs_revision') {
-      airtableStatus = 'Revisions Needed'; // Map to new equivalent
-    } else if (status === 'resubmitted') {
-      airtableStatus = 'Resubmitted';
-    } else if (status === 'rejected') {
-      airtableStatus = 'Rejected';
-    }
-
-    // Prepare update object using the new dedicated approval fields
     const updateObject: Record<string, any> = {};
+    let targetFieldName = '';
+    let airtableStatusValue = '';
 
-    // Use the appropriate field based on the content type
-    if (type === 'keywords') {
-      updateObject['Keyword Approval'] = airtableStatus;
-    } else if (type === 'briefs') {
-      updateObject['Brief Approval'] = airtableStatus;
-    } else if (type === 'articles') {
-      updateObject['Article Approval'] = airtableStatus;
-    } else if (type === 'backlinks') {
-      updateObject['Backlinks Approval'] = airtableStatus;
+    // Determine the primary target field name based on the item type
+    switch (type) {
+      case 'keywords':
+        targetFieldName = 'Keyword Approvals';
+        break;
+      case 'briefs':
+        targetFieldName = 'Brief Approvals';
+        break;
+      case 'articles':
+        targetFieldName = 'Article Approvals';
+        break;
+      case 'backlinks':
+        targetFieldName = 'Backlinks Approval';
+        break;
+      default:
+        console.error(`Invalid type "${type}" specified for target field name determination.`);
+        return { id: itemId, status: `Error: Invalid type '${type}'` };
     }
 
-    // For backward compatibility, also update the Approval Status field
-    updateObject['Approval Status'] = `${type.charAt(0).toUpperCase() + type.slice(1, -1)} ${airtableStatus}`;
-
-    // Add revision reason if provided
-    if (reason) {
-      updateObject['Revision Notes'] = reason;
+    // Determine the Airtable status value and handle revision notes
+    if (status.toLowerCase().includes('approval')) {
+      airtableStatusValue = 'Approved';
+    } else if (status.toLowerCase().includes('revision')) {
+      airtableStatusValue = 'Needs Revision';
+      if (reason) {
+        updateObject['Revision Notes'] = reason; // Update Revision Notes if provided
+      }
+    } else {
+      console.error(`Status "${status}" is not a recognized approval/revision UI status. No update performed.`);
+      return { id: itemId, status: `Error: Unrecognized UI status '${status}'` };
     }
 
-    // Update the record in Airtable
-    const tableName = type === 'backlinks' ? TABLES.BACKLINKS : TABLES.KEYWORDS;
+    // Set the main status in the determined target field
+    if (targetFieldName && airtableStatusValue) {
+      updateObject[targetFieldName] = airtableStatusValue;
+      console.log(`Will attempt to set Airtable field "${targetFieldName}" to "${airtableStatusValue}"`);
+    } else {
+      // This case should ideally not be reached if type and status are valid
+      console.warn(`Could not determine target field or Airtable status value for type '${type}' and UI status '${status}'.`);
+      // If only Revision Notes is in updateObject, we might still proceed if that's desired.
+      if (!Object.keys(updateObject).includes('Revision Notes')) {
+        return { id: itemId, status: `No update action for '${status}' on '${type}'` };
+      }
+    }
+
+    if (Object.keys(updateObject).length === 0) {
+        console.warn(`No fields to update for itemId ${itemId} with UI status ${status}. Aborting Airtable update.`);
+        return { id: itemId, status: "No update performed due to empty updateObject" };
+    }
+
+    console.log('Final updateObject to be sent to Airtable:', updateObject);
+
+    // Determine the correct Airtable table name
+    let tableName = '';
+    switch (type) {
+      case 'keywords':
+        tableName = TABLES.KEYWORDS;
+        break;
+      case 'briefs':
+        tableName = TABLES.BRIEFS;
+        break;
+      case 'articles':
+        tableName = TABLES.ARTICLES;
+        break;
+      case 'backlinks':
+        tableName = TABLES.BACKLINKS;
+        break;
+      default:
+        console.error(`Invalid type "${type}" specified for Airtable table name selection.`);
+        throw new Error(`Invalid type for table name: ${type}`);
+    }
+
     const updatedRecord = await base(tableName).update(itemId, updateObject);
+    console.log(`Successfully updated ${type} in ${tableName} for item ${itemId}. Record ID: ${updatedRecord.id}`);
 
-    console.log(`Successfully updated ${type} approval status in Airtable:`, updatedRecord.id);
-
-    // Determine which field to check for the status
-    let statusField = '';
-    if (type === 'keywords') {
-      statusField = 'Keyword Approval';
-    } else if (type === 'briefs') {
-      statusField = 'Brief Approval';
-    } else if (type === 'articles') {
-      statusField = 'Article Approval';
-    } else if (type === 'backlinks') {
-      statusField = 'Backlinks Approval';
+    // Determine which field to primarily check for the status from the Airtable record for UI mapping
+    // For keywords, briefs, articles, the source of truth is 'Keyword/Content Status'.
+    let statusFieldToCheckInAirtable = 'Keyword/Content Status';
+    if (type === 'backlinks') {
+      // If backlinks use a direct field (e.g., 'Backlinks Approval') and not 'Keyword/Content Status'
+      statusFieldToCheckInAirtable = 'Backlinks Approval';
     }
 
-    // Use the appropriate field or fall back to Approval Status
-    const updatedStatus = updatedRecord.fields[statusField] || updatedRecord.fields['Approval Status'] || '';
+    const returnedAirtableStatusValue = updatedRecord.fields[statusFieldToCheckInAirtable] || updatedRecord.fields['Approval Status'] || '';
 
     return {
       id: updatedRecord.id,
-      status: mapAirtableStatusToUIStatus(updatedStatus)
+      status: mapAirtableStatusToUIStatus(returnedAirtableStatusValue as string) // Ensure mapAirtableStatusToUIStatus can handle these values
     };
   } catch (error) {
-    console.error(`Error updating ${type} approval status:`, error);
-
-    // Return the original status on error
-    return { id: itemId, status };
+    console.error(`Error updating ${type} approval status in Airtable for itemId ${itemId}:`, error);
+    // Return the original status string passed from the UI to avoid UI confusion on error
+    return { id: itemId, status: status }; // Or map to a generic 'error' UI status
   }
 }
 
@@ -2071,15 +2026,16 @@ export async function getKPIMetrics() {
           console.log('Available tables in this base:', availableTables);
 
           // Check if our required tables exist
-          const kpiMetricsExists = availableTables.some((t: string) => t === TABLES.KPI_METRICS || t === TABLES.KPI_METRICS.toLowerCase() || t === 'KPI Metrics' || t === 'kpi metrics');
-          const urlPerformanceExists = availableTables.some((t: string) => t === TABLES.URL_PERFORMANCE || t === TABLES.URL_PERFORMANCE.toLowerCase() || t === 'URL Performance' || t === 'url performance');
-          const keywordsExists = availableTables.some((t: string) => t === TABLES.KEYWORDS || t === TABLES.KEYWORDS.toLowerCase() || t === 'Keywords' || t === 'keywords');
+          const kpiMetricsExists = availableTables.some((t: string) =>
+            t === TABLES.KPI_METRICS ||
+            t === TABLES.KPI_METRICS.toLowerCase() ||
+            t === 'KPI Metrics' ||
+            t === 'kpi metrics'
+          );
 
           console.log(`KPI Metrics table exists: ${kpiMetricsExists}`);
-          console.log(`URL Performance table exists: ${urlPerformanceExists}`);
-          console.log(`Keywords table exists: ${keywordsExists}`);
 
-          // If tables don't exist, use mock data
+          // If table doesn't exist, use mock data
           if (!kpiMetricsExists) {
             console.log('KPI Metrics table does not exist in this base. Using mock data.');
             return mockKPIMetrics;
@@ -2127,12 +2083,12 @@ export async function getKPIMetrics() {
     } catch (checkError: any) {
       console.error('Error checking KPI Metrics table:', checkError.message);
 
-      if (checkError.message.includes('Table not found')) {
+      if (checkError.message && checkError.message.includes('Table not found')) {
         console.error('The KPI Metrics table does not exist in this base');
         return mockKPIMetrics;
       }
 
-      if (checkError.message.includes('authorized')) {
+      if (checkError.message && checkError.message.includes('authorized')) {
         console.error('Authorization error. Your token may not have the correct permissions.');
         console.error('Make sure your token has the following scopes: data.records:read, data.records:write, schema.bases:read');
         return mockKPIMetrics;
@@ -2688,6 +2644,7 @@ export async function getMonthlyProjections(clientIds?: string[] | null) {
     return mockMonthlyProjections;
   }
 }
+
 // Mock activity logs data
 const mockActivityLogs = [
   {
@@ -2904,7 +2861,7 @@ export async function getApprovalItems(
     if (type === 'keywords' || type === 'briefs' || type === 'articles') {
       tableName = TABLES.KEYWORDS;
     } else if (type === 'backlinks') {
-      tableName = TABLES.BACKLINKS;
+      tableName = TABLES.BACKLINKS; // This was in the original code
     } else {
       console.error(`Unknown approval type: ${type}`);
       return defaultResponse;
@@ -3226,5 +3183,3 @@ export async function getApprovalItems(
     return defaultResponse;
   }
 }
-
-
