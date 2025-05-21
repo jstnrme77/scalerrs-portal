@@ -1370,21 +1370,9 @@ export default function Approvals() {
 
   const handleApprove = async (id: string) => {
     try {
-      let airtableStatus = 'Brief Approved'; // Default status
-      switch (activeTab) {
-        case 'keywords':
-          airtableStatus = 'Keyword Approvals';
-          break;
-        case 'briefs':
-          airtableStatus = 'Brief Approvals';
-          break;
-        case 'articles':
-          airtableStatus = 'Article Approvals';
-          break;
-        case 'backlinks':
-          airtableStatus = 'Backlink Approvals'; // Assumed for consistency
-          break;
-      }
+      // Send 'Approved' as the status value - this is what Airtable expects
+      // The updateApprovalStatus function will determine the correct field based on the type
+      const airtableStatus = 'Approved';
       await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
 
       // Update local state
@@ -1531,7 +1519,7 @@ export default function Approvals() {
       // Process each selected item
       for (const id of currentTabSelections) {
         try {
-          await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'Brief Needs Revision', reason);
+          await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'Needs Revision', reason);
         } catch (error) {
           console.error(`Error requesting changes for item ${id}:`, error);
         }
@@ -1539,7 +1527,7 @@ export default function Approvals() {
     } else {
       // Update a single item
       try {
-        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', rejectionModal.itemId, 'Brief Needs Revision', reason);
+        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', rejectionModal.itemId, 'Needs Revision', reason);
       } catch (error) {
         console.error(`Error requesting changes for item ${rejectionModal.itemId}:`, error);
       }

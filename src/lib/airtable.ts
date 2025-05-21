@@ -424,6 +424,139 @@ export async function createUser(userData: {
 }
 
 // Task functions
+
+/**
+ * Gets WQA (Web Quality Assurance) specific tasks from Airtable
+ * This function filters tasks that are specifically for WQA purposes
+ */
+export async function getWQATasks(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock tasks data - no Airtable credentials');
+    console.log('API Key exists:', !!apiKey);
+    console.log('Base ID exists:', !!baseId);
+
+    // Filter mock data to only include WQA tasks
+    const wqaTasks = mockTasks.filter(task => {
+      // Check for WQA in task fields - adapt this to match your mock data structure
+      const taskType = (task as any).Type;
+      const taskTags = (task as any).Tags;
+      
+      return taskType === 'WQA' || 
+        (taskTags && (Array.isArray(taskTags) ? 
+          taskTags.some((tag: string) => tag.includes('WQA')) : 
+          typeof taskTags === 'string' && taskTags.includes('WQA')))
+    });
+
+    // Further filter by user role and ID
+    if (userId && userRole) {
+      console.log(`Filtering mock WQA tasks for user: ${userId}, role: ${userRole}`);
+
+      // For client users, filter by client IDs
+      if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+        console.log('Filtering mock WQA tasks by client:', clientIds);
+        return wqaTasks.filter(task => {
+          // Check if task has client field that matches any of the user's clients
+          if (task.Client) {
+            if (Array.isArray(task.Client)) {
+              return task.Client.some(client => clientIds.includes(client));
+            } else {
+              return clientIds.includes(task.Client);
+            }
+          }
+          return false;
+        });
+      }
+
+      // For non-admin users who aren't clients, only show tasks assigned to them
+      if (userRole !== 'Admin' && userRole !== 'Client') {
+        return wqaTasks.filter(task => {
+          // Check if the task is assigned to this user
+          if (task.AssignedTo) {
+            if (Array.isArray(task.AssignedTo)) {
+              return task.AssignedTo.includes(userId);
+            } else {
+              return task.AssignedTo === userId;
+            }
+          }
+          return false;
+        });
+      }
+    }
+
+    return wqaTasks;
+  }
+
+  try {
+    console.log('Fetching WQA tasks from Airtable...');
+    console.log('Using base ID:', baseId);
+
+    // Base filter for WQA tasks
+    let wqaFilter = "OR(" +
+      "SEARCH('WQA', ARRAYJOIN(Tags, ',')) > 0," +
+      "Type = 'WQA'" +
+      ")";
+
+    // Additional filters based on user role
+    let userFilter = '';
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering WQA tasks by client:', clientIds);
+
+      // Create a filter formula for client IDs
+      const clientFilters = clientIds.map(clientId =>
+        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+      );
+
+      // Combine filters with OR
+      userFilter = `OR(${clientFilters.join(',')})`;      
+    }
+    // If user is not an admin or client, filter by assigned user
+    else if (userId && userRole && userRole !== 'Admin') {
+      console.log(`Filtering WQA tasks for user: ${userId}, role: ${userRole}`);
+
+      // Filter for tasks assigned to this user
+      userFilter = `SEARCH('${userId}', ARRAYJOIN(AssignedTo, ',')) > 0`;
+    }
+
+    // Combine WQA filter with user filter if present
+    let filterFormula = wqaFilter;
+    if (userFilter) {
+      filterFormula = `AND(${wqaFilter}, ${userFilter})`;
+    }
+
+    console.log('Using filter formula:', filterFormula);
+    const query = base(TABLES.TASKS).select({
+      filterByFormula: filterFormula
+    });
+
+    const records = await query.all();
+    console.log(`Successfully fetched ${records.length} WQA tasks from Airtable`);
+
+    return records.map((record: any) => {
+      const fields = record.fields;
+
+      // Ensure we have consistent field names
+      // If the record has Title but not Name, add Name as an alias
+      if (fields.Title && !fields.Name) {
+        fields.Name = fields.Title;
+      }
+      // If the record has Name but not Title, add Title as an alias
+      else if (fields.Name && !fields.Title) {
+        fields.Title = fields.Name;
+      }
+
+      return {
+        id: record.id,
+        ...fields,
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching WQA tasks from Airtable:', error);
+    throw error;
+  }
+}
+
 export async function getTasks(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
   if (!hasAirtableCredentials) {
     console.log('Using mock tasks data - no Airtable credentials');
@@ -1912,7 +2045,7 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
         targetFieldName = 'Article Approvals';
         break;
       case 'backlinks':
-        targetFieldName = 'Backlinks Approval';
+        targetFieldName = 'Backlink Approvals';
         break;
       default:
         console.error(`Invalid type "${type}" specified for target field name determination.`);
@@ -1920,9 +2053,9 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
     }
 
     // Determine the Airtable status value and handle revision notes
-    if (status.toLowerCase().includes('approval')) {
+    if (status === 'Approved' || status.toLowerCase().includes('approval')) {
       airtableStatusValue = 'Approved';
-    } else if (status.toLowerCase().includes('revision')) {
+    } else if (status === 'Needs Revision' || status.toLowerCase().includes('revision')) {
       airtableStatusValue = 'Needs Revision';
       if (reason) {
         updateObject['Revision Notes'] = reason; // Update Revision Notes if provided
@@ -1959,10 +2092,12 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
         tableName = TABLES.KEYWORDS;
         break;
       case 'briefs':
-        tableName = TABLES.BRIEFS;
+        // Briefs are stored in the Keywords table, not in a separate Briefs table
+        tableName = TABLES.KEYWORDS;
         break;
       case 'articles':
-        tableName = TABLES.ARTICLES;
+        // Articles are also stored in the Keywords table
+        tableName = TABLES.KEYWORDS;
         break;
       case 'backlinks':
         tableName = TABLES.BACKLINKS;
@@ -2884,88 +3019,19 @@ export async function getApprovalItems(
       filterParts.push(`OR(${clientFilters.join(',')})`);
     }
 
-    // Add type-specific filters - make them less restrictive to get more results
+    // Use simplified filtering based on the dedicated approval fields
     if (type === 'briefs') {
-      // For briefs tab, we'll use a more permissive filter
-      // We'll include records that might be briefs based on various indicators
-      filterParts.push(`
-        OR(
-          SEARCH('Brief', {Approval Status}) > 0,
-          SEARCH('brief', {Approval Status}) > 0,
-          {Approval Status} = 'Brief Creation Needed',
-          {Approval Status} = 'Brief Approved',
-          {Approval Status} = 'Brief Under Internal Review',
-          {Approval Status} = 'Brief Needs Revision',
-          {Approval Status} = 'Brief Rejected',
-          {Approval Status} = 'Brief Pending',
-          {Approval Status} = 'Brief Awaiting Approval',
-          {Approval Status} = 'Brief Resubmitted',
-          {Approval Status} = 'Content Brief',
-          {Approval Status} = 'Content Brief Needed',
-          {Approval Status} = 'Content Brief Approved',
-          {Approval Status} = 'Content Brief Under Review'
-        )
-      `);
+      // Use the dedicated Brief Approvals field
+      filterParts.push(`NOT({Brief Approvals} = '')`);
     } else if (type === 'articles') {
-      // For articles tab, we'll use a more permissive filter
-      filterParts.push(`
-        OR(
-          SEARCH('Article', {Approval Status}) > 0,
-          SEARCH('article', {Approval Status}) > 0,
-          {Approval Status} = 'In Production',
-          {Approval Status} = 'Review Draft',
-          {Approval Status} = 'Client Review',
-          {Approval Status} = 'Published',
-          {Approval Status} = 'Article Approved',
-          {Approval Status} = 'Article Needs Revision',
-          {Approval Status} = 'Article Rejected',
-          {Approval Status} = 'Article Pending',
-          {Approval Status} = 'Article Awaiting Approval',
-          {Approval Status} = 'Article Resubmitted',
-          {Approval Status} = 'Content',
-          {Approval Status} = 'Content Review',
-          {Approval Status} = 'Content Approved'
-        )
-      `);
+      // Use the dedicated Article Approvals field
+      filterParts.push(`NOT({Article Approvals} = '')`);
     } else if (type === 'keywords') {
-      // For keywords tab, we'll use a more permissive filter
-      filterParts.push(`
-        OR(
-          SEARCH('Keyword', {Approval Status}) > 0,
-          SEARCH('keyword', {Approval Status}) > 0,
-          {Approval Status} = 'Keyword Research',
-          {Approval Status} = 'Keyword Approved',
-          {Approval Status} = 'Keyword Under Review',
-          {Approval Status} = 'Keyword Needs Revision',
-          {Approval Status} = 'Keyword Rejected',
-          {Approval Status} = 'Keyword Pending',
-          {Approval Status} = 'Keyword Awaiting Approval',
-          {Approval Status} = 'Keyword Resubmitted',
-          {Approval Status} = 'Research',
-          {Approval Status} = 'Research Approved',
-          {Approval Status} = 'Research Under Review'
-        )
-      `);
+      // Use the dedicated Keyword Approvals field
+      filterParts.push(`NOT({Keyword Approvals} = '')`);
     } else if (type === 'backlinks') {
-      // For backlinks tab, we'll use a more permissive filter
-      filterParts.push(`
-        OR(
-          SEARCH('Backlink', {Approval Status}) > 0,
-          SEARCH('backlink', {Approval Status}) > 0,
-          {Approval Status} = 'Backlink Approved',
-          {Approval Status} = 'Backlink Under Review',
-          {Approval Status} = 'Backlink Needs Revision',
-          {Approval Status} = 'Backlink Rejected',
-          {Approval Status} = 'Backlink Pending',
-          {Approval Status} = 'Backlink Awaiting Approval',
-          {Approval Status} = 'Backlink Resubmitted',
-          {Backlinks Approval} != '',
-          {Link Status} = 'Pending Approval',
-          {Link Status} = 'Approved',
-          {Link Status} = 'Rejected',
-          {Link Status} = 'Needs Revision'
-        )
-      `);
+      // Use the dedicated Backlink Approvals field
+      filterParts.push(`NOT({Backlink Approvals} = '')`);
     }
 
     // Combine all filter parts with AND

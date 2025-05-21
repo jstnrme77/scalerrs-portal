@@ -176,6 +176,8 @@
 - ✅ Fixed build errors related to missing functions and type issues
 - ✅ Added missing API route for available months
 - ✅ Fixed error handling in month selector component
+- ✅ Fixed build error by implementing missing getWQATasks function for WQA tasks API route
+- ✅ Fixed Airtable approval status updates by using the correct table (TABLES.KEYWORDS) for briefs and articles
 - ✅ Improved type safety for client filtering and API routes
 - ✅ Added proper error handling for Airtable API calls
 - ✅ Fixed type errors in utility functions and components
