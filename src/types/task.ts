@@ -18,6 +18,8 @@ export interface BaseTask {
   notes?: string;
   category?: TaskCategory;
   referenceLinks?: string[];
+  Client?: string | string[]; // Add Client field for client filtering
+  'All Clients'?: string | string[]; // Add All Clients field for filtering
 }
 
 // Task Comment interface

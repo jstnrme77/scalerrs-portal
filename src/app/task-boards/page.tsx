@@ -1021,7 +1021,10 @@ export default function TaskBoards() {
   const [error, setError] = useState('');
   
   // Get client data context for filtering by client
-  const { clientId } = useClientData();
+  const { clientId, filterDataByClient } = useClientData();
+  
+  // Track raw data before filtering
+  const [rawBoards, setRawBoards] = useState<Record<string, Task[]>>(taskBoards);
 
   // Fetch tasks from API
   useEffect(() => {
@@ -1033,79 +1036,101 @@ export default function TaskBoards() {
         // Fetch tasks for the active board from Airtable
         const response = await fetchWQATasks(activeBoard);
         
-        // Extract tasks from the response
-        const tasks = response && response.tasks ? response.tasks : [];
+        console.log('WQA Tasks Response:', response);
         
-        // Update the boards state with the fetched tasks
-        setBoards(prev => {
-          const newBoards = { ...prev };
-          
-          // Map the Airtable tasks to our Task type
-          const mappedTasks = Array.isArray(tasks) ? tasks.map((task: any) => {
-            // Extract the task fields
-            const {
-              id,
-              Name,
-              Status,
-              'Assigned To': AssignedTo,
-              Date: dateLogged,
-              Priority: priority,
-              Impact: impact,
-              Effort: effort,
-              Comments: comments = [],
-              Actions: actions,
-              Notes: notes,
-              'Completed Date': completedDate
-            } = task;
-            
-            // Map to our Task type
-            let mappedTask: any = {
-              id,
-              task: Name || '',
-              status: Status as TaskStatus || 'Not Started',
-              // Handle AssignedTo which can be an object with id, email, name properties
-              assignedTo: AssignedTo ? 
-                (typeof AssignedTo === 'object' ? 
-                  (AssignedTo.name || `${AssignedTo.email || 'User'}`) : 
-                  String(AssignedTo)
-                ) : 'Not Assigned',
-              dateLogged: dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-              // Use actual values from Airtable for priority, impact, and effort
-              priority: priority ? (priority as TaskPriority) : 'Medium',
-              impact: impact !== undefined && impact !== null ? 
-                (typeof impact === 'number' ? impact : 
-                  (typeof impact === 'string' ? parseInt(impact, 10) || 3 : 3)) : 3,
-              effort: effort ? (effort as TaskEffort) : 'M',
-              comments: Array.isArray(comments) ? comments.map((comment: any, index: number) => ({
-                id: comment.id || index,
-                author: comment.author || 'User',
-                text: comment.text || comment.toString(),
-                timestamp: comment.timestamp || new Date().toLocaleDateString()
-              })) : [],
-              notes: notes || ''
-            };
-            
-            // Add completedDate if Status is Done
-            if (Status === 'Done') {
-              mappedTask.completedDate = completedDate || 
-                new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-              mappedTask = mappedTask as CompletedTask;
+        // Extract tasks from the response - handle different possible response formats
+        let tasks: any[] = [];
+        if (response) {
+          if (Array.isArray(response)) {
+            // Response is already an array of tasks
+            tasks = response;
+          } else if (typeof response === 'object' && response !== null) {
+            // Check if response has a tasks property that is an array
+            if ('tasks' in response && Array.isArray((response as any).tasks)) {
+              tasks = (response as any).tasks;
             } else {
-              mappedTask = mappedTask as ActiveTask;
+              // Treat the entire response as a single task if it's not in expected format
+              tasks = [response];
             }
-            
-            return mappedTask;
-          }) : [];
+          }
+        }
+        
+        // Map the Airtable tasks to our Task type
+        const mappedTasks = Array.isArray(tasks) ? tasks.map((task: any) => {
+          // Extract the task fields
+          const {
+            id,
+            Name,
+            Status,
+            'Assigned To': AssignedTo,
+            Date: dateLogged,
+            Priority: priority,
+            Impact: impact,
+            Effort: effort,
+            Comments: comments = [],
+            Actions: actions,
+            Notes: notes,
+            'Completed Date': completedDate,
+            Client: client
+          } = task;
           
+          // Map to our Task type
+          let mappedTask: any = {
+            id,
+            task: Name || '',
+            status: Status as TaskStatus || 'Not Started',
+            // Handle AssignedTo which can be an object with id, email, name properties
+            assignedTo: AssignedTo ? 
+              (typeof AssignedTo === 'object' ? 
+                (AssignedTo.name || `${AssignedTo.email || 'User'}`) : 
+                String(AssignedTo)
+              ) : 'Not Assigned',
+            dateLogged: dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            // Use actual values from Airtable for priority, impact, and effort
+            priority: priority ? (priority as TaskPriority) : 'Medium',
+            impact: impact !== undefined && impact !== null ? 
+              (typeof impact === 'number' ? impact : 
+                (typeof impact === 'string' ? parseInt(impact, 10) || 3 : 3)) : 3,
+            effort: effort ? (effort as TaskEffort) : 'M',
+            comments: Array.isArray(comments) ? comments.map((comment: any, index: number) => ({
+              id: comment.id || index,
+              author: comment.author || 'User',
+              text: comment.text || comment.toString(),
+              timestamp: comment.timestamp || new Date().toLocaleDateString()
+            })) : [],
+            notes: notes || '',
+            // Add Client field to task (for filtering)
+            Client: client
+          };
+          
+          // Add completedDate if Status is Done
+          if (Status === 'Done') {
+            mappedTask.completedDate = completedDate || 
+              new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            mappedTask = mappedTask as CompletedTask;
+          } else {
+            mappedTask = mappedTask as ActiveTask;
+          }
+          
+          return mappedTask;
+        }) : [];
+        
+        // Store the raw (unfiltered) tasks
+        setRawBoards(prev => {
+          const newBoards = { ...prev };
           newBoards[activeBoard as keyof typeof boards] = mappedTasks;
           return newBoards;
         });
+        
+        // Apply client filtering to the tasks and update the boards state
+        filterTasks(mappedTasks);
       } catch (err: any) {
         console.error('Error fetching tasks:', err);
         setError(`An error occurred while fetching tasks: ${err.message}`);
 
         // Fall back to sample data
         console.log('Error occurred, falling back to sample data');
+        setRawBoards(taskBoards);
         setBoards(taskBoards);
       } finally {
         setLoading(false);
@@ -1113,7 +1138,26 @@ export default function TaskBoards() {
     };
 
     fetchTasksForBoard();
-  }, []);
+  }, [activeBoard]);
+
+  // Apply client filtering when clientId changes
+  useEffect(() => {
+    const currentRawTasks = rawBoards[activeBoard as keyof typeof rawBoards] || [];
+    filterTasks(currentRawTasks);
+  }, [clientId, activeBoard, rawBoards]);
+
+  // Function to apply client filtering to tasks
+  const filterTasks = (tasks: Task[]) => {
+    // Apply client filtering
+    const filteredTasks = filterDataByClient(tasks) as Task[];
+    
+    // Update the boards state with filtered tasks
+    setBoards(prev => {
+      const newBoards = { ...prev };
+      newBoards[activeBoard as keyof typeof boards] = filteredTasks;
+      return newBoards;
+    });
+  };
 
   // We'll always show the Strategy/Ad Hoc tab regardless of whether there are tasks
   // This provides a consistent UI and allows users to add tasks to this category
@@ -1158,6 +1202,38 @@ export default function TaskBoards() {
 
         return newBoards;
       });
+      
+      // Also update the raw boards state
+      setRawBoards(prev => {
+        const newBoards = { ...prev };
+        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+          task.id === id || task.id.toString() === id.toString()
+        );
+
+        if (taskIndex !== -1) {
+          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+
+          if (newStatus === 'Done') {
+            // When moving to Done, add completedDate
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            } as CompletedTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          } else {
+            // When moving to other statuses
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: undefined
+            } as ActiveTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          }
+        }
+
+        return newBoards;
+      });
     } catch (err) {
       console.error('Error updating task status:', err);
 
@@ -1194,6 +1270,38 @@ export default function TaskBoards() {
 
         return newBoards;
       });
+      
+      // Also update the raw boards state
+      setRawBoards(prev => {
+        const newBoards = { ...prev };
+        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+          task.id === id || task.id.toString() === id.toString()
+        );
+
+        if (taskIndex !== -1) {
+          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+
+          if (newStatus === 'Done') {
+            // When moving to Done, add completedDate
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            } as CompletedTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          } else {
+            // When moving to other statuses
+            const updatedTask = {
+              ...currentTask,
+              status: newStatus,
+              completedDate: undefined
+            } as ActiveTask;
+            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+          }
+        }
+
+        return newBoards;
+      });
     }
   };
 
@@ -1201,6 +1309,16 @@ export default function TaskBoards() {
     try {
       // In a real implementation, this would call an API to add the task
       // For now, we'll just add it to the local state
+      setRawBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          task
+        ];
+        return newBoards;
+      });
+      
+      // Also add to filtered boards
       setBoards(prev => {
         const newBoards = { ...prev };
         newBoards[activeBoard as keyof typeof boards] = [
@@ -1214,6 +1332,16 @@ export default function TaskBoards() {
     } catch (err) {
       console.error('Error adding task:', err);
       // Still update the UI for better UX
+      setRawBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          task
+        ];
+        return newBoards;
+      });
+      
+      // Also add to filtered boards
       setBoards(prev => {
         const newBoards = { ...prev };
         newBoards[activeBoard as keyof typeof boards] = [
@@ -1228,7 +1356,7 @@ export default function TaskBoards() {
   };
 
   // Get the current board's tasks
-  const currentTasks = boards[activeBoard as keyof typeof boards];
+  const currentTasks = boards[activeBoard as keyof typeof boards] || [];
 
   return (
     <DashboardLayout
@@ -1236,7 +1364,6 @@ export default function TaskBoards() {
         onAddTask: () => setAddTaskModal(true)
       }}
     >
-
       <PageContainer>
         <PageContainerTabs>
           <TabNavigation
@@ -1253,8 +1380,6 @@ export default function TaskBoards() {
           />
         </PageContainerTabs>
         <PageContainerBody>
-          {/* Removed notification text */}
-
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#000000]"></div>
