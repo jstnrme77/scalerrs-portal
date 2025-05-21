@@ -547,10 +547,10 @@ export default function DeliverablePage() {
                     {/* Briefs Table */}
                     <div className="bg-white">
 
-                      <Table>
-                        <TableHeader className="bg-[#9EA8FB]/10">
+                      <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
+                        <TableHeader>
                           <TableRow>
-                            <TableHead className="font-semibold w-[25%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -559,13 +559,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Brief Title
+                                BRIEF TITLE
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[20%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -574,13 +574,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'SEOStrategist' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Assigned SEO Strategist
+                                ASSIGNED SEO STRATEGIST
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[15%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -589,13 +589,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Due Date
+                                DUE DATE
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[15%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -604,13 +604,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Status
+                                STATUS
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[15%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -619,40 +619,40 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Month
+                                MONTH
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[10%]">GDoc Link</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">GDOC LINK</TableHead>
                           </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-gray-200">
                           {filteredBriefs.length > 0 ? (
                             filteredBriefs.map((brief) => (
-                              <TableRow key={brief.id}>
-                                <TableCell className="font-medium w-[25%]">{brief.Title}</TableCell>
-                                <TableCell className="w-[20%]">{brief.SEOStrategist || brief['SEO Strategist'] || '-'}</TableCell>
-                                <TableCell className="w-[15%]">
+                              <TableRow key={brief.id} className="hover:bg-gray-50 cursor-pointer">
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[25%]">{brief.Title}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[20%]">{brief.SEOStrategist || brief['SEO Strategist'] || '-'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-mediumGray w-[15%]">
                                   {brief.DueDate ? new Date(brief.DueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
                                 </TableCell>
-                                <TableCell className="w-[15%]">
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
+                                <TableCell className="px-4 py-4 w-[15%]">
+                                  <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
                                     ${brief.Status === 'Brief Approved' || brief.Status === 'Approved' ? 'bg-green-100 text-green-800' :
                                     brief.Status === 'Needs Input' ? 'bg-yellow-200 text-yellow-800' :
                                     'bg-gray-100 text-gray-800'}`}>
                                     {brief.Status === 'Brief Approved' ? 'Approved' : brief.Status}
                                   </span>
                                 </TableCell>
-                                <TableCell className="w-[15%]">{brief.Month || '-'}</TableCell>
-                                <TableCell className="w-[10%]">
+                                <TableCell className="px-4 py-4 text-base text-dark w-[15%]">{brief.Month || '-'}</TableCell>
+                                <TableCell className="px-4 py-4 w-[10%]">
                                   {brief.DocumentLink ? (
                                     <a
                                       href={brief.DocumentLink}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-primary hover:underline flex items-center"
+                                      className="text-base text-primary hover:underline flex items-center"
                                     >
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -665,7 +665,7 @@ export default function DeliverablePage() {
                             ))
                           ) : (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                              <TableCell colSpan={6} className="px-4 py-4 text-center text-gray-500">
                                 No briefs available for {selectedMonth}
                               </TableCell>
                             </TableRow>
@@ -682,27 +682,13 @@ export default function DeliverablePage() {
               <div>
                 <div className="page-container-body">
                   <div>
-                    {/* <div className="mb-4">
-                      <div className="mb-2">
-                        <p className="text-sm text-gray-600 mb-1">
-                          {selectedMonth}: {filteredArticles.filter(article => article.Status === 'Live').length} of {filteredArticles.length} articles delivered
-                          ({filteredArticles.length > 0 ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100) : 0}%)
-                        </p>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div
-                            className="bg-primary h-1.5 rounded-full"
-                            style={{ width: `${filteredArticles.length > 0 ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100) : 0}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div> */}
                     {/* Articles Table */}
                     <div className="bg-white">
 
-                      <Table>
-                        <TableHeader className="bg-[#9EA8FB]/10">
+                      <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
+                        <TableHeader>
                           <TableRow>
-                            <TableHead className="font-semibold w-[20%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-bl-[12px]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -711,13 +697,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Article Title
+                                ARTICLE TITLE
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[12%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -726,13 +712,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Writer' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Assigned Writer
+                                ASSIGNED WRITER
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[10%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -741,13 +727,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'WordCount' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Word Count
+                                WORD COUNT
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[10%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -756,13 +742,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Due Date
+                                DUE DATE
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[10%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -771,13 +757,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Status
+                                STATUS
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[10%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -786,30 +772,30 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Month
+                                MONTH
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[14%]">GDoc Link</TableHead>
-                            <TableHead className="font-semibold w-[14%]">Article URL</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[14%]">GDOC LINK</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[14%] rounded-br-[12px]">ARTICLE URL</TableHead>
                           </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-gray-200">
                           {filteredArticles.length > 0 ? (
                             filteredArticles.map((article) => (
-                              <TableRow key={article.id}>
-                                <TableCell className="font-medium w-[20%]">{article.Title}</TableCell>
-                                <TableCell className="w-[12%]">{article.Writer || article['Content Writer'] || '-'}</TableCell>
-                                <TableCell className="w-[10%]">{article.WordCount || article['Word Count'] || '-'}</TableCell>
+                              <TableRow key={article.id} className="hover:bg-gray-50 cursor-pointer">
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[20%]">{article.Title}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[12%]">{article.Writer || article['Content Writer'] || '-'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{article.WordCount || article['Word Count'] || '-'}</TableCell>
                                 <TableCell className="w-[10%]">
                                   {article.DueDate || article['Due Date'] ?
                                     new Date(article.DueDate || article['Due Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                                     : '-'}
                                 </TableCell>
                                 <TableCell className="w-[10%]">
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
+                                  <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
                                     ${article.Status === 'Live' ? 'bg-green-100 text-green-800' :
                                     article.Status === 'Draft Approved' ? 'bg-blue-200 text-blue-800' :
                                     article.Status === 'Review Draft' ? 'bg-yellow-200 text-yellow-800' :
@@ -825,7 +811,7 @@ export default function DeliverablePage() {
                                       href={article.DocumentLink || article['Document Link']}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-primary hover:underline flex items-center"
+                                      className="text-base text-primary hover:underline flex items-center"
                                     >
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -840,7 +826,7 @@ export default function DeliverablePage() {
                                       href={article.ArticleURL || article['Article URL']}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-primary hover:underline flex items-center"
+                                      className="text-base text-primary hover:underline flex items-center"
                                     >
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -853,7 +839,7 @@ export default function DeliverablePage() {
                             ))
                           ) : (
                             <TableRow>
-                              <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                              <TableCell colSpan={8} className="text-center py-4 text-base text-gray-500">
                                 No articles available for {selectedMonth}
                               </TableCell>
                             </TableRow>
@@ -869,25 +855,13 @@ export default function DeliverablePage() {
               <div>
                 <div className="page-container-body">
                   <div>
-                    {/* <div className="mb-4">
-                      <p className="text-sm text-gray-600 mb-1">
-                        {selectedMonth}: {filteredBacklinks.filter(b => b.Status === 'Live').length} links live ({filteredBacklinks.length > 0 ? Math.round((filteredBacklinks.filter(b => b.Status === 'Live').length / filteredBacklinks.length) * 100) : 0}%)
-                      </p>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className="bg-primary h-1.5 rounded-full"
-                          style={{ width: `${filteredBacklinks.length > 0 ? Math.round((filteredBacklinks.filter(b => b.Status === 'Live').length / filteredBacklinks.length) * 100) : 0}%` }}
-                        ></div>
-                      </div>
-                    </div> */}
-
                     {/* Backlinks Table */}
                     <div className="bg-white">
 
-                      <Table>
-                        <TableHeader className="bg-[#9EA8FB]/10">
+                      <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
+                        <TableHeader>
                           <TableRow>
-                            <TableHead className="font-semibold w-[18%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[18%] rounded-bl-[12px]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -896,13 +870,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Domain' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Domain
+                                DOMAIN
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[8%] text-center">
+                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -917,7 +891,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[12%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -926,14 +900,14 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'LinkType' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Link Type
+                                LINK TYPE
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[15%]">Target Page</TableHead>
-                            <TableHead className="font-semibold w-[12%] pl-4">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">TARGET PAGE</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -942,9 +916,9 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Status
+                                STATUS
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
@@ -957,13 +931,13 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'WentLiveOn' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Went Live On
+                                WENT LIVE ON
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[10%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -972,22 +946,22 @@ export default function DeliverablePage() {
                                     direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
                                   }));
                                 }}
-                                className="p-0 h-8 font-medium flex items-center"
+                                className="p-0 h-8 text-base font-medium flex items-center"
                               >
-                                Month
+                                MONTH
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[13%]">Notes</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[13%] rounded-br-[12px]">NOTES</TableHead>
                           </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-gray-200">
                           {filteredBacklinks.length > 0 ? (
                             filteredBacklinks.map((backlink) => (
-                              <TableRow key={backlink.id}>
-                                <TableCell className="font-medium w-[18%]">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
+                              <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[18%]">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
                                 <TableCell className="w-[8%] text-center">
-                                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 rounded-full">
+                                  <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-full">
                                     {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
                                   </span>
                                 </TableCell>
@@ -1059,7 +1033,7 @@ export default function DeliverablePage() {
                                   })()}
                                 </TableCell>
                                 <TableCell className="w-[12%] pl-4">
-                                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
+                                  <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
                                     ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
                                     backlink.Status === 'Scheduled' ? 'bg-yellow-200 text-yellow-800' :
                                     backlink.Status === 'Rejected' ? 'bg-red-200 text-red-800' :
@@ -1070,13 +1044,13 @@ export default function DeliverablePage() {
                                 <TableCell className="w-[12%] pl-4">
                                   {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
                                 </TableCell>
-                                <TableCell className="w-[10%]">{backlink.Month || selectedMonth}</TableCell>
-                                <TableCell className="w-[13%]">{backlink.Notes || '—'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{backlink.Month || selectedMonth}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[13%]">{backlink.Notes || '—'}</TableCell>
                               </TableRow>
                             ))
                           ) : (
                             <TableRow>
-                              <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                              <TableCell colSpan={8} className="text-center py-4 text-base text-gray-500">
                                 No backlinks available for {selectedMonth}
                               </TableCell>
                             </TableRow>
