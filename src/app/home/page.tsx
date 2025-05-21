@@ -1,87 +1,206 @@
 'use client';
 
-import {
-  Package,
-  CheckSquare,
-  BarChart3,
-  Clock,
-  Check,
-  FileText
-} from 'lucide-react';
-import LinkButton from '@/components/ui/forms/LinkButton';
-import Button from '@/components/ui/forms/Button';
-import { ChecklistModal } from '@/components/ui/modals';
-import { useState } from 'react';
-import { checklistItems } from './data';
+import { useState, useEffect, useMemo } from 'react';
+import { Button as ShadButton } from '@/components/ui/button'; 
+import LinkButton from '@/components/ui/forms/LinkButton'; 
+import Button from '@/components/ui/forms/Button'; 
+import { ChecklistModal } from '@/components/ui/modals'; 
+import { BarChart3, CheckSquare, Package, FileText, Info, MessageSquare, TrendingUp, Users, Settings, Calendar, AlertTriangle, Search, ExternalLink, Clock, Check, ChevronRight } from 'lucide-react'; 
+import { checklistItems } from './data'; 
+import { getLatestActivityLogs } from '../../lib/airtable';
+import { fetchApprovalItems } from '@/lib/client-api-utils'; 
+import { useClientData } from '@/context/ClientDataContext'; 
 import Link from 'next/link';
 
-export default function Home() {
-  // Current month for milestone tracking
-  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+const formatDate = (isoString: string) => {
+  if (!isoString) return 'Date N/A';
+  try {
+    const date = new Date(isoString);
+    return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid Date';
+  }
+};
 
-  // Checklist state and modal state
+const formatRelativeTime = (isoString: string): string => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'just now';
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) return 'yesterday';
+  if (diffInDays < 7) return `${diffInDays} days ago`;
+  if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} week${Math.floor(diffInDays / 7) > 1 ? 's' : ''} ago`;
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) return `${diffInMonths} month${diffInMonths > 1 ? 's' : ''} ago`;
+  const diffInYears = Math.floor(diffInMonths / 12);
+  return `${diffInYears} year${diffInYears > 1 ? 's' : ''} ago`;
+};
+
+interface ActivityLog {
+  id: string;
+  Timestamp: string;
+  Description: string;
+  Category?: string;
+  UserSource?: string | { name?: string }; 
+  [key: string]: any; // Allow other fields from Airtable
+}
+
+interface GroupedActivityLogs {
+  [category: string]: ActivityLog[];
+}
+
+interface ClientActionItem {
+  id: string;
+  name: string;
+  status: string;
+}
+
+interface ClientActionItemExample {
+  id: string;
+  name: string; 
+  status: string;
+  type: string; 
+}
+
+interface ClientActionsByCategory {
+  [category: string]: number;
+}
+
+export default function Home() {
+  const currentM = new Date().toLocaleString('default', { month: 'long' });
   const [checklist, setChecklist] = useState(checklistItems);
   const [checklistModalOpen, setChecklistModalOpen] = useState(false);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
+  const [clientActionsByCategory, setClientActionsByCategory] = useState<ClientActionsByCategory>({});
+  const [totalClientActionItemCount, setTotalClientActionItemCount] = useState(0);
+  const [isLoadingClientActions, setIsLoadingClientActions] = useState(true);
 
-  // Handle checklist item toggle
+  const { clientId, isLoading: isLoadingClientContext } = useClientData();
+
   const handleChecklistItemToggle = (id: string, completed: boolean) => {
-    setChecklist(
-      checklist.map(item =>
-        item.id === id ? { ...item, completed } : item
-      )
-    );
+    setChecklist(prev => prev.map(item => item.id === id ? { ...item, completed } : item));
   };
 
-  // Calculate checklist progress
   const completedCount = checklist.filter(item => item.completed).length;
   const totalCount = checklist.length;
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+
+  useEffect(() => {
+    async function fetchActivities() {
+      setIsLoadingLogs(true);
+      try {
+        const logs = await getLatestActivityLogs(10); // Fetch 10 latest logs. Pass only limit.
+        setActivityLogs(logs);
+      } catch (error) {
+        console.error('Failed to fetch activity logs:', error);
+      }
+      setIsLoadingLogs(false);
+    }
+
+    async function fetchClientActionData() {
+      setIsLoadingClientActions(true);
+
+      const clientIdToUse = process.env.NEXT_PUBLIC_CLIENT_ID || clientId;
+
+      if (!clientIdToUse || clientIdToUse === 'all') { // Restored 'all' check as it might have been relevant
+        setClientActionsByCategory({});
+        setTotalClientActionItemCount(0); 
+        setIsLoadingClientActions(false);
+        return;
+      }
+      
+      const actionItemsConfig = [
+        { category: 'Keywords', type: 'keywords', status: 'Brief Creation Needed' },
+        { category: 'Keywords', type: 'keywords', status: 'Brief Awaiting Client Review' },
+        { category: 'Keywords', type: 'keywords', status: 'Brief Awaiting Client Depth' },
+        { category: 'Briefs', type: 'briefs', status: 'Brief Awaiting Client Review' },
+        { category: 'Briefs', type: 'briefs', status: 'Brief Awaiting Client Depth' },
+        { category: 'Articles', type: 'articles', status: 'Article Awaiting Client Review' },
+        { category: 'Articles', type: 'articles', status: 'Revisions Needed' },
+        { category: 'Backlinks', type: 'backlinks', status: 'Awaiting Approval' },
+      ];
+
+      try {
+        const promises = actionItemsConfig.map(async (config) => {
+          try {
+            const result = await fetchApprovalItems(
+              config.type,
+              1, 
+              1, 
+              undefined, 
+              undefined, 
+              true, 
+              clientIdToUse, 
+              config.status
+            );
+            return { ...config, count: result?.pagination?.totalItems || 0 };
+          } catch (error) {
+            console.error(`Error fetching action items for ${config.category} (${config.type} - ${config.status}):`, error);
+            return { ...config, count: 0 }; 
+          }
+        });
+
+        const results = await Promise.all(promises);
+        
+        const countsByCategory: ClientActionsByCategory = {};
+        let totalPending = 0;
+        results.forEach(item => {
+          countsByCategory[item.category] = (countsByCategory[item.category] || 0) + item.count;
+          totalPending += item.count;
+        });
+
+        setClientActionsByCategory(countsByCategory);
+        setTotalClientActionItemCount(totalPending);
+
+      } catch (error) {
+        console.error('Error fetching client action items in Promise.all:', error);
+        setClientActionsByCategory({});
+        setTotalClientActionItemCount(0);
+      } finally {
+        setIsLoadingClientActions(false);
+      }
+    };
+
+    if (isLoadingClientContext) {
+        // Optionally set loading states true here if needed, though fetchClientActionData does it.
+    } else if (clientId || process.env.NEXT_PUBLIC_CLIENT_ID) {
+        fetchActivities();
+        fetchClientActionData();
+    } else {
+        setActivityLogs([]); // Clear logs if no client
+        setIsLoadingLogs(false);
+        setClientActionsByCategory({});
+        setTotalClientActionItemCount(0);
+        setIsLoadingClientActions(false);
+    }
+  }, [clientId, isLoadingClientContext]);
+
+  const groupedLogs = useMemo(() => {
+    return activityLogs.reduce((acc, log) => {
+      const category = log.Category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(log);
+      return acc;
+    }, {} as GroupedActivityLogs);
+  }, [activityLogs]);
 
   return (
     <>
-      {/* Campaign Status Overview */}
-      {/* <div className="mb-6">
-        <p className="text-lg text-[#12131C] dark:text-gray-300 mb-4">
-          Here&apos;s where your campaign stands this week
-        </p> */}
-
-        {/* Highlighted Reminders - Priority 1 */}
-        {/* <div className="relative overflow-hidden rounded-3xl border-8 border-[#9EA8FB] bg-gradient-to-r from-[#9EA8FB]/10 to-white p-5 shadow-lg">
-          <div className="mb-4">
-            <span className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
-              </span>
-              <span className="font-bold">1</span> Action Required
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <div className="mb-4">
-              <h2 className="mb-2 text-lg font-medium text-[#12131C]">Items Needing Your Attention</h2>
-              <p className="text-sm text-[#4F515E]">3 deliverables need your review. 1 new report is available.</p>
-            </div>
-            <Link href="/approvals" className="btn-primary inline-flex items-center justify-center gap-2 text-base get-started-btn w-full">
-              Go to Approvals
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right">
-                <path d="M5 12h14"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </Link>
-          </div>
-          <div className="absolute right-0 top-0 h-16 w-16 overflow-hidden">
-            <div className="absolute right-4 top-4 h-4 w-4 animate-pulse rounded-full bg-amber-500"></div>
-          </div>
-        </div>
-      </div> */}
-
-      {/* Main Content and Sidebar Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Main Content Area - Updated Layout */}
         <div className="lg:w-2/3 flex flex-col gap-6"> 
-          {/* 2-column grid for Checklist and Actions Needed cards (Now at the top) */}
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Interactive Checklist - Added from Get Started page */}
             <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
@@ -90,26 +209,11 @@ export default function Home() {
                 <h2 className="text-2xl font-bold text-[#12131C]">Interactive Checklist</h2>
               </div>
               <p className="text-base text-[#12131C] mb-4">Track your progress with our interactive checklist.</p>
-
               <div className="flex-grow flex flex-col items-center justify-center">
-                {/* Centered Progress Circle */}
                 <div className="relative h-24 w-24 mb-2">
-                  {/* Background circle */}
                   <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      className="stroke-[#F0F0F7] stroke-[8px] fill-none"
-                      cx="50"
-                      cy="50"
-                      r="38"
-                    ></circle>
-                    <circle
-                      className="stroke-[#9EA8FB] stroke-[8px] fill-none get-started-circle"
-                      cx="50"
-                      cy="50"
-                      r="38"
-                      strokeDasharray="238.76104167282426"
-                      strokeDashoffset={238.76104167282426 - (238.76104167282426 * progressPercentage / 100)}
-                    ></circle>
+                    <circle className="stroke-[#F0F0F7] stroke-[8px] fill-none" cx="50" cy="50" r="38"></circle>
+                    <circle className="stroke-[#9EA8FB] stroke-[8px] fill-none get-started-circle" cx="50" cy="50" r="38" strokeDasharray="238.76104167282426" strokeDashoffset={238.76104167282426 - (238.76104167282426 * progressPercentage / 100)}></circle>
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-xl font-bold text-[#12131C]">{completedCount}/{totalCount}</span>
@@ -117,7 +221,6 @@ export default function Home() {
                 </div>
                 <p className="text-base text-[#12131C]">Tasks Completed</p>
               </div>
-
               <div className="mt-auto pt-6">
                 <Button
                   variant="primary"
@@ -129,35 +232,57 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Client Actions Needed Card - Priority 3 */}
             <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
-              <div className="flex items-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
-                  <Package className="h-6 w-6 text-[#9EA8FB]" />
+              <div className="flex items-center mb-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6E8FD] mr-3 flex-shrink-0">
+                  <Package className="h-5 w-5 text-[#9EA8FB]" />
                 </div>
                 <h2 className="text-2xl font-bold text-[#12131C]">Client Actions Needed</h2>
               </div>
-              <p className="text-base text-[#12131C] mb-4">Review items that require your attention.</p>
-
-              <div className="flex-grow flex flex-col items-center justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFEACB] mb-2">
-                  <Check className="h-8 w-8 text-[#FFA000]" />
-                </div>
-                <p className="text-lg font-semibold text-[#12131C] mb-1">No pending actions</p>
-                <p className="text-sm text-[#4F515E]">All items are up-to-date.</p>
+              <p className="text-base text-[#4F515E] mb-6 ml-13">Review items that require your attention.</p>
+              <div className="text-center my-auto py-4 flex-grow flex flex-col justify-center items-center">
+                {isLoadingClientActions || isLoadingClientContext ? (
+                  <p className="text-base text-[#4F515E]">Loading actions...</p>
+                ) : totalClientActionItemCount > 0 ? (
+                  <div className="space-y-2 w-full px-4">
+                    <AlertTriangle size={48} className="text-yellow-500 mx-auto" />
+                    <p className="text-lg font-semibold text-[#12131C]">
+                      {totalClientActionItemCount} item{totalClientActionItemCount > 1 ? 's' : ''} require attention
+                    </p>
+                    {Object.keys(clientActionsByCategory).length > 0 && (
+                      <ul className="text-sm text-gray-700 list-none p-0 max-h-40 overflow-y-auto text-left divide-y divide-gray-200">
+                        {Object.entries(clientActionsByCategory).map(([category, count]) => (
+                          <li key={category} className="py-1.5 flex justify-between items-center">
+                            <span className="capitalize">{category.replace(/s$/, '')}:</span>
+                            <span className="font-medium bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs">{count}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="bg-[#FFF7E6] p-4 rounded-lg inline-block mb-3">
+                      <CheckSquare size={32} className="text-[#FFA726]" />
+                    </div>
+                    <p className="text-lg font-semibold text-[#12131C]">No pending actions</p>
+                    <p className="text-sm text-[#4F515E]">
+                      {(!clientId || clientId === 'all') && !isLoadingClientContext 
+                        ? 'Select a client to view specific actions.' 
+                        : 'All items are up-to-date for the selected client.'}
+                    </p>
+                  </>
+                )}
               </div>
-
-              <div className="mt-auto pt-6">
-                <LinkButton href="/approvals" variant="primary" className="text-base get-started-btn w-full">
+              <div className="mt-auto pt-4">
+                <LinkButton href="/approvals" variant="primary" className="text-base w-full">
                   View Approvals
                 </LinkButton>
               </div>
             </div>
           </div>
           
-          {/* Main card for Campaign Progress (Now below the two smaller cards) */}
           <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
-            {/* Header for Campaign Progress */}
             <div className="flex items-center mb-6">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
                 <BarChart3 className="h-6 w-6 text-[#9EA8FB]" />
@@ -167,8 +292,6 @@ export default function Home() {
                 <p className="text-base text-[#4F515E]">Track your monthly campaign milestones and goals</p>
               </div>
             </div>
-
-            {/* Section 1: Monthly Campaign Progress */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold text-[#12131C] mb-3">{currentMonth} Campaign Progress</h3>
               <div className="flex justify-between mb-1">
@@ -179,8 +302,6 @@ export default function Home() {
                 <div className="h-2.5 rounded-full bg-[#9EA8FB]" style={{ width: '63%' }}></div>
               </div>
             </div>
-
-            {/* Section 2: Key Metrics (Content & Links) */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold text-[#12131C] mb-4">Key Metrics</h3>
               <div className="flex items-start">
@@ -194,8 +315,6 @@ export default function Home() {
                   </div>
               </div>
             </div>
-            
-            {/* Updated Action Button to 'View Monthly Plan' */}
             <div className="mt-auto pt-6">
               <LinkButton href="/milestones" variant="primary" className="text-base get-started-btn w-full">
                 View Monthly Plan
@@ -204,72 +323,52 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Latest Activity Sidebar - Priority 5 */}
-        <div className="lg:w-1/3">
-          <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm h-full">
-            <div className="flex items-center mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
-                <Clock className="h-6 w-6 text-[#9EA8FB]" />
+        <div className="lg:w-1/3 flex flex-col gap-6">
+          <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
+            <div className="flex items-center mb-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6E8FD] mr-3 flex-shrink-0">
+                <Clock className="h-5 w-5 text-[#9EA8FB]" /> 
               </div>
               <h2 className="text-2xl font-bold text-[#12131C]">Latest Activity</h2>
             </div>
-            <p className="text-base text-[#12131C] mb-4">Recent updates to your campaign</p>
-
-            <div className="space-y-6">
-              {/* Recent Briefs */}
-              <div className="border-l-4 border-[#9EA8FB] pl-4">
-                <h3 className="text-lg font-bold mb-2">Briefs Sent</h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-medium">Product Comparison Guide</p>
-                    <p className="text-sm text-gray-600">Sent 2 days ago</p>
+            <p className="text-base text-[#4F515E] mb-6 ml-13">Recent updates to your campaign</p>
+            
+            <div className="space-y-6 flex-grow overflow-y-auto pr-2">
+              {isLoadingLogs ? (
+                <p className="text-base text-[#4F515E]">Loading activities...</p>
+              ) : Object.keys(groupedLogs).length > 0 ? (
+                Object.entries(groupedLogs).map(([category, logs]) => (
+                  <div key={category} className="border-l-4 border-[#9EA8FB] pl-4">
+                    <h3 className="text-lg font-bold mb-2 capitalize">
+                      {category.replace(/_/g, ' ')}
+                    </h3>
+                    <div className="space-y-3">
+                      {logs.map((log) => (
+                        <div key={log.id}>
+                          <p className="font-medium text-sm text-[#12131C] leading-tight">
+                            {log.Description || 'No description provided.'}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {formatRelativeTime(log.Timestamp)}
+                            {log.UserSource && typeof log.UserSource === 'object' && log.UserSource.name && ` - by ${log.UserSource.name}`}
+                            {log.UserSource && typeof log.UserSource === 'string' && ` - by ${log.UserSource}`}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">SEO Strategy Update</p>
-                    <p className="text-sm text-gray-600">Sent 5 days ago</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Plans Approved */}
-              <div className="border-l-4 border-[#9EA8FB] pl-4">
-                <h3 className="text-lg font-bold mb-2">Plans Approved</h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-medium">Q2 Content Calendar</p>
-                    <p className="text-sm text-gray-600">Approved yesterday</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Link Building Strategy</p>
-                    <p className="text-sm text-gray-600">Approved last week</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Feedback Requested */}
-              <div className="border-l-4 border-[#9EA8FB] pl-4">
-                <h3 className="text-lg font-bold mb-2">Feedback Requested</h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-medium">Competitor Analysis</p>
-                    <p className="text-sm text-gray-600">Awaiting feedback</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">Homepage Copy Draft</p>
-                    <p className="text-sm text-gray-600">Awaiting feedback</p>
-                  </div>
-                </div>
-              </div>
+                ))
+              ) : (
+                <p className="text-base text-[#4F515E]">No recent activity to display.</p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Checklist Modal */}
       <ChecklistModal
         isOpen={checklistModalOpen}
         onClose={() => setChecklistModalOpen(false)}
-        title="Onboarding Checklist"
         items={checklist}
         onItemToggle={handleChecklistItemToggle}
       />
