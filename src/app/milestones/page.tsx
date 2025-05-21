@@ -27,7 +27,7 @@ export default function MilestonesPage() {
         </div>
         
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-          <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: '63%' }}></div>
+          <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: '63%' }}></div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -40,7 +40,7 @@ export default function MilestonesPage() {
                   <span>50%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '50%' }}></div>
+                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '50%' }}></div>
                 </div>
               </div>
               
@@ -50,7 +50,7 @@ export default function MilestonesPage() {
                   <span>38%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '38%' }}></div>
+                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '38%' }}></div>
                 </div>
               </div>
               
@@ -60,7 +60,7 @@ export default function MilestonesPage() {
                   <span>50%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '50%' }}></div>
+                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '50%' }}></div>
                 </div>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function MilestonesPage() {
                   <span>40%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '40%' }}></div>
+                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '40%' }}></div>
                 </div>
               </div>
               
@@ -85,7 +85,7 @@ export default function MilestonesPage() {
                   <span>33%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '33%' }}></div>
+                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '33%' }}></div>
                 </div>
               </div>
               
@@ -95,79 +95,11 @@ export default function MilestonesPage() {
                   <span>67%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '67%' }}></div>
+                  <div className="bg-purple-600 h-1.5 rounded-full" style={{ width: '67%' }}></div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-dark p-6 rounded-lg shadow-sm border border-lightGray dark:border-darkGray">
-          <h3 className="font-medium mb-3">Upcoming Deliverables</h3>
-          <ul className="space-y-2">
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-              <span>4 Content Briefs (Due Apr 20)</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-              <span>2 Blog Posts (Due Apr 25)</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-              <span>3 Backlinks (Due Apr 30)</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-              <span>1 Landing Page (Due Apr 30)</span>
-            </li>
-          </ul>
-        </div>
-        
-        <div className="bg-white dark:bg-dark p-6 rounded-lg shadow-sm border border-lightGray dark:border-darkGray">
-          <h3 className="font-medium mb-3">Recently Completed</h3>
-          <ul className="space-y-2">
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-              <span>Blog Post: "SEO Trends 2024"</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-              <span>Backlink from industry.com</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-              <span>Content Brief: "AI in Marketing"</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-              <span>PR Mention in Tech Weekly</span>
-            </li>
-          </ul>
-        </div>
-        
-        <div className="bg-white dark:bg-dark p-6 rounded-lg shadow-sm border border-lightGray dark:border-darkGray">
-          <h3 className="font-medium mb-3">Monthly Goals</h3>
-          <ul className="space-y-2">
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-              <span>Increase traffic by 8%</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-              <span>Improve rankings for 5 keywords</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-              <span>Generate 15 new leads</span>
-            </li>
-            <li className="flex items-center text-sm">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-              <span>Publish 8 content pieces</span>
-            </li>
-          </ul>
         </div>
       </div>
     </DashboardLayout>

@@ -5,13 +5,15 @@ import {
   CheckSquare,
   BarChart3,
   Clock,
-  Check
+  Check,
+  FileText
 } from 'lucide-react';
 import LinkButton from '@/components/ui/forms/LinkButton';
 import Button from '@/components/ui/forms/Button';
 import { ChecklistModal } from '@/components/ui/modals';
 import { useState } from 'react';
 import { checklistItems } from './data';
+import Link from 'next/link';
 
 export default function Home() {
   // Current month for milestone tracking
@@ -75,8 +77,9 @@ export default function Home() {
 
       {/* Main Content and Sidebar Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Main Content Area - Mission Control Layout */}
-        <div className="lg:w-2/3">
+        {/* Main Content Area - Updated Layout */}
+        <div className="lg:w-2/3 flex flex-col gap-6"> 
+          {/* 2-column grid for Checklist and Actions Needed cards (Now at the top) */}
           <div className="grid gap-6 md:grid-cols-2">
             {/* Interactive Checklist - Added from Get Started page */}
             <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
@@ -112,70 +115,17 @@ export default function Home() {
                     <span className="text-xl font-bold text-[#12131C]">{completedCount}/{totalCount}</span>
                   </div>
                 </div>
-                <p className="text-sm text-[#4F515E]">{completedCount} of {totalCount} tasks completed</p>
+                <p className="text-base text-[#12131C]">Tasks Completed</p>
               </div>
 
               <div className="mt-auto pt-6">
                 <Button
                   variant="primary"
-                  size="lg"
-                  className="w-full get-started-btn"
+                  className="text-base get-started-btn w-full"
                   onClick={() => setChecklistModalOpen(true)}
                 >
-                  Resume Checklist
+                  View Checklist
                 </Button>
-              </div>
-            </div>
-            {/* Deliverables Summary Card - Priority 2 */}
-            <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
-              <div className="flex items-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
-                  <Package className="h-6 w-6 text-[#9EA8FB]" />
-                </div>
-                <h2 className="text-2xl font-bold text-[#12131C]">Content Workflow</h2>
-              </div>
-              <p className="text-base text-[#12131C] mb-4">Monitor your content and link building progress</p>
-
-              <div className="grid gap-8 md:grid-cols-2 flex-grow">
-                {/* Deliverables Status */}
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-package-check h-6 w-6 text-[#9EA8FB]">
-                      <path d="M16 16h6"></path>
-                      <path d="M19 10V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v18a2 2 0 0 0 2 2h12"></path>
-                      <path d="m9 15 2 2 4-4"></path>
-                    </svg>
-                  </div>
-                  <h3 className="mb-2 text-xl font-bold">Delivered</h3>
-                  <p className="text-2xl font-bold">12</p>
-                </div>
-
-                {/* In Progress */}
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock h-6 w-6 text-[#9EA8FB]">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                  </div>
-                  <h3 className="mb-2 text-xl font-bold">In Progress</h3>
-                  <p className="text-2xl font-bold">8</p>
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-[#9EA8FB]" style={{ width: '60%' }}></div>
-                </div>
-                <div className="mt-2 flex justify-between text-sm">
-                  <span>Delivered</span>
-                  <span>Pending</span>
-                </div>
-              </div>
-
-              <div className="mt-auto pt-6">
-                <LinkButton href="/deliverables" variant="primary" className="text-base get-started-btn w-full">
-                  View All Deliverables
-                </LinkButton>
               </div>
             </div>
 
@@ -183,108 +133,73 @@ export default function Home() {
             <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
               <div className="flex items-center mb-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
-                  <CheckSquare className="h-6 w-6 text-[#9EA8FB]" />
+                  <Package className="h-6 w-6 text-[#9EA8FB]" />
                 </div>
-                <h2 className="text-2xl font-bold text-[#12131C]">Your Action Items</h2>
+                <h2 className="text-2xl font-bold text-[#12131C]">Client Actions Needed</h2>
               </div>
-              <p className="text-base text-[#12131C] mb-4">Items waiting for your review or approval</p>
+              <p className="text-base text-[#12131C] mb-4">Review items that require your attention.</p>
 
-              <div className="flex-grow">
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 mt-0.5">
-                      <span className="relative flex h-2 w-2">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">Content Brief Approval</p>
-                      <p className="text-sm text-gray-600">Due in 2 days</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 mt-0.5">
-                      <span className="h-2 w-2 rounded-full bg-amber-500"></span>
-                    </div>
-                    <div>
-                      <p className="font-medium">Review Monthly Report</p>
-                      <p className="text-sm text-gray-600">New report available</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 mt-0.5">
-                      <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                    </div>
-                    <div>
-                      <p className="font-medium">Feedback on Article Draft</p>
-                      <p className="text-sm text-gray-600">Submitted yesterday</p>
-                    </div>
-                  </li>
-                </ul>
+              <div className="flex-grow flex flex-col items-center justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#FFEACB] mb-2">
+                  <Check className="h-8 w-8 text-[#FFA000]" />
+                </div>
+                <p className="text-lg font-semibold text-[#12131C] mb-1">No pending actions</p>
+                <p className="text-sm text-[#4F515E]">All items are up-to-date.</p>
               </div>
+
               <div className="mt-auto pt-6">
                 <LinkButton href="/approvals" variant="primary" className="text-base get-started-btn w-full">
-                  Review All Items
+                  View Approvals
                 </LinkButton>
               </div>
             </div>
-
-            {/* Milestone Tracker Card - Priority 4 */}
-            <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full md:col-span-2">
-              <div className="flex items-center mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
-                  <BarChart3 className="h-6 w-6 text-[#9EA8FB]" />
-                </div>
+          </div>
+          
+          {/* Main card for Campaign Progress (Now below the two smaller cards) */}
+          <div className="rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm flex flex-col h-full">
+            {/* Header for Campaign Progress */}
+            <div className="flex items-center mb-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20 mr-3">
+                <BarChart3 className="h-6 w-6 text-[#9EA8FB]" />
+              </div>
+              <div>
                 <h2 className="text-2xl font-bold text-[#12131C]">Campaign Progress</h2>
+                <p className="text-base text-[#4F515E]">Track your monthly campaign milestones and goals</p>
               </div>
-              <p className="text-base text-[#12131C] mb-4">Track your monthly campaign milestones and goals</p>
+            </div>
 
-              <div className="mb-6">
-                <div className="flex items-center justify-between text-base mb-2">
-                  <span className="font-medium">{currentMonth} Progress:</span>
-                  <span>63% complete</span>
-                </div>
-                <div role="progressbar" aria-valuemin={0} aria-valuemax={100} className="relative w-full overflow-hidden rounded-full h-2 bg-gray-200">
-                  <div className="h-full w-full flex-1 bg-[#9EA8FB] transition-all" style={{ width: '63%' }}></div>
-                </div>
+            {/* Section 1: Monthly Campaign Progress */}
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-[#12131C] mb-3">{currentMonth} Campaign Progress</h3>
+              <div className="flex justify-between mb-1">
+                <span className="text-base font-medium text-[#12131C]">Overall Status:</span>
+                <span className="text-sm font-medium text-[#12131C]">63% complete</span>
               </div>
+              <div className="h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+                <div className="h-2.5 rounded-full bg-[#9EA8FB]" style={{ width: '63%' }}></div>
+              </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-6 flex-grow">
-                {/* Content */}
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text h-6 w-6 text-gray-600">
-                      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
-                      <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
-                      <path d="M10 9H8"></path>
-                      <path d="M16 13H8"></path>
-                      <path d="M16 17H8"></path>
-                    </svg>
+            {/* Section 2: Key Metrics (Content & Links) */}
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-[#12131C] mb-4">Key Metrics</h3>
+              <div className="flex items-start">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6E8FD] mr-4 mt-1 flex-shrink-0">
+                      <FileText className="h-5 w-5 text-[#9EA8FB]" />
                   </div>
-                  <h3 className="mb-2 text-xl font-bold">Content</h3>
-                  <p className="text-base">6 of 12 briefs delivered</p>
-                </div>
-
-                {/* Links */}
-                <div className="flex flex-col items-center text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-link2 h-6 w-6 text-gray-600">
-                      <path d="M9 17H7A5 5 0 0 1 7 7h2"></path>
-                      <path d="M15 7h2a5 5 0 1 1 0 10h-2"></path>
-                      <line x1="8" x2="16" y1="12" y2="12"></line>
-                    </svg>
+                  <div>
+                      <h4 className="text-lg font-semibold text-[#12131C]">Content & Links</h4>
+                      <p className="text-base text-[#4F515E]">6 of 12 briefs delivered</p>
+                      <p className="text-base text-[#4F515E]">4 backlinks, 1 blog live</p>
                   </div>
-                  <h3 className="mb-2 text-xl font-bold">Links</h3>
-                  <p className="text-base">4 backlinks, 1 blog live</p>
-                </div>
               </div>
-
-              <div className="mt-auto pt-6">
-                <LinkButton href="/milestones" variant="primary" className="text-base get-started-btn w-full">
-                  View Monthly Plan
-                </LinkButton>
-              </div>
+            </div>
+            
+            {/* Updated Action Button to 'View Monthly Plan' */}
+            <div className="mt-auto pt-6">
+              <LinkButton href="/milestones" variant="primary" className="text-base get-started-btn w-full">
+                View Monthly Plan
+              </LinkButton>
             </div>
           </div>
         </div>
@@ -345,12 +260,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-6">
-              <LinkButton href="/timeline" variant="primary" className="text-base get-started-btn w-full">
-                View Full Timeline
-              </LinkButton>
             </div>
           </div>
         </div>
