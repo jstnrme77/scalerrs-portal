@@ -1356,10 +1356,20 @@ export default function Approvals() {
 
   const handleApprove = async (id: string) => {
     try {
-      // Send 'Approved' as the status value - this is what Airtable expects
-      // The updateApprovalStatus function will determine the correct field based on the type
+      // Get the current client for debugging
+      const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
+      console.log(`Approving item ${id} with client filter: ${currentClient}`);
+      
+      // Make sure we use the correct status value
       const airtableStatus = 'Approved';
-      await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
+      
+      // Clear cache before update to ensure fresh data after
+      console.log('Clearing cache before approval update');
+      clearApprovalsCache(); // Clear all types to be safe
+      
+      // Call the API to update Airtable
+      const result = await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
+      console.log('Update approval result:', result);
 
       // Update local state
       setItems(prev => {
@@ -1367,15 +1377,24 @@ export default function Approvals() {
         const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === id);
 
         if (itemIndex !== -1) {
+          console.log(`Updating local state for item ${id} from ${newItems[activeTab as keyof typeof items][itemIndex].status} to approved`);
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
             status: 'approved', // Local state can remain 'approved' for UI consistency
             dateApproved: new Date().toISOString().split('T')[0]
           };
+        } else {
+          console.warn(`Item ${id} not found in local state for update`);
         }
 
         return newItems;
       });
+      
+      // Refresh data after a short delay to ensure we get the latest from Airtable
+      setTimeout(() => {
+        console.log('Refreshing data after approval update');
+        fetchData(1);
+      }, 1000);
     } catch (error) {
       console.error('Error approving item:', error);
     }
@@ -1444,26 +1463,28 @@ export default function Approvals() {
   // Approve selected items
   const approveSelectedItems = async () => {
     const currentTabSelections = selectedItems[activeTab as keyof typeof selectedItems];
+    
+    // Get the current client for debugging
+    const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
+    console.log(`Bulk approving ${currentTabSelections.length} items with client filter: ${currentClient}`);
+
+    // Clear cache before update to ensure fresh data after
+    console.log('Clearing cache before bulk approval update');
+    clearApprovalsCache(); // Clear all types to be safe
 
     // Process each selected item
     for (const id of currentTabSelections) {
       try {
-        let airtableStatus = 'Brief Approved'; // Default status
-        switch (activeTab) {
-          case 'keywords':
-            airtableStatus = 'Keyword Approvals';
-            break;
-          case 'briefs':
-            airtableStatus = 'Brief Approvals';
-            break;
-          case 'articles':
-            airtableStatus = 'Article Approvals';
-            break;
-          case 'backlinks':
-            airtableStatus = 'Backlink Approvals'; // Assumed for consistency
-            break;
-        }
-        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
+        // Always use 'Approved' as the status value
+        const airtableStatus = 'Approved';
+        console.log(`Approving item ${id} in ${activeTab}`);
+        
+        const result = await updateApprovalStatus(
+          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', 
+          id, 
+          airtableStatus
+        );
+        console.log(`Approval result for item ${id}:`, result);
       } catch (error) {
         console.error(`Error approving item ${id}:`, error);
       }
@@ -1477,6 +1498,7 @@ export default function Approvals() {
         const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === id);
 
         if (itemIndex !== -1 && ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(newItems[activeTab as keyof typeof items][itemIndex].status)) {
+          console.log(`Updating local state for item ${id} from ${newItems[activeTab as keyof typeof items][itemIndex].status} to approved`);
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
             status: 'approved', // Local state can remain 'approved' for UI consistency
@@ -1490,20 +1512,42 @@ export default function Approvals() {
 
     // Clear selections after approving
     clearSelections();
+    
+    // Refresh data after a short delay to ensure we get the latest from Airtable
+    setTimeout(() => {
+      console.log('Refreshing data after bulk approval update');
+      fetchData(1);
+    }, 1000);
   };
 
   const confirmRequestChanges = async (reason: string) => {
     // Check if this is a bulk action
     const isBulkAction = rejectionModal.itemId === 'bulk';
+    
+    // Get the current client for debugging
+    const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
+    console.log(`${isBulkAction ? 'Bulk requesting' : 'Requesting'} changes with client filter: ${currentClient}`);
+
+    // Clear cache before update to ensure fresh data after
+    console.log('Clearing cache before requesting changes');
+    clearApprovalsCache(); // Clear all types to be safe
 
     if (isBulkAction) {
       // Get the selected items for the current tab
       const currentTabSelections = selectedItems[activeTab as keyof typeof selectedItems];
+      console.log(`Requesting changes for ${currentTabSelections.length} items`);
 
       // Process each selected item
       for (const id of currentTabSelections) {
         try {
-          await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, 'Needs Revision', reason);
+          // Always use 'Needs Revision' as the status value
+          const result = await updateApprovalStatus(
+            activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks',
+            id, 
+            'Needs Revision', 
+            reason
+          );
+          console.log(`Revision request result for item ${id}:`, result);
         } catch (error) {
           console.error(`Error requesting changes for item ${id}:`, error);
         }
@@ -1511,7 +1555,14 @@ export default function Approvals() {
     } else {
       // Update a single item
       try {
-        await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', rejectionModal.itemId, 'Needs Revision', reason);
+        console.log(`Requesting changes for single item ${rejectionModal.itemId}`);
+        const result = await updateApprovalStatus(
+          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks',
+          rejectionModal.itemId, 
+          'Needs Revision', 
+          reason
+        );
+        console.log(`Revision request result:`, result);
       } catch (error) {
         console.error(`Error requesting changes for item ${rejectionModal.itemId}:`, error);
       }
@@ -1528,6 +1579,7 @@ export default function Approvals() {
         // Update only selected pending items in the current tab
         newItems[activeTab as keyof typeof items] = newItems[activeTab as keyof typeof items].map(item => {
           if (['awaiting_approval', 'resubmitted', 'needs_revision', 'ready_for_review'].includes(item.status) && currentTabSelections.includes(item.id)) {
+            console.log(`Updating local state for item ${item.id} from ${item.status} to revisions_needed`);
             return {
               ...item,
               status: 'revisions_needed',
@@ -1542,12 +1594,15 @@ export default function Approvals() {
         const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === rejectionModal.itemId);
 
         if (itemIndex !== -1) {
+          console.log(`Updating local state for item ${rejectionModal.itemId} from ${newItems[activeTab as keyof typeof items][itemIndex].status} to revisions_needed`);
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
             status: 'revisions_needed',
             dateApproved: new Date().toISOString().split('T')[0],
             revisionReason: reason
           };
+        } else {
+          console.warn(`Item ${rejectionModal.itemId} not found in local state for update`);
         }
       }
 
@@ -1557,6 +1612,12 @@ export default function Approvals() {
     // Clear selections after applying changes
     clearSelections();
     setRejectionModal({ isOpen: false, itemId: '' });
+    
+    // Refresh data after a short delay to ensure we get the latest from Airtable
+    setTimeout(() => {
+      console.log('Refreshing data after requesting changes');
+      fetchData(1);
+    }, 1000);
   };
 
   // Handle tab change
