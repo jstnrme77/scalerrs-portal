@@ -698,3 +698,67 @@ export function clearTaskBoardCache(boardType?: string) {
     clearCacheByPrefix('taskboard_');
   }
 }
+
+/**
+ * Create a new WQA task
+ * @param taskData Task data to create
+ * @returns Created task
+ */
+export async function createWQATask(taskData: {
+  task: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  impact: number;
+  effort: string;
+  notes?: string;
+  boardType: string;
+}) {
+  // Clear the WQA tasks cache to ensure we get fresh data
+  clearWQATasksCache();
+  
+  // Map the status to Airtable accepted values
+  let airtableStatus: string;
+  switch (taskData.status.toLowerCase()) {
+    case 'not started':
+      airtableStatus = 'To Do';
+      break;
+    case 'in progress':
+      airtableStatus = 'In Progress';
+      break;
+    case 'blocked':
+    case 'done':
+      airtableStatus = 'Setup';
+      break;
+    default:
+      airtableStatus = 'To Do';
+  }
+  
+  // Note: We're not passing the Type field to Airtable as it's causing errors
+  // Create the task via the API
+  return fetchFromApi(
+    'wqa-tasks/add-task',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        ...taskData,
+        status: airtableStatus // Use the mapped status value
+      })
+    },
+    // Fallback mock data
+    {
+      id: `task-${Date.now()}`,
+      task: taskData.task,
+      status: taskData.status,
+      priority: taskData.priority,
+      assignedTo: taskData.assignedTo || 'Unassigned',
+      impact: taskData.impact,
+      effort: taskData.effort,
+      notes: taskData.notes,
+      dateLogged: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      comments: [],
+      commentCount: 0
+    }
+  );
+}

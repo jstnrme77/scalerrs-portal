@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { BarChart, Wrench, LightbulbIcon } from 'lucide-react';
-import { fetchWQATasks, updateWQATaskStatus, addWQATaskComment, fetchWQATaskComments, clearWQATasksCache } from '@/lib/client-api-utils';
+import { fetchWQATasks, updateWQATaskStatus, addWQATaskComment, fetchWQATaskComments, clearWQATasksCache, createWQATask } from '@/lib/client-api-utils';
 import { useClientData } from '@/context/ClientDataContext';
 // Import task types from our types file
 import {
@@ -838,8 +838,7 @@ function TaskTable({
               <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
               <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Impact</th>
               <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%]">Effort</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%]">Comments</th>
-              <th className="px-4 py-4 text-right text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">Actions</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%] rounded-br-[12px]">Comments</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -878,72 +877,10 @@ function TaskTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-right w-[10%]">
-                    <div className="flex justify-end space-x-2">
-                      {task.status === 'Not Started' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onStatusChange(task.id, 'In Progress');
-                          }}
-                          className="px-4 py-1 text-base font-medium text-white bg-[#000000] rounded-lg hover:bg-[#000000]/80 transition-colors"
-                        >
-                          Start
-                        </button>
-                      )}
-
-                      {task.status === 'In Progress' && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onStatusChange(task.id, 'Done');
-                            }}
-                            className="px-4 py-1 text-base font-medium text-white bg-[#000000] rounded-lg hover:bg-[#000000]/80 transition-colors"
-                          >
-                            Complete
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onStatusChange(task.id, 'Blocked');
-                            }}
-                            className="px-4 py-1 text-base font-medium text-red-800 bg-red-100 rounded-lg hover:bg-red-700 hover:text-white transition-colors"
-                          >
-                            Block
-                          </button>
-                        </>
-                      )}
-
-                      {task.status === 'Blocked' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onStatusChange(task.id, 'In Progress');
-                          }}
-                          className="px-4 py-1 text-base font-medium text-blue-800 bg-blue-100 rounded-lg hover:bg-blue-700 hover:text-white transition-colors"
-                        >
-                          Resume
-                        </button>
-                      )}
-
-                      {task.status === 'Done' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onStatusChange(task.id, 'In Progress');
-                          }}
-                          className="px-4 py-1 text-base font-medium text-mediumGray bg-lightGray rounded-lg hover:bg-gray-300 transition-colors"
-                        >
-                          Reopen
-                        </button>
-                      )}
-                    </div>
-                  </td>
                 </tr>
                 {expandedTaskId === task.id && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-4 bg-white border-t border-gray-200">
+                    <td colSpan={8} className="px-4 py-4 bg-white border-t border-gray-200">
                       <div className="grid grid-cols-2 gap-4">
                         {task.notes && (
                           <div>
@@ -1008,7 +945,7 @@ function TaskTable({
 
             {sortedTasks.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-base text-mediumGray">
+                <td colSpan={8} className="px-4 py-8 text-center text-base text-mediumGray">
                   No tasks found in this section
                 </td>
               </tr>
@@ -1057,7 +994,7 @@ function AddTaskModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (taskData.task.trim() && taskData.assignedTo.trim()) {
+    if (taskData.task.trim()) {
       // Format reference links if provided
       const referenceLinks = taskData.referenceLinks.trim()
         ? taskData.referenceLinks.split('\n').filter(link => link.trim() !== '')
@@ -1067,7 +1004,7 @@ function AddTaskModal({
       const newTask: Task = {
         task: taskData.task,
         priority: taskData.priority,
-        assignedTo: taskData.assignedTo,
+        assignedTo: taskData.assignedTo.trim() || 'Unassigned',
         impact: taskData.impact,
         effort: taskData.effort,
         notes: taskData.notes,
@@ -1130,7 +1067,6 @@ function AddTaskModal({
                 placeholder="Enter assignee name"
                 value={taskData.assignedTo}
                 onChange={(e) => setTaskData({ ...taskData, assignedTo: e.target.value })}
-                required
               />
             </div>
 
@@ -1429,17 +1365,268 @@ export default function TaskBoards() {
     });
   };
 
-  // We'll always show the Strategy/Ad Hoc tab regardless of whether there are tasks
-  // This provides a consistent UI and allows users to add tasks to this category
+  // Function to refresh task data
+  const refreshData = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      // Fetch tasks for the active board from Airtable
+      const response = await fetchWQATasks(activeBoard);
+      
+      console.log('WQA Tasks Response:', response);
+      
+      // Extract tasks from the response - handle different possible response formats
+      let tasks: any[] = [];
+      if (response) {
+        if (Array.isArray(response)) {
+          // Response is already an array of tasks
+          tasks = response;
+        } else if (typeof response === 'object' && response !== null) {
+          // Check if response has a tasks property that is an array
+          if ('tasks' in response && Array.isArray((response as any).tasks)) {
+            tasks = (response as any).tasks;
+          }
+        }
+      }
+      
+      console.log('Parsed tasks:', tasks);
+      
+      // Update both raw and filtered boards
+      const tasksForBoard = {
+        technicalSEO: [] as Task[],
+        cro: [] as Task[],
+        strategyAdHoc: [] as Task[]
+      };
+      
+      // Group tasks by type and map to the correct format
+      tasks.forEach((task: any) => {
+        // Map the Airtable fields to our Task type
+        const mappedTask = mapAirtableTaskToTask({
+          id: task.id,
+          Name: task.Name,
+          Title: task.Title, // Fallback to Title if Name is not available
+          Description: task.Notes || task.Description,
+          Status: task.Status,
+          Priority: task.Priority,
+          AssignedTo: task['Assigned To'] || task.AssignedTo,
+          Category: task.Category,
+          Type: task.Type,
+          'Impact Level': task['Impact Level'],
+          'Effort Level': task['Effort Level'],
+          'Created At': task['Created At'],
+          'Due Date': task['Due Date'],
+          'Completed Date': task['Completed Date'],
+          Notes: task.Notes
+        });
+        
+        // Add the task to the appropriate board
+        if (task.Type === 'Technical SEO' || task.Type === 'WQA') {
+          tasksForBoard.technicalSEO.push(mappedTask);
+        } else if (task.Type === 'CRO') {
+          tasksForBoard.cro.push(mappedTask);
+        } else {
+          tasksForBoard.strategyAdHoc.push(mappedTask);
+        }
+      });
+      
+      setRawBoards(prev => ({
+        ...prev,
+        ...tasksForBoard
+      }));
+      
+      // Apply client filtering
+      if (clientId) {
+        // Filter tasks by client
+        const filteredTasksArray = filterTasks(tasks);
+        const filteredTasksForBoard = {
+          technicalSEO: [] as Task[],
+          cro: [] as Task[],
+          strategyAdHoc: [] as Task[]
+        };
+        
+        // Group filtered tasks by type
+        if (Array.isArray(filteredTasksArray)) {
+          filteredTasksArray.forEach((task: any) => {
+            // Map the Airtable fields to our Task type
+            const mappedTask = mapAirtableTaskToTask({
+              id: task.id,
+              Name: task.Name,
+              Title: task.Title, // Fallback to Title if Name is not available
+              Description: task.Notes || task.Description,
+              Status: task.Status,
+              Priority: task.Priority,
+              AssignedTo: task['Assigned To'] || task.AssignedTo,
+              Category: task.Category,
+              Type: task.Type,
+              'Impact Level': task['Impact Level'],
+              'Effort Level': task['Effort Level'],
+              'Created At': task['Created At'],
+              'Due Date': task['Due Date'],
+              'Completed Date': task['Completed Date'],
+              Notes: task.Notes
+            });
+            
+            if (task.Type === 'Technical SEO' || task.Type === 'WQA') {
+              filteredTasksForBoard.technicalSEO.push(mappedTask);
+            } else if (task.Type === 'CRO') {
+              filteredTasksForBoard.cro.push(mappedTask);
+            } else {
+              filteredTasksForBoard.strategyAdHoc.push(mappedTask);
+            }
+          });
+        }
+        
+        setBoards(prev => ({
+          ...prev,
+          ...filteredTasksForBoard
+        }));
+      } else {
+        setBoards(prev => ({
+          ...prev,
+          ...tasksForBoard
+        }));
+      }
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError('Failed to fetch tasks. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleAddTask = async (task: Task) => {
+    try {
+      setLoading(true);
+      
+      // Call the API to create the task in Airtable
+      const newTask = await createWQATask({
+        task: task.task,
+        status: task.status,
+        priority: task.priority,
+        assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
+        impact: task.impact,
+        effort: task.effort,
+        notes: task.notes,
+        boardType: activeBoard
+      });
+      
+      console.log('Created new task:', newTask);
+      
+      // Base properties for task object
+      const taskBase = {
+        id: newTask.id || `task-${Date.now()}`,
+        task: newTask.task || task.task,
+        status: (newTask.status as TaskStatus) || task.status,
+        priority: (newTask.priority as TaskPriority) || task.priority,
+        assignedTo: newTask.assignedTo || task.assignedTo || 'Unassigned',
+        impact: newTask.impact || task.impact,
+        effort: (newTask.effort as TaskEffort) || task.effort,
+        notes: newTask.notes || task.notes,
+        dateLogged: newTask.dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        comments: newTask.comments || [],
+        commentCount: newTask.commentCount || 0
+      };
+      
+      // Create the proper task type based on status
+      let createdTask: Task;
+      if ((newTask.status === 'Done' || task.status === 'Done')) {
+        createdTask = {
+          ...taskBase,
+          status: 'Done' as TaskStatus,
+          completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        } as CompletedTask;
+      } else {
+        createdTask = {
+          ...taskBase,
+          status: taskBase.status as 'Not Started' | 'In Progress' | 'Blocked'
+        } as ActiveTask;
+      }
+      
+      // Add the new task to our local state
+      setRawBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          createdTask
+        ];
+        return newBoards;
+      });
+      
+      // Also add to filtered boards
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          createdTask
+        ];
+        return newBoards;
+      });
+      
+      setAddTaskModal(false);
+      setLoading(false);
+      
+      // Refresh the task list to ensure we have the latest data
+      refreshData();
+    } catch (err) {
+      console.error('Error adding task:', err);
+      setError('Failed to add task. Please try again.');
+      setLoading(false);
+      
+      // Still update the UI for better UX
+      setRawBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          task
+        ];
+        return newBoards;
+      });
+      
+      // Also add to filtered boards
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [
+          ...newBoards[activeBoard as keyof typeof boards],
+          task
+        ];
+        return newBoards;
+      });
+
+      setAddTaskModal(false);
+    }
+  };
+
+  // Get the current board's tasks
+  const currentTasks = boards[activeBoard as keyof typeof boards] || [];
 
   const handleStatusChange = async (id: number | string, newStatus: TaskStatus) => {
     try {
       console.log(`Updating task ${id} status to ${newStatus}`);
-      // Update task status in Airtable
-      await updateWQATaskStatus(id.toString(), newStatus);
+      
+      // Map frontend status to Airtable status before sending to API
+      let airtableStatus: string;
+      switch (newStatus) {
+        case 'Not Started':
+          airtableStatus = 'To Do';
+          break;
+        case 'In Progress':
+          airtableStatus = 'In Progress';
+          break;
+        case 'Blocked':
+        case 'Done':
+          airtableStatus = 'Setup';
+          break;
+        default:
+          airtableStatus = 'To Do';
+      }
+      
+      // Update task status in Airtable using the mapped status
+      await updateWQATaskStatus(id.toString(), airtableStatus);
       console.log(`Task ${id} status updated successfully`);
-
-      // Update local state
+      
+      // Update local state with frontend status
       setBoards(prev => {
         const newBoards = { ...prev };
         const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
@@ -1574,59 +1761,6 @@ export default function TaskBoards() {
       });
     }
   };
-
-  const handleAddTask = async (task: Task) => {
-    try {
-      // In a real implementation, this would call an API to add the task
-      // For now, we'll just add it to the local state
-      setRawBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
-          task
-        ];
-        return newBoards;
-      });
-      
-      // Also add to filtered boards
-      setBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
-          task
-        ];
-        return newBoards;
-      });
-
-      setAddTaskModal(false);
-    } catch (err) {
-      console.error('Error adding task:', err);
-      // Still update the UI for better UX
-      setRawBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
-          task
-        ];
-        return newBoards;
-      });
-      
-      // Also add to filtered boards
-      setBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
-          task
-        ];
-        return newBoards;
-      });
-
-      setAddTaskModal(false);
-    }
-  };
-
-  // Get the current board's tasks
-  const currentTasks = boards[activeBoard as keyof typeof boards] || [];
 
   return (
     <DashboardLayout

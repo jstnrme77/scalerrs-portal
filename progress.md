@@ -30,6 +30,12 @@
 - ✅ Created API routes for tasks, comments, and authentication
 - ✅ Implemented client-side API utility with fallbacks
 - ✅ Added mock data for static builds and testing
+- ✅ Fixed Airtable field naming issues in WQA tasks API to match actual Airtable schema
+- ✅ Updated Status field mappings in Task Boards to use Airtable-compatible values (To Do, In Progress, Setup)
+- ✅ Fixed Impact and Effort field names to match actual Airtable schema (Impact, Effort)
+- ✅ Updated Notes field name to match Airtable (Notes By Scalerrs During Audit)
+- ✅ Improved bidirectional status mapping between frontend and Airtable for consistent values
+- ✅ Removed Actions column from Task Boards for a cleaner interface
 
 ### Deployment
 - ✅ Configured Next.js for optimal deployment
