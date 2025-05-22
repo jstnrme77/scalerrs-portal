@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { getClientName } from '@/utils/clientUtils';
+import { clearCacheByPrefix } from '@/lib/client-cache';
 
 interface ClientDataContextType {
   clientId: string | null;
@@ -10,8 +11,9 @@ interface ClientDataContextType {
   availableClients: { id: string; name: string }[];
   isLoading: boolean;
   filterDataByClient: <T extends {
+    client?: string | string[];
     Client?: string | string[];
-    'All Clients'?: string | string[];
+    Clients?: string | string[];
     AssignedTo?: string | string[];
     Writer?: string | string[];
     Editor?: string | string[];
@@ -19,6 +21,7 @@ interface ClientDataContextType {
     ContentWriter?: string | string[];
     ContentEditor?: string | string[]
   }>(data: T[]) => T[];
+  clearClientDataCache: () => void;
 }
 
 const ClientDataContext = createContext<ClientDataContextType | undefined>(undefined);
@@ -28,6 +31,24 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
   const [clientId, setClientId] = useState<string | null>(null);
   const [availableClients, setAvailableClients] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Function to clear client data cache
+  const clearClientDataCache = () => {
+    console.log('Clearing client data cache');
+    // Clear all approvals cache
+    clearCacheByPrefix('approvals_');
+    // Clear other client-specific caches as needed
+    clearCacheByPrefix('wqa-tasks_');
+    clearCacheByPrefix('cro-tasks_');
+  };
+
+  // Clear cache when client ID changes
+  useEffect(() => {
+    if (clientId) {
+      console.log(`Client ID changed to ${clientId}, clearing cache`);
+      clearClientDataCache();
+    }
+  }, [clientId]);
 
   // Initialize available clients based on user data
   useEffect(() => {
@@ -43,10 +64,10 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
           console.error('Error initializing client cache:', error);
         }
         try {
-          // If user has Client field and is a Client role
-          if (user.Client && user.Role === 'Client') {
-            // Ensure Client is an array
-            const clientIds = Array.isArray(user.Client) ? user.Client : [user.Client];
+          // If user has Clients field and is a Client role
+          if (user.Clients && user.Role === 'Client') {
+            // Ensure Clients is an array
+            const clientIds = Array.isArray(user.Clients) ? user.Clients : [user.Clients];
 
             // Fetch all clients to get their names
             const { fetchClients } = await import('@/lib/client-api');
@@ -89,7 +110,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
                 localStorage.removeItem('use-mock-data');
               }
 
-              // Create client objects with id and name
+              // Create client options with id and name
               const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
                 id: client.id,
                 name: client.Name || `Client ${client.id.substring(0, 5)}`
@@ -121,8 +142,8 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
           console.error('Error fetching clients:', error);
 
           // Fallback for client users
-          if (user.Client && user.Role === 'Client') {
-            const clientIds = Array.isArray(user.Client) ? user.Client : [user.Client];
+          if (user.Clients && user.Role === 'Client') {
+            const clientIds = Array.isArray(user.Clients) ? user.Clients : [user.Clients];
             const clients = clientIds.map(id => ({
               id,
               name: `Client ${id.substring(0, 5)}` // Use part of ID as name for demo
@@ -152,10 +173,57 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     }
   }, [user]);
 
+  // Helper function to check if an item matches the client ID
+  const itemMatchesClient = (item: any, clientIdToMatch: string) => {
+    // Check Clients field first (standard field)
+    if (item.Clients) {
+      if (Array.isArray(item.Clients)) {
+        const includes = item.Clients.includes(clientIdToMatch);
+        console.log('Item Clients is array:', item.Clients, 'includes clientId:', includes);
+        return includes;
+      } else {
+        const matches = item.Clients === clientIdToMatch;
+        console.log('Item Clients is string:', item.Clients, 'matches clientId:', matches);
+        return matches;
+      }
+    }
+    
+    // Check Client field (uppercase) for Airtable data
+    if (item.Client) {
+      if (Array.isArray(item.Client)) {
+        const includes = item.Client.includes(clientIdToMatch);
+        console.log('Item Client is array:', item.Client, 'includes clientId:', includes);
+        return includes;
+      } else {
+        const matches = item.Client === clientIdToMatch;
+        console.log('Item Client is string:', item.Client, 'matches clientId:', matches);
+        return matches;
+      }
+    }
+    
+    // Fall back to client field (lowercase) if others are not present
+    if (item.client) {
+      if (Array.isArray(item.client)) {
+        const includes = item.client.includes(clientIdToMatch);
+        console.log('Item client is array:', item.client, 'includes clientId:', includes);
+        return includes;
+      } else {
+        const matches = item.client === clientIdToMatch;
+        console.log('Item client is string:', item.client, 'matches clientId:', matches);
+        return matches;
+      }
+    }
+    
+    // If neither field is present, return false
+    console.log('Item has no client field:', item);
+    return false;
+  };
+
   // Function to filter data by client and user permissions
   const filterDataByClient = <T extends {
+    client?: string | string[];
     Client?: string | string[];
-    'All Clients'?: string | string[];
+    Clients?: string | string[];
     AssignedTo?: string | string[];
     Writer?: string | string[];
     Editor?: string | string[];
@@ -183,77 +251,65 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       }
 
       console.log('Admin filtering by specific client:', clientId);
-      // If a specific client is selected, filter by that client
-      const filtered = data.filter(item => {
-        // Check 'All Clients' field first
-        if (item['All Clients']) {
-          if (Array.isArray(item['All Clients'])) {
-            const includes = item['All Clients'].includes(clientId);
-            console.log('Item All Clients is array:', item['All Clients'], 'includes clientId:', includes);
-            return includes;
-          } else {
-            const matches = item['All Clients'] === clientId;
-            console.log('Item All Clients is string:', item['All Clients'], 'matches clientId:', matches);
-            return matches;
-          }
-        }
+      
+      // Try to detect if we're filtering backlinks
+      const isBacklinksData = data.length > 0 && 
+        (data[0] as any).contentType === 'backlinks' || 
+        (data[0] as any).domainRating !== undefined || 
+        (data[0] as any).linkType !== undefined;
+      
+      if (isBacklinksData) {
+        console.log('Detected backlinks data, using Client field instead of All Clients');
+      }
 
-        // Fall back to Client field if 'All Clients' is not present
-        if (!item.Client) {
-          console.log('Item has no Client field:', item);
-          return false;
-        }
-
-        if (Array.isArray(item.Client)) {
-          const includes = item.Client.includes(clientId);
-          console.log('Item Client is array:', item.Client, 'includes clientId:', includes);
-          return includes;
-        } else {
-          const matches = item.Client === clientId;
-          console.log('Item Client is string:', item.Client, 'matches clientId:', matches);
-          return matches;
-        }
-      });
-
+      // Filter based on client ID and backlinks detection
+      const filtered = data.filter(item => itemMatchesClient(item, clientId));
       console.log('Filtered data length:', filtered.length);
       return filtered;
     }
 
     // For client users, filter by client ID
     if (user.Role === 'Client') {
+      console.log('[ClientDataContext] Client User Detected. User object:', JSON.parse(JSON.stringify(user)));
+      console.log('[ClientDataContext] user.Clients raw:', user.Clients);
+
       // If no client ID selected, use the first client ID from the user's clients
-      const filterClientId = clientId || (Array.isArray(user.Client) && user.Client.length > 0 ? user.Client[0] : user.Client);
+      const filterClientId = clientId || (Array.isArray(user.Clients) && user.Clients.length > 0 ? user.Clients[0] : user.Clients);
 
-      if (!filterClientId) return [];
+      console.log('[ClientDataContext] Initial clientId from state:', clientId);
+      console.log('[ClientDataContext] Calculated filterClientId:', filterClientId);
 
-      return data.filter(item => {
-        // Check 'All Clients' field first
-        if (item['All Clients']) {
-          if (Array.isArray(item['All Clients'])) {
-            // Ensure we're checking if the array includes the string
-            return item['All Clients'].includes(filterClientId as string);
-          } else {
-            // Compare string to string
-            return item['All Clients'] === filterClientId;
-          }
-        }
+      if (!filterClientId) {
+        console.log('[ClientDataContext] No filterClientId resolved, returning empty array.');
+        return [];
+      }
 
-        // Fall back to Client field if 'All Clients' is not present
-        if (!item.Client) return false;
-
-        if (Array.isArray(item.Client)) {
-          // Ensure we're checking if the array includes the string
-          return item.Client.includes(filterClientId as string);
-        } else {
-          // Compare string to string
-          return item.Client === filterClientId;
-        }
-      });
+      console.log('Client user filtering by client ID:', filterClientId);
+      console.log('Client user data:', user);
+      console.log('Available clients for this user:', availableClients);
+      
+      // Try to detect if we're filtering backlinks
+      const isBacklinksData = data.length > 0 && 
+        (data[0] as any).contentType === 'backlinks' || 
+        (data[0] as any).domainRating !== undefined || 
+        (data[0] as any).linkType !== undefined;
+      
+      if (isBacklinksData) {
+        console.log('Detected backlinks data, using Client field instead of All Clients');
+      }
+      
+      // Filter based on client ID and backlinks detection
+      const filteredData = data.filter(item => itemMatchesClient(item, filterClientId as string));
+      console.log(`Filtered data for client ${filterClientId}: ${filteredData.length} items out of ${data.length}`);
+      
+      return filteredData;
     }
 
     // For other users (not admin or client), filter by assigned items
     // If no client ID is selected, filter by assignments
     if (!clientId) {
+      console.log('Non-admin/client user with no client ID selected, filtering by assignments');
+      
       return data.filter(item => {
         // Check if the item is assigned to this user in any capacity
         const isAssigned =
@@ -293,25 +349,20 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     }
 
     // If a client ID is selected, filter by that client ID
-    return data.filter(item => {
-      // Check 'All Clients' field first
-      if (item['All Clients']) {
-        if (Array.isArray(item['All Clients'])) {
-          return item['All Clients'].includes(clientId);
-        } else {
-          return item['All Clients'] === clientId;
-        }
-      }
-
-      // Fall back to Client field if 'All Clients' is not present
-      if (!item.Client) return false;
-
-      if (Array.isArray(item.Client)) {
-        return item.Client.includes(clientId);
-      } else {
-        return item.Client === clientId;
-      }
-    });
+    console.log('Non-admin/client user with client ID selected, filtering by client:', clientId);
+    
+    // Try to detect if we're filtering backlinks
+    const isBacklinksData = data.length > 0 && 
+      (data[0] as any).contentType === 'backlinks' || 
+      (data[0] as any).domainRating !== undefined || 
+      (data[0] as any).linkType !== undefined;
+    
+    if (isBacklinksData) {
+      console.log('Detected backlinks data, using Client field instead of All Clients');
+    }
+    
+    // Filter based on client ID and backlinks detection
+    return data.filter(item => itemMatchesClient(item, clientId));
   };
 
   return (
@@ -321,7 +372,8 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
         setClientId,
         availableClients,
         isLoading,
-        filterDataByClient
+        filterDataByClient,
+        clearClientDataCache
       }}
     >
       {children}

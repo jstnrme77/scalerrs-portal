@@ -162,7 +162,7 @@ export async function getArticles(
       const fields = record.fields;
 
       // Process the Client field - check multiple possible field names
-      let clientValue = fields['All Clients'] || fields.Client || fields['Client'];
+      let clientValue = fields['Clients'] || fields.Client || fields['Client'];
 
       // If no client field is found, use "Example Client" as a fallback
       if (!clientValue) {
@@ -236,6 +236,7 @@ export async function getArticles(
         Month: fields['Month (Keyword Targets)'],
         Status: articleStatus,
         Client: clientValue,
+        Clients: clientValue, // Add Clients field for compatibility
         // Include all original fields as well
         ...fields
       };

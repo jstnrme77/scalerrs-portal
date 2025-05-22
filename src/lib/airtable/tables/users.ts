@@ -197,7 +197,7 @@ export async function createUser(userData: CreateUserParams): Promise<User> {
       Name: userData.Name,
       Email: userData.Email,
       Role: userData.Role,
-      Client: userData.Client || [],
+      Clients: userData.Client || [],
       CreatedAt: new Date().toISOString()
     });
 
@@ -211,7 +211,7 @@ export async function createUser(userData: CreateUserParams): Promise<User> {
     return handleAirtableError(error, {
       id: `rec${Date.now()}`,
       ...userData,
-      Client: userData.Client || [],
+      Clients: userData.Client || [],
       CreatedAt: new Date().toISOString()
     }, 'createUser');
   }

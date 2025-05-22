@@ -950,22 +950,10 @@ interface GroupedItems {
   rejected: ApprovalItem[];
 }
 
-
-
 export default function Approvals() {
   // Use the client data context for client filtering
   const { clientId } = useClientData();
 
-  // Debug log for client ID changes and refresh data
-  useEffect(() => {
-    console.log('Approvals page - clientId changed:', clientId);
-
-    // Force refresh data when client ID changes
-    if (clientId) {
-      console.log('Forcing data refresh due to client ID change');
-      // We'll handle this in the other useEffect that depends on clientId
-    }
-  }, [clientId]);
   const [activeTab, setActiveTab] = useState<string>('briefs');
   const [items, setItems] = useState<ApprovalItems>({
     keywords: [],
@@ -1053,7 +1041,7 @@ export default function Approvals() {
             offset,
             undefined, // No abort signal
             !forceRefresh, // Use cache unless forceRefresh is true
-            clientId || 'all' // Always pass clientId, defaulting to 'all' if null
+            clientId || undefined // Pass clientId as string or undefined
           );
 
           console.log(`Result from fetchApprovalItems for ${activeTab}:`, result);
@@ -1154,13 +1142,28 @@ export default function Approvals() {
             return newPagination;
           });
         }
+      } else {
+        console.log(`Unsupported tab: ${activeTab}`);
       }
     } catch (error) {
-      console.error(`Error in fetchData for ${activeTab}:`, error);
+      console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
+      setLoadingStatus(null);
     }
-  }, [activeTab, clientId, defaultPagination]);
+  }, [activeTab, clientId]);
+
+  // Debug log for client ID changes and refresh data
+  useEffect(() => {
+    console.log('Approvals page - clientId changed:', clientId);
+
+    // Force refresh data when client ID changes
+    if (clientId !== null) {
+      console.log('Forcing data refresh due to client ID change');
+      clearApprovalsCache(); // Clear all approvals cache
+      fetchData(1, undefined, true); // Force refresh
+    }
+  }, [clientId, fetchData]);
 
   // Handle page change for a specific status table
   const handleStatusPageChange = async (status: string, newPage: number) => {
@@ -1361,8 +1364,6 @@ export default function Approvals() {
     rejected: items[activeTab as keyof typeof items].filter(item => item.status === 'rejected'),
   };
 
-
-
   // Get count of items to review in current tab
   const tabReviewCount = items[activeTab as keyof typeof items].filter(
     item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)
@@ -1437,8 +1438,6 @@ export default function Approvals() {
       return newSelectedItems;
     });
   };
-
-
 
   // Check if all items in a group are selected
   const areAllItemsSelected = (statusItems: ApprovalItem[]) => {
@@ -1575,6 +1574,25 @@ export default function Approvals() {
     setRejectionModal({ isOpen: false, itemId: '' });
   };
 
+  // Handle tab change
+  const handleTabChange = (tab: string) => {
+    console.log(`Changing tab from ${activeTab} to ${tab}`);
+    
+    // Clear cache when changing tabs
+    clearApprovalsCache(tab);
+    
+    setActiveTab(tab);
+    
+    // Reset selected items for the new tab
+    setSelectedItems(prev => ({
+      ...prev,
+      [tab]: []
+    }));
+    
+    // Fetch data for the new tab (force refresh)
+    fetchData(1, undefined, true);
+  };
+
   return (
     <DashboardLayout>
       {/* Global Summary Banner */}
@@ -1599,10 +1617,7 @@ export default function Approvals() {
                   ...(items.quickwins.length > 0 ? [{ id: 'quickwins', label: 'Quick Wins', icon: <Zap size={18} /> }] : [])
                 ]}
                 activeTab={activeTab}
-                onTabChange={(tab) => {
-                  setActiveTab(tab);
-                  clearSelections(); // Clear selections when changing tabs
-                }}
+                onTabChange={handleTabChange}
                 variant="primary"
                 containerClassName="overflow-x-auto"
               />

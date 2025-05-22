@@ -1197,6 +1197,12 @@ export default function TaskBoards() {
         if (activeBoard === 'cro') {
           // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
           response = await getCROTasks(false);
+          console.log('CRO API response details:', {
+            responseType: typeof response,
+            hasTasksArray: response && typeof response === 'object' && 'tasks' in response,
+            tasksLength: response && typeof response === 'object' && 'tasks' in response ? response.tasks.length : 'N/A',
+            firstTask: response && typeof response === 'object' && 'tasks' in response && response.tasks.length > 0 ? response.tasks[0] : 'No tasks'
+          });
         } else {
           // Use WQA API for other boards
           response = await fetchWQATasks(activeBoard);

@@ -126,18 +126,22 @@ export async function POST(request: NextRequest) {
 // Helper functions for mapping values
 
 function mapAirtableStatus(status?: string): string {
-  if (!status) return 'To Do';
+  if (!status) return 'Not Started';
   
   const statusLower = status.toLowerCase();
   if (statusLower === 'in progress' || statusLower === 'in-progress') {
-    return 'In progress';
+    return 'In Progress'; // Capital P in 'Progress'
   } else if (statusLower === 'done' || statusLower === 'complete' || statusLower === 'completed') {
     return 'Done';
   } else if (statusLower === 'to do' || statusLower === 'todo' || statusLower === 'not started') {
-    return 'To Do';
+    return 'Not Started'; // Use 'Not Started' instead of 'To Do'
+  } else if (statusLower === 'blocked' || statusLower === 'on hold') {
+    return 'Blocked';
   }
   
-  return status; // Return original if no match
+  // For any other status, map to one of our expected values
+  console.warn(`Unknown status value: ${status}, defaulting to 'Not Started'`);
+  return 'Not Started';
 }
 
 function mapAirtablePriority(priority?: string): string {

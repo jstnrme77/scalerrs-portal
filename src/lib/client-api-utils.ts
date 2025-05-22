@@ -359,8 +359,10 @@ export function clearApprovalsCache(type?: string, clearFullDataset: boolean = t
   // Import the efficient-airtable functions
   const { clearCacheForType, clearFullDatasetCache } = require('./efficient-airtable');
 
+  console.log(`Clearing approvals cache for ${type || 'all types'}`);
+
   if (type) {
-    // Clear client-side cache
+    // Clear client-side cache for specific type (including all client variations)
     clearCacheByPrefix(`approvals_${type}`);
 
     // Clear server-side cache if available
@@ -379,6 +381,7 @@ export function clearApprovalsCache(type?: string, clearFullDataset: boolean = t
 
   // Optionally clear the full dataset cache
   if (clearFullDataset && typeof clearFullDatasetCache === 'function') {
+    console.log('Clearing full dataset cache');
     clearFullDatasetCache();
   }
 }
@@ -793,9 +796,12 @@ export async function getCROTasks(useCache: boolean = false) {
     console.log('Bypassing cache and fetching fresh CRO tasks from API');
   }
 
-  // Fetch from API
+  // Add timestamp to prevent browser caching
+  const timestamp = new Date().getTime();
+  
+  // Fetch from API with timestamp parameter
   const response = await fetchFromApi(
-    'cro-tasks',
+    `cro-tasks?t=${timestamp}`,
     {},
     { tasks: [] } // Default empty array if API fails
   );

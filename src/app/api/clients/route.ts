@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getClients } from '@/lib/airtable';
 import { mockClients } from '@/lib/mock-data';
+import { headers } from 'next/headers';
 
 export async function GET() {
   try {
@@ -10,6 +11,27 @@ export async function GET() {
     console.log('- NEXT_PUBLIC_AIRTABLE_API_KEY exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_API_KEY);
     console.log('- AIRTABLE_BASE_ID exists:', !!process.env.AIRTABLE_BASE_ID);
     console.log('- NEXT_PUBLIC_AIRTABLE_BASE_ID exists:', !!process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
+
+    // Get request headers
+    const headersList = await headers();
+    const userId = headersList.get('x-user-id');
+    const userRole = headersList.get('x-user-role');
+    const userClientsHeader = headersList.get('x-user-clients');
+    
+    console.log('API route clients: User ID:', userId);
+    console.log('API route clients: User Role:', userRole);
+    console.log('API route clients: User Clients:', userClientsHeader);
+    
+    // Parse user clients if available
+    let userClients: string[] = [];
+    if (userClientsHeader) {
+      try {
+        userClients = JSON.parse(userClientsHeader);
+        console.log('API route clients: Parsed User Clients:', userClients);
+      } catch (e) {
+        console.error('API route clients: Error parsing user clients header:', e);
+      }
+    }
 
     // Ensure we have the API key and base ID
     if (!process.env.AIRTABLE_API_KEY && !process.env.NEXT_PUBLIC_AIRTABLE_API_KEY) {
@@ -44,9 +66,17 @@ export async function GET() {
     if (clients.length > 0) {
       console.log('Sample client:', JSON.stringify(clients[0]));
     }
+    
+    // Filter clients if user is a client
+    let filteredClients = clients;
+    if (userRole === 'Client' && userClients.length > 0) {
+      console.log('API route: Filtering clients for client user');
+      filteredClients = clients.filter((client: { id: string }) => userClients.includes(client.id));
+      console.log(`API route: Filtered ${filteredClients.length} out of ${clients.length} clients for client user`);
+    }
 
     // Create response with cache control headers
-    const response = NextResponse.json({ clients });
+    const response = NextResponse.json({ clients: filteredClients });
 
     // Add cache control headers to prevent caching
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -56,9 +86,32 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching clients:', error);
     console.log('API route: Error fetching clients, using mock data');
+    
+    // Get request headers for filtering mock data
+    const headersList = await headers();
+    const userRole = headersList.get('x-user-role');
+    const userClientsHeader = headersList.get('x-user-clients');
+    
+    // Parse user clients if available
+    let userClients: string[] = [];
+    if (userClientsHeader) {
+      try {
+        userClients = JSON.parse(userClientsHeader);
+      } catch (e) {
+        console.error('API route clients: Error parsing user clients header:', e);
+      }
+    }
+    
+    // Filter mock clients if user is a client
+    let filteredMockClients = mockClients;
+    if (userRole === 'Client' && userClients.length > 0) {
+      console.log('API route: Filtering mock clients for client user');
+      filteredMockClients = mockClients.filter((client: { id: string }) => userClients.includes(client.id));
+      console.log(`API route: Filtered ${filteredMockClients.length} out of ${mockClients.length} mock clients for client user`);
+    }
 
     // Create response with cache control headers
-    const response = NextResponse.json({ clients: mockClients });
+    const response = NextResponse.json({ clients: filteredMockClients });
 
     // Add cache control headers to prevent caching
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');

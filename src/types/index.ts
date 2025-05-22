@@ -75,18 +75,20 @@ export interface Client {
 export interface User {
   id: string;
   Name: string;
-  Email: string;
-  Role: string;
+  Email?: string;
+  Role: 'Admin' | 'Client' | 'Editor' | 'Writer' | 'SEO' | string;
+  Clients?: string | string[]; // Can be a single client ID or array of client IDs
+  Status?: string;
+  LastLogin?: string;
+  CreatedTime?: string;
   Password?: string; // For authentication (not stored in plain text in production)
   CreatedAt?: string;
   'Last Login'?: string;
-  Client?: string | string[]; // Can be a single client ID or array of client IDs
   Notifications?: string[];
   Comments?: string[];
   Tasks?: string[];
   Briefs?: string[];
   Articles?: string[];
-  Status?: 'Active' | 'Inactive';
   ProfileImage?: string;
   Phone?: string;
   Company?: string;
@@ -107,6 +109,7 @@ export interface Task {
   Category?: string;
   AssignedTo?: string[];
   Client?: string | string[];
+  Clients?: string | string[];
   DueDate?: string;
   'Due Date'?: string;
   CreatedAt?: string;
@@ -138,6 +141,7 @@ export interface Brief {
   id: string;
   Title: string;
   Client?: string | string[];
+  Clients?: string | string[];
   SEOStrategist?: string;
   DueDate?: string;
   DocumentLink?: string;
@@ -161,6 +165,7 @@ export interface Article {
   'Content Writer'?: string | string[];
   'Content Editor'?: string | string[];
   Client?: string | string[];
+  Clients?: string | string[];
   WordCount?: number;
   'Word Count'?: number;
   DueDate?: string;

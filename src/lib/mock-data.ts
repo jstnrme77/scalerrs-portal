@@ -27,28 +27,28 @@ export const mockClients = [
   }
 ];
 
-// Mock users
+// Mock users for testing
 export const mockUsers = [
   {
-    id: 'rec123',
+    id: 'user1',
     Name: 'Admin User',
     Email: 'admin@example.com',
     Role: 'Admin',
-    Client: ['client1', 'client2', 'client3'] // Admin can access all clients
+    Clients: ['client1', 'client2', 'client3'] // Admin can access all clients
   },
   {
-    id: 'rec456',
-    Name: 'Client User',
-    Email: 'client@example.com',
+    id: 'user2',
+    Name: 'Client User 1',
+    Email: 'client1@example.com',
     Role: 'Client',
-    Client: ['client1'] // This client user can only access client1
+    Clients: ['client1'] // This client user can only access client1
   },
   {
-    id: 'rec789',
+    id: 'user3',
     Name: 'Client User 2',
     Email: 'client2@example.com',
     Role: 'Client',
-    Client: ['client2'] // This client user can only access client2
+    Clients: ['client2'] // This client user can only access client2
   }
 ];
 
@@ -56,58 +56,53 @@ export const mockUsers = [
 export const mockTasks = [
   {
     id: 'task1',
-    Title: 'Sample Task 1',
-    Name: 'Sample Task 1',
-    Description: 'This is a sample task',
+    Title: 'Write blog post about SEO',
+    Description: 'Create a blog post about the latest SEO trends',
     Status: 'In Progress',
-    AssignedTo: ['rec123'],
+    AssignedTo: ['user1'],
     Priority: 'High',
-    Category: 'Technical SEO',
-    Client: ['client1'] // Assign to client1
+    Category: 'Content',
+    Clients: ['client1'] // Assign to client1
   },
   {
     id: 'task2',
-    Title: 'Sample Task 2',
-    Name: 'Sample Task 2',
-    Description: 'Another sample task',
-    Status: 'Completed',
-    AssignedTo: ['rec456'],
+    Title: 'Optimize homepage meta tags',
+    Description: 'Update meta tags on the homepage for better SEO',
+    Status: 'Not Started',
+    AssignedTo: ['user2'],
     Priority: 'Medium',
-    Category: 'CRO',
-    Client: ['client1'] // Assign to client1
+    Category: 'SEO',
+    Clients: ['client1'] // Assign to client1
   },
   {
     id: 'task3',
-    Title: 'Strategy Planning Session',
-    Name: 'Strategy Planning Session',
-    Description: 'Plan content strategy for Q3',
-    Status: 'To Do',
-    AssignedTo: ['rec123'],
+    Title: 'Create social media campaign',
+    Description: 'Design a social media campaign for product launch',
+    Status: 'Completed',
+    AssignedTo: ['user3'],
     Priority: 'High',
-    Category: 'Strategy / Ad Hoc',
-    Client: ['client2'] // Assign to client2
+    Category: 'Marketing',
+    Clients: ['client2'] // Assign to client2
   },
   {
     id: 'task4',
-    Title: 'Client 2 Task',
-    Name: 'Client 2 Task',
-    Description: 'This task is for client 2 only',
+    Title: 'Analyze website traffic',
+    Description: 'Review Google Analytics and provide insights',
     Status: 'In Progress',
-    AssignedTo: ['rec789'],
-    Priority: 'High',
-    Category: 'Content',
-    Client: ['client2'] // Assign to client2
+    AssignedTo: ['user1'],
+    Priority: 'Medium',
+    Category: 'Analytics',
+    Clients: ['client2'] // Assign to client2
   },
   {
     id: 'task5',
-    Title: 'Client 3 Task',
-    Name: 'Client 3 Task',
-    Description: 'This task is for client 3 only',
-    Status: 'To Do',
-    AssignedTo: ['rec123'],
-    Priority: 'Medium',
-    Category: 'Technical SEO',
-    Client: ['client3'] // Assign to client3
+    Title: 'Fix broken links',
+    Description: 'Identify and fix broken links on the website',
+    Status: 'Not Started',
+    AssignedTo: ['user2'],
+    Priority: 'Low',
+    Category: 'Maintenance',
+    Clients: ['client3'] // Assign to client3
   }
 ];
 
@@ -129,6 +124,7 @@ export const mockBriefs = [
     id: 'brief1',
     Title: 'The Future of Remote Work',
     Client: 'Example Client',
+    Clients: ['client1'],
     SEOStrategist: 'John Smith',
     DueDate: '2025-05-10',
     DocumentLink: 'https://docs.google.com/document/d/1',
@@ -141,6 +137,7 @@ export const mockBriefs = [
     id: 'brief2',
     Title: 'SEO Best Practices',
     Client: 'Example Client',
+    Clients: ['client1'],
     SEOStrategist: 'Jane Doe',
     DueDate: '2025-05-14',
     DocumentLink: 'https://docs.google.com/document/d/2',
@@ -153,6 +150,7 @@ export const mockBriefs = [
     id: 'brief3',
     Title: 'Content Marketing Guide',
     Client: 'Example Client',
+    Clients: ['client1'],
     SEOStrategist: 'Alex Johnson',
     DueDate: '2025-05-07',
     DocumentLink: 'https://docs.google.com/document/d/3',
@@ -165,6 +163,7 @@ export const mockBriefs = [
     id: 'brief4',
     Title: 'Local SEO Strategies',
     Client: 'Example Client',
+    Clients: ['client2'],
     SEOStrategist: 'John Smith',
     DueDate: '2025-05-20',
     DocumentLink: 'https://docs.google.com/document/d/4',
@@ -177,6 +176,7 @@ export const mockBriefs = [
     id: 'brief5',
     Title: 'E-Commerce Trends',
     Client: 'Example Client',
+    Clients: ['client2'],
     SEOStrategist: 'Jane Doe',
     DueDate: '2025-05-25',
     DocumentLink: 'https://docs.google.com/document/d/5',
@@ -189,6 +189,7 @@ export const mockBriefs = [
     id: 'brief6',
     Title: 'Mobile SEO Optimization',
     Client: 'Example Client',
+    Clients: ['client3'],
     SEOStrategist: 'Alex Johnson',
     DueDate: '2025-05-30',
     DocumentLink: 'https://docs.google.com/document/d/6',
@@ -201,6 +202,7 @@ export const mockBriefs = [
     id: 'brief7',
     Title: 'Voice Search Optimization',
     Client: 'Example Client',
+    Clients: ['client3'],
     SEOStrategist: 'John Smith',
     DueDate: '2025-05-05',
     DocumentLink: 'https://docs.google.com/document/d/7',
@@ -219,6 +221,7 @@ export const mockArticles = [
     Writer: 'Alex Johnson',
     Editor: 'Jane Doe',
     Client: 'Example Client',
+    Clients: ['client1'],
     WordCount: 1500,
     DueDate: '2024-04-15',
     DocumentLink: 'https://docs.google.com/document/d/1',
@@ -233,6 +236,7 @@ export const mockArticles = [
     Writer: 'Sarah Williams',
     Editor: 'John Smith',
     Client: 'Example Client',
+    Clients: ['client1'],
     WordCount: 2000,
     DueDate: '2024-04-20',
     DocumentLink: 'https://docs.google.com/document/d/2',
@@ -246,6 +250,7 @@ export const mockArticles = [
     Writer: 'Michael Brown',
     Editor: 'Jane Doe',
     Client: 'Example Client',
+    Clients: ['client1'],
     WordCount: 2500,
     DueDate: '2024-04-25',
     DocumentLink: 'https://docs.google.com/document/d/3',

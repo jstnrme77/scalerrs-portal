@@ -50,11 +50,16 @@ export async function POST(request: NextRequest) {
     // Normalize the returned status to match our frontend expected values
     const returnedStatusLower = String(frontendStatus).toLowerCase();
     if (returnedStatusLower === 'to do' || returnedStatusLower === 'todo' || returnedStatusLower === 'not started') {
-      frontendStatus = 'To Do';
+      frontendStatus = 'Not Started';
     } else if (returnedStatusLower === 'in progress' || returnedStatusLower === 'in-progress' || returnedStatusLower === 'inprogress') {
-      frontendStatus = 'In progress';
+      frontendStatus = 'In Progress';
     } else if (returnedStatusLower === 'done' || returnedStatusLower === 'complete' || returnedStatusLower === 'completed') {
       frontendStatus = 'Done';
+    } else if (returnedStatusLower === 'blocked' || returnedStatusLower === 'on hold') {
+      frontendStatus = 'Blocked';
+    } else {
+      console.warn(`Unknown status value: ${frontendStatus}, defaulting to 'Not Started'`);
+      frontendStatus = 'Not Started';
     }
     
     console.log(`Mapped status for frontend: ${frontendStatus}`);

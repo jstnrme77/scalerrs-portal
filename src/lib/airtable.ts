@@ -337,6 +337,8 @@ export async function getUserByEmail(email: string) {
     }
 
     console.log('Processed user object:', user);
+    console.log('[getUserByEmail] Processed user object before return:', JSON.parse(JSON.stringify(user)));
+    console.log('[getUserByEmail] Clients field directly before return:', user.Clients);
     return user;
   } catch (error: any) {
     console.error('Error fetching user by email:', error.message);
@@ -380,7 +382,7 @@ export async function createUser(userData: {
   Name: string;
   Email: string;
   Role: string;
-  Client?: string[];
+  Clients?: string[];
 }) {
   if (!hasAirtableCredentials) {
     console.log('Using mock data for creating user:', userData);
@@ -388,7 +390,7 @@ export async function createUser(userData: {
     const newUser = {
       id: `rec${Date.now()}`,
       ...userData,
-      Client: userData.Client || [],
+      Clients: userData.Clients || [], // Ensure Clients field is used
       CreatedAt: new Date().toISOString()
     };
     mockUsers.push(newUser);
@@ -407,7 +409,7 @@ export async function createUser(userData: {
       Name: userData.Name,
       Email: userData.Email,
       Role: userData.Role,
-      Client: userData.Client || [],
+      Clients: userData.Clients || [], // Ensure Clients field is used
       CreatedAt: new Date().toISOString()
     });
 
@@ -455,12 +457,12 @@ export async function getWQATasks(userId?: string | null, userRole?: string | nu
       if (userRole === 'Client' && clientIds && clientIds.length > 0) {
         console.log('Filtering mock WQA tasks by client:', clientIds);
         return wqaTasks.filter(task => {
-          // Check if task has client field that matches any of the user's clients
-          if (task.Client) {
-            if (Array.isArray(task.Client)) {
-              return task.Client.some(client => clientIds.includes(client));
+          // Check if task has Clients field that matches any of the user's clients
+          if (task.Clients) {
+            if (Array.isArray(task.Clients)) {
+              return task.Clients.some(client => clientIds.includes(client));
             } else {
-              return clientIds.includes(task.Client);
+              return clientIds.includes(task.Clients);
             }
           }
           return false;
@@ -502,7 +504,7 @@ export async function getWQATasks(userId?: string | null, userRole?: string | nu
       // Otherwise, we'll just fetch all records
       try {
         const clientFilters = clientIds.map(clientId =>
-          `SEARCH('${clientId}', {Client})`
+          `SEARCH('${clientId}', {Clients})`
         );
         
         filterFormula = `OR(${clientFilters.join(',')})`;  
@@ -579,12 +581,12 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
       if (userRole === 'Client' && clientIds && clientIds.length > 0) {
         console.log('Filtering mock tasks by client:', clientIds);
         return mockTasks.filter(task => {
-          // Check if task has client field that matches any of the user's clients
-          if (task.Client) {
-            if (Array.isArray(task.Client)) {
-              return task.Client.some(client => clientIds.includes(client));
+          // Check if task has Clients field that matches any of the user's clients
+          if (task.Clients) {
+            if (Array.isArray(task.Clients)) {
+              return task.Clients.some(client => clientIds.includes(client));
             } else {
-              return clientIds.includes(task.Client);
+              return clientIds.includes(task.Clients);
             }
           }
           return false;
@@ -621,9 +623,9 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
       console.log('Filtering tasks by client:', clientIds);
 
-      // Create a filter formula for client IDs
+      // Create a filter formula for client IDs that uses only Clients field
       const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+        `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
       );
 
       // Combine filters with OR
@@ -664,6 +666,13 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
         fields.Title = fields.Name;
       }
 
+      // Ensure we have both Client and Clients fields for compatibility
+      if (fields.Client && !fields.Clients) {
+        fields.Clients = fields.Client;
+      } else if (fields.Clients && !fields.Client) {
+        fields.Client = fields.Clients;
+      }
+
       return {
         id: record.id,
         ...fields,
@@ -682,12 +691,12 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
       if (userRole === 'Client' && clientIds && clientIds.length > 0) {
         console.log('Filtering mock tasks by client:', clientIds);
         return mockTasks.filter(task => {
-          // Check if task has client field that matches any of the user's clients
-          if (task.Client) {
-            if (Array.isArray(task.Client)) {
-              return task.Client.some(client => clientIds.includes(client));
+          // Check if task has Clients field that matches any of the user's clients
+          if (task.Clients) {
+            if (Array.isArray(task.Clients)) {
+              return task.Clients.some(client => clientIds.includes(client));
             } else {
-              return clientIds.includes(task.Client);
+              return clientIds.includes(task.Clients);
             }
           }
           return false;
@@ -965,29 +974,47 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
       return mockBriefs;
     }
 
-    // Build the query with appropriate filters
+    // TEMPORARY DEBUGGING: First try with no filters at all to see if API works
+    try {
+      console.log('DEBUGGING: First testing connection with NO filters');
+      const testQuery = base(TABLES.KEYWORDS).select({
+        maxRecords: 5 // Just get a few records to verify connection
+      });
+      const testRecords = await testQuery.all();
+      console.log(`CONNECTION TEST: Successfully fetched ${testRecords.length} records with NO filters`);
+      
+      if (testRecords.length > 0) {
+        console.log('Sample record fields:', Object.keys(testRecords[0].fields));
+        console.log('Does "Client Record ID" field exist?', Object.keys(testRecords[0].fields).includes('Client Record ID'));
+        
+        // Try to find any record that has our target client ID
+        const hasTargetClient = testRecords.some((record: { id: string; fields: Record<string, any> }) => {
+          const clientRecordID = record.fields['Client Record ID'];
+          const includes = clientRecordID && clientRecordID.includes('rec37fwEV09GUJccr');
+          console.log(`Record ${record.id} - Client Record ID: ${clientRecordID} - Includes target? ${includes}`);
+          return includes;
+        });
+        
+        console.log(`Found records with target client ID: ${hasTargetClient}`);
+      }
+    } catch (error) {
+      console.error('TEST QUERY ERROR:', error);
+    }
+
+    // Now try the original query with client filter
     let filterFormula = '';
     const filterParts = [];
 
-    // If user is a client, filter by client
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering keywords by client:', clientIds);
+    // REMOVED CLIENT-SPECIFIC FILTERING: Now using same logic as admin for all users
+    // Only filtering by month, client filtering will be done on the frontend
+    console.log('Using admin-style data fetching for all users (including clients)');
 
-      // Create a filter formula for client IDs
-      const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
-      );
-
-      // Add client filter to filter parts
-      filterParts.push(`OR(${clientFilters.join(',')})`);
-    }
-    // If user is not an admin or client, filter by assigned user
-    else if (userId && userRole && userRole !== 'Admin') {
+    // If user is not an admin or client, still filter by assigned user
+    if (userId && userRole && userRole !== 'Admin' && userRole !== 'Client') {
       console.log(`Filtering keywords for user: ${userId}, role: ${userRole}`);
 
       // Filter for keywords where this user is assigned
       const userFilters = [
-        `SEARCH('${userId}', ARRAYJOIN({SEO Strategist}, ',')) > 0`,
         `SEARCH('${userId}', ARRAYJOIN({Content Writer}, ',')) > 0`,
         `SEARCH('${userId}', ARRAYJOIN({Content Editor}, ',')) > 0`
       ];
@@ -996,7 +1023,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
       filterParts.push(`OR(${userFilters.join(',')})`);
     }
 
-    // If month is specified, add month filter
+    // Re-enable month filtering for all users
     if (month) {
       console.log('Filtering keywords by month:', month);
 
@@ -1005,15 +1032,14 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
         // For example, if month is "January 2025", we should match both "January 2025" and "January"
         const monthOnly = month.split(' ')[0]; // Extract just the month name
 
-        // Create month filter using the correct field name
-        // The field name is "Month (Keyword Targets)" as shown in the screenshot
+        // For Multiple Select field, we need to use FIND() instead of equality
         const monthFilters = [
-          `{Month (Keyword Targets)} = '${month}'`
+          `FIND('${month}', ARRAYJOIN({Month (Keyword Targets)}, ',')) > 0`
         ];
 
         // If we extracted a month name, also check for that
         if (monthOnly && monthOnly !== month) {
-          monthFilters.push(`{Month (Keyword Targets)} = '${monthOnly}'`);
+          monthFilters.push(`FIND('${monthOnly}', ARRAYJOIN({Month (Keyword Targets)}, ',')) > 0`);
         }
 
         // Add month filter to filter parts
@@ -1201,7 +1227,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
       const fields = record.fields;
 
       // Process the Client field - check multiple possible field names
-      let clientValue = fields['All Clients'] || fields.Client || fields['Client'];
+      let clientValue = fields['Clients'] || fields.Client || fields['Client'];
 
       // If no client field is found, use "Example Client" as a fallback
       if (!clientValue) {
@@ -1274,7 +1300,7 @@ export async function getBriefs(userId?: string | null, userRole?: string | null
         DocumentLink: fields['Content Brief Link (G Doc)'],
         Month: fields['Month (Keyword Targets)'],
         Status: briefStatus,
-        Client: clientValue,
+        Clients: clientValue, // Add Clients field for compatibility
         ContentWriter: fields['Content Writer'] || fields.ContentWriter || fields.Writer || '',
         ContentEditor: fields.ContentEditor || fields['Content Editor'] || fields.Editor || '',
         // Include all original fields as well
@@ -1400,25 +1426,17 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
       return mockArticles;
     }
 
-    // Build the query with appropriate filters
+    // Replace the filter logic section with our new approach
     let filterFormula = '';
     const filterParts = [];
 
-    // If user is a client, filter by client
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering keywords by client:', clientIds);
+    // REMOVED CLIENT-SPECIFIC FILTERING: Now using same logic as admin for all users
+    // Only filtering by month, client filtering will be done on the frontend
+    console.log('Using admin-style data fetching for articles for all users (including clients)');
 
-      // Create a filter formula for client IDs
-      const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
-      );
-
-      // Add client filter to filter parts
-      filterParts.push(`OR(${clientFilters.join(',')})`);
-    }
-    // If user is not an admin or client, filter by assigned user
-    else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering keywords for user: ${userId}, role: ${userRole}`);
+    // If user is not an admin or client, still filter by assigned user
+    if (userId && userRole && userRole !== 'Admin' && userRole !== 'Client') {
+      console.log(`Filtering articles for user: ${userId}, role: ${userRole}`);
 
       // Filter for keywords where this user is assigned
       const userFilters = [
@@ -1430,34 +1448,32 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
       filterParts.push(`OR(${userFilters.join(',')})`);
     }
 
-    // If month is specified, add month filter
+    // Keep month filtering for all users
     if (month) {
-      console.log('Filtering keywords by month:', month);
+      console.log('Filtering articles by month:', month);
 
       try {
         // Check for both exact match and month-only match
         // For example, if month is "January 2025", we should match both "January 2025" and "January"
         const monthOnly = month.split(' ')[0]; // Extract just the month name
 
-        // Create month filter using the correct field name for backlinks
-        // The field name is "Month" for backlinks
+        // For Multiple Select field, we need to use FIND() instead of equality
         const monthFilters = [
-          `{Month (Keyword Targets)} = '${month}'`
+          `FIND('${month}', ARRAYJOIN({Month (Keyword Targets)}, ',')) > 0`
         ];
 
         // If we extracted a month name, also check for that
         if (monthOnly && monthOnly !== month) {
-          monthFilters.push(`{Month (Keyword Targets)} = '${monthOnly}'`);
+          monthFilters.push(`FIND('${monthOnly}', ARRAYJOIN({Month (Keyword Targets)}, ',')) > 0`);
         }
 
-        // Create the filter formula
-        const filterFormula = `OR(${monthFilters.join(',')})`;
-        console.log('Using filter formula for backlinks:', filterFormula);
-
-        filterParts.push(filterFormula);
+        // Add month filter to filter parts
+        const monthFilter = `OR(${monthFilters.join(',')})`;
+        console.log('Month filter formula for articles:', monthFilter);
+        filterParts.push(monthFilter);
       } catch (monthFilterError) {
-        console.error('Error creating month filter for backlinks:', monthFilterError);
-        // If there's an error with the filter, fetch all records
+        console.error('Error creating month filter for articles:', monthFilterError);
+        // Continue without month filter if there's an error
       }
     }
 
@@ -1495,7 +1511,7 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
     const statusFieldName = records.length > 0 ?
       Object.keys(records[0].fields).find(key =>
         key === 'Keyword/Content Status' ||
-        key === 'Status' ||
+        key === 'Article Status' ||
         key.toLowerCase().includes('status')
       ) : null;
 
@@ -1509,32 +1525,68 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
         const status = record.fields[statusFieldName];
         const statusLower = status.toLowerCase();
 
+        // Return true if the status contains any of the article statuses from the screenshot
         return status.includes('Article') ||
                statusLower.includes('article') ||
-               status === 'In Production' ||
-               statusLower === 'in production' ||
-               status === 'Review Draft' ||
-               statusLower === 'review draft' ||
-               status === 'Client Review' ||
-               statusLower === 'client review' ||
+               // Standard article workflow statuses from the screenshot
+               status === 'Awaiting Writer Assignment' ||
+               status === 'Writing In Progress' ||
+               status === 'Under Client Review' ||
+               status === 'Under Editor Review' ||
+               status === 'Writer Revision Needed' ||
+               status === 'Content Approved' ||
+               status === 'Visual Assets Needed' ||
+               status === 'Visual Assets Complete' ||
+               status === 'Ready for CMS Upload' ||
+               status === 'Internal Linking Needed' ||
+               status === 'Ready for Publication' ||
                status === 'Published' ||
-               statusLower === 'published';
+               status === 'Reverse Internal Linking Needed' ||
+               status === 'Complete' ||
+               status === 'Cancelled' ||
+               status === 'On Hold' ||
+               status === 'Content Published' ||
+               // Legacy statuses still in use
+               status === 'In Production' ||
+               status === 'Review Draft' ||
+               status === 'Client Review' ||
+               status === 'Draft Approved' ||
+               status === 'To Be Published' ||
+               status === 'Live';
       }
 
       // Otherwise try our previous approach
       const status = record.fields['Keyword/Content Status'] || record.fields.Status || '';
       const statusLower = status.toLowerCase();
 
+      // Return true if the status contains any of the article statuses from the screenshot
       return status.includes('Article') ||
              statusLower.includes('article') ||
-             status === 'In Production' ||
-             statusLower === 'in production' ||
-             status === 'Review Draft' ||
-             statusLower === 'review draft' ||
-             status === 'Client Review' ||
-             statusLower === 'client review' ||
+             // Standard article workflow statuses from the screenshot
+             status === 'Awaiting Writer Assignment' ||
+             status === 'Writing In Progress' ||
+             status === 'Under Client Review' ||
+             status === 'Under Editor Review' ||
+             status === 'Writer Revision Needed' ||
+             status === 'Content Approved' ||
+             status === 'Visual Assets Needed' ||
+             status === 'Visual Assets Complete' ||
+             status === 'Ready for CMS Upload' ||
+             status === 'Internal Linking Needed' ||
+             status === 'Ready for Publication' ||
              status === 'Published' ||
-             statusLower === 'published';
+             status === 'Reverse Internal Linking Needed' ||
+             status === 'Complete' ||
+             status === 'Cancelled' ||
+             status === 'On Hold' ||
+             status === 'Content Published' ||
+             // Legacy statuses still in use
+             status === 'In Production' ||
+             status === 'Review Draft' ||
+             status === 'Client Review' ||
+             status === 'Draft Approved' ||
+             status === 'To Be Published' ||
+             status === 'Live';
     });
 
     console.log(`Filtered ${articleRecords.length} records as articles`);
@@ -1544,7 +1596,7 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
       const fields = record.fields;
 
       // Process the Client field - check multiple possible field names
-      let clientValue = fields['All Clients'] || fields.Client || fields['Client'];
+      let clientValue = fields['Clients'] || fields.Client || fields['Client'];
 
       // If no client field is found, use "Example Client" as a fallback
       if (!clientValue) {
@@ -1555,37 +1607,60 @@ export async function getArticles(userId?: string | null, userRole?: string | nu
       console.log(`Article ${record.id} client value:`, clientValue);
 
       // Map the keyword status to article status
-      let articleStatus = 'In Production';
+      let articleStatus = 'In Production'; // Default status
       const keywordStatus = fields['Article Status'] || fields.Status || '';
 
-      if (keywordStatus.includes('Article')) {
-        // Extract the article status from the keyword status
-        articleStatus = keywordStatus;
-      } else if (keywordStatus === 'In Production') {
-        articleStatus = 'In Production';
-      } else if (keywordStatus === 'Review Draft') {
-        articleStatus = 'Review Draft';
-      } else if (keywordStatus === 'Draft Approved') {
-        articleStatus = 'Draft Approved';
-      } else if (keywordStatus === 'To Be Published') {
-        articleStatus = 'To Be Published';
-      } else if (keywordStatus === 'Live') {
-        articleStatus = 'Live';
+      // Use a switch statement to handle all the possible statuses
+      switch (keywordStatus) {
+        // Standard article workflow statuses from the screenshot
+        case 'Awaiting Writer Assignment':
+        case 'Writing In Progress':
+        case 'Under Client Review':
+        case 'Under Editor Review':
+        case 'Writer Revision Needed':
+        case 'Content Approved':
+        case 'Visual Assets Needed':
+        case 'Visual Assets Complete':
+        case 'Ready for CMS Upload':
+        case 'Internal Linking Needed':
+        case 'Ready for Publication':
+        case 'Published':
+        case 'Reverse Internal Linking Needed':
+        case 'Complete':
+        case 'Cancelled':
+        case 'On Hold':
+        case 'Content Published':
+        // Legacy status values
+        case 'In Production':
+        case 'Review Draft':
+        case 'Draft Approved':
+        case 'To Be Published':
+        case 'Live':
+          articleStatus = keywordStatus;
+          break;
+        default:
+          // If the status includes 'Article', use it directly
+          if (keywordStatus.includes('Article')) {
+            articleStatus = keywordStatus;
+          } else {
+            // Otherwise stick with the default 'In Production'
+            articleStatus = 'In Production';
+          }
+          break;
       }
 
       // Return an object with our expected structure
       return {
         id: record.id,
         Title: fields['Main Keyword'],
-        Writer: fields['Content Writer'],
-        Editor: fields.ContentEditor || fields['Content Editor'],
-        WordCount: fields['Final Word Count']|| 0,
+        SEOStrategist: fields['SEO Assignee'],
         DueDate: fields['Due Date (Publication)'],
-        DocumentLink: fields['Written Content (G Doc)'],
-        ArticleURL: fields['Target Page URL'],
+        DocumentLink: fields['Content Link (G Doc)'],
         Month: fields['Month (Keyword Targets)'],
         Status: articleStatus,
-        Client: clientValue,
+        Clients: clientValue, // Add Clients field for compatibility
+        ContentWriter: fields['Content Writer'] || fields.ContentWriter || fields.Writer || '',
+        ContentEditor: fields.ContentEditor || fields['Content Editor'] || fields.Editor || '',
         // Include all original fields as well
         ...fields
       };
@@ -1801,8 +1876,7 @@ export async function getBacklinks(month?: string | null) {
         // For example, if month is "January 2025", we should match both "January 2025" and "January"
         const monthOnly = month.split(' ')[0]; // Extract just the month name
 
-        // Create month filter using the correct field name for backlinks
-        // The field name is "Month" for backlinks
+        // For Single Select Month field in Backlinks table, use equality operator
         const monthFilters = [
           `{Month} = '${month}'`
         ];
@@ -2596,13 +2670,13 @@ export async function getAvailableMonths() {
     // Use a more efficient query that only fetches the month field
     // This significantly reduces the data transferred
     const query = base(TABLES.KEYWORDS).select({
-      fields: ['Month (Keyword Targets)', 'Month'],
-      maxRecords: 1000, // Limit to 1000 records for faster response
+      fields: ['Month (Keyword Targets)'], // Removed 'Month' as it was causing an UNKNOWN_FIELD_NAME error
+      maxRecords: 500, // Reduced maxRecords to 500
     });
 
     // Use a timeout to prevent hanging
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Timeout fetching months')), 8000);
+      setTimeout(() => reject(new Error('Timeout fetching months')), 15000); // Increased timeout to 15 seconds
     });
 
     // Race the Airtable query against the timeout
@@ -2619,6 +2693,7 @@ export async function getAvailableMonths() {
     // Log the first record to see what fields are available
     if (records.length > 0) {
       console.log('First keyword record field keys:', Object.keys(records[0].fields));
+      console.log('Month (Keyword Targets) field:', records[0].fields['Month (Keyword Targets)']);
     }
 
     // Try different possible field names for the month
@@ -2627,14 +2702,25 @@ export async function getAvailableMonths() {
 
       // Check for 'Month (Keyword Targets)' field first (from your screenshot)
       const monthValue = fields['Month (Keyword Targets)'] || fields.Month || '';
-
-      if (monthValue && typeof monthValue === 'string') {
+      
+      // Handle array values (Multiple Select fields)
+      if (Array.isArray(monthValue)) {
+        // Add each month from the array
+        monthValue.forEach(month => {
+          if (month && typeof month === 'string') {
+            uniqueMonths.add(month);
+          }
+        });
+      } 
+      // Handle string values (Single Select fields)
+      else if (monthValue && typeof monthValue === 'string') {
         uniqueMonths.add(monthValue);
       }
     });
 
     // Convert Set to Array and sort by date
     let months = Array.from(uniqueMonths);
+    console.log('Found unique months:', months);
 
     // Sort months chronologically
     months.sort((a, b) => {
@@ -2759,7 +2845,7 @@ export async function getMonthlyProjections(clientIds?: string[] | null) {
 
       // Create a filter formula for client IDs
       const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+        `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
       );
 
       // Combine filters with OR
@@ -3018,9 +3104,9 @@ export async function getApprovalItems(
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
       console.log('Filtering approval items by client:', clientIds);
 
-      // Create a filter formula for client IDs
+      // Create a filter formula for client IDs that checks both Clients and Client fields
       const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN({All Clients}, ',')) > 0`
+        `SEARCH('${clientId}', ARRAYJOIN({Clients}, ',')) > 0`
       );
 
       // Add client filter to filter parts
@@ -3286,7 +3372,7 @@ export async function createWQATask(taskData: {
   'Impact'?: string;
   'Effort'?: string;
   'Notes By Scalerrs During Audit'?: string;
-  Client?: string[];
+  Clients?: string[];
   // 'Assigned To' has been removed as it requires special handling
 }) {
   if (!hasAirtableCredentials) {
@@ -3305,7 +3391,7 @@ export async function createWQATask(taskData: {
       'Impact': taskData['Impact'] || '3', // Use string format for impact (1-5)
       'Effort': taskData['Effort'] || 'M', // Use S, M, L directly
       'Created At': new Date().toISOString(),
-      Client: taskData.Client || []
+      Clients: taskData.Clients || []
     };
     
     // Add to mock tasks - safe conversion to match the mockTasks type
@@ -3342,7 +3428,7 @@ export async function createWQATask(taskData: {
       'Impact': taskData['Impact'] || '3', // Use string format for impact (1-5)
       'Effort': taskData['Effort'] || 'M', // Use S, M, L directly
       'Created At': new Date().toISOString(),
-      Client: taskData.Client || []
+      Clients: taskData.Clients || []
     };
     
     return newTask;
@@ -3361,7 +3447,7 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
     const mockCROTasks = mockTasks.slice(0, 5).map(task => ({
       ...task,
       Type: 'CRO',
-      Name: `CRO: ${task.Title || task.Name || 'Task'}`,
+      Title: `CRO: ${task.Title || 'Task'}`,
       Status: ['To Do', 'In Progress', 'Complete'][Math.floor(Math.random() * 3)]
     }));
     
@@ -3380,7 +3466,7 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
       
       try {
         const clientFilters = clientIds.map(clientId =>
-          `SEARCH('${clientId}', {Client})`
+          `SEARCH('${clientId}', {Clients})`
         );
         
         filterFormula = `OR(${clientFilters.join(',')})`;  
@@ -3454,7 +3540,7 @@ export async function createCROTask(taskData: {
   Effort?: string;
   Comments?: string;
   Assignee?: string;
-  Client?: string[];
+  Clients?: string[];
 }) {
   if (!hasAirtableCredentials) {
     console.log('Using mock data for creating CRO task:', taskData);
@@ -3472,7 +3558,7 @@ export async function createCROTask(taskData: {
       Notes: taskData.Comments || '',
       Created: new Date().toISOString(),
       Type: 'CRO',
-      Client: taskData.Client || []
+      Clients: taskData.Clients || []
     };
     
     // Add to mock tasks
@@ -3519,7 +3605,7 @@ export async function createCROTask(taskData: {
       Notes: taskData.Comments || '',
       Created: new Date().toISOString(),
       Type: 'CRO',
-      Client: taskData.Client || []
+      Clients: taskData.Clients || []
     };
     
     return newTask;
@@ -3548,8 +3634,8 @@ export async function updateCROTaskStatus(taskId: string, newStatus: string) {
     
     // Return the updated task
     return {
-      id: taskId,
-      ...mockTasks[taskIndex]
+      ...mockTasks[taskIndex],
+      id: taskId
     };
   }
 

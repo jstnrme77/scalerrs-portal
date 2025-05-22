@@ -141,7 +141,7 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
         <div className="flex items-center col-span-2">
           <span className="text-xs text-gray-500 mr-1">Client:</span>
           <span className="text-xs text-gray-700 truncate">
-            {getClientNameSync(brief['All Clients'] || brief.Client)}
+            {getClientNameSync(brief['All Clients'] || brief.Clients || brief.Client)}
           </span>
         </div>
 

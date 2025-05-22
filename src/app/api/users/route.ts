@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       Name: name,
       Email: email,
       Role: role,
-      Client: clientIds || []
+      Clients: clientIds || []
     });
 
     return NextResponse.json({ 

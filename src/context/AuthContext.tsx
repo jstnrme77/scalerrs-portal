@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         // Otherwise, set a default name based on email or role
         else {
-          authUser.Name = authUser.Email.split('@')[0] || authUser.Role || 'User';
+          authUser.Name = authUser.Email && authUser.Email.split('@')[0] || authUser.Role || 'User';
         }
 
         console.log('Set default name:', authUser.Name);

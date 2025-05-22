@@ -108,7 +108,7 @@ const createClientFilter = (clientIds) => {
   }
 
   const clientFilters = clientIds.map(clientId =>
-    `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+    `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
   );
 
   return `OR(${clientFilters.join(',')})`;

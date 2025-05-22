@@ -19,7 +19,7 @@ export interface BaseTask {
   notes?: string;
   category?: TaskCategory;
   referenceLinks?: string[];
-  Client?: string | string[]; // Add Client field for client filtering
+  Clients?: string | string[]; // Use Clients field for client filtering
   'All Clients'?: string | string[]; // Add All Clients field for filtering
   // Original Airtable values
   originalPriority?: string;
@@ -141,7 +141,8 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
     effort,
     comments: [], // Comments will be loaded separately
     notes: airtableTask.Notes || airtableTask.Description,
-    category: airtableTask.Category as TaskCategory || airtableTask.Type as TaskCategory
+    category: airtableTask.Category as TaskCategory || airtableTask.Type as TaskCategory,
+    Clients: airtableTask.AssignedTo as string[] || undefined
   };
 
   // Return as either ActiveTask or CompletedTask

@@ -211,26 +211,53 @@ export async function getApprovalItemsEfficient(
       };
 
       // Apply specific filters based on the dedicated approval fields
+      let filterFormula = '';
+      
       if (type === 'briefs') {
-        // Only show records with a value in the "Brief Approval" field
-        queryOptions.filterByFormula = `NOT({Brief Approval} = '')`;
-        console.log('Filtering briefs by Brief Approval field');
+        // Only show records with a value in the "Brief Approvals" field
+        filterFormula = `NOT({Brief Approvals} = '')`;
+        console.log('Filtering briefs by Brief Approvals field');
       } else if (type === 'articles') {
-        // Only show records with a value in the "Article Approval" field
-        queryOptions.filterByFormula = `NOT({Article Approval} = '')`;
-        console.log('Filtering articles by Article Approval field');
+        // Only show records with a value in the "Article Approvals" field
+        filterFormula = `NOT({Article Approvals} = '')`;
+        console.log('Filtering articles by Article Approvals field');
       } else if (type === 'keywords') {
-        // Only show records with a value in the "Keyword Approval" field
-        queryOptions.filterByFormula = `NOT({Keyword Approval} = '')`;
-        console.log('Filtering keywords by Keyword Approval field');
+        // Only show records with a value in the "Keyword Approvals" field
+        filterFormula = `NOT({Keyword Approvals} = '')`;
+        console.log('Filtering keywords by Keyword Approvals field');
       } else if (type === 'backlinks') {
-        // Only show records with a value in the "Backlinks Approval" field
-        queryOptions.filterByFormula = `NOT({Backlinks Approval} = '')`;
-        console.log('Filtering backlinks by Backlinks Approval field');
+        // Only show records with a value in the "Backlink Approvals" field
+        filterFormula = `NOT({Backlink Approvals} = '')`;
+        console.log('Filtering backlinks by Backlink Approvals field');
+      }
+      
+      // Add client filtering if a specific client is selected (not 'all')
+      if (clientId && clientId !== 'all') {
+        console.log(`Adding client filter for client ID: ${clientId}`);
+        
+        // Use 'Clients' field name consistently across all tables
+        const clientFieldName = 'Clients';
+        console.log('Using "Clients" field for all content types');
+        
+        // FIND() is more reliable than SEARCH() for exact matches
+        const clientFilter = `FIND('${clientId}', ARRAYJOIN({${clientFieldName}}, ',')) > 0`;
+        
+        // Combine with existing filter if there is one
+        if (filterFormula) {
+          filterFormula = `AND(${filterFormula}, ${clientFilter})`;
+        } else {
+          filterFormula = clientFilter;
+        }
+        
+        console.log(`Final filter formula: ${filterFormula}`);
+      }
+      
+      // Set the filter formula if we have one
+      if (filterFormula) {
+        queryOptions.filterByFormula = filterFormula;
       }
 
       console.log(`Fetching ${type} from Airtable with options:`, queryOptions);
-      console.log(`Not filtering by client in Airtable query, will filter in memory instead`);
 
       // Create the query
       const query = base(tableName).select(queryOptions);
@@ -263,49 +290,49 @@ export async function getApprovalItemsEfficient(
       console.log('Sample record fields:', allRecords[0].fields);
 
       // Count records with each approval field
-      const keywordApprovalCount = allRecords.filter(r => r.fields['Keyword Approval'] && r.fields['Keyword Approval'].trim() !== '').length;
-      const briefApprovalCount = allRecords.filter(r => r.fields['Brief Approval'] && r.fields['Brief Approval'].trim() !== '').length;
-      const articleApprovalCount = allRecords.filter(r => r.fields['Article Approval'] && r.fields['Article Approval'].trim() !== '').length;
-      const backlinksApprovalCount = allRecords.filter(r => r.fields['Backlinks Approval'] && r.fields['Backlinks Approval'].trim() !== '').length;
+      const keywordApprovalCount = allRecords.filter(r => r.fields['Keyword Approvals'] && r.fields['Keyword Approvals'].trim() !== '').length;
+      const briefApprovalCount = allRecords.filter(r => r.fields['Brief Approvals'] && r.fields['Brief Approvals'].trim() !== '').length;
+      const articleApprovalCount = allRecords.filter(r => r.fields['Article Approvals'] && r.fields['Article Approvals'].trim() !== '').length;
+      const backlinksApprovalCount = allRecords.filter(r => r.fields['Backlink Approvals'] && r.fields['Backlink Approvals'].trim() !== '').length;
 
-      console.log(`Records with Keyword Approval: ${keywordApprovalCount}`);
-      console.log(`Records with Brief Approval: ${briefApprovalCount}`);
-      console.log(`Records with Article Approval: ${articleApprovalCount}`);
-      console.log(`Records with Backlinks Approval: ${backlinksApprovalCount}`);
+      console.log(`Records with Keyword Approvals: ${keywordApprovalCount}`);
+      console.log(`Records with Brief Approvals: ${briefApprovalCount}`);
+      console.log(`Records with Article Approvals: ${articleApprovalCount}`);
+      console.log(`Records with Backlink Approvals: ${backlinksApprovalCount}`);
 
       // Log the first few records with each approval field for debugging
       if (keywordApprovalCount > 0) {
-        const sampleKeyword = allRecords.find(r => r.fields['Keyword Approval'] && r.fields['Keyword Approval'].trim() !== '');
-        console.log('Sample Keyword Approval record:', {
+        const sampleKeyword = allRecords.find(r => r.fields['Keyword Approvals'] && r.fields['Keyword Approvals'].trim() !== '');
+        console.log('Sample Keyword Approvals record:', {
           id: sampleKeyword.id,
-          keywordApproval: sampleKeyword.fields['Keyword Approval'],
+          keywordApproval: sampleKeyword.fields['Keyword Approvals'],
           mainKeyword: sampleKeyword.fields['Main Keyword'] || sampleKeyword.fields['Keyword'] || 'N/A'
         });
       }
 
       if (briefApprovalCount > 0) {
-        const sampleBrief = allRecords.find(r => r.fields['Brief Approval'] && r.fields['Brief Approval'].trim() !== '');
-        console.log('Sample Brief Approval record:', {
+        const sampleBrief = allRecords.find(r => r.fields['Brief Approvals'] && r.fields['Brief Approvals'].trim() !== '');
+        console.log('Sample Brief Approvals record:', {
           id: sampleBrief.id,
-          briefApproval: sampleBrief.fields['Brief Approval'],
+          briefApproval: sampleBrief.fields['Brief Approvals'],
           mainKeyword: sampleBrief.fields['Main Keyword'] || sampleBrief.fields['Keyword'] || 'N/A'
         });
       }
 
       if (articleApprovalCount > 0) {
-        const sampleArticle = allRecords.find(r => r.fields['Article Approval'] && r.fields['Article Approval'].trim() !== '');
-        console.log('Sample Article Approval record:', {
+        const sampleArticle = allRecords.find(r => r.fields['Article Approvals'] && r.fields['Article Approvals'].trim() !== '');
+        console.log('Sample Article Approvals record:', {
           id: sampleArticle.id,
-          articleApproval: sampleArticle.fields['Article Approval'],
+          articleApproval: sampleArticle.fields['Article Approvals'],
           title: sampleArticle.fields['Title'] || sampleArticle.fields['Main Keyword'] || 'N/A'
         });
       }
 
       if (backlinksApprovalCount > 0) {
-        const sampleBacklink = allRecords.find(r => r.fields['Backlinks Approval'] && r.fields['Backlinks Approval'].trim() !== '');
-        console.log('Sample Backlinks Approval record:', {
+        const sampleBacklink = allRecords.find(r => r.fields['Backlink Approvals'] && r.fields['Backlink Approvals'].trim() !== '');
+        console.log('Sample Backlink Approvals record:', {
           id: sampleBacklink.id,
-          backlinksApproval: sampleBacklink.fields['Backlinks Approval'],
+          backlinksApproval: sampleBacklink.fields['Backlink Approvals'],
           domain: sampleBacklink.fields['Domain'] || sampleBacklink.fields['Domain URL'] || sampleBacklink.fields['Source Domain'] || 'N/A'
         });
       }
@@ -324,22 +351,22 @@ export async function getApprovalItemsEfficient(
 
       // ONLY use the dedicated approval fields to determine content type
       // This ensures strict separation between tabs
-      if (fields['Keyword Approval'] && fields['Keyword Approval'].trim() !== '') {
-        rawStatus = fields['Keyword Approval'];
+      if (fields['Keyword Approvals'] && fields['Keyword Approvals'].trim() !== '') {
+        rawStatus = fields['Keyword Approvals'];
         contentType = 'keywords';
-        console.log(`Record ${record.id} assigned to keywords tab based on Keyword Approval field: "${rawStatus}"`);
-      } else if (fields['Brief Approval'] && fields['Brief Approval'].trim() !== '') {
-        rawStatus = fields['Brief Approval'];
+        console.log(`Record ${record.id} assigned to keywords tab based on Keyword Approvals field: "${rawStatus}"`);
+      } else if (fields['Brief Approvals'] && fields['Brief Approvals'].trim() !== '') {
+        rawStatus = fields['Brief Approvals'];
         contentType = 'briefs';
-        console.log(`Record ${record.id} assigned to briefs tab based on Brief Approval field: "${rawStatus}"`);
-      } else if (fields['Article Approval'] && fields['Article Approval'].trim() !== '') {
-        rawStatus = fields['Article Approval'];
+        console.log(`Record ${record.id} assigned to briefs tab based on Brief Approvals field: "${rawStatus}"`);
+      } else if (fields['Article Approvals'] && fields['Article Approvals'].trim() !== '') {
+        rawStatus = fields['Article Approvals'];
         contentType = 'articles';
-        console.log(`Record ${record.id} assigned to articles tab based on Article Approval field: "${rawStatus}"`);
-      } else if (fields['Backlinks Approval'] && fields['Backlinks Approval'].trim() !== '') {
-        rawStatus = fields['Backlinks Approval'];
+        console.log(`Record ${record.id} assigned to articles tab based on Article Approvals field: "${rawStatus}"`);
+      } else if (fields['Backlink Approvals'] && fields['Backlink Approvals'].trim() !== '') {
+        rawStatus = fields['Backlink Approvals'];
         contentType = 'backlinks';
-        console.log(`Record ${record.id} assigned to backlinks tab based on Backlinks Approval field: "${rawStatus}"`);
+        console.log(`Record ${record.id} assigned to backlinks tab based on Backlink Approvals field: "${rawStatus}"`);
       } else {
         // If none of the dedicated approval fields have values, don't assign to any tab
         // This record won't appear in any tab
@@ -352,11 +379,22 @@ export async function getApprovalItemsEfficient(
       const normalizedStatus = normalizeStatus(rawStatus);
 
       // Get the original approval status for debugging
-      const keywordApproval = fields['Keyword Approval'] || '';
-      const briefApproval = fields['Brief Approval'] || '';
-      const articleApproval = fields['Article Approval'] || '';
-      const backlinksApproval = fields['Backlinks Approval'] || '';
+      const keywordApproval = fields['Keyword Approvals'] || '';
+      const briefApproval = fields['Brief Approvals'] || '';
+      const articleApproval = fields['Article Approvals'] || '';
+      const backlinksApproval = fields['Backlink Approvals'] || '';
       const originalStatus = fields['Keyword/Content Status'] || fields['Status'] || '';
+
+      // Get client field values for debugging
+      const clientsField = fields['Clients'] || '';
+      console.log(`Record ${record.id} client fields:`, { 
+        'Clients': clientsField,
+        contentType
+      });
+
+      // Use Clients field consistently for all content types
+      const clientValue = fields['Clients'] || 'Unknown Client';
+      console.log(`${type} item ${record.id} using Clients field:`, clientValue);
 
       const item = {
         id: record.id,
@@ -367,7 +405,7 @@ export async function getApprovalItemsEfficient(
         lastUpdated: fields['Last Updated'] || fields['Last Modified'] || '3 days ago',
         strategist: fields['Content Writer'] || fields['SEO Strategist'] || fields['SEO Specialist'] ||
                    fields['Assignee'] || fields['Person Responsible'] || 'Not Assigned',
-        client: fields['All Clients'] || fields['Client'] || 'Unknown Client',
+        client: clientValue,
         contentType: contentType, // Add the content type
         originalStatus: originalStatus, // Keep the original status for debugging
         keywordApproval: keywordApproval, // Add the keyword approval status
@@ -375,9 +413,6 @@ export async function getApprovalItemsEfficient(
         articleApproval: articleApproval, // Add the article approval status
         backlinksApproval: backlinksApproval // Add the backlinks approval status
       };
-
-      // Log the mapped item for debugging
-      console.log(`Mapped ${type} item:`, item);
 
       // Add type-specific fields
       if (type === 'keywords') {
@@ -423,19 +458,19 @@ export async function getApprovalItemsEfficient(
 
       // Additional check to ensure the item has the appropriate approval field
       if (type === 'keywords' && (!item.keywordApproval || item.keywordApproval.trim() === '')) {
-        console.log(`Excluding keyword item ${item.id} because Keyword Approval field is empty`);
+        console.log(`Excluding keyword item ${item.id} because Keyword Approvals field is empty`);
         return false;
       }
       if (type === 'briefs' && (!item.briefApproval || item.briefApproval.trim() === '')) {
-        console.log(`Excluding brief item ${item.id} because Brief Approval field is empty`);
+        console.log(`Excluding brief item ${item.id} because Brief Approvals field is empty`);
         return false;
       }
       if (type === 'articles' && (!item.articleApproval || item.articleApproval.trim() === '')) {
-        console.log(`Excluding article item ${item.id} because Article Approval field is empty`);
+        console.log(`Excluding article item ${item.id} because Article Approvals field is empty`);
         return false;
       }
       if (type === 'backlinks' && (!item.backlinksApproval || item.backlinksApproval.trim() === '')) {
-        console.log(`Excluding backlink item ${item.id} because Backlinks Approval field is empty`);
+        console.log(`Excluding backlink item ${item.id} because Backlink Approvals field is empty`);
         return false;
       }
 
@@ -456,32 +491,45 @@ export async function getApprovalItemsEfficient(
 
     console.log(`After filtering by content type and approval fields, found ${items.length} items for type ${type}`);
 
-    // Filter items by client if clientId is provided
-    if (clientId) {
-      // If clientId is 'all', don't filter
-      if (clientId === 'all') {
-        console.log('Client ID is "all", not filtering by client');
-      } else {
-        console.log(`Filtering items by client: ${clientId}`);
-
-        // Filter items where the client field includes the clientId
-        items = items.filter((item: any) => {
-          // Check if client is an array
+    // Additional client-side filtering for items that might have slipped through the server-side filter
+    if (clientId && clientId !== 'all') {
+      console.log(`Performing additional client-side filtering for client: ${clientId}`);
+      
+      items = items.filter((item: any) => {
+        // Check the Clients field for all content types
+        if (item['Clients']) {
+          console.log(`Checking ${type} item ${item.id} Clients:`, item['Clients']);
+          if (Array.isArray(item['Clients'])) {
+            const includes = item['Clients'].includes(clientId);
+            console.log(`${type} ${item.id} Clients array includes ${clientId}:`, includes);
+            return includes;
+          } else if (typeof item['Clients'] === 'string') {
+            const matches = item['Clients'] === clientId;
+            console.log(`${type} ${item.id} Clients string matches ${clientId}:`, matches);
+            return matches;
+          }
+        }
+        
+        // Fall back to client field if it exists (for backward compatibility)
+        if (item.client) {
+          console.log(`Checking ${type} item ${item.id} client:`, item.client);
           if (Array.isArray(item.client)) {
-            return item.client.includes(clientId);
+            const includes = item.client.includes(clientId);
+            console.log(`${type} ${item.id} client array includes ${clientId}:`, includes);
+            return includes;
+          } else if (typeof item.client === 'string') {
+            const matches = item.client === clientId;
+            console.log(`${type} ${item.id} client string matches ${clientId}:`, matches);
+            return matches;
           }
-          // Check if client is a string
-          else if (typeof item.client === 'string') {
-            return item.client === clientId;
-          }
-          // If client is neither an array nor a string, return false
-          return false;
-        });
-
-        console.log(`After filtering, found ${items.length} items for client ${clientId}`);
-      }
-    } else {
-      console.log('No client ID provided, not filtering by client');
+        }
+        
+        // If neither field is present or no match, return false
+        console.log(`${type} ${item.id} has no client field or no match`);
+        return false;
+      });
+      
+      console.log(`After additional client filtering, found ${items.length} items for client ${clientId}`);
     }
 
     // Calculate pagination info based on the full dataset

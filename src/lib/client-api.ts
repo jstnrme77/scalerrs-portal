@@ -87,18 +87,18 @@ export async function fetchTasks() {
     console.log('Using mock tasks data');
 
     // If user is a client, filter mock data
-    if (currentUser && currentUser.Role === 'Client' && currentUser.Client) {
+    if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
       console.log('Filtering mock tasks for client user:', currentUser.Name);
       // Ensure Client is an array
-      const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
+      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
 
       return mockTasks.filter(task => {
         // Check if task has client field that matches any of the user's clients
-        if (task.Client) {
-          if (Array.isArray(task.Client)) {
-            return task.Client.some(client => clientIds.includes(client));
+        if (task.Clients) {
+          if (Array.isArray(task.Clients)) {
+            return task.Clients.some(client => clientIds.includes(client));
           } else {
-            return clientIds.includes(task.Client);
+            return clientIds.includes(task.Clients);
           }
         }
         return false;
@@ -119,8 +119,8 @@ export async function fetchTasks() {
       // If user is logged in, pass user info to getTasks
       if (currentUser) {
         // Ensure Client is an array
-        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
-                         (currentUser.Client ? [currentUser.Client] : []);
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients :
+                         (currentUser.Clients ? [currentUser.Clients] : []);
         const tasks = await getTasks(currentUser.id, currentUser.Role, clientIds);
         return tasks;
       } else {
@@ -154,12 +154,12 @@ export async function fetchTasks() {
       headers['x-user-role'] = currentUser.Role;
 
       // Convert client array to JSON string
-      if (currentUser.Client) {
+      if (currentUser.Clients) {
         // Ensure Client is an array
-        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
-        headers['x-user-client'] = JSON.stringify(clientIds);
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+        headers['x-user-clients'] = JSON.stringify(clientIds);
       } else {
-        headers['x-user-client'] = JSON.stringify([]);
+        headers['x-user-clients'] = JSON.stringify([]);
       }
     }
 
@@ -504,8 +504,8 @@ export async function fetchBriefs(month?: string) {
       if (currentUser) {
         try {
           // Ensure Client is an array
-          const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
-                          (currentUser.Client ? [currentUser.Client] : []);
+          const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients :
+                          (currentUser.Clients ? [currentUser.Clients] : []);
           console.log('Calling getBriefs with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds, 'month:', month);
           const briefs = await getBriefs(currentUser.id, currentUser.Role, clientIds, month);
           console.log('Received briefs from Airtable:', briefs.length);
@@ -566,12 +566,12 @@ export async function fetchBriefs(month?: string) {
       headers['x-user-role'] = currentUser.Role;
 
       // Convert client array to JSON string
-      if (currentUser.Client) {
+      if (currentUser.Clients) {
         // Ensure Client is an array
-        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
-        headers['x-user-client'] = JSON.stringify(clientIds);
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+        headers['x-user-clients'] = JSON.stringify(clientIds);
       } else {
-        headers['x-user-client'] = JSON.stringify([]);
+        headers['x-user-clients'] = JSON.stringify([]);
       }
     }
 
@@ -711,8 +711,8 @@ export async function fetchArticles(month?: string) {
       if (currentUser) {
         try {
           // Ensure Client is an array
-          const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client :
-                          (currentUser.Client ? [currentUser.Client] : []);
+          const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients :
+                          (currentUser.Clients ? [currentUser.Clients] : []);
           console.log('Calling getArticles with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds, 'month:', month);
           const articles = await getArticles(currentUser.id, currentUser.Role, clientIds, month);
           console.log('Received articles from Airtable:', articles.length);
@@ -765,12 +765,12 @@ export async function fetchArticles(month?: string) {
       headers['x-user-role'] = currentUser.Role;
 
       // Convert client array to JSON string
-      if (currentUser.Client) {
+      if (currentUser.Clients) {
         // Ensure Client is an array
-        const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
-        headers['x-user-client'] = JSON.stringify(clientIds);
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+        headers['x-user-clients'] = JSON.stringify(clientIds);
       } else {
-        headers['x-user-client'] = JSON.stringify([]);
+        headers['x-user-clients'] = JSON.stringify([]);
       }
     }
 
@@ -1224,9 +1224,23 @@ export async function fetchMonthlyProjections() {
 
 // Clients API
 export async function fetchClients(signal?: AbortSignal) {
+  // Get current user from localStorage
+  const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+  console.log('fetchClients: Current user:', currentUser?.Role, currentUser?.id);
+  
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock clients data');
+    
+    // If user is a client, filter mock data
+    if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
+      console.log('Filtering mock clients for client user:', currentUser.Name);
+      // Ensure Clients is an array
+      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+      
+      return mockClients.filter((client: { id: string }) => clientIds.includes(client.id));
+    }
+    
     return mockClients;
   }
 
@@ -1235,6 +1249,19 @@ export async function fetchClients(signal?: AbortSignal) {
     if (process.env.NODE_ENV === 'development') {
       console.log('Development mode: Using direct Airtable access for clients');
       const { getClients } = await import('@/lib/airtable');
+      
+      // If user is a client, pass user info to filter clients
+      if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
+        console.log('Client user detected, filtering clients');
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+        
+        // Get all clients and filter manually
+        const allClients = await getClients();
+        const filteredClients = allClients.filter((client: { id: string }) => clientIds.includes(client.id));
+        console.log(`Filtered ${filteredClients.length} out of ${allClients.length} clients for client user`);
+        return filteredClients;
+      }
+      
       const clients = await getClients();
       return clients;
     }
@@ -1248,12 +1275,27 @@ export async function fetchClients(signal?: AbortSignal) {
     const controller = !signal ? new AbortController() : undefined;
     const timeoutId = controller ? setTimeout(() => controller.abort(), 15000) : undefined;
 
+    // Prepare headers with user information
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
+    };
+
+    // Add user information to headers if available
+    if (currentUser) {
+      headers['x-user-id'] = currentUser.id;
+      headers['x-user-role'] = currentUser.Role;
+
+      // Convert client array to JSON string if user is a client
+      if (currentUser.Role === 'Client' && currentUser.Clients) {
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+        headers['x-user-clients'] = JSON.stringify(clientIds);
+      }
+    }
+
     const response = await fetch(url, {
       signal: signal || (controller ? controller.signal : undefined),
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-      },
+      headers,
     });
 
     if (timeoutId) clearTimeout(timeoutId);
@@ -1264,6 +1306,15 @@ export async function fetchClients(signal?: AbortSignal) {
 
     const data = await response.json();
     console.log('Clients data received:', data);
+    
+    // Filter client data if the user is a client
+    if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
+      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+      const filteredClients = data.clients.filter((client: { id: string }) => clientIds.includes(client.id));
+      console.log(`Filtered ${filteredClients.length} out of ${data.clients.length} clients for client user`);
+      return filteredClients;
+    }
+    
     return data.clients;
   } catch (error) {
     console.error('Error fetching clients:', error);
@@ -1276,6 +1327,16 @@ export async function fetchClients(signal?: AbortSignal) {
 
     // Fall back to mock data
     console.log('Falling back to mock clients data');
+    
+    // If user is a client, filter mock data
+    if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
+      console.log('Filtering mock clients for client user (fallback):', currentUser.Name);
+      // Ensure Clients is an array
+      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+      
+      return mockClients.filter((client: { id: string }) => clientIds.includes(client.id));
+    }
+    
     return mockClients;
   }
 }

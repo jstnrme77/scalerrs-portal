@@ -180,12 +180,12 @@ export function prepareUserHeaders(currentUser: any = getCurrentUser()): Record<
     headers['x-user-role'] = currentUser.Role;
 
     // Convert client array to JSON string
-    if (currentUser.Client) {
+    if (currentUser.Clients) {
       // Ensure Client is an array
-      const clientIds = Array.isArray(currentUser.Client) ? currentUser.Client : [currentUser.Client];
-      headers['x-user-client'] = JSON.stringify(clientIds);
+      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+      headers['x-user-clients'] = JSON.stringify(clientIds);
     } else {
-      headers['x-user-client'] = JSON.stringify([]);
+      headers['x-user-clients'] = JSON.stringify([]);
     }
   }
 

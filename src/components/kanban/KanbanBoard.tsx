@@ -162,13 +162,6 @@ export function BriefBoard({ briefs, selectedMonth, onStatusChange, hideActions 
             </div>
           </div>
         </div>
-
-        {/* Visual indicator for horizontal scrolling */}
-        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
-          <div className="bg-gradient-to-l from-gray-100 to-transparent w-12 h-24 opacity-75 rounded-l-lg flex items-center justify-center">
-            <ChevronRight className="h-6 w-6 text-gray-400 animate-pulse" />
-          </div>
-        </div>
       </div>
     </DndProvider>
   );
@@ -185,7 +178,12 @@ interface ArticleBoardProps {
 export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: ArticleBoardProps) {
   // Filter articles by status using the new Keyword/Content Status values
   const awaitingWriterAssignmentArticles = articles.filter(article => article.Status === 'Awaiting Writer Assignment');
-  const writingInProgressArticles = articles.filter(article => article.Status === 'Writing In Progress' || article.Status === 'In Production');
+  
+  // Only include articles explicitly with Writing In Progress or In Production status
+  const writingInProgressArticles = articles.filter(article => 
+    article.Status === 'Writing In Progress' || article.Status === 'In Production'
+  );
+
   const underClientReviewArticles = articles.filter(article => article.Status === 'Under Client Review');
   const underEditorReviewArticles = articles.filter(article => article.Status === 'Under Editor Review' || article.Status === 'Review Draft');
   const writerRevisionNeededArticles = articles.filter(article => article.Status === 'Writer Revision Needed');
@@ -466,13 +464,6 @@ export function ArticleBoard({ articles, selectedMonth, onStatusChange, hideActi
                 onViewDocument={onViewDocument}
               />
             </div>
-          </div>
-        </div>
-
-        {/* Visual indicator for horizontal scrolling */}
-        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
-          <div className="bg-gradient-to-l from-gray-100 to-transparent w-12 h-24 opacity-75 rounded-l-lg flex items-center justify-center">
-            <ChevronRight className="h-6 w-6 text-gray-400 animate-pulse" />
           </div>
         </div>
       </div>

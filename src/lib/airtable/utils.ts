@@ -65,12 +65,15 @@ export function getFieldValue<T>(fields: Record<string, any>, possibleNames: str
 
 // Helper function to create client filter formula
 export function createClientFilter(clientIds: string[]): string {
+  // Check if client user has any assigned clients
   if (!clientIds || clientIds.length === 0) {
-    return '';
+    console.warn('Client user has no assigned clients. Returning no data filter.');
+    return 'OR(1=0)'; // This will always be false, returning no records
   }
 
+  // Create a filter formula for client IDs
   const clientFilters = clientIds.map(clientId =>
-    `SEARCH('${clientId}', ARRAYJOIN(Client, ',')) > 0`
+    `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
   );
 
   return `OR(${clientFilters.join(',')})`;

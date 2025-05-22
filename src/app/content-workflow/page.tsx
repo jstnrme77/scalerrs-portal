@@ -120,13 +120,23 @@ export default function ContentWorkflowPage() {
             headers['x-user-id'] = currentUser.id || '';
             headers['x-user-role'] = currentUser.Role || '';
 
-            // Convert client to JSON string if it's an array
-            if (currentUser.Client) {
+            // Convert client to JSON string if it's an array - use Clients field
+            if (currentUser.Clients) {
+              const clientIds = Array.isArray(currentUser.Clients)
+                ? currentUser.Clients
+                : [currentUser.Clients];
+              headers['x-user-clients'] = JSON.stringify(clientIds);
+              console.log('Adding client header:', JSON.stringify(clientIds));
+            } else if (currentUser.Client) {
+              // Fallback to legacy Client field if Clients doesn't exist
               const clientIds = Array.isArray(currentUser.Client)
                 ? currentUser.Client
                 : [currentUser.Client];
-              headers['x-user-client'] = JSON.stringify(clientIds);
-              console.log('Adding client header:', JSON.stringify(clientIds));
+              headers['x-user-clients'] = JSON.stringify(clientIds);
+              console.log('Adding legacy client header:', JSON.stringify(clientIds));
+            } else {
+              headers['x-user-clients'] = JSON.stringify([]);
+              console.log('No client data found for user, adding empty client header');
             }
           } else {
             console.log('No user found in localStorage');
@@ -233,12 +243,22 @@ export default function ContentWorkflowPage() {
             headers['x-user-role'] = currentUser.Role || '';
 
             // Convert client to JSON string if it's an array
-            if (currentUser.Client) {
+            if (currentUser.Clients) {
+              const clientIds = Array.isArray(currentUser.Clients)
+                ? currentUser.Clients
+                : [currentUser.Clients];
+              headers['x-user-clients'] = JSON.stringify(clientIds);
+              console.log('Adding client header:', JSON.stringify(clientIds));
+            } else if (currentUser.Client) {
+              // Fallback to legacy Client field if Clients doesn't exist
               const clientIds = Array.isArray(currentUser.Client)
                 ? currentUser.Client
                 : [currentUser.Client];
-              headers['x-user-client'] = JSON.stringify(clientIds);
-              console.log('Adding client header:', JSON.stringify(clientIds));
+              headers['x-user-clients'] = JSON.stringify(clientIds);
+              console.log('Adding legacy client header:', JSON.stringify(clientIds));
+            } else {
+              headers['x-user-clients'] = JSON.stringify([]);
+              console.log('No client data found for user, adding empty client header');
             }
           } else {
             console.log('No user found in localStorage');
@@ -481,9 +501,45 @@ export default function ContentWorkflowPage() {
     }
   };
 
+  // Make sure we don't display an error message for empty data sets
+  useEffect(() => {
+    // Clear any error message that contains "No articles found" or "No briefs found"
+    if (error && (
+        error.includes("No articles found") || 
+        error.includes("No briefs found")
+      )) {
+      setError(null);
+    }
+  }, [error, selectedMonth]);
 
-
-
+  // Modify the error notification to not display for empty data conditions
+  const getModifiedError = () => {
+    if (!error) return null;
+    
+    // Don't show errors about empty data sets
+    if (error.includes("No articles found") || error.includes("No briefs found")) {
+      return null;
+    }
+    
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center">
+        <div className="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <span>{error}</span>
+        </div>
+        <button
+          onClick={() => setError(null)}
+          className="text-red-700 hover:text-red-900"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -499,24 +555,8 @@ export default function ContentWorkflowPage() {
         title={documentModal.title}
       />
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <span>{error}</span>
-          </div>
-          <button
-            onClick={() => setError(null)}
-            className="text-red-700 hover:text-red-900"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {/* Replace error display with filtered version */}
+      {getModifiedError()}
 
       {loading ? (
         <div className="flex justify-center items-center h-64">

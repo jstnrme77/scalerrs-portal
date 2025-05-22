@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     }
     
     console.log(`Successfully fetched ${croTasks.length} CRO tasks`);
+    console.log('Raw CRO tasks from Airtable:', JSON.stringify(croTasks, null, 2));
     
     // Map the Airtable data to our frontend model
     const tasks = croTasks.map(task => {
@@ -39,18 +40,21 @@ export async function GET(request: NextRequest) {
       const name = task['Action Item Name'] || task.Name || task.Title || ''; 
       
       // Map Status values based on the provided options
-      let status = 'To Do'; // Default
+      let status = 'Not Started'; // Default to 'Not Started' instead of 'To Do'
       if (task.Status) {
         const statusValue = String(task.Status).toLowerCase();
         if (statusValue === 'in progress' || statusValue === 'in-progress') {
-          status = 'In progress';
+          status = 'In Progress'; // Capital P in 'Progress'
         } else if (statusValue === 'done' || statusValue === 'complete' || statusValue === 'completed') {
           status = 'Done';
         } else if (statusValue === 'to do' || statusValue === 'todo' || statusValue === 'not started') {
-          status = 'To Do';
+          status = 'Not Started'; // Use 'Not Started' instead of 'To Do'
+        } else if (statusValue === 'blocked' || statusValue === 'on hold') {
+          status = 'Blocked';
         } else {
-          // Keep the original status if it doesn't match any of our expected values
-          status = task.Status;
+          // For any other status, map to one of our expected values
+          console.warn(`Unknown status value: ${task.Status}, defaulting to 'Not Started'`);
+          status = 'Not Started';
         }
       }
       

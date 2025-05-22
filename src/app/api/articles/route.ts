@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Get user information from the request
     const userId = request.headers.get('x-user-id');
     const userRole = request.headers.get('x-user-role');
-    const userClient = request.headers.get('x-user-client');
+    const userClientsHeader = request.headers.get('x-user-clients');
 
     // Get month from query parameters
     const { searchParams } = new URL(request.url);
@@ -25,11 +25,19 @@ export async function GET(request: NextRequest) {
 
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
-    console.log('User Client:', userClient);
+    console.log('User Clients:', userClientsHeader);
     console.log('Month filter:', month);
 
     // Parse client IDs if present
-    const clientIds = userClient ? JSON.parse(userClient) : [];
+    let clientIds: string[] = [];
+    if (userClientsHeader) {
+      try {
+        clientIds = JSON.parse(userClientsHeader);
+        console.log('Parsed client IDs:', clientIds);
+      } catch (e) {
+        console.error('Error parsing client IDs:', e);
+      }
+    }
 
     // Fetch articles with user filtering and month filtering
     const articles = await getArticles(userId, userRole, clientIds, month);
@@ -44,8 +52,16 @@ export async function GET(request: NextRequest) {
         // For client users, filter by client IDs
         if (userRole === 'Client' && clientIds.length > 0) {
           filteredMockArticles = mockArticles.filter(article => {
-            // Check if article has client field that matches any of the user's clients
-            if (article.Client) {
+            // Check if article has Clients or Client field that matches any of the user's clients
+            if (article.Clients) {
+              if (Array.isArray(article.Clients)) {
+                return article.Clients.some(client => clientIds.includes(client));
+              } else {
+                return clientIds.includes(article.Clients);
+              }
+            }
+            // Fallback to Client field for backward compatibility
+            else if (article.Client) {
               if (Array.isArray(article.Client)) {
                 return article.Client.some(client => clientIds.includes(client));
               } else {

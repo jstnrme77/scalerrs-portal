@@ -53,6 +53,53 @@ export async function getClientName(clientId: string | string[] | undefined): Pr
 }
 
 /**
+ * Get client names for a user's Clients array
+ * @param clientIds Array of client IDs from user.Clients
+ * @returns Array of client names
+ */
+export async function getUserClientNames(clientIds: string | string[] | undefined): Promise<string[]> {
+  if (!clientIds) {
+    return ['Unassigned'];
+  }
+
+  // Ensure we have an array of client IDs
+  const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+  
+  try {
+    // Initialize the cache if it doesn't exist
+    if (!clientCache) {
+      const clients = await fetchClients();
+      clientCache = {};
+
+      // Build a map of client IDs to client names
+      clients.forEach((client: { id?: string; Name?: string }) => {
+        if (client.id && client.Name) {
+          clientCache![client.id] = client.Name;
+        }
+      });
+
+      console.log('Client cache initialized with', Object.keys(clientCache).length, 'clients');
+    }
+
+    // Map each client ID to its name
+    const clientNames = ids.map(id => {
+      if (clientCache && clientCache[id]) {
+        return clientCache[id];
+      }
+      // If not found in cache, format the ID for display
+      return id.length > 8 ? `${id.substring(0, 8)}...` : id;
+    });
+
+    return clientNames;
+  } catch (error) {
+    console.error('Error getting client names:', error);
+    
+    // Return formatted IDs if there's an error
+    return ids.map(id => id.length > 8 ? `${id.substring(0, 8)}...` : id);
+  }
+}
+
+/**
  * Synchronous version that uses the cache only
  * @param clientId The client ID to look up
  * @returns The client name from cache, or a formatted version of the client ID if not found
@@ -77,4 +124,27 @@ export function getClientNameSync(clientId: string | string[] | undefined): stri
 
   // If not found in cache, format the ID for display
   return id.length > 8 ? `${id.substring(0, 8)}...` : id;
+}
+
+/**
+ * Get client names for a user's Clients array synchronously (using cache only)
+ * @param clientIds Array of client IDs from user.Clients
+ * @returns Array of client names
+ */
+export function getUserClientNamesSync(clientIds: string | string[] | undefined): string[] {
+  if (!clientIds) {
+    return ['Unassigned'];
+  }
+
+  // Ensure we have an array of client IDs
+  const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+  
+  // Map each client ID to its name from cache
+  return ids.map(id => {
+    if (clientCache && clientCache[id]) {
+      return clientCache[id];
+    }
+    // If not found in cache, format the ID for display
+    return id.length > 8 ? `${id.substring(0, 8)}...` : id;
+  });
 }

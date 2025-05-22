@@ -12,7 +12,7 @@ const fallbackGetApprovalItems = (
   type: string,
   userId?: string | null,
   userRole?: string | null,
-  clientIds?: string[] | null,
+  userClientJson?: string | null,
   page: number = 1,
   pageSize: number = 10
 ) => {
@@ -25,15 +25,37 @@ const fallbackGetApprovalItems = (
   } else if (type === 'backlinks') {
     mockItems = mockBacklinks;
   }
+  
+  // Parse client IDs from the JSON string
+  let clientIds: string[] = [];
+  if (userClientJson) {
+    try {
+      clientIds = JSON.parse(userClientJson);
+      if (!Array.isArray(clientIds)) {
+        clientIds = [clientIds];
+      }
+    } catch (e) {
+      console.error('Error parsing client IDs:', e);
+    }
+  }
 
   // Filter by client if needed
   if (userRole === 'Client' && clientIds && clientIds.length > 0) {
     mockItems = mockItems.filter(item => {
-      if (item.Client) {
-        if (Array.isArray(item.Client)) {
-          return item.Client.some((client: string) => clientIds.includes(client));
+      // Check Clients field for all content types
+      if (item['Clients']) {
+        if (Array.isArray(item['Clients'])) {
+          return item['Clients'].some((client: string) => clientIds.includes(client));
         } else {
-          return clientIds.includes(item.Client);
+          return clientIds.includes(item['Clients']);
+        }
+      }
+      // Fallback to client field for backward compatibility
+      else if (item.client) {
+        if (Array.isArray(item.client)) {
+          return item.client.some((client: string) => clientIds.includes(client));
+        } else {
+          return clientIds.includes(item.client);
         }
       }
       return false;
@@ -123,13 +145,13 @@ export async function GET(request: NextRequest) {
     // Get user information from the request
     const userId = request.headers.get('x-user-id');
     const userRole = request.headers.get('x-user-role');
-    const userClient = request.headers.get('x-user-client');
+    const userClients = request.headers.get('x-user-clients');
 
     // Use client ID from query parameters if available, otherwise use client ID from headers
     let clientId = clientIdParam;
-    if (!clientId && userClient) {
+    if (!clientId && userClients) {
       try {
-        const clientIds = JSON.parse(userClient);
+        const clientIds = JSON.parse(userClients);
         clientId = clientIds && clientIds.length > 0 ? clientIds[0] : null;
       } catch (e) {
         console.error('Error parsing client ID from headers:', e);
@@ -145,7 +167,7 @@ export async function GET(request: NextRequest) {
 
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
-    console.log('User Client:', userClient);
+    console.log('User Clients:', userClients);
     console.log('Approval Type:', type);
     console.log('Page:', page, 'Page Size:', pageSize, 'Offset:', offset);
 
@@ -178,7 +200,8 @@ export async function GET(request: NextRequest) {
 
       // Fall back to mock data if Airtable fails
       console.log('Falling back to mock data due to Airtable error');
-      const result = fallbackGetApprovalItems(type, userId, userRole, userClient ? JSON.parse(userClient) : [], page, pageSize);
+      
+      const result = fallbackGetApprovalItems(type, userId, userRole, userClients, page, pageSize);
       console.log(`API route: Found ${result.items.length} ${type} approval items using fallback (page ${page} of ${result.pagination.totalPages})`);
 
       // Create response with cache control headers
