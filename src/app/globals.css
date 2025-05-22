@@ -714,7 +714,7 @@ div[class*="bg-"] {
 }
 
 /* Exclude month selector and client selector from the border-radius reset */
-.fixed.top-0 button:not(.month-selector-rounded):not(.client-selector-button) {
+.fixed.top-0 button:not(.month-selector-rounded):not(.client-selector-button):not(.task-btn-override) {
   border-radius: 0 !important;
 }
 
@@ -839,9 +839,10 @@ div.month-selector-dropdown div div {
   border-radius: 0 0 16px 16px !important;
 }
 
-/* Override for task button to ensure 12px border radius */
+/* Override for task button to ensure 8px border radius to match other buttons */
 .task-btn-override,
 button.task-btn-override,
 .fixed.top-0 button.task-btn-override {
-  border-radius: 12px !important;
+  border-radius: 8px !important;
+  padding: 0.25rem 1rem !important; /* Match the Start button py-1 px-4 */
 }
