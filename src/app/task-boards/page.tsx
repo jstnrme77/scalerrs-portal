@@ -237,7 +237,11 @@ const taskBoards: Record<string, Task[]> = {
 };
 
 // Priority Badge Component
-function PriorityBadge({ priority, originalPriority }: { priority: TaskPriority, originalPriority?: string }) {
+function PriorityBadge({ priority, originalPriority }: { priority?: TaskPriority, originalPriority?: string }) {
+  if (!priority && !originalPriority) {
+    return <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+  }
+  
   let bgColor = '';
   let textColor = '';
 
@@ -260,7 +264,7 @@ function PriorityBadge({ priority, originalPriority }: { priority: TaskPriority,
   }
 
   // Display the original Airtable value if available
-  const displayText = originalPriority || priority;
+  const displayText = originalPriority || priority || '-';
 
   return (
     <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
@@ -270,7 +274,11 @@ function PriorityBadge({ priority, originalPriority }: { priority: TaskPriority,
 }
 
 // Impact Badge Component
-function ImpactBadge({ impact, originalImpact }: { impact: number, originalImpact?: string }) {
+function ImpactBadge({ impact, originalImpact }: { impact?: number, originalImpact?: string }) {
+  if (impact === undefined && !originalImpact) {
+    return <span className="min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+  }
+  
   let bgColor = '';
   let textColor = '';
 
@@ -301,7 +309,7 @@ function ImpactBadge({ impact, originalImpact }: { impact: number, originalImpac
   }
 
   // Display the original Airtable value if available
-  const displayText = originalImpact || impact.toString();
+  const displayText = originalImpact || (impact !== undefined ? impact.toString() : '-');
 
   return (
     <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
@@ -311,7 +319,11 @@ function ImpactBadge({ impact, originalImpact }: { impact: number, originalImpac
 }
 
 // Effort Badge Component
-function EffortBadge({ effort, originalEffort }: { effort: TaskEffort, originalEffort?: string }) {
+function EffortBadge({ effort, originalEffort }: { effort?: TaskEffort, originalEffort?: string }) {
+  if (!effort && !originalEffort) {
+    return <span className="min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+  }
+  
   let bgColor = '';
   let textColor = '';
 
@@ -334,7 +346,7 @@ function EffortBadge({ effort, originalEffort }: { effort: TaskEffort, originalE
   }
 
   // Display the original Airtable value if available
-  const displayText = originalEffort || effort;
+  const displayText = originalEffort || effort || '-';
 
   return (
     <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
@@ -1328,18 +1340,20 @@ export default function TaskBoards() {
                 String(AssignedTo)
               ) : 'Not Assigned',
             dateLogged: dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            // Use actual values from Airtable for priority, impact, and effort
-            priority: priority ? (priority as TaskPriority) : 'Medium',
+            // Don't set defaults for these fields - keep them blank if not provided by Airtable
+            priority: priority ? (priority as TaskPriority) : undefined,
             impact: impact !== undefined && impact !== null ? 
               (typeof impact === 'number' ? impact : 
-                (typeof impact === 'string' ? parseInt(impact, 10) || 3 : 3)) : 3,
-            effort: effort ? (effort as TaskEffort) : 'M',
+                (typeof impact === 'string' ? parseInt(impact, 10) || undefined : undefined)) : undefined,
+            effort: effort ? (effort as TaskEffort) : undefined,
             comments: processedComments,
             // Use the commentCount from the API response if available
             commentCount: commentCount !== undefined ? commentCount : processedComments.length,
             notes: notes || '',
-            // Add Client field to task (for filtering)
-            Client: client
+            // Add Client fields for filtering - use BOTH 'Client' and 'Clients' for better compatibility
+            // since the ClientDataContext checks both fields
+            Client: client || task.Client || task.Clients || task.client,
+            Clients: client || task.Client || task.Clients || task.client
           };
           
           // Add completedDate if Status is Done
@@ -1367,10 +1381,18 @@ export default function TaskBoards() {
         console.error('Error fetching tasks:', err);
         setError(`An error occurred while fetching tasks: ${err.message}`);
 
-        // Fall back to sample data
-        console.log('Error occurred, falling back to sample data');
-        setRawBoards(taskBoards);
-        setBoards(taskBoards);
+        // Instead of falling back to sample data, just set empty arrays
+        console.log('Error occurred, setting empty task arrays');
+        
+        // Set empty arrays for both raw and filtered boards
+        const emptyBoards = {
+          technicalSEO: [] as Task[],
+          cro: [] as Task[],
+          strategyAdHoc: [] as Task[]
+        };
+        
+        setRawBoards(emptyBoards);
+        setBoards(emptyBoards);
       } finally {
         setLoading(false);
       }
@@ -1387,15 +1409,56 @@ export default function TaskBoards() {
 
   // Function to apply client filtering to tasks
   const filterTasks = (tasks: Task[]) => {
-    // Apply client filtering
-    const filteredTasks = filterDataByClient(tasks) as Task[];
+    // Don't use filterDataByClient if there are no tasks to avoid the domainRating error
+    if (tasks.length === 0) {
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = [];
+        return newBoards;
+      });
+      return;
+    }
     
-    // Update the boards state with filtered tasks
-    setBoards(prev => {
-      const newBoards = { ...prev };
-      newBoards[activeBoard as keyof typeof boards] = filteredTasks;
-      return newBoards;
-    });
+    // For task boards, we'll implement our own simple filtering to avoid the backlinks detection logic
+    if (clientId && clientId !== 'all') {
+      // Simple client filter that doesn't rely on backlinks detection
+      const filteredTasks = tasks.filter(task => {
+        // Use type assertion to access Client/Clients fields
+        const taskAny = task as any;
+        
+        // Check Clients field (array or string)
+        if (taskAny.Clients) {
+          if (Array.isArray(taskAny.Clients)) {
+            return taskAny.Clients.includes(clientId);
+          } else {
+            return taskAny.Clients === clientId;
+          }
+        }
+        // Check Client field (array or string)
+        if (taskAny.Client) {
+          if (Array.isArray(taskAny.Client)) {
+            return taskAny.Client.includes(clientId);
+          } else {
+            return taskAny.Client === clientId;
+          }
+        }
+        return false;
+      });
+      
+      // Update the boards state with filtered tasks
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = filteredTasks;
+        return newBoards;
+      });
+    } else {
+      // If 'all' clients selected, just use all tasks
+      setBoards(prev => {
+        const newBoards = { ...prev };
+        newBoards[activeBoard as keyof typeof boards] = tasks;
+        return newBoards;
+      });
+    }
   };
 
   // Function to refresh task data
@@ -1477,50 +1540,8 @@ export default function TaskBoards() {
       
       // Apply client filtering
       if (clientId) {
-        // Filter tasks by client
-        const filteredTasksArray = filterTasks(tasks);
-        const filteredTasksForBoard = {
-          technicalSEO: [] as Task[],
-          cro: [] as Task[],
-          strategyAdHoc: [] as Task[]
-        };
-        
-        // Group filtered tasks by type
-        if (Array.isArray(filteredTasksArray)) {
-          filteredTasksArray.forEach((task: any) => {
-            // Map the Airtable fields to our Task type
-            const mappedTask = mapAirtableTaskToTask({
-              id: task.id,
-              Name: task.Name,
-              Title: task.Title, // Fallback to Title if Name is not available
-              Description: task.Notes || task.Description,
-              Status: task.Status,
-              Priority: task.Priority,
-              AssignedTo: task['Assigned To'] || task.AssignedTo,
-              Category: task.Category,
-              Type: task.Type,
-              'Impact Level': task['Impact Level'],
-              'Effort Level': task['Effort Level'],
-              'Created At': task['Created At'],
-              'Due Date': task['Due Date'],
-              'Completed Date': task['Completed Date'],
-              Notes: task.Notes
-            });
-            
-            if (task.Type === 'Technical SEO' || task.Type === 'WQA') {
-              filteredTasksForBoard.technicalSEO.push(mappedTask);
-            } else if (task.Type === 'CRO') {
-              filteredTasksForBoard.cro.push(mappedTask);
-            } else {
-              filteredTasksForBoard.strategyAdHoc.push(mappedTask);
-            }
-          });
-        }
-        
-        setBoards(prev => ({
-          ...prev,
-          ...filteredTasksForBoard
-        }));
+        // Filter tasks by client using our custom filter function instead of filterDataByClient
+        filterTasks(tasks);
       } else {
         setBoards(prev => ({
           ...prev,
@@ -1532,6 +1553,16 @@ export default function TaskBoards() {
     } catch (err) {
       console.error('Error fetching tasks:', err);
       setError('Failed to fetch tasks. Please try again.');
+      
+      // Set empty arrays instead of falling back to sample data
+      const emptyBoards = {
+        technicalSEO: [] as Task[],
+        cro: [] as Task[],
+        strategyAdHoc: [] as Task[]
+      };
+      
+      setRawBoards(emptyBoards);
+      setBoards(emptyBoards);
       setLoading(false);
     }
   };
@@ -1539,6 +1570,10 @@ export default function TaskBoards() {
   const handleAddTask = async (task: Task) => {
     try {
       setLoading(true);
+      
+      // Get the current client for debugging
+      const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
+      console.log(`Adding task with client filter: ${currentClient}`);
       
       let newTask;
       
@@ -1554,6 +1589,7 @@ export default function TaskBoards() {
           effort: task.effort,
           notes: task.notes
         });
+        console.log('Created new CRO task result:', newTask);
       } else {
         // Use WQA API for other boards
         newTask = await createWQATask({
@@ -1566,11 +1602,12 @@ export default function TaskBoards() {
           notes: task.notes,
           boardType: activeBoard
         });
+        console.log('Created new WQA task result:', newTask);
       }
       
       console.log('Created new task:', newTask);
       
-      // Base properties for task object
+      // Base properties for task object with proper type casting
       const taskBase = {
         id: newTask.id || `task-${Date.now()}`,
         task: newTask.task || task.task,
@@ -1582,7 +1619,10 @@ export default function TaskBoards() {
         notes: newTask.notes || task.notes,
         dateLogged: newTask.dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         comments: newTask.comments || [],
-        commentCount: newTask.commentCount || 0
+        commentCount: newTask.commentCount || 0,
+        // Add both Client and Clients fields for compatibility with filtering
+        Client: clientId && clientId !== 'all' ? clientId : undefined,
+        Clients: clientId && clientId !== 'all' ? clientId : undefined
       };
       
       // Create the proper task type based on status
@@ -1591,12 +1631,16 @@ export default function TaskBoards() {
         createdTask = {
           ...taskBase,
           status: 'Done' as TaskStatus,
-          completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          // Add client information if available
+          Clients: newTask.Clients || (clientId && clientId !== 'all' ? clientId : undefined)
         } as CompletedTask;
       } else {
         createdTask = {
           ...taskBase,
-          status: taskBase.status as 'Not Started' | 'In Progress' | 'Blocked'
+          status: taskBase.status as 'Not Started' | 'In Progress' | 'Blocked',
+          // Add client information if available
+          Clients: newTask.Clients || (clientId && clientId !== 'all' ? clientId : undefined)
         } as ActiveTask;
       }
       
@@ -1623,8 +1667,12 @@ export default function TaskBoards() {
       setAddTaskModal(false);
       setLoading(false);
       
-      // Refresh the task list to ensure we have the latest data
-      refreshData();
+      // Refresh the task list to ensure we have the latest data with correct client filtering
+      // This is important especially when filtering by client
+      console.log('Refreshing data after adding task');
+      setTimeout(() => {
+        refreshData();
+      }, 1000);
     } catch (err) {
       console.error('Error adding task:', err);
       setError('Failed to add task. Please try again.');
@@ -1659,7 +1707,9 @@ export default function TaskBoards() {
 
   const handleStatusChange = async (id: number | string, newStatus: TaskStatus) => {
     try {
-      console.log(`Updating task ${id} status to ${newStatus}`);
+      // Get the current client for debugging
+      const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
+      console.log(`Updating task ${id} status to ${newStatus} with client filter: ${currentClient}`);
       
       // Map frontend status to Airtable status before sending to API
       let airtableStatus: string;
@@ -1681,10 +1731,12 @@ export default function TaskBoards() {
       // Update task status using the appropriate API based on the active board
       if (activeBoard === 'cro') {
         // Use CRO-specific API for CRO board
-        await updateCROTaskStatus(id.toString(), airtableStatus);
+        const result = await updateCROTaskStatus(id.toString(), airtableStatus);
+        console.log('CRO task update result:', result);
       } else {
         // Use WQA API for other boards
-        await updateWQATaskStatus(id.toString(), airtableStatus);
+        const result = await updateWQATaskStatus(id.toString(), airtableStatus);
+        console.log('WQA task update result:', result);
       }
       
       console.log(`Task ${id} status updated successfully`);
@@ -1697,6 +1749,7 @@ export default function TaskBoards() {
         );
 
         if (taskIndex !== -1) {
+          console.log(`Updating local state for task ${id} from ${newBoards[activeBoard as keyof typeof boards][taskIndex].status} to ${newStatus}`);
           const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
 
           if (newStatus === 'Done') {
@@ -1731,6 +1784,7 @@ export default function TaskBoards() {
         );
 
         if (taskIndex !== -1) {
+          console.log(`Updating raw state for task ${id}`);
           const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
 
           if (newStatus === 'Done') {
@@ -1754,6 +1808,16 @@ export default function TaskBoards() {
 
         return newBoards;
       });
+      
+      // Refresh data after a short delay to ensure we get the latest from Airtable
+      // This is especially important when filtering by client
+      if (clientId && clientId !== 'all') {
+        console.log('Client filtering is active, refreshing data after status update');
+        setTimeout(() => {
+          console.log('Refreshing data after status update');
+          refreshData();
+        }, 1000);
+      }
     } catch (err) {
       console.error('Error updating task status:', err);
 

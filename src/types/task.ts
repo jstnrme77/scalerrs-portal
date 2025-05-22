@@ -9,17 +9,18 @@ export interface BaseTask {
   id: string | number;
   task: string;
   status: TaskStatus;
-  priority: TaskPriority;
+  priority?: TaskPriority;  // Make priority optional
   assignedTo: string;
   dateLogged: string;
-  impact: number;
-  effort: TaskEffort;
+  impact?: number;  // Make impact optional
+  effort?: TaskEffort;  // Make effort optional
   comments: TaskComment[];
   commentCount?: number;
   notes?: string;
   category?: TaskCategory;
   referenceLinks?: string[];
   Clients?: string | string[]; // Use Clients field for client filtering
+  Client?: string | string[]; // Add Client field for compatibility with filtering
   'All Clients'?: string | string[]; // Add All Clients field for filtering
   // Original Airtable values
   originalPriority?: string;
@@ -88,27 +89,31 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
   }
 
   // Map priority to our TaskPriority type
-  let priority: TaskPriority = 'Medium';
+  let priority: TaskPriority | undefined = undefined;
   if (airtableTask.Priority) {
     if (airtableTask.Priority.includes('High')) {
       priority = 'High';
     } else if (airtableTask.Priority.includes('Low')) {
       priority = 'Low';
+    } else if (airtableTask.Priority.includes('Medium')) {
+      priority = 'Medium';
     }
   }
 
   // Map effort to our TaskEffort type
-  let effort: TaskEffort = 'M';
+  let effort: TaskEffort | undefined = undefined;
   if (airtableTask['Effort Level']) {
     if (airtableTask['Effort Level'].includes('Low') || airtableTask['Effort Level'].includes('Small')) {
       effort = 'S';
     } else if (airtableTask['Effort Level'].includes('High') || airtableTask['Effort Level'].includes('Large')) {
       effort = 'L';
+    } else if (airtableTask['Effort Level'].includes('Medium')) {
+      effort = 'M';
     }
   }
 
   // Map impact to a number
-  let impact = 3; // Default to medium impact
+  let impact: number | undefined = undefined;
   if (airtableTask['Impact Level']) {
     if (airtableTask['Impact Level'].includes('High')) {
       impact = 5;
@@ -134,16 +139,28 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
     id: airtableTask.id,
     task: taskName,
     status,
-    priority,
     assignedTo,
     dateLogged,
-    impact,
-    effort,
     comments: [], // Comments will be loaded separately
     notes: airtableTask.Notes || airtableTask.Description,
     category: airtableTask.Category as TaskCategory || airtableTask.Type as TaskCategory,
-    Clients: airtableTask.AssignedTo as string[] || undefined
+    // Add both Client and Clients fields for compatibility with filtering
+    Client: airtableTask.Client || airtableTask.Clients || airtableTask['Client'] || airtableTask['Clients'],
+    Clients: airtableTask.Client || airtableTask.Clients || airtableTask['Client'] || airtableTask['Clients']
   };
+  
+  // Add optional fields only if they have values
+  if (priority !== undefined) {
+    baseTask.priority = priority;
+  }
+  
+  if (impact !== undefined) {
+    baseTask.impact = impact;
+  }
+  
+  if (effort !== undefined) {
+    baseTask.effort = effort;
+  }
 
   // Return as either ActiveTask or CompletedTask
   if (status === 'Done') {

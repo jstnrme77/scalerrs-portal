@@ -253,10 +253,11 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       console.log('Admin filtering by specific client:', clientId);
       
       // Try to detect if we're filtering backlinks
-      const isBacklinksData = data.length > 0 && 
-        (data[0] as any).contentType === 'backlinks' || 
-        (data[0] as any).domainRating !== undefined || 
-        (data[0] as any).linkType !== undefined;
+      const isBacklinksData = data.length > 0 && (
+        (data[0] as any)?.contentType === 'backlinks' || 
+        (data[0] as any)?.domainRating !== undefined || 
+        (data[0] as any)?.linkType !== undefined
+      );
       
       if (isBacklinksData) {
         console.log('Detected backlinks data, using Client field instead of All Clients');
