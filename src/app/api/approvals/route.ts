@@ -170,17 +170,20 @@ export async function GET(request: NextRequest) {
     console.log('User Clients:', userClients);
     console.log('Approval Type:', type);
     console.log('Page:', page, 'Page Size:', pageSize, 'Offset:', offset);
+    console.log('Status filter:', status);
 
     // Use our new efficient Airtable integration
     try {
       console.log('Using efficient Airtable integration...');
 
+      // Always pass the clientId parameter, even if it's 'all'
+      // This ensures proper filtering in getApprovalItemsEfficient
       const result = await getApprovalItemsEfficient(
         type as any,
         page,
         pageSize,
         offset,
-        clientId || undefined,
+        clientId, // Always pass clientId, never undefined
         undefined, // cacheTime - use default
         status
       );

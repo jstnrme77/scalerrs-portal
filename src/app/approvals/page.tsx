@@ -6,9 +6,58 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, BarChart2, TrendingUp } from 'lucide-react';
-import { fetchApprovalItems, updateApprovalStatus, clearApprovalsCache } from '@/lib/client-api-utils';
+import { updateApprovalStatus, clearApprovalsCache } from '@/lib/client-api-utils';
 import Pagination from '@/components/ui/Pagination';
 import { useClientData } from '@/context/ClientDataContext';
+
+// Direct API fetch function
+async function directFetchApprovalItems(
+  type: string,
+  page: number = 1,
+  pageSize: number = 10,
+  clientId?: string,
+  status?: string
+) {
+  // Build URL with query parameters
+  const params = new URLSearchParams({
+    type,
+    page: page.toString(),
+    pageSize: pageSize.toString()
+  });
+  
+  // Important: Always include clientId parameter, even if it's 'all'
+  // This ensures the API properly handles client filtering
+  if (clientId) {
+    params.append('clientId', clientId);
+  } else {
+    params.append('clientId', 'all');
+  }
+  
+  if (status) {
+    params.append('status', status);
+  }
+  
+  console.log(`Fetching approvals with params: ${params.toString()}`);
+  
+  // Clear the cache by adding a timestamp to the URL
+  const timestamp = Date.now();
+  params.append('_', timestamp.toString());
+  
+  // Call the API endpoint directly with no-cache headers
+  const response = await fetch(`/api/approvals?${params.toString()}`, {
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch approval items: ${response.status}`);
+  }
+  
+  return response.json();
+}
 
 // Comment Item Component
 function CommentItem({ comment }: { comment: any }) {
@@ -1014,144 +1063,123 @@ export default function Approvals() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
 
-  // Fetch data from Airtable when component mounts or tab changes
-  const fetchData = useCallback(async (page: number = 1, offset?: string, forceRefresh: boolean = false) => {
-    setIsLoading(true);
-
+  // Fetch approvals data using the wrapper function
+  const fetchData = useCallback(async (page: number = 1, status?: string) => {
     try {
-      console.log(`Fetching ${activeTab} data with:`, { page, offset, forceRefresh, clientId });
+      setIsLoading(true);
+      setLoadingStatus('Fetching approval items...');
 
-      // Clear cache when forcing refresh (especially when client changes)
-      if (forceRefresh) {
-        console.log('Clearing approvals cache due to force refresh');
-        clearApprovalsCache(activeTab);
-      }
-
-      // Fetch data for the active tab
-      if (activeTab === 'keywords' || activeTab === 'briefs' || activeTab === 'articles' || activeTab === 'backlinks') {
-        console.log(`Calling fetchApprovalItems for ${activeTab}...`);
-
-        try {
-          // Use the updated fetchApprovalItems function with pagination and caching
-          // Pass the clientId explicitly to the API
-          const result = await fetchApprovalItems(
-            activeTab,
-            page,
-            100, // Fetch more items at once to ensure we have enough for pagination
-            offset,
-            undefined, // No abort signal
-            !forceRefresh, // Use cache unless forceRefresh is true
-            clientId || undefined // Pass clientId as string or undefined
-          );
-
-          console.log(`Result from fetchApprovalItems for ${activeTab}:`, result);
-
-          // Check if we got any results
-          if (result.items) {
-            console.log(`Found ${result.items.length} items for ${activeTab}`);
-
-            // Update the items state with the fetched data
-            setItems(prev => {
-              const newItems = {
-                ...prev,
-                [activeTab]: result.items
-              };
-              return newItems;
-            });
-
-            // We no longer need to update main pagination since we're using status-specific pagination
-
-            // Group items by status
-            const itemsByStatus: GroupedItems = {
-              not_started: result.items.filter(item => item.status === 'not_started'),
-              in_progress: result.items.filter(item => item.status === 'in_progress'),
-              ready_for_review: result.items.filter(item => item.status === 'ready_for_review'),
-              awaiting_approval: result.items.filter(item => item.status === 'awaiting_approval'),
-              revisions_needed: result.items.filter(item => item.status === 'revisions_needed'),
-              approved: result.items.filter(item => item.status === 'approved'),
-              published: result.items.filter(item => item.status === 'published'),
-              // Legacy statuses for backward compatibility
-              resubmitted: result.items.filter(item => item.status === 'resubmitted'),
-              needs_revision: result.items.filter(item => item.status === 'needs_revision'),
-              rejected: result.items.filter(item => item.status === 'rejected'),
-            };
-
-            // Initialize pagination state for each status
-            // We'll fetch data for each status separately when the user changes pages
-            setStatusPagination(prev => {
-              const newPagination = { ...prev };
-
-              // For each status, calculate pagination based on filtered items
-              (Object.keys(itemsByStatus) as Array<keyof GroupedItems>).forEach(status => {
-                const statusItems = itemsByStatus[status];
-
-                // Calculate pagination for this status
-                const totalPages = Math.max(1, Math.ceil(statusItems.length / 5)); // 5 items per page for each status table
-
-                newPagination[status] = {
-                  currentPage: 1, // Always start at page 1
-                  totalPages: totalPages,
-                  totalItems: statusItems.length,
-                  hasNextPage: statusItems.length > 5,
-                  hasPrevPage: false, // Always false for page 1
-                  nextOffset: statusItems.length > 5 ? '2' : null, // Next page is 2 if there are more items
-                  prevOffset: null // No previous page for page 1
-                };
-
-                // Log pagination info for debugging
-                console.log(`Initialized pagination for ${status}: ${statusItems.length} items, ${totalPages} pages`);
-              });
-
-              return newPagination;
-            });
-          } else {
-            console.log(`No items found for ${activeTab}, using empty array`);
-
-            // Use empty array instead of mock data
-            setItems(prev => ({
-              ...prev,
-              [activeTab]: []
-            }));
-
-            // Reset pagination for all statuses
-            setStatusPagination(prev => {
-              const newPagination = { ...prev };
-              Object.keys(newPagination).forEach(status => {
-                newPagination[status] = { ...defaultPagination };
-              });
-              return newPagination;
-            });
-          }
-        } catch (apiError) {
-          console.error(`API error fetching ${activeTab} data:`, apiError);
-
-          // If there's an API error, use empty array
-          console.log(`Using empty array for ${activeTab} due to API error`);
-
-          setItems(prev => ({
-            ...prev,
-            [activeTab]: []
-          }));
-
-          // Reset pagination for all statuses
-          setStatusPagination(prev => {
-            const newPagination = { ...prev };
-            Object.keys(newPagination).forEach(status => {
-              newPagination[status] = { ...defaultPagination };
-            });
-            return newPagination;
-          });
-        }
+      // Always get the latest clientId from context
+      const client = clientId === null || clientId === 'all' ? 'all' : clientId;
+      
+      console.log(`Fetching approvals for client: ${client}`);
+      
+      // Clear cache every time to ensure fresh data
+      // Clear ALL approvals cache when changing clients to avoid stale data
+      if (client !== 'all') {
+        console.log('Clearing all approvals cache for fresh client data');
+        clearApprovalsCache(); // Clear all approvals cache
       } else {
-        console.log(`Unsupported tab: ${activeTab}`);
+        console.log('Clearing cache for current tab type:', activeTab);
+        clearApprovalsCache(activeTab); // Clear only the current tab's cache
       }
+      
+      // Use the wrapper function
+      const data = await directFetchApprovalItems(
+        activeTab,
+        page,
+        100,
+        client,
+        status
+      );
+      
+      console.log(`Fetched ${activeTab} data:`, data);
+
+      if (!data || !Array.isArray(data.items)) {
+        console.error('No items found in the response');
+        setLoadingStatus('No items found. Please try again later.');
+        setItems(prev => ({
+          ...prev,
+          [activeTab]: []
+        }));
+        return;
+      }
+
+      // Process the data into grouped items by status
+      const groupedByStatus: GroupedItems = {
+        not_started: [],
+        in_progress: [],
+        ready_for_review: [],
+        awaiting_approval: [],
+        revisions_needed: [],
+        approved: [],
+        published: [],
+        // Legacy statuses
+        resubmitted: [],
+        needs_revision: [],
+        rejected: []
+      };
+
+      // Process the items by status
+      data.items.forEach((item: ApprovalItem) => {
+        const itemStatus = item.status || 'not_started';
+        if (groupedByStatus[itemStatus as keyof GroupedItems]) {
+          groupedByStatus[itemStatus as keyof GroupedItems].push(item);
+        } else {
+          groupedByStatus.not_started.push(item);
+        }
+      });
+
+      setItems(prev => ({
+        ...prev,
+        [activeTab]: data.items
+      }));
+      
+      // Set pagination for each status
+      const paginationState: Record<string, PaginationState> = {};
+      Object.keys(groupedByStatus).forEach(status => {
+        paginationState[status] = {
+          currentPage: 1,
+          totalPages: Math.ceil(groupedByStatus[status as keyof GroupedItems].length / 100),
+          totalItems: groupedByStatus[status as keyof GroupedItems].length,
+          hasNextPage: groupedByStatus[status as keyof GroupedItems].length > 100,
+          hasPrevPage: false,
+          nextOffset: groupedByStatus[status as keyof GroupedItems].length > 100 ? '2' : null,
+          prevOffset: null
+        };
+      });
+      setStatusPagination(paginationState);
+
+      // Calculate counts
+      const counts: Record<string, number> = {};
+      Object.keys(groupedByStatus).forEach(status => {
+        counts[status] = groupedByStatus[status as keyof GroupedItems].length;
+      });
+
+      // Calculate totals
+      const totalPending = (
+        groupedByStatus.awaiting_approval.length +
+        groupedByStatus.ready_for_review.length
+      );
+
+      const totalApproved = (
+        groupedByStatus.approved.length +
+        groupedByStatus.published.length
+      );
+
+      setLoadingStatus(null);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error(`Error fetching ${activeTab} data:`, error);
+      setLoadingStatus('Error fetching data. Please try again later.');
     } finally {
       setIsLoading(false);
-      setLoadingStatus(null);
     }
   }, [activeTab, clientId]);
+
+  // Fetch data when tab or client changes
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Debug log for client ID changes and refresh data
   useEffect(() => {
@@ -1161,142 +1189,99 @@ export default function Approvals() {
     if (clientId !== null) {
       console.log('Forcing data refresh due to client ID change');
       clearApprovalsCache(); // Clear all approvals cache
-      fetchData(1, undefined, true); // Force refresh
+      fetchData(1); // Remove the third parameter
     }
   }, [clientId, fetchData]);
 
   // Handle page change for a specific status table
   const handleStatusPageChange = async (status: string, newPage: number) => {
-    console.log(`Changing page for ${status} to ${newPage}`);
-
-    // Update the pagination state for this status immediately to show the change
-    setStatusPagination(prev => ({
-      ...prev,
-      [status]: {
-        ...prev[status],
-        currentPage: newPage
-      }
-    }));
-
-    // Fetch new data for this status
     try {
-      // Set loading state for this specific status
-      setLoadingStatus(status);
-      console.log(`Fetching ${activeTab} data for status ${status}, page ${newPage}`);
+      setLoadingStatus(`Loading page ${newPage} for ${status} items...`);
+      
+      // Use the same client handling as in fetchData
+      const client = clientId === null || clientId === 'all' ? 'all' : clientId;
+      
+      // Use the wrapper function
+      const result = await directFetchApprovalItems(
+        activeTab,
+        newPage,
+        100,
+        client,
+        status
+      );
+      
+      console.log(`Result from fetchApprovalItems for ${activeTab} status ${status}:`, result);
+      
+      // Process the data into grouped items by status
+      const groupedByStatus: GroupedItems = {
+        not_started: [],
+        in_progress: [],
+        ready_for_review: [],
+        awaiting_approval: [],
+        revisions_needed: [],
+        approved: [],
+        published: [],
+        // Legacy statuses
+        resubmitted: [],
+        needs_revision: [],
+        rejected: []
+      };
 
-      // First, check if we need to fetch all items for this status
-      // This ensures we have accurate pagination information
-      const allItemsForStatus = items[activeTab as keyof typeof items].filter(item => item.status === status);
-
-      // If we don't have enough items for this status, fetch more
-      if (allItemsForStatus.length < newPage * 5) {
-        console.log(`Not enough items for ${status} page ${newPage}, fetching more data...`);
-
-        // Fetch all items for this status
-        const result = await fetchApprovalItems(
-          activeTab,
-          1, // Start from page 1
-          100, // Fetch more items at once
-          undefined, // No offset
-          undefined, // No abort signal
-          false, // Don't use cache to ensure we get fresh data
-          clientId || 'all', // Always pass clientId, defaulting to 'all' if null
-          status // Pass the status
-        );
-
-        console.log(`Result from fetchApprovalItems for ${activeTab} status ${status}:`, result);
-
-        if (result.items && result.items.length > 0) {
-          // Make sure all items have the correct status
-          const itemsWithCorrectStatus = result.items.map(item => ({
-            ...item,
-            status: status // Ensure the status is correct
-          }));
-
-          // Update the items for this status only
-          setItems(prev => {
-            const newItems = { ...prev };
-            const currentItems = [...newItems[activeTab as keyof typeof items]];
-
-            // Replace the items with this status with the new items
-            const otherItems = currentItems.filter(item => item.status !== status);
-            const updatedItems = [...otherItems, ...itemsWithCorrectStatus];
-
-            newItems[activeTab as keyof typeof items] = updatedItems;
-            return newItems;
-          });
-
-          // Update pagination state with the new information
-          const totalItems = result.items.length;
-          const totalPages = Math.max(1, Math.ceil(totalItems / 5));
-
-          setStatusPagination(prev => ({
-            ...prev,
-            [status]: {
-              ...prev[status],
-              currentPage: newPage > totalPages ? 1 : newPage, // If newPage is beyond totalPages, go to page 1
-              totalPages: totalPages,
-              totalItems: totalItems,
-              hasNextPage: newPage < totalPages,
-              hasPrevPage: newPage > 1
-            }
-          }));
+      // If result.items is an array, process it
+      result.items.forEach((item: ApprovalItem) => {
+        const itemStatus = item.status || 'not_started';
+        if (groupedByStatus[itemStatus as keyof GroupedItems]) {
+          groupedByStatus[itemStatus as keyof GroupedItems].push(item);
         } else {
-          console.log(`No items found for ${activeTab} with status ${status}`);
-
-          // Update pagination to reflect that there are no items
-          setStatusPagination(prev => ({
-            ...prev,
-            [status]: {
-              ...prev[status],
-              currentPage: 1,
-              totalPages: 1,
-              totalItems: 0,
-              hasNextPage: false,
-              hasPrevPage: false
-            }
-          }));
+          groupedByStatus.not_started.push(item);
         }
-      } else {
-        // We have enough items, just update the pagination state
-        console.log(`Using existing items for ${status} page ${newPage}`);
+      });
 
-        const totalItems = allItemsForStatus.length;
-        const totalPages = Math.max(1, Math.ceil(totalItems / 5));
+      setItems(prev => ({
+        ...prev,
+        [activeTab]: result.items
+      }));
+      
+      // Set pagination for each status
+      const paginationState: Record<string, PaginationState> = {};
+      Object.keys(groupedByStatus).forEach(status => {
+        paginationState[status] = {
+          currentPage: 1,
+          totalPages: Math.ceil(groupedByStatus[status as keyof GroupedItems].length / 100),
+          totalItems: groupedByStatus[status as keyof GroupedItems].length,
+          hasNextPage: groupedByStatus[status as keyof GroupedItems].length > 100,
+          hasPrevPage: false,
+          nextOffset: groupedByStatus[status as keyof GroupedItems].length > 100 ? '2' : null,
+          prevOffset: null
+        };
+      });
+      setStatusPagination(paginationState);
 
-        setStatusPagination(prev => ({
-          ...prev,
-          [status]: {
-            ...prev[status],
-            totalPages: totalPages,
-            totalItems: totalItems,
-            hasNextPage: newPage < totalPages,
-            hasPrevPage: newPage > 1
-          }
-        }));
-      }
+      // Calculate counts
+      const counts: Record<string, number> = {};
+      Object.keys(groupedByStatus).forEach(status => {
+        counts[status] = groupedByStatus[status as keyof GroupedItems].length;
+      });
 
-      // Clear loading state
+      // Calculate totals
+      const totalPending = (
+        groupedByStatus.awaiting_approval.length +
+        groupedByStatus.ready_for_review.length
+      );
+
+      const totalApproved = (
+        groupedByStatus.approved.length +
+        groupedByStatus.published.length
+      );
+
       setLoadingStatus(null);
     } catch (error) {
-      console.error(`Error fetching ${activeTab} data for status ${status}:`, error);
-      // Clear loading state
+      console.error(`Error changing page for ${status}:`, error);
+      setLoadingStatus(`Error loading page ${newPage} for ${status} items.`);
+    } finally {
       setLoadingStatus(null);
-
-      // Revert to previous page on error
-      setStatusPagination(prev => ({
-        ...prev,
-        [status]: {
-          ...prev[status],
-          currentPage: Math.max(1, prev[status].currentPage - 1)
-        }
-      }));
     }
-
-    console.log(`Changed page for ${status} to ${newPage}`);
   };
-
-  // We no longer need the main pagination handler since we're using status-specific pagination
 
   // Clear all selections for the current tab
   const clearSelections = useCallback(() => {
@@ -1326,8 +1311,8 @@ export default function Approvals() {
 
     // Add a small delay to ensure the loading state is visible
     const timer = setTimeout(() => {
-      // Fetch first page of data with force refresh when client changes
-      fetchData(1, undefined, true);
+      // Fetch first page of data
+      fetchData(1); // Remove the third parameter
     }, 100);
 
     // Cleanup function to prevent state updates after unmount
@@ -1589,8 +1574,8 @@ export default function Approvals() {
       [tab]: []
     }));
     
-    // Fetch data for the new tab (force refresh)
-    fetchData(1, undefined, true);
+    // Fetch data for the new tab
+    fetchData(1); // Remove the third parameter
   };
 
   return (

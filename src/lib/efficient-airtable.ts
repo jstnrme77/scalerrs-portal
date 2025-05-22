@@ -24,6 +24,16 @@ if (apiKey && baseId) {
   base = airtable.base(baseId);
 }
 
+// Utility function to create a filter formula for linked record fields
+function createLinkedRecordFilter(fieldName: string, recordId: string): string {
+  // Simplified formula that uses only supported Airtable functions
+  // SEARCH is more reliable than FIND for this purpose
+  return `OR(
+    SEARCH("${recordId}", ARRAYJOIN({${fieldName}})),
+    {${fieldName}} = "${recordId}"
+  )`;
+}
+
 // Cache for Airtable data
 interface CacheItem {
   data: any;
@@ -197,11 +207,25 @@ export async function getApprovalItemsEfficient(
 
     // Check if we have a valid cache entry for the full dataset
     let allRecords: any[] = [];
+    
+    // Create a special cache key for fallback queries (without client filter)
+    // This lets us reuse these results when switching between clients
+    const fallbackCacheKey = `approvals_${type}_fallback_dataset`;
 
     if (cache[fullDatasetCacheKey] && now - cache[fullDatasetCacheKey].timestamp < cache[fullDatasetCacheKey].expiresIn) {
       console.log(`Using cached full dataset for ${type}`);
       allRecords = cache[fullDatasetCacheKey].data;
-    } else {
+    } 
+    // Check if we have a valid cache entry for the fallback dataset
+    // This is useful when switching between clients - we can reuse the fallback dataset
+    else if (clientId && clientId !== 'all' && cache[fallbackCacheKey] && 
+             now - cache[fallbackCacheKey].timestamp < cache[fallbackCacheKey].expiresIn) {
+      console.log(`Using cached fallback dataset for ${type}`);
+      allRecords = cache[fallbackCacheKey].data;
+      // Mark that we're using the fallback dataset
+      console.log(`Using fallback dataset for client filtering, will filter ${allRecords.length} records client-side`);
+    }
+    else {
       console.log(`Fetching all ${type} records from Airtable...`);
 
       // Prepare query options for fetching all records
@@ -213,43 +237,55 @@ export async function getApprovalItemsEfficient(
       // Apply specific filters based on the dedicated approval fields
       let filterFormula = '';
       
-      if (type === 'briefs') {
-        // Only show records with a value in the "Brief Approvals" field
-        filterFormula = `NOT({Brief Approvals} = '')`;
-        console.log('Filtering briefs by Brief Approvals field');
-      } else if (type === 'articles') {
-        // Only show records with a value in the "Article Approvals" field
-        filterFormula = `NOT({Article Approvals} = '')`;
-        console.log('Filtering articles by Article Approvals field');
-      } else if (type === 'keywords') {
-        // Only show records with a value in the "Keyword Approvals" field
-        filterFormula = `NOT({Keyword Approvals} = '')`;
-        console.log('Filtering keywords by Keyword Approvals field');
-      } else if (type === 'backlinks') {
-        // Only show records with a value in the "Backlink Approvals" field
-        filterFormula = `NOT({Backlink Approvals} = '')`;
-        console.log('Filtering backlinks by Backlink Approvals field');
-      }
-      
-      // Add client filtering if a specific client is selected (not 'all')
-      if (clientId && clientId !== 'all') {
-        console.log(`Adding client filter for client ID: ${clientId}`);
-        
-        // Use 'Clients' field name consistently across all tables
-        const clientFieldName = 'Clients';
-        console.log('Using "Clients" field for all content types');
-        
-        // FIND() is more reliable than SEARCH() for exact matches
-        const clientFilter = `FIND('${clientId}', ARRAYJOIN({${clientFieldName}}, ',')) > 0`;
-        
-        // Combine with existing filter if there is one
-        if (filterFormula) {
-          filterFormula = `AND(${filterFormula}, ${clientFilter})`;
-        } else {
-          filterFormula = clientFilter;
+      try {
+        if (type === 'briefs') {
+          // Only show records with a value in the "Brief Approvals" field
+          filterFormula = `NOT({Brief Approvals} = '')`;
+          console.log('Filtering briefs by Brief Approvals field');
+        } else if (type === 'articles') {
+          // Only show records with a value in the "Article Approvals" field
+          filterFormula = `NOT({Article Approvals} = '')`;
+          console.log('Filtering articles by Article Approvals field');
+        } else if (type === 'keywords') {
+          // Only show records with a value in the "Keyword Approvals" field
+          filterFormula = `NOT({Keyword Approvals} = '')`;
+          console.log('Filtering keywords by Keyword Approvals field');
+        } else if (type === 'backlinks') {
+          // Only show records with a value in the "Backlink Approvals" field
+          filterFormula = `NOT({Backlink Approvals} = '')`;
+          console.log('Filtering backlinks by Backlink Approvals field');
         }
         
-        console.log(`Final filter formula: ${filterFormula}`);
+        // Add client filtering if a specific client is selected (not 'all')
+        if (clientId && clientId !== 'all') {
+          console.log(`Adding client filter for client ID: ${clientId}`);
+          
+          // Only use the 'Clients' field with exact capitalization
+          // The error shows that 'client' (lowercase) doesn't exist in the schema
+          const clientsField = 'Clients'; // Preserve exact capitalization
+          const clientsFilter = createLinkedRecordFilter(clientsField, clientId);
+          
+          // Combine with existing filter if there is one
+          if (filterFormula) {
+            filterFormula = `AND(${filterFormula}, ${clientsFilter})`;
+          } else {
+            filterFormula = clientsFilter;
+          }
+          
+          console.log(`Final filter formula: ${filterFormula}`);
+        }
+      } catch (filterError) {
+        console.error('Error constructing filter formula:', filterError);
+        // Use a simple filter if there was an error with the complex one
+        if (type === 'briefs') {
+          filterFormula = `NOT({Brief Approvals} = '')`;
+        } else if (type === 'articles') {
+          filterFormula = `NOT({Article Approvals} = '')`;
+        } else if (type === 'keywords') {
+          filterFormula = `NOT({Keyword Approvals} = '')`;
+        } else if (type === 'backlinks') {
+          filterFormula = `NOT({Backlink Approvals} = '')`;
+        }
       }
       
       // Set the filter formula if we have one
@@ -267,9 +303,137 @@ export async function getApprovalItemsEfficient(
         console.log(`Starting to fetch all records for ${type}...`);
 
         // Use the all() method to fetch all records with automatic pagination
-        allRecords = await query.all();
+        try {
+          allRecords = await query.all();
+          console.log(`Successfully fetched all ${allRecords.length} records for ${type}`);
+        } catch (queryError) {
+          console.error(`Error fetching records with filter: ${queryError}`);
+          
+          // If filtering fails, try a simple query without client filter
+          if (clientId && clientId !== 'all') {
+            console.log('Trying again without client filter...');
+            
+            // Create a simpler query without client filter
+            const simpleQueryOptions: Record<string, any> = { 
+              ...queryOptions,
+              // Only fetch essential fields to reduce data transfer
+              fields: [
+                // Common identifying fields
+                'Brief Approvals', 'Article Approvals', 'Keyword Approvals', 'Backlink Approvals',
+                'Main Keyword', 'Keyword', 'Title', 'Name', 'Domain', 'Domain URL', 'Source Domain',
+                // Client and status fields
+                'Clients', 'Client', 'Status', 'Keyword/Content Status',
+                // Metadata fields
+                'Created Time', 'Last Updated', 'Last Modified',
+                // Content-specific fields based on type
+                ...(type === 'keywords' ? ['Search Volume', 'Volume', 'Main Keyword VOL', 'Difficulty', 'Keyword Difficulty'] : []),
+                ...(type === 'briefs' ? ['SEO Assignee', 'SEO Strategist', 'Assignee', 'Due Date'] : []),
+                ...(type === 'articles' ? ['Final Word Count', 'Word Count', 'Due Date'] : []),
+                ...(type === 'backlinks' ? ['Domain Authority/Rating', 'DR ( API )', 'Link Type', 'Target URL', 'Went Live On', 'Notes'] : [])
+              ]
+            };
+            
+            // Use only the content type filter without client filter
+            if (type === 'briefs') {
+              simpleQueryOptions.filterByFormula = `NOT({Brief Approvals} = '')`;
+            } else if (type === 'articles') {
+              simpleQueryOptions.filterByFormula = `NOT({Article Approvals} = '')`;
+            } else if (type === 'keywords') {
+              simpleQueryOptions.filterByFormula = `NOT({Keyword Approvals} = '')`;
+            } else if (type === 'backlinks') {
+              simpleQueryOptions.filterByFormula = `NOT({Backlink Approvals} = '')`;
+            }
+            
+            console.log('Optimized fallback query with field selection:', simpleQueryOptions);
+            
+            // Use pagination for the fallback query to improve performance
+            // This fetches records in batches rather than all at once
+            try {
+              console.log('Using paginated approach for fallback query');
+              allRecords = [];
+              
+              // Create the query with the optimized options
+              const simpleQuery = base(tableName).select(simpleQueryOptions);
+              
+              // Use the eachPage method to process records in batches
+              await new Promise<void>((resolve, reject) => {
+                simpleQuery.eachPage(
+                  (records: any[], fetchNextPage: () => void) => {
+                    // Add this batch of records to our collection
+                    allRecords = [...allRecords, ...records];
+                    console.log(`Fetched batch of ${records.length} records, total so far: ${allRecords.length}`);
+                    
+                    // Check if we have enough records before continuing
+                    // This is an early exit optimization - if we already have enough records
+                    // for the current request, we can stop fetching more
+                    const minimumNeeded = pageSize * 5; // Get at least 5 pages worth
+                    if (allRecords.length >= minimumNeeded) {
+                      console.log(`Early exit: Already have ${allRecords.length} records which is enough for current view`);
+                      resolve();
+                      return;
+                    }
+                    
+                    // Get the next page of records
+                    fetchNextPage();
+                  },
+                  (err: Error | null) => {
+                    if (err) {
+                      console.error('Error during paginated fetch:', err);
+                      reject(err);
+                      return;
+                    }
+                    resolve();
+                  }
+                );
+              });
+              
+              console.log(`Successfully fetched ${allRecords.length} records with paginated approach. Will filter client-side.`);
+              
+              // Cache the fallback dataset
+              cache[fallbackCacheKey] = {
+                data: allRecords,
+                timestamp: now,
+                expiresIn: cacheTime
+              };
+              console.log(`Cached ${allRecords.length} records in fallback dataset cache`);
+            } catch (paginationError) {
+              console.error('Pagination approach failed, falling back to all() method:', paginationError);
+              
+              // If pagination fails, try the simpler all() method as last resort
+              const simpleQuery = base(tableName).select(simpleQueryOptions);
+              allRecords = await simpleQuery.all();
+              console.log(`Successfully fetched ${allRecords.length} records with all() method. Will filter client-side.`);
+              
+              // Cache the fallback dataset
+              cache[fallbackCacheKey] = {
+                data: allRecords,
+                timestamp: now,
+                expiresIn: cacheTime
+              };
+              console.log(`Cached ${allRecords.length} records in fallback dataset cache`);
+            }
+          } else {
+            // If not filtering by client or second attempt also failed, re-throw
+            throw queryError;
+          }
+        }
 
-        console.log(`Successfully fetched all ${allRecords.length} records for ${type}`);
+        // If we're filtering by client but got zero results, try a simpler query as fallback
+        if (clientId && clientId !== 'all' && allRecords.length === 0) {
+          console.log(`No records found with client filter. Trying fallback query for ${type}...`);
+          
+          // Create a simpler query without client filter to get at least some results
+          const fallbackQuery = base(tableName).select({
+            filterByFormula: filterFormula.split('AND(')[0].replace(',', '')  // Just keep the content type filter
+          });
+          
+          // Fetch all records
+          const fallbackRecords = await fallbackQuery.all();
+          console.log(`Fallback query returned ${fallbackRecords.length} records. Will filter by client on client side.`);
+          
+          // Use these records and rely on client-side filtering
+          allRecords = fallbackRecords;
+        }
 
         // Cache the full dataset
         cache[fullDatasetCacheKey] = {
@@ -288,6 +452,43 @@ export async function getApprovalItemsEfficient(
     if (allRecords.length > 0) {
       console.log(`Working with ${allRecords.length} records for ${type}`);
       console.log('Sample record fields:', allRecords[0].fields);
+
+      // Debug client fields if filtering by client
+      if (clientId && clientId !== 'all') {
+        console.log('\n--- DEBUGGING CLIENT FIELDS ---');
+        const recordsWithClient = allRecords.filter(r => 
+          r.fields['Clients'] || r.fields['Client']
+        );
+        
+        console.log(`Records with client fields: ${recordsWithClient.length} out of ${allRecords.length}`);
+        
+        if (recordsWithClient.length > 0) {
+          const sampleRecord = recordsWithClient[0];
+          console.log('Sample record client fields:');
+          console.log('- Clients field:', sampleRecord.fields['Clients']);
+          console.log('- Client field:', sampleRecord.fields['Client']);
+          
+          // Try to detect the correct field structure
+          if (sampleRecord.fields['Clients']) {
+            if (Array.isArray(sampleRecord.fields['Clients'])) {
+              console.log('Clients field is an array with structure:', 
+                JSON.stringify(sampleRecord.fields['Clients']).substring(0, 200));
+            } else {
+              console.log('Clients field is not an array, type:', typeof sampleRecord.fields['Clients']);
+            }
+          }
+          
+          if (sampleRecord.fields['Client']) {
+            if (Array.isArray(sampleRecord.fields['Client'])) {
+              console.log('Client field is an array with structure:', 
+                JSON.stringify(sampleRecord.fields['Client']).substring(0, 200));
+            } else {
+              console.log('Client field is not an array, type:', typeof sampleRecord.fields['Client']);
+            }
+          }
+        }
+        console.log('--- END DEBUGGING CLIENT FIELDS ---\n');
+      }
 
       // Count records with each approval field
       const keywordApprovalCount = allRecords.filter(r => r.fields['Keyword Approvals'] && r.fields['Keyword Approvals'].trim() !== '').length;
@@ -344,6 +545,21 @@ export async function getApprovalItemsEfficient(
     // Map the records to our expected format
     let items = allRecords.map((record: any) => {
       const fields = record.fields;
+
+      // Debug client fields for the first few records
+      if (clientId && clientId !== 'all' && allRecords.indexOf(record) < 5) {
+        console.log(`Record ${record.id} - Clients field:`, fields['Clients']);
+        if (fields['Clients']) {
+          if (Array.isArray(fields['Clients'])) {
+            console.log(`  Clients is an array with ${fields['Clients'].length} items`);
+            if (fields['Clients'].length > 0) {
+              console.log(`  First client item:`, fields['Clients'][0]);
+            }
+          } else {
+            console.log(`  Clients is not an array:`, typeof fields['Clients']);
+          }
+        }
+      }
 
       // Use the new dedicated approval fields
       let rawStatus = 'awaiting_approval';
@@ -495,41 +711,93 @@ export async function getApprovalItemsEfficient(
     if (clientId && clientId !== 'all') {
       console.log(`Performing additional client-side filtering for client: ${clientId}`);
       
+      const originalCount = items.length;
       items = items.filter((item: any) => {
-        // Check the Clients field for all content types
-        if (item['Clients']) {
-          console.log(`Checking ${type} item ${item.id} Clients:`, item['Clients']);
-          if (Array.isArray(item['Clients'])) {
-            const includes = item['Clients'].includes(clientId);
-            console.log(`${type} ${item.id} Clients array includes ${clientId}:`, includes);
-            return includes;
-          } else if (typeof item['Clients'] === 'string') {
-            const matches = item['Clients'] === clientId;
-            console.log(`${type} ${item.id} Clients string matches ${clientId}:`, matches);
-            return matches;
-          }
-        }
+        // Track if we found a match
+        let hasClientMatch = false;
         
-        // Fall back to client field if it exists (for backward compatibility)
+        // Check all possible client field formats
+        
+        // 1. Check item.client property (which we set during mapping)
         if (item.client) {
-          console.log(`Checking ${type} item ${item.id} client:`, item.client);
+          // If it's an array of strings or objects
           if (Array.isArray(item.client)) {
-            const includes = item.client.includes(clientId);
-            console.log(`${type} ${item.id} client array includes ${clientId}:`, includes);
-            return includes;
-          } else if (typeof item.client === 'string') {
-            const matches = item.client === clientId;
-            console.log(`${type} ${item.id} client string matches ${clientId}:`, matches);
-            return matches;
+            hasClientMatch = item.client.some((c: any) => {
+              // Could be a string
+              if (typeof c === 'string') {
+                return c === clientId || c.includes(clientId);
+              }
+              // Could be an object with id, value, or name
+              if (c && typeof c === 'object') {
+                return (c.id === clientId) || 
+                       (c.value === clientId) || 
+                       (c.name === clientId) ||
+                       // Check for ID at end of string (common Airtable format)
+                       (typeof c.id === 'string' && c.id.endsWith(clientId));
+              }
+              return false;
+            });
+          } 
+          // If it's a string
+          else if (typeof item.client === 'string') {
+            hasClientMatch = item.client === clientId || item.client.includes(clientId);
+          }
+          // If it's an object
+          else if (item.client && typeof item.client === 'object') {
+            hasClientMatch = (item.client.id === clientId) || 
+                             (item.client.value === clientId) || 
+                             (item.client.name === clientId) ||
+                             // Check for ID at end of string (common Airtable format)
+                             (typeof item.client.id === 'string' && item.client.id.endsWith(clientId));
           }
         }
         
-        // If neither field is present or no match, return false
-        console.log(`${type} ${item.id} has no client field or no match`);
-        return false;
+        // 2. Also check item.fields object if available
+        if (!hasClientMatch && item.fields) {
+          // Check both Clients and Client fields
+          ['Clients', 'Client'].forEach((fieldName: string) => {
+            if (hasClientMatch) return; // Skip if we already found a match
+            
+            const field = item.fields[fieldName];
+            if (!field) return; // Skip if field doesn't exist
+            
+            // If it's an array
+            if (Array.isArray(field)) {
+              hasClientMatch = field.some((c: any) => {
+                // Could be a string
+                if (typeof c === 'string') {
+                  return c === clientId || c.includes(clientId);
+                }
+                // Could be an object
+                if (c && typeof c === 'object') {
+                  return (c.id === clientId) || 
+                         (c.value === clientId) || 
+                         (c.name === clientId) ||
+                         // Check for ID at end of string (common Airtable format)
+                         (typeof c.id === 'string' && c.id.endsWith(clientId));
+                }
+                return false;
+              });
+            }
+            // If it's a string
+            else if (typeof field === 'string') {
+              hasClientMatch = field === clientId || field.includes(clientId);
+            }
+            // If it's an object
+            else if (field && typeof field === 'object') {
+              hasClientMatch = (field.id === clientId) || 
+                               (field.value === clientId) || 
+                               (field.name === clientId) ||
+                               // Check for ID at end of string (common Airtable format)
+                               (typeof field.id === 'string' && field.id.endsWith(clientId));
+            }
+          });
+        }
+        
+        return hasClientMatch;
       });
       
-      console.log(`After additional client filtering, found ${items.length} items for client ${clientId}`);
+      console.log(`After additional client filtering, found ${items.length} items for client ${clientId} (filtered out ${originalCount - items.length} items)`);
     }
 
     // Calculate pagination info based on the full dataset
