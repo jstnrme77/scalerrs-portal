@@ -21,6 +21,10 @@ export interface BaseTask {
   referenceLinks?: string[];
   Client?: string | string[]; // Add Client field for client filtering
   'All Clients'?: string | string[]; // Add All Clients field for filtering
+  // Original Airtable values
+  originalPriority?: string;
+  originalImpact?: string;
+  originalEffort?: string;
 }
 
 // Task Comment interface

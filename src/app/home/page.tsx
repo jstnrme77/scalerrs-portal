@@ -302,19 +302,6 @@ export default function Home() {
                 <div className="h-2.5 rounded-full bg-[#9EA8FB]" style={{ width: '63%' }}></div>
               </div>
             </div>
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-[#12131C] mb-4">Key Metrics</h3>
-              <div className="flex items-start">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E6E8FD] mr-4 mt-1 flex-shrink-0">
-                      <FileText className="h-5 w-5 text-[#9EA8FB]" />
-                  </div>
-                  <div>
-                      <h4 className="text-lg font-semibold text-[#12131C]">Content & Links</h4>
-                      <p className="text-base text-[#4F515E]">6 of 12 briefs delivered</p>
-                      <p className="text-base text-[#4F515E]">4 backlinks, 1 blog live</p>
-                  </div>
-              </div>
-            </div>
             <div className="mt-auto pt-6">
               <LinkButton href="/milestones" variant="primary" className="text-base get-started-btn w-full">
                 View Monthly Plan

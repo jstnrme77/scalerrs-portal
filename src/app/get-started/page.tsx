@@ -71,8 +71,25 @@ export default function GetStartedPage() {
     }
   ];
 
+  // Video URL for the walkthrough
+  const videoUrl = "https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0";
+
   return (
     <div>
+      {/* Video Walkthrough - Embedded at the top */}
+      <div className="mb-8 flex flex-col items-center">
+        <h2 className="text-2xl font-bold text-[#12131C] mb-4">Welcome to Scalerrs Portal</h2>
+        <div className="w-full max-w-3xl aspect-video rounded-xl overflow-hidden border-8 border-[#F5F5F9] shadow-md">
+          <iframe
+            src={videoUrl}
+            className="w-full h-full border-0"
+            title="Platform Walkthrough"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+          ></iframe>
+        </div>
+        <p className="mt-3 text-base text-[#4F515E]">Watch our platform walkthrough video</p>
+      </div>
 
       {/* Quick Access Links */}
       <QuickAccessLinks links={quickLinks} />
@@ -85,16 +102,13 @@ export default function GetStartedPage() {
             <FileText className="h-6 w-6 text-[#9EA8FB]" />
           </div>
           <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Quick Start Guide</h2>
-          <p className="mb-4 text-base text-[#12131C]">Get up to speed quickly with our essential tips and platform overview.</p>
-          <div className="mb-6 w-full aspect-video rounded-xl overflow-hidden">
-            <iframe src="https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&amp;title=0&amp;a=1&amp;loop=0&amp;t=0&amp;muted=0&amp;wt=0" className="w-full h-full border-0" title="Platform Walkthrough" allow="autoplay; fullscreen" allowFullScreen></iframe>
-          </div>
+          <p className="mb-6 text-base text-[#12131C]">Get up to speed quickly with our essential tips and platform overview.</p>
           <Button
             variant="primary"
             size="lg"
             className="mt-auto get-started-btn"
             onClick={() => {
-              window.open("https://scalerrs.notion.site/Quick-Start-Guide-137a627a1323814f9150eaa469e0f1d3", "_blank", "noopener,noreferrer");
+              window.open("https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0", "_blank", "noopener,noreferrer");
             }}
           >
             View Quick Start Guide

@@ -7,6 +7,10 @@ import { shouldUseMockData } from './airtable-utils';
 import * as mockData from './mock-data';
 import { getFromCacheOrFetch, clearCacheByPrefix, clearCacheEntry } from './client-cache';
 
+// Cache keys
+const WQA_TASKS_CACHE_KEY = 'wqa-tasks';
+const CRO_TASKS_CACHE_KEY = 'cro-tasks';
+
 /**
  * Generic function to fetch data from the API
  * @param endpoint API endpoint
@@ -761,4 +765,123 @@ export async function createWQATask(taskData: {
       commentCount: 0
     }
   );
+}
+
+/**
+ * Get CRO tasks
+ * @param useCache Whether to use cached data (default: false)
+ * @returns Array of CRO tasks
+ */
+export async function getCROTasks(useCache: boolean = false) {
+  // Always clear the cache before fetching new data to avoid stale data issues
+  localStorage.removeItem(CRO_TASKS_CACHE_KEY);
+  
+  // Check cache first if useCache is true
+  if (useCache) {
+    const cachedTasks = localStorage.getItem(CRO_TASKS_CACHE_KEY);
+    if (cachedTasks) {
+      try {
+        const parsedTasks = JSON.parse(cachedTasks);
+        console.log('Using cached CRO tasks:', parsedTasks.length);
+        return parsedTasks;
+      } catch (error) {
+        console.error('Error parsing cached CRO tasks:', error);
+        // Continue to fetch from API
+      }
+    }
+  } else {
+    console.log('Bypassing cache and fetching fresh CRO tasks from API');
+  }
+
+  // Fetch from API
+  const response = await fetchFromApi(
+    'cro-tasks',
+    {},
+    { tasks: [] } // Default empty array if API fails
+  );
+
+  // Cache the response if useCache is true
+  if (useCache && response.tasks && Array.isArray(response.tasks)) {
+    localStorage.setItem(CRO_TASKS_CACHE_KEY, JSON.stringify(response.tasks));
+  }
+
+  return response.tasks || [];
+}
+
+/**
+ * Create a new CRO task
+ * @param taskData Task data to create
+ * @returns Created task
+ */
+export async function createCROTask(taskData: {
+  task: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  impact: number;
+  effort: string;
+  notes?: string;
+}) {
+  // Clear the CRO tasks cache to ensure we get fresh data
+  clearCROTasksCache();
+  
+  // Create the task via the API
+  return fetchFromApi(
+    'cro-tasks/add-task',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData)
+    },
+    // Fallback mock data
+    {
+      id: `task-${Date.now()}`,
+      task: taskData.task,
+      status: taskData.status,
+      priority: taskData.priority,
+      assignedTo: taskData.assignedTo || 'Unassigned',
+      impact: taskData.impact,
+      effort: taskData.effort,
+      notes: taskData.notes,
+      dateLogged: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      comments: [],
+      commentCount: 0,
+      type: 'CRO'
+    }
+  );
+}
+
+/**
+ * Update a CRO task's status
+ * @param taskId Task ID to update
+ * @param status New status
+ * @returns Updated task
+ */
+export async function updateCROTaskStatus(taskId: string, status: string) {
+  // Clear the CRO tasks cache to ensure we get fresh data
+  clearCROTasksCache();
+  
+  return fetchFromApi(
+    'cro-tasks/update-status',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, status })
+    },
+    // Fallback mock data
+    {
+      success: true,
+      task: {
+        id: taskId,
+        status
+      }
+    }
+  );
+}
+
+/**
+ * Clear the CRO tasks cache
+ */
+export function clearCROTasksCache() {
+  localStorage.removeItem(CRO_TASKS_CACHE_KEY);
 }

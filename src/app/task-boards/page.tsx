@@ -5,7 +5,18 @@ import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { BarChart, Wrench, LightbulbIcon } from 'lucide-react';
-import { fetchWQATasks, updateWQATaskStatus, addWQATaskComment, fetchWQATaskComments, clearWQATasksCache, createWQATask } from '@/lib/client-api-utils';
+import { 
+  fetchWQATasks, 
+  updateWQATaskStatus, 
+  addWQATaskComment, 
+  fetchWQATaskComments, 
+  clearWQATasksCache, 
+  createWQATask,
+  getCROTasks,
+  createCROTask,
+  updateCROTaskStatus,
+  clearCROTasksCache
+} from '@/lib/client-api-utils';
 import { useClientData } from '@/context/ClientDataContext';
 // Import task types from our types file
 import {
@@ -226,7 +237,7 @@ const taskBoards: Record<string, Task[]> = {
 };
 
 // Priority Badge Component
-function PriorityBadge({ priority }: { priority: TaskPriority }) {
+function PriorityBadge({ priority, originalPriority }: { priority: TaskPriority, originalPriority?: string }) {
   let bgColor = '';
   let textColor = '';
 
@@ -248,15 +259,18 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
       textColor = 'text-mediumGray';
   }
 
+  // Display the original Airtable value if available
+  const displayText = originalPriority || priority;
+
   return (
     <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
-      {priority}
+      {displayText}
     </span>
   );
 }
 
 // Impact Badge Component
-function ImpactBadge({ impact }: { impact: number }) {
+function ImpactBadge({ impact, originalImpact }: { impact: number, originalImpact?: string }) {
   let bgColor = '';
   let textColor = '';
 
@@ -286,15 +300,18 @@ function ImpactBadge({ impact }: { impact: number }) {
       textColor = 'text-mediumGray';
   }
 
+  // Display the original Airtable value if available
+  const displayText = originalImpact || impact.toString();
+
   return (
-    <span className={`w-8 h-8 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
-      {impact}
+    <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
+      {displayText}
     </span>
   );
 }
 
 // Effort Badge Component
-function EffortBadge({ effort }: { effort: TaskEffort }) {
+function EffortBadge({ effort, originalEffort }: { effort: TaskEffort, originalEffort?: string }) {
   let bgColor = '';
   let textColor = '';
 
@@ -316,9 +333,12 @@ function EffortBadge({ effort }: { effort: TaskEffort }) {
       textColor = 'text-mediumGray';
   }
 
+  // Display the original Airtable value if available
+  const displayText = originalEffort || effort;
+
   return (
-    <span className={`w-8 h-8 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
-      {effort}
+    <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
+      {displayText}
     </span>
   );
 }
@@ -604,7 +624,7 @@ function TaskCard({
       <div className="flex justify-between items-start mb-5">
         <h3 className="text-base font-medium text-text-light dark:text-text-dark mt-2">{task.task}</h3>
         <div className="flex space-x-2">
-          <PriorityBadge priority={task.priority} />
+          <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
           <StatusBadge status={task.status} />
         </div>
       </div>
@@ -628,11 +648,11 @@ function TaskCard({
       <div className="flex items-center space-x-5 mb-5">
         <div>
           <span className="text-base text-mediumGray dark:text-gray-300 block mb-2">Impact</span>
-          <ImpactBadge impact={task.impact} />
+          <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
         </div>
         <div>
           <span className="text-base text-mediumGray dark:text-gray-300 block mb-2">Effort</span>
-          <EffortBadge effort={task.effort} />
+          <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
         </div>
       </div>
 
@@ -859,13 +879,13 @@ function TaskTable({
                   <td className="px-4 py-4 text-base text-dark w-[15%]">{task.assignedTo}</td>
                   <td className="px-4 py-4 text-base text-mediumGray w-[12%] whitespace-nowrap">{task.dateLogged}</td>
                   <td className="px-4 py-4 text-center w-[10%]">
-                    <PriorityBadge priority={task.priority} />
+                    <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
                   </td>
                   <td className="px-4 py-4 text-center w-[8%]">
-                    <ImpactBadge impact={task.impact} />
+                    <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
                   </td>
                   <td className="px-4 py-4 text-center w-[5%]">
-                    <EffortBadge effort={task.effort} />
+                    <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
                   </td>
                   <td className="px-4 py-4 text-center w-[5%]">
                     <div className="flex justify-center">
@@ -1172,10 +1192,17 @@ export default function TaskBoards() {
       setError('');
       
       try {
-        // Fetch tasks for the active board from Airtable
-        const response = await fetchWQATasks(activeBoard);
+        // Fetch tasks based on the active board type
+        let response;
+        if (activeBoard === 'cro') {
+          // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
+          response = await getCROTasks(false);
+        } else {
+          // Use WQA API for other boards
+          response = await fetchWQATasks(activeBoard);
+        }
         
-        console.log('WQA Tasks Response:', response);
+        console.log(`${activeBoard} Tasks Response:`, response);
         
         // Extract tasks from the response - handle different possible response formats
         let tasks: any[] = [];
@@ -1286,7 +1313,7 @@ export default function TaskBoards() {
           // Map to our Task type
           let mappedTask: any = {
             id,
-            task: Name || '',
+            task: Name || task.task || '',
             status: Status as TaskStatus || 'Not Started',
             // Handle AssignedTo which can be an object with id, email, name properties
             assignedTo: AssignedTo ? 
@@ -1371,10 +1398,17 @@ export default function TaskBoards() {
     setError('');
     
     try {
-      // Fetch tasks for the active board from Airtable
-      const response = await fetchWQATasks(activeBoard);
+      // Fetch tasks based on the active board type
+      let response;
+      if (activeBoard === 'cro') {
+        // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
+        response = await getCROTasks(false);
+      } else {
+        // Use WQA API for other boards
+        response = await fetchWQATasks(activeBoard);
+      }
       
-      console.log('WQA Tasks Response:', response);
+      console.log(`${activeBoard} Tasks Response:`, response);
       
       // Extract tasks from the response - handle different possible response formats
       let tasks: any[] = [];
@@ -1500,17 +1534,33 @@ export default function TaskBoards() {
     try {
       setLoading(true);
       
-      // Call the API to create the task in Airtable
-      const newTask = await createWQATask({
-        task: task.task,
-        status: task.status,
-        priority: task.priority,
-        assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-        impact: task.impact,
-        effort: task.effort,
-        notes: task.notes,
-        boardType: activeBoard
-      });
+      let newTask;
+      
+      // Call the appropriate API based on the active board
+      if (activeBoard === 'cro') {
+        // Use CRO-specific API for CRO board
+        newTask = await createCROTask({
+          task: task.task,
+          status: task.status,
+          priority: task.priority,
+          assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
+          impact: task.impact,
+          effort: task.effort,
+          notes: task.notes
+        });
+      } else {
+        // Use WQA API for other boards
+        newTask = await createWQATask({
+          task: task.task,
+          status: task.status,
+          priority: task.priority,
+          assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
+          impact: task.impact,
+          effort: task.effort,
+          notes: task.notes,
+          boardType: activeBoard
+        });
+      }
       
       console.log('Created new task:', newTask);
       
@@ -1622,8 +1672,15 @@ export default function TaskBoards() {
           airtableStatus = 'To Do';
       }
       
-      // Update task status in Airtable using the mapped status
-      await updateWQATaskStatus(id.toString(), airtableStatus);
+      // Update task status using the appropriate API based on the active board
+      if (activeBoard === 'cro') {
+        // Use CRO-specific API for CRO board
+        await updateCROTaskStatus(id.toString(), airtableStatus);
+      } else {
+        // Use WQA API for other boards
+        await updateWQATaskStatus(id.toString(), airtableStatus);
+      }
+      
       console.log(`Task ${id} status updated successfully`);
       
       // Update local state with frontend status

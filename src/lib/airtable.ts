@@ -3348,3 +3348,227 @@ export async function createWQATask(taskData: {
     return newTask;
   }
 }
+
+/**
+ * Gets CRO tasks from Airtable
+ * This function retrieves tasks specifically from the CRO table
+ */
+export async function getCROTasks(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock tasks data for CRO - no Airtable credentials');
+    
+    // Create mock CRO tasks as fallback
+    const mockCROTasks = mockTasks.slice(0, 5).map(task => ({
+      ...task,
+      Type: 'CRO',
+      Name: `CRO: ${task.Title || task.Name || 'Task'}`,
+      Status: ['To Do', 'In Progress', 'Complete'][Math.floor(Math.random() * 3)]
+    }));
+    
+    return mockCROTasks;
+  }
+
+  try {
+    console.log('Fetching CRO tasks from Airtable...');
+    
+    // Create filter formula if needed
+    let filterFormula = '';
+    
+    // Add user-specific filters if needed
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering CRO tasks by client:', clientIds);
+      
+      try {
+        const clientFilters = clientIds.map(clientId =>
+          `SEARCH('${clientId}', {Client})`
+        );
+        
+        filterFormula = `OR(${clientFilters.join(',')})`;  
+        console.log('Using client filter:', filterFormula);
+      } catch (error) {
+        console.warn('Error creating client filter, fetching all records instead:', error);
+      }
+    } 
+    // If user is not an admin or client, filter by assigned user if possible
+    else if (userId && userRole && userRole !== 'Admin') {
+      console.log(`Filtering CRO tasks for user: ${userId}, role: ${userRole}`);
+      
+      try {
+        filterFormula = `SEARCH('${userId}', {Assignee})`;  
+        console.log('Using assigned user filter:', filterFormula);
+      } catch (error) {
+        console.warn('Error creating assigned user filter, fetching all records instead:', error);
+      }
+    }
+
+    // Query the CRO table
+    let query;
+    if (filterFormula) {
+      query = base('CRO').select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      query = base('CRO').select();
+    }
+    
+    console.log('Querying CRO table in Airtable');
+
+    const records = await query.all();
+    console.log(`Successfully fetched ${records.length} CRO tasks from Airtable`);
+
+    return records.map((record: any) => {
+      const fields = record.fields;
+      
+      // Map Airtable field names to our expected structure
+      return {
+        id: record.id,
+        Name: fields['Action Item Name'] || '', // Map from "Action Item Name" to "Name"
+        Title: fields['Action Item Name'] || '', // Also map to Title for consistency
+        Status: fields['Status'] || '',
+        Priority: fields['Priority'] || '',
+        Impact: fields['Impact'] || '',
+        Effort: fields['Effort'] || '',
+        AssignedTo: fields['Assignee'] || 'Unassigned',
+        Notes: fields['Comments'] || '',
+        Created: fields['Created'] || new Date().toISOString(),
+        Type: 'CRO', // Hardcode type for frontend filtering
+        ...fields // Include all other fields too
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching CRO tasks from Airtable:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new CRO task in Airtable
+ * @param taskData Task data to create
+ * @returns Created task or null if failed
+ */
+export async function createCROTask(taskData: {
+  'Action Item Name': string;
+  Status: string;
+  Priority?: string;
+  Impact?: string;
+  Effort?: string;
+  Comments?: string;
+  Assignee?: string;
+  Client?: string[];
+}) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock data for creating CRO task:', taskData);
+    
+    // Create a mock task with the provided data
+    const newTask = {
+      id: `cro-task-${Date.now()}`,
+      Name: taskData['Action Item Name'],
+      Title: taskData['Action Item Name'],
+      Status: taskData.Status,
+      Priority: taskData.Priority || 'Medium',
+      Impact: taskData.Impact || '3',
+      Effort: taskData.Effort || 'M',
+      AssignedTo: taskData.Assignee || 'Unassigned',
+      Notes: taskData.Comments || '',
+      Created: new Date().toISOString(),
+      Type: 'CRO',
+      Client: taskData.Client || []
+    };
+    
+    // Add to mock tasks
+    mockTasks.push(newTask as any);
+    return newTask;
+  }
+
+  try {
+    console.log('Creating new CRO task in Airtable:', taskData);
+    
+    // Create the task in Airtable with the correct field mappings
+    const createdRecord = await base('CRO').create(taskData);
+    
+    console.log('Successfully created CRO task:', createdRecord.id);
+    
+    // Map the Airtable response to our expected structure
+    return {
+      id: createdRecord.id,
+      Name: createdRecord.fields['Action Item Name'] || '',
+      Title: createdRecord.fields['Action Item Name'] || '',
+      Status: createdRecord.fields['Status'] || '',
+      Priority: createdRecord.fields['Priority'] || '',
+      Impact: createdRecord.fields['Impact'] || '',
+      Effort: createdRecord.fields['Effort'] || '',
+      AssignedTo: createdRecord.fields['Assignee'] || 'Unassigned',
+      Notes: createdRecord.fields['Comments'] || '',
+      Created: createdRecord.fields['Created'] || new Date().toISOString(),
+      Type: 'CRO',
+      ...createdRecord.fields
+    };
+  } catch (error) {
+    console.error('Error creating CRO task in Airtable:', error);
+    
+    // Return mock data as fallback
+    const newTask = {
+      id: `cro-task-${Date.now()}`,
+      Name: taskData['Action Item Name'],
+      Title: taskData['Action Item Name'],
+      Status: taskData.Status,
+      Priority: taskData.Priority || 'Medium',
+      Impact: taskData.Impact || '3',
+      Effort: taskData.Effort || 'M',
+      AssignedTo: taskData.Assignee || 'Unassigned',
+      Notes: taskData.Comments || '',
+      Created: new Date().toISOString(),
+      Type: 'CRO',
+      Client: taskData.Client || []
+    };
+    
+    return newTask;
+  }
+}
+
+/**
+ * Update a CRO task's status in Airtable
+ * @param taskId Task ID to update
+ * @param newStatus New status
+ * @returns Updated task or null if failed
+ */
+export async function updateCROTaskStatus(taskId: string, newStatus: string) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock data for updating CRO task status:', taskId, newStatus);
+    
+    // Find the task in the mock data
+    const taskIndex = mockTasks.findIndex(task => task.id === taskId);
+    
+    if (taskIndex === -1) {
+      throw new Error('Task not found');
+    }
+    
+    // Update the task status
+    mockTasks[taskIndex].Status = newStatus;
+    
+    // Return the updated task
+    return {
+      id: taskId,
+      ...mockTasks[taskIndex]
+    };
+  }
+
+  try {
+    console.log('Updating CRO task status in Airtable:', taskId, newStatus);
+    
+    // Update the task in Airtable
+    const updatedRecord = await base('CRO').update(taskId, {
+      'Status': newStatus
+    });
+    
+    console.log('Successfully updated CRO task status:', updatedRecord.id);
+    
+    return {
+      id: updatedRecord.id,
+      ...updatedRecord.fields
+    };
+  } catch (error) {
+    console.error('Error updating CRO task status in Airtable:', error);
+    throw error;
+  }
+}

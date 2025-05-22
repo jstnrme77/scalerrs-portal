@@ -36,6 +36,12 @@
 - ✅ Updated Notes field name to match Airtable (Notes By Scalerrs During Audit)
 - ✅ Improved bidirectional status mapping between frontend and Airtable for consistent values
 - ✅ Removed Actions column from Task Boards for a cleaner interface
+- ✅ Connected CRO tab in Task Boards to Airtable CRO table with proper field mapping
+- ✅ Implemented field mapping for CRO tasks: Task → Action Item Name, Status → Status, Priority → Priority, Impact → Impact, Effort → Effort, Assignee → Assignee, Date Logged → Created, Comments → Comments
+- ✅ Created API endpoints for fetching, creating, and updating CRO tasks
+- ✅ Updated Task Boards page to use different API endpoints based on the active board type
+- ✅ Added proper error handling and fallback mechanisms for CRO task operations
+- ✅ Fixed CRO tasks API route by removing dependency on non-existent auth module and simplifying implementation
 
 ### Deployment
 - ✅ Configured Next.js for optimal deployment
