@@ -244,27 +244,24 @@ function PriorityBadge({ priority, originalPriority }: { priority?: TaskPriority
   
   let bgColor = '';
   let textColor = '';
-
-  switch (priority) {
-    case 'High':
-      bgColor = 'bg-red-100';
-      textColor = 'text-red-800';
-      break;
-    case 'Medium':
-      bgColor = 'bg-gold/10';
-      textColor = 'text-gold';
-      break;
-    case 'Low':
-      bgColor = 'bg-green-100';
-      textColor = 'text-green-800';
-      break;
-    default:
-      bgColor = 'bg-lightGray';
-      textColor = 'text-mediumGray';
+  let displayText = originalPriority || priority || '-';
+  
+  // Determine colors based on priority level
+  if (priority?.includes('High') || originalPriority?.includes('High') || priority === 'High') {
+    bgColor = 'bg-red-100';
+    textColor = 'text-red-800';
+  } else if (priority?.includes('Low') || originalPriority?.includes('Low') || priority === 'Low') {
+    bgColor = 'bg-green-100';
+    textColor = 'text-green-800';
+  } else if (priority?.includes('Medium') || priority?.includes('Mid') || 
+             originalPriority?.includes('Medium') || originalPriority?.includes('Mid') || 
+             priority === 'Medium') {
+    bgColor = 'bg-gold/10';
+    textColor = 'text-gold';
+  } else {
+    bgColor = 'bg-lightGray';
+    textColor = 'text-mediumGray';
   }
-
-  // Display the original Airtable value if available
-  const displayText = originalPriority || priority || '-';
 
   return (
     <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
@@ -281,35 +278,28 @@ function ImpactBadge({ impact, originalImpact }: { impact?: number, originalImpa
   
   let bgColor = '';
   let textColor = '';
+  let displayText = originalImpact || (impact !== undefined ? impact.toString() : '-');
 
-  switch (impact) {
-    case 5:
-      bgColor = 'bg-gray-200';
-      textColor = 'text-gray-800';
-      break;
-    case 4:
-      bgColor = 'bg-blue-100';
-      textColor = 'text-blue-800';
-      break;
-    case 3:
-      bgColor = 'bg-indigo-100';
-      textColor = 'text-indigo-800';
-      break;
-    case 2:
-      bgColor = 'bg-teal-100';
-      textColor = 'text-teal-800';
-      break;
-    case 1:
-      bgColor = 'bg-gray-100';
-      textColor = 'text-gray-800';
-      break;
-    default:
-      bgColor = 'bg-lightGray';
-      textColor = 'text-mediumGray';
+  // Determine colors based on impact level
+  if (impact === 5 || (originalImpact && (originalImpact.includes('High') || originalImpact.includes('📈📈📈')))) {
+    bgColor = 'bg-gray-200';
+    textColor = 'text-gray-800';
+  } else if (impact === 4) {
+    bgColor = 'bg-blue-100';
+    textColor = 'text-blue-800';
+  } else if (impact === 3 || (originalImpact && (originalImpact.includes('Medium') || originalImpact.includes('Mid') || originalImpact.includes('📈📈')))) {
+    bgColor = 'bg-indigo-100';
+    textColor = 'text-indigo-800';
+  } else if (impact === 2) {
+    bgColor = 'bg-teal-100';
+    textColor = 'text-teal-800';
+  } else if (impact === 1 || (originalImpact && (originalImpact.includes('Low') || originalImpact.includes('📈')))) {
+    bgColor = 'bg-gray-100';
+    textColor = 'text-gray-800';
+  } else {
+    bgColor = 'bg-lightGray';
+    textColor = 'text-mediumGray';
   }
-
-  // Display the original Airtable value if available
-  const displayText = originalImpact || (impact !== undefined ? impact.toString() : '-');
 
   return (
     <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
@@ -326,27 +316,29 @@ function EffortBadge({ effort, originalEffort }: { effort?: TaskEffort, original
   
   let bgColor = '';
   let textColor = '';
+  let displayText = originalEffort || effort || '-';
 
-  switch (effort) {
-    case 'S':
-      bgColor = 'bg-green-100';
-      textColor = 'text-green-800';
-      break;
-    case 'M':
-      bgColor = 'bg-yellow-100';
-      textColor = 'text-yellow-800';
-      break;
-    case 'L':
-      bgColor = 'bg-orange-100';
-      textColor = 'text-orange-800';
-      break;
-    default:
-      bgColor = 'bg-lightGray';
-      textColor = 'text-mediumGray';
+  // Determine colors based on effort level
+  if (effort === 'S' || effort === 'Low Effort ❗' || 
+      (originalEffort && originalEffort.includes('Low')) || 
+      (originalEffort && originalEffort.includes('❗') && !originalEffort.includes('❗❗'))) {
+    bgColor = 'bg-green-100';
+    textColor = 'text-green-800';
+  } else if (effort === 'L' || effort === 'High Effort ❗❗❗' || 
+            (originalEffort && originalEffort.includes('High')) || 
+            (originalEffort && originalEffort.includes('❗❗❗'))) {
+    bgColor = 'bg-orange-100';
+    textColor = 'text-orange-800';
+  } else if (effort === 'M' || effort === 'Mid Effort ❗❗' || 
+            (originalEffort && originalEffort.includes('Medium')) || 
+            (originalEffort && originalEffort.includes('Mid')) || 
+            (originalEffort && originalEffort.includes('❗❗'))) {
+    bgColor = 'bg-yellow-100';
+    textColor = 'text-yellow-800';
+  } else {
+    bgColor = 'bg-lightGray';
+    textColor = 'text-mediumGray';
   }
-
-  // Display the original Airtable value if available
-  const displayText = originalEffort || effort || '-';
 
   return (
     <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
@@ -760,8 +752,11 @@ function TaskTable({
     // Then sort by priority
     const priorityOrder = {
       'High': 1,
+      'High Priority 🔥🔥🔥': 1,
       'Medium': 2,
-      'Low': 3
+      'Mid Priority 🔥🔥': 2,
+      'Low': 3,
+      'Low Priority 🔥': 3
     };
 
     // Handle undefined priority values
@@ -1011,7 +1006,7 @@ function AddTaskModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (task: Task) => void;
+  onAdd: (task: Task, originalFormData?: { priority: string; impact: string; effort: string }) => void;
   boardType: string;
 }) {
   // Define a type for the form data
@@ -1019,7 +1014,7 @@ function AddTaskModal({
     task: string;
     priority: TaskPriority;
     assignedTo: string;
-    impact: number;
+    impact: string;
     effort: TaskEffort;
     notes: string;
     referenceLinks: string; // String for the form, will be converted to string[] when submitting
@@ -1027,10 +1022,10 @@ function AddTaskModal({
 
   const [taskData, setTaskData] = useState<TaskFormData>({
     task: '',
-    priority: 'Medium',
+    priority: 'Mid Priority 🔥🔥',
     assignedTo: '',
-    impact: 3,
-    effort: 'M',
+    impact: 'Mid Impact 📈📈',
+    effort: 'Mid Effort ❗❗',
     notes: '',
     referenceLinks: ''
   });
@@ -1045,12 +1040,22 @@ function AddTaskModal({
         ? taskData.referenceLinks.split('\n').filter(link => link.trim() !== '')
         : undefined;
 
+      // Convert impact string to number for the Task interface
+      let impactNumber: number = 3; // Default to medium
+      if (taskData.impact.includes('High')) {
+        impactNumber = 5;
+      } else if (taskData.impact.includes('Low')) {
+        impactNumber = 1;
+      } else if (taskData.impact.includes('Mid')) {
+        impactNumber = 3;
+      }
+
       // Create a task object with the correct type
       const newTask: Task = {
         task: taskData.task,
         priority: taskData.priority,
         assignedTo: taskData.assignedTo.trim() || 'Unassigned',
-        impact: taskData.impact,
+        impact: impactNumber, // Use converted number for Task interface
         effort: taskData.effort,
         notes: taskData.notes,
         id: Date.now(),
@@ -1060,15 +1065,20 @@ function AddTaskModal({
         referenceLinks: referenceLinks
       };
 
-      onAdd(newTask);
+      // Pass both the task and original form data
+      onAdd(newTask, {
+        priority: taskData.priority,
+        impact: taskData.impact,
+        effort: taskData.effort
+      });
 
       // Reset form
       setTaskData({
         task: '',
-        priority: 'Medium',
+        priority: 'Mid Priority 🔥🔥',
         assignedTo: '',
-        impact: 3,
-        effort: 'M',
+        impact: 'Mid Impact 📈📈',
+        effort: 'Mid Effort ❗❗',
         notes: '',
         referenceLinks: ''
       });
@@ -1122,24 +1132,22 @@ function AddTaskModal({
                 value={taskData.priority}
                 onChange={(e) => setTaskData({ ...taskData, priority: e.target.value as TaskPriority })}
               >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="High Priority 🔥🔥🔥">High Priority 🔥🔥🔥</option>
+                <option value="Mid Priority 🔥🔥">Mid Priority 🔥🔥</option>
+                <option value="Low Priority 🔥">Low Priority 🔥</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-mediumGray mb-2">Impact (1-5)</label>
+              <label className="block text-sm font-medium text-mediumGray mb-2">Impact</label>
               <select
                 className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
                 value={taskData.impact}
-                onChange={(e) => setTaskData({ ...taskData, impact: parseInt(e.target.value) })}
+                onChange={(e) => setTaskData({ ...taskData, impact: e.target.value })}
               >
-                <option value="1">1 (Minimal)</option>
-                <option value="2">2 (Low)</option>
-                <option value="3">3 (Medium)</option>
-                <option value="4">4 (High)</option>
-                <option value="5">5 (Critical)</option>
+                <option value="High Impact 📈📈📈">High Impact 📈📈📈</option>
+                <option value="Mid Impact 📈📈">Mid Impact 📈📈</option>
+                <option value="Low Impact 📈">Low Impact 📈</option>
               </select>
             </div>
 
@@ -1150,9 +1158,9 @@ function AddTaskModal({
                 value={taskData.effort}
                 onChange={(e) => setTaskData({ ...taskData, effort: e.target.value as TaskEffort })}
               >
-                <option value="S">Small</option>
-                <option value="M">Medium</option>
-                <option value="L">Large</option>
+                <option value="High Effort ❗❗❗">High Effort ❗❗❗</option>
+                <option value="Mid Effort ❗❗">Mid Effort ❗❗</option>
+                <option value="Low Effort ❗">Low Effort ❗</option>
               </select>
             </div>
 
@@ -1612,7 +1620,7 @@ export default function TaskBoards() {
     }
   };
 
-  const handleAddTask = async (task: Task) => {
+  const handleAddTask = async (task: Task, originalFormData?: { priority: string; impact: string; effort: string }) => {
     try {
       setLoading(true);
       
@@ -1628,11 +1636,11 @@ export default function TaskBoards() {
         newTask = await createCROTask({
           task: task.task,
           status: task.status,
-          // Use default values if priority/impact/effort are undefined
-          priority: task.priority || 'Medium',
+          // Use original form values if available, otherwise use defaults
+          priority: originalFormData?.priority || task.priority || 'Mid Priority 🔥🔥',
           assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-          impact: task.impact || 3,
-          effort: task.effort || 'M',
+          impact: originalFormData?.impact || task.impact || 'Mid Impact 📈📈',
+          effort: originalFormData?.effort || task.effort || 'Mid Effort ❗❗',
           notes: task.notes
         });
         console.log('Created new CRO task result:', newTask);
@@ -1641,11 +1649,11 @@ export default function TaskBoards() {
         newTask = await createWQATask({
           task: task.task,
           status: task.status,
-          // Use default values if priority/impact/effort are undefined
-          priority: task.priority || 'Medium',
+          // Use original form values if available, otherwise use defaults
+          priority: originalFormData?.priority || task.priority || 'Mid Priority 🔥🔥',
           assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-          impact: task.impact || 3,
-          effort: task.effort || 'M',
+          impact: originalFormData?.impact || 'Mid Impact 📈📈',
+          effort: originalFormData?.effort || task.effort || 'Mid Effort ❗❗',
           notes: task.notes,
           boardType: activeBoard
         });

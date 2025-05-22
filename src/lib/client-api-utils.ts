@@ -716,7 +716,7 @@ export async function createWQATask(taskData: {
   status: string;
   priority: string;
   assignedTo?: string;
-  impact: number;
+  impact: number | string; // Allow both number and string for backward compatibility
   effort: string;
   notes?: string;
   boardType: string;
@@ -824,7 +824,7 @@ export async function createCROTask(taskData: {
   status: string;
   priority: string;
   assignedTo?: string;
-  impact: number;
+  impact: number | string; // Allow both number and string for backward compatibility
   effort: string;
   notes?: string;
 }) {
