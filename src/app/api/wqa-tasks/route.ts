@@ -49,8 +49,39 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      console.log(`API route: Found ${tasks.length} WQA tasks`);
-      return NextResponse.json({ tasks });
+      // Process the tasks to handle Comments field properly
+      const processedTasks = tasks.map((task: any) => {
+        // Make a copy of the task to avoid modifying the original
+        const processedTask = { ...task };
+        
+        // Handle Comments field if it exists
+        if (processedTask.Comments) {
+          // If Comments is a string (long text field), parse it
+          if (typeof processedTask.Comments === 'string') {
+            // Count the number of comments by splitting on double newlines
+            // This matches the format we use when adding comments: "User Date\nComment text\n\nUser Date\nComment text"
+            const commentBlocks = processedTask.Comments.split('\n\n')
+              .filter((block: string) => block.trim().length > 0);
+            
+            // Add a commentCount property
+            processedTask.commentCount = commentBlocks.length;
+          } else if (Array.isArray(processedTask.Comments)) {
+            // If it's already an array, just count the items
+            processedTask.commentCount = processedTask.Comments.length;
+          } else {
+            // Default to 0 if we can't determine the count
+            processedTask.commentCount = 0;
+          }
+        } else {
+          // No Comments field, set count to 0
+          processedTask.commentCount = 0;
+        }
+        
+        return processedTask;
+      });
+
+      console.log(`API route: Found ${processedTasks.length} WQA tasks`);
+      return NextResponse.json({ tasks: processedTasks });
     } catch (airtableError: any) {
       console.error('API route: Airtable error:', airtableError);
       

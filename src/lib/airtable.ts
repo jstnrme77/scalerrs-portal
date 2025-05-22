@@ -3257,3 +3257,17 @@ export async function getApprovalItems(
     return defaultResponse;
   }
 }
+
+// Function to get a specific Airtable table
+export async function getAirtableTable(tableName: string) {
+  if (!hasAirtableCredentials) {
+    throw new Error('Airtable credentials not found');
+  }
+
+  // Check if base is properly initialized
+  if (!base) {
+    throw new Error('Airtable base is not initialized');
+  }
+
+  return base(tableName);
+}

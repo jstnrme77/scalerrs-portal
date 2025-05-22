@@ -15,6 +15,7 @@ export interface BaseTask {
   impact: number;
   effort: TaskEffort;
   comments: TaskComment[];
+  commentCount?: number;
   notes?: string;
   category?: TaskCategory;
   referenceLinks?: string[];

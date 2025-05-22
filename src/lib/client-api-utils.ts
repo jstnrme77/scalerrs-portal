@@ -5,7 +5,7 @@
 import { fetchWithFallback, getApiUrl, getCurrentUser, prepareUserHeaders } from './api-utils';
 import { shouldUseMockData } from './airtable-utils';
 import * as mockData from './mock-data';
-import { getFromCacheOrFetch, clearCacheByPrefix } from './client-cache';
+import { getFromCacheOrFetch, clearCacheByPrefix, clearCacheEntry } from './client-cache';
 
 /**
  * Generic function to fetch data from the API
@@ -245,8 +245,6 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
   const response = await fetchFromApi<string[]>('months', {}, mockData.mockMonths, signal);
   return response;
 }
-
-
 
 /**
  * Fetch approval items from the API with pagination and caching
@@ -506,11 +504,11 @@ export async function fetchWQATasks(
           // Filter mock tasks based on board type
           // This is just for fallback purposes
           if (boardType === 'technicalSEO') {
-            return task.Type === 'Technical SEO' || task.Type === 'WQA';
+            return (task as any).Type === 'Technical SEO' || (task as any).Type === 'WQA';
           } else if (boardType === 'cro') {
-            return task.Type === 'CRO';
+            return (task as any).Type === 'CRO';
           } else if (boardType === 'strategyAdHoc') {
-            return task.Type === 'Strategy' || task.Type === 'Ad Hoc';
+            return (task as any).Type === 'Strategy' || (task as any).Type === 'Ad Hoc';
           }
           return false;
         }),
@@ -519,9 +517,7 @@ export async function fetchWQATasks(
 
       return response;
     },
-    // Cache for 5 minutes
-    5 * 60 * 1000,
-    useCache
+    5 * 60 * 1000 // 5 minutes cache expiration
   );
 }
 
@@ -549,23 +545,88 @@ export async function updateWQATaskStatus(taskId: string, newStatus: string) {
 /**
  * Add a comment to a WQA task
  * @param taskId Task ID
- * @param text Comment text
+ * @param comment Comment text
  * @returns Added comment
  */
-export async function addWQATaskComment(taskId: string, text: string) {
+export async function addWQATaskComment(taskId: string, comment: string) {
+  // Clear the comments cache for this task
+  clearCacheEntry(`wqa_task_comments_${taskId}`);
+  
+  // Also clear the tasks cache to ensure updated comment counts
+  clearWQATasksCache();
+  
   return fetchFromApi(
     'wqa-tasks/add-comment',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId, text })
+      body: JSON.stringify({ taskId, comment })
     },
     {
       id: `comment-${Date.now()}`,
-      text,
+      text: comment,
       author: 'You',
       timestamp: new Date().toLocaleDateString()
     }
+  );
+}
+
+/**
+ * Fetch comments for a specific WQA task
+ * @param taskId Task ID
+ * @param signal Optional AbortSignal for cancellation
+ * @param useCache Whether to use cached data
+ * @returns Array of comments for the task
+ */
+export async function fetchWQATaskComments(
+  taskId: string,
+  signal?: AbortSignal,
+  useCache: boolean = true
+) {
+  if (!taskId) {
+    console.error('No taskId provided to fetchWQATaskComments');
+    return [];
+  }
+  
+  // Create a cache key based on the taskId
+  const cacheKey = `wqa_task_comments_${taskId}`;
+
+  return getFromCacheOrFetch(
+    cacheKey,
+    async () => {
+      // Prepare the API endpoint with taskId as a query parameter
+      const endpoint = `wqa-tasks/comments?taskId=${encodeURIComponent(taskId)}`;
+      
+      // Use the generic fetchFromApi function to make the request
+      const response = await fetchFromApi(
+        endpoint,
+        { method: 'GET' },
+        // Fallback mock comments for the task
+        [
+          {
+            id: `mock-comment-1-${taskId}`,
+            text: 'This is a mock comment for this task',
+            author: 'Mock User',
+            timestamp: new Date().toLocaleDateString()
+          }
+        ],
+        signal
+      );
+
+      // If the response is already an array, return it
+      if (Array.isArray(response)) {
+        return response;
+      }
+      
+      // If the response has a comments property that is an array, return it
+      if (response && typeof response === 'object' && 'comments' in (response as any) && Array.isArray((response as any).comments)) {
+        return (response as any).comments;
+      }
+      
+      // Otherwise, return an empty array
+      return [];
+    },
+    5 * 60 * 1000 // 5 minutes cache expiration
   );
 }
 
@@ -574,6 +635,7 @@ export async function addWQATaskComment(taskId: string, text: string) {
  */
 export function clearWQATasksCache() {
   clearCacheByPrefix('wqa_tasks_');
+  clearCacheByPrefix('wqa_task_comments_');
 }
 
 /**
@@ -606,11 +668,11 @@ export async function fetchTaskBoardData(
           // Filter mock tasks based on board type
           // This is just for fallback purposes
           if (boardType === 'technicalSEO') {
-            return task.Type === 'Technical SEO';
+            return (task as any).Type === 'Technical SEO';
           } else if (boardType === 'cro') {
-            return task.Type === 'CRO';
+            return (task as any).Type === 'CRO';
           } else if (boardType === 'strategyAdHoc') {
-            return task.Type === 'Strategy' || task.Type === 'Ad Hoc';
+            return (task as any).Type === 'Strategy' || (task as any).Type === 'Ad Hoc';
           }
           return false;
         }),
@@ -619,9 +681,7 @@ export async function fetchTaskBoardData(
 
       return response;
     },
-    // Cache for 5 minutes
-    5 * 60 * 1000,
-    useCache
+    5 * 60 * 1000 // 5 minutes cache expiration
   );
 }
 
