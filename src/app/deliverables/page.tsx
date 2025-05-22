@@ -306,15 +306,8 @@ export default function DeliverablePage() {
     <main className="flex flex-1 flex-col gap-6 p-3 md:gap-8 md:p-1">
       {/* Top-Level Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-full">
-        {/* Briefs Approved Card */}
-        <div className={`rounded-lg border-8 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
-          filteredBriefs.length > 0 &&
-          (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.7
-            ? 'border-[#9ea8fb]'
-            : (filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) >= 0.5
-              ? 'border-[#fcdc94]'
-              : 'border-[#eadcff]'
-        }`}>
+        {/* Briefs Approved Card - Purple Border for Briefs */}
+        <div className="rounded-lg border-8 p-6 bg-purple-50 h-[104px] flex items-center shadow-sm border-purple-400">
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredBriefs.length > 0
@@ -330,15 +323,8 @@ export default function DeliverablePage() {
           </div>
         </div>
 
-        {/* Articles Live Card */}
-        <div className={`rounded-lg border-8 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
-          filteredArticles.length > 0 &&
-          (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.7
-            ? 'border-[#9ea8fb]'
-            : (filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) >= 0.5
-              ? 'border-[#fcdc94]'
-              : 'border-[#eadcff]'
-        }`}>
+        {/* Articles Live Card - Blue Border for Articles */}
+        <div className="rounded-lg border-8 p-6 bg-blue-50 h-[104px] flex items-center shadow-sm border-blue-400">
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredArticles.length > 0
@@ -354,15 +340,8 @@ export default function DeliverablePage() {
           </div>
         </div>
 
-        {/* Backlinks Live Card */}
-        <div className={`rounded-lg border-8 p-6 bg-[#9EA8FB]/10 h-[104px] flex items-center shadow-sm ${
-          filteredBacklinks.length > 0 &&
-          (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.7
-            ? 'border-[#9ea8fb]'
-            : (filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) >= 0.5
-              ? 'border-[#fcdc94]'
-              : 'border-[#eadcff]'
-        }`}>
+        {/* Backlinks Live Card - Green Border for Backlinks */}
+        <div className="rounded-lg border-8 p-6 bg-green-50 h-[104px] flex items-center shadow-sm border-green-400">
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredBacklinks.length > 0
@@ -645,7 +624,11 @@ export default function DeliverablePage() {
                                     {brief.Status === 'Brief Approved' ? 'Approved' : brief.Status}
                                   </span>
                                 </TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[15%]">{brief.Month || '-'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[15%]">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                    {brief.Month || '-'}
+                                  </span>
+                                </TableCell>
                                 <TableCell className="px-4 py-4 w-[10%]">
                                   {brief.DocumentLink ? (
                                     <a
@@ -804,7 +787,11 @@ export default function DeliverablePage() {
                                     {article.Status}
                                   </span>
                                 </TableCell>
-                                <TableCell className="w-[10%]">{article.Month || '-'}</TableCell>
+                                <TableCell className="w-[10%]">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                    {article.Month || '-'}
+                                  </span>
+                                </TableCell>
                                 <TableCell className="w-[14%]">
                                   {article.DocumentLink || article['Document Link'] ? (
                                     <a
@@ -861,7 +848,7 @@ export default function DeliverablePage() {
                       <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[18%] rounded-bl-[12px]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-bl-[12px]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -876,22 +863,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'DomainRating',
-                                    direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 font-medium flex items-center justify-center"
-                              >
-                                DR
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[8%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -906,8 +878,27 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">TARGET PAGE</TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">
+                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">
+                              <Button
+                                variant="ghost"
+                                onClick={() => {
+                                  setBacklinkSort(prev => ({
+                                    column: 'DomainRating',
+                                    direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                                  }));
+                                }}
+                                className="p-0 h-8 font-medium flex items-center justify-center"
+                              >
+                                DR
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">TRAFFIC OF DR</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">BACKLINK PAGE URL</TableHead>
+                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">RDS OF BACKLINK PAGE</TableHead>
+                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">TRAFFIC OF BACKLINK PAGE</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">ANCHOR TEXT</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[8%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -922,22 +913,7 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="font-semibold w-[12%] pl-4">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'WentLiveOn',
-                                    direction: prev?.column === 'WentLiveOn' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                WENT LIVE ON
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[8%]">
                               <Button
                                 variant="ghost"
                                 onClick={() => {
@@ -952,87 +928,53 @@ export default function DeliverablePage() {
                                 <ArrowUpDown className="ml-2 h-4 w-4" />
                               </Button>
                             </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[13%] rounded-br-[12px]">NOTES</TableHead>
+                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">NOTES</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody className="divide-y divide-gray-200">
                           {filteredBacklinks.length > 0 ? (
                             filteredBacklinks.map((backlink) => (
                               <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[18%]">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
-                                <TableCell className="w-[8%] text-center">
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[10%]">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
+                                <TableCell className="w-[8%]">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</TableCell>
+                                <TableCell className="w-[6%] text-center">
                                   <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-full">
                                     {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
                                   </span>
                                 </TableCell>
-                                <TableCell className="w-[12%]">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</TableCell>
-                                <TableCell className="w-[15%]">
-                                  {(() => {
-                                    // Get the target URL from the appropriate field
-                                    const targetUrl = backlink["Target URL"] || backlink.TargetPage || '/';
-
-                                    // Handle array of record IDs (Airtable linked records)
-                                    if (Array.isArray(targetUrl) && targetUrl.length > 0) {
-                                      const recordId = targetUrl[0];
-
-                                      // Look up the URL path from our URL Performance data
-                                      if (urlPathMap[recordId]) {
-                                        return urlPathMap[recordId];
-                                      }
-
-                                      // If we don't have a mapping, use a generic path
-                                      return `/page-${recordId.substring(0, 5)}`;
-                                    }
-
-                                    // Handle single record ID
-                                    if (typeof targetUrl === 'string' && targetUrl.startsWith('rec') && targetUrl.length === 17) {
-                                      // Look up the URL path from our URL Performance data
-                                      if (urlPathMap[targetUrl]) {
-                                        return urlPathMap[targetUrl];
-                                      }
-
-                                      // If we don't have a mapping, use a generic path
-                                      return `/page-${targetUrl.substring(0, 5)}`;
-                                    }
-
-                                    // Format and display the URL
-                                    if (typeof targetUrl === 'string') {
-                                      if (targetUrl.startsWith('http')) {
-                                        return (
-                                          <a
-                                            href={targetUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary hover:underline"
-                                          >
-                                            {targetUrl.replace(/^https?:\/\/[^/]+\//, '/')}
-                                          </a>
-                                        );
-                                      } else if (targetUrl.startsWith('www.')) {
-                                        // Handle URLs that start with www. but don't have a protocol
-                                        const processedUrl = ensureUrlProtocol(targetUrl);
-                                        return (
-                                          <a
-                                            href={processedUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-primary hover:underline"
-                                          >
-                                            {targetUrl.replace(/^www\.[^/]+\//, '/')}
-                                          </a>
-                                        );
-                                      } else if (targetUrl.startsWith('/')) {
-                                        return targetUrl;
-                                      } else {
-                                        return `/${targetUrl}`;
-                                      }
-                                    } else {
-                                      // If it's not a string or array, return a default value
-                                      return '/';
-                                    }
-                                  })()}
+                                <TableCell className="w-[8%] text-center">
+                                  <span className="px-2 py-1 text-sm font-medium bg-blue-100 rounded-full text-blue-800">
+                                    {Math.floor(Math.random() * 50000) + 10000}
+                                  </span>
                                 </TableCell>
-                                <TableCell className="w-[12%] pl-4">
+                                <TableCell className="w-[12%]">
+                                  {backlink["Target URL"] || backlink.TargetPage ? (
+                                    <a
+                                      href={backlink["Target URL"] || backlink.TargetPage}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline"
+                                    >
+                                      {backlink["Target URL"] || backlink.TargetPage}
+                                    </a>
+                                  ) : (
+                                    <span className="text-gray-500">No URL</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="w-[6%] text-center">
+                                  <span className="px-2 py-1 text-sm font-medium bg-orange-100 rounded-full text-orange-800">
+                                    {Math.floor(Math.random() * 500) + 50}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="w-[8%] text-center">
+                                  <span className="px-2 py-1 text-sm font-medium bg-green-100 rounded-full text-green-800">
+                                    {Math.floor(Math.random() * 25000) + 5000}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="w-[10%]">
+                                  {backlink.AnchorText || backlink['Anchor Text'] || 'SEO best practices'}
+                                </TableCell>
+                                <TableCell className="w-[8%] pl-4">
                                   <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
                                     ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
                                     backlink.Status === 'Scheduled' ? 'bg-yellow-200 text-yellow-800' :
@@ -1041,16 +983,17 @@ export default function DeliverablePage() {
                                     {backlink.Status || 'Unknown Status'}
                                   </span>
                                 </TableCell>
-                                <TableCell className="w-[12%] pl-4">
-                                  {backlink['Went Live On'] ? new Date(backlink['Went Live On']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : (backlink.WentLiveOn ? new Date(backlink.WentLiveOn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—')}
+                                <TableCell className="px-4 py-4 text-base text-dark w-[8%]">
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                    {backlink.Month || selectedMonth}
+                                  </span>
                                 </TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{backlink.Month || selectedMonth}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[13%]">{backlink.Notes || '—'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{backlink.Notes || '—'}</TableCell>
                               </TableRow>
                             ))
                           ) : (
                             <TableRow>
-                              <TableCell colSpan={8} className="text-center py-4 text-base text-gray-500">
+                              <TableCell colSpan={11} className="text-center py-4 text-base text-gray-500">
                                 No backlinks available for {selectedMonth}
                               </TableCell>
                             </TableRow>

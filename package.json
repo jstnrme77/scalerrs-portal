@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "next build && touch out/.nojekyll && git add out/ && git commit -m \"Deploy to gh-pages\" && git subtree push --prefix out origin gh-pages"
+    "deploy": "next build && touch out/.nojekyll && git add out/ && git commit -m \"Deploy to gh-pages\" && git subtree push --prefix out origin gh-pages",
+    "task": "task-master-ai create-task",
+    "task:component": "task-master-ai create-task --template component",
+    "task:feature": "task-master-ai create-task --template feature",
+    "task:list": "task-master-ai list-tasks",
+    "task:analyze": "task-master-ai analyze-code"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
@@ -43,6 +48,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
+    "task-master-ai": "^0.14.0",
     "typescript": "^5"
   }
 }
