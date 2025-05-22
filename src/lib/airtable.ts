@@ -3510,10 +3510,10 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
         id: record.id,
         Name: fields['Action Item Name'] || '', // Map from "Action Item Name" to "Name"
         Title: fields['Action Item Name'] || '', // Also map to Title for consistency
-        Status: fields['Status'] || '',
-        Priority: fields['Priority'] || '',
-        Impact: fields['Impact'] || '',
-        Effort: fields['Effort'] || '',
+        Status: fields['Status'] || 'Not Started',
+        Priority: fields['Priority'] || 'Medium', // Provide a default value
+        Impact: fields['Impact'] || 'Medium Impact', // Provide a default value
+        Effort: fields['Effort'] || 'Medium Effort', // Provide a default value
         AssignedTo: fields['Assignee'] || 'Unassigned',
         Notes: fields['Comments'] || '',
         Created: fields['Created'] || new Date().toISOString(),

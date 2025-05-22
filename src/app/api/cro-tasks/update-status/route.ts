@@ -25,59 +25,24 @@ export async function POST(request: NextRequest) {
     
     console.log(`Updating CRO task ${taskId} status to ${status}`);
     
-    // Map status to Airtable-compatible values
-    // CRO tasks use these status values: To Do, In progress, Done
-    let airtableStatus = status;
+    // Call the updateCROTaskStatus function directly
+    const updatedTask = await updateCROTaskStatus(taskId, status);
     
-    // Normalize the status to match Airtable's expected values
-    const statusLower = status.toLowerCase();
-    if (statusLower === 'to do' || statusLower === 'todo' || statusLower === 'not started') {
-      airtableStatus = 'To Do';
-    } else if (statusLower === 'in progress' || statusLower === 'in-progress' || statusLower === 'inprogress') {
-      airtableStatus = 'In progress';
-    } else if (statusLower === 'done' || statusLower === 'complete' || statusLower === 'completed') {
-      airtableStatus = 'Done';
+    if (!updatedTask) {
+      return NextResponse.json(
+        { error: 'Failed to update task status' },
+        { status: 500 }
+      );
     }
-    
-    console.log(`Mapped status for Airtable: ${airtableStatus}`);
-    
-    // Update the task using the airtable.ts function
-    const updatedTask = await updateCROTaskStatus(taskId, airtableStatus);
-    
-    // Map the status back to our frontend format if needed
-    let frontendStatus = updatedTask.Status || status;
-    
-    // Normalize the returned status to match our frontend expected values
-    const returnedStatusLower = String(frontendStatus).toLowerCase();
-    if (returnedStatusLower === 'to do' || returnedStatusLower === 'todo' || returnedStatusLower === 'not started') {
-      frontendStatus = 'Not Started';
-    } else if (returnedStatusLower === 'in progress' || returnedStatusLower === 'in-progress' || returnedStatusLower === 'inprogress') {
-      frontendStatus = 'In Progress';
-    } else if (returnedStatusLower === 'done' || returnedStatusLower === 'complete' || returnedStatusLower === 'completed') {
-      frontendStatus = 'Done';
-    } else if (returnedStatusLower === 'blocked' || returnedStatusLower === 'on hold') {
-      frontendStatus = 'Blocked';
-    } else {
-      console.warn(`Unknown status value: ${frontendStatus}, defaulting to 'Not Started'`);
-      frontendStatus = 'Not Started';
-    }
-    
-    console.log(`Mapped status for frontend: ${frontendStatus}`);
     
     return NextResponse.json({
       success: true,
-      task: {
-        id: updatedTask.id,
-        status: frontendStatus
-      }
+      task: updatedTask
     });
   } catch (error) {
     console.error('Error updating CRO task status:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to update task status',
-        details: (error as Error).message 
-      },
+      { error: 'Failed to update task status', details: (error as Error).message },
       { status: 500 }
     );
   }

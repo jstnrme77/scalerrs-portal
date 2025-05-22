@@ -90,36 +90,50 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
 
   // Map priority to our TaskPriority type
   let priority: TaskPriority | undefined = undefined;
+  let originalPriority: string | undefined = undefined;
   if (airtableTask.Priority) {
+    // Store the original Airtable value for display
+    originalPriority = airtableTask.Priority;
+    
     if (airtableTask.Priority.includes('High')) {
       priority = 'High';
     } else if (airtableTask.Priority.includes('Low')) {
       priority = 'Low';
-    } else if (airtableTask.Priority.includes('Medium')) {
+    } else if (airtableTask.Priority.includes('Medium') || airtableTask.Priority.includes('Mid')) {
       priority = 'Medium';
     }
   }
 
   // Map effort to our TaskEffort type
   let effort: TaskEffort | undefined = undefined;
-  if (airtableTask['Effort Level']) {
-    if (airtableTask['Effort Level'].includes('Low') || airtableTask['Effort Level'].includes('Small')) {
+  let originalEffort: string | undefined = undefined;
+  if (airtableTask['Effort Level'] || airtableTask.Effort) {
+    // Store the original Airtable value for display
+    originalEffort = airtableTask['Effort Level'] || airtableTask.Effort;
+    
+    const effortValue = airtableTask['Effort Level'] || airtableTask.Effort || '';
+    if (effortValue.includes('Low') || effortValue.includes('Small') || effortValue.includes('❗')) {
       effort = 'S';
-    } else if (airtableTask['Effort Level'].includes('High') || airtableTask['Effort Level'].includes('Large')) {
+    } else if (effortValue.includes('High') || effortValue.includes('Large') || effortValue.includes('❗❗❗')) {
       effort = 'L';
-    } else if (airtableTask['Effort Level'].includes('Medium')) {
+    } else if (effortValue.includes('Medium') || effortValue.includes('Mid') || effortValue.includes('❗❗')) {
       effort = 'M';
     }
   }
 
   // Map impact to a number
   let impact: number | undefined = undefined;
-  if (airtableTask['Impact Level']) {
-    if (airtableTask['Impact Level'].includes('High')) {
+  let originalImpact: string | undefined = undefined;
+  if (airtableTask['Impact Level'] || airtableTask.Impact) {
+    // Store the original Airtable value for display
+    originalImpact = airtableTask['Impact Level'] || airtableTask.Impact;
+    
+    const impactValue = airtableTask['Impact Level'] || airtableTask.Impact || '';
+    if (impactValue.includes('High') || impactValue.includes('📈📈📈')) {
       impact = 5;
-    } else if (airtableTask['Impact Level'].includes('Medium')) {
+    } else if (impactValue.includes('Medium') || impactValue.includes('Mid') || impactValue.includes('📈📈')) {
       impact = 3;
-    } else if (airtableTask['Impact Level'].includes('Low')) {
+    } else if (impactValue.includes('Low') || impactValue.includes('📈')) {
       impact = 1;
     }
   }
@@ -127,7 +141,7 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
   // Get assigned to
   const assignedTo = Array.isArray(airtableTask.AssignedTo) && airtableTask.AssignedTo.length > 0
     ? airtableTask.AssignedTo[0]
-    : 'Unassigned';
+    : (airtableTask.Assignee || 'Unassigned');
 
   // Get date logged
   const dateLogged = airtableTask['Created At']
@@ -146,7 +160,11 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
     category: airtableTask.Category as TaskCategory || airtableTask.Type as TaskCategory,
     // Add both Client and Clients fields for compatibility with filtering
     Client: airtableTask.Client || airtableTask.Clients || airtableTask['Client'] || airtableTask['Clients'],
-    Clients: airtableTask.Client || airtableTask.Clients || airtableTask['Client'] || airtableTask['Clients']
+    Clients: airtableTask.Client || airtableTask.Clients || airtableTask['Client'] || airtableTask['Clients'],
+    // Store original values for display
+    originalPriority,
+    originalImpact,
+    originalEffort
   };
   
   // Add optional fields only if they have values

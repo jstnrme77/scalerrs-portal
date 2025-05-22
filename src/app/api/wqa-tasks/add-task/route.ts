@@ -23,16 +23,29 @@ export async function POST(request: NextRequest) {
       taskData.status = 'Not Started';
     }
     
-    // Map from our frontend model to Airtable model
+    // Map from our frontend model to Airtable model - but with minimal transformation
     // Don't include the 'Type' or 'Assigned To' fields as they're causing issues
-    const airtableTaskData = {
+    const airtableTaskData: any = {
       Name: taskData.task,  // Use Name as the primary field for task name
-      Status: mapStatusToAirtable(taskData.status), // Map to valid Airtable status values
-      Priority: taskData.priority,
-      'Impact': taskData.impact.toString(), // Convert impact to string (1-5)
-      'Effort': taskData.effort, // Use S, M, or L directly
-      'Notes By Scalerrs During Audit': taskData.notes
+      Status: taskData.status  // Use status directly
     };
+    
+    // Only add fields if they are defined
+    if (taskData.priority) {
+      airtableTaskData.Priority = taskData.priority;
+    }
+    
+    if (taskData.impact !== undefined && taskData.impact !== null) {
+      airtableTaskData['Impact'] = taskData.impact.toString(); // Convert impact to string if present
+    }
+    
+    if (taskData.effort) {
+      airtableTaskData['Effort'] = taskData.effort; // Use effort directly
+    }
+    
+    if (taskData.notes) {
+      airtableTaskData['Notes By Scalerrs During Audit'] = taskData.notes;
+    }
 
     console.log('Airtable task data:', airtableTaskData);
 
@@ -46,17 +59,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return the created task
+    // Return the created task with values directly from Airtable
     return NextResponse.json({
       success: true,
       task: {
         id: newTask.id,
-        task: newTask.Name || newTask.Title, // Use Name first, fall back to Title
-        status: mapAirtableStatus(newTask.Status), // Map Airtable status to frontend status
+        task: newTask.Name || newTask.Title, 
+        status: newTask.Status,
         priority: newTask.Priority,
-        assignedTo: 'Unassigned', // Set a default value
-        impact: mapAirtableImpact(newTask['Impact']),
-        effort: mapAirtableEffort(newTask['Effort']),
+        assignedTo: newTask.AssignedTo || 'Unassigned',
+        impact: newTask.Impact,
+        effort: newTask.Effort,
         notes: newTask['Notes By Scalerrs During Audit'],
         dateLogged: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         comments: [],
@@ -72,74 +85,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Helper functions to map between our model and Airtable model
-// No longer needed since we're passing the values directly
-// function mapImpactToAirtable(impact: number): string {
-//   if (impact >= 5) return 'High';
-//   if (impact >= 3) return 'Medium';
-//   return 'Low';
-// }
-
-// function mapEffortToAirtable(effort: string): string {
-//   if (effort === 'L') return 'Large';
-//   if (effort === 'M') return 'Medium';
-//   return 'Small';
-// }
-
-function mapAirtableImpact(impact?: string): number {
-  if (!impact) return 3;
-  // Try to parse the impact as a number
-  const numericImpact = parseInt(impact, 10);
-  if (!isNaN(numericImpact) && numericImpact >= 1 && numericImpact <= 5) {
-    return numericImpact;
-  }
-  // Fallback to old mapping if not a valid number
-  if (impact.includes('5')) return 5;
-  if (impact.includes('4')) return 4;
-  if (impact.includes('3')) return 3;
-  if (impact.includes('2')) return 2;
-  return 1;
-}
-
-function mapAirtableEffort(effort?: string): string {
-  if (!effort) return 'M';
-  // If it's already S, M, or L, return it directly
-  if (effort === 'S' || effort === 'M' || effort === 'L') {
-    return effort;
-  }
-  // Fallback to old mapping
-  if (effort.includes('L')) return 'L';
-  if (effort.includes('M')) return 'M';
-  return 'S';
-}
-
-function mapStatusToAirtable(status: string): string {
-  // Map frontend status values to Airtable's accepted values
-  switch (status.toLowerCase()) {
-    case 'not started':
-      return 'To Do';
-    case 'in progress':
-      return 'In Progress';
-    case 'blocked':
-    case 'done':
-      return 'Setup'; // Map both Blocked and Done to Setup as fallback
-    default:
-      return 'To Do'; // Default to To Do if unknown status
-  }
-}
-
-// Function to map Airtable status values to frontend status values
-function mapAirtableStatus(status?: string): string {
-  if (!status) return 'Not Started';
-  
-  switch (status) {
-    case 'To Do':
-      return 'Not Started';
-    case 'In Progress':
-      return 'In Progress';
-    case 'Setup':
-      return 'Blocked'; // Default to Blocked for Setup
-    default:
-      return 'Not Started';
-  }
-} 
+// We'll remove all helper functions since they are no longer needed 

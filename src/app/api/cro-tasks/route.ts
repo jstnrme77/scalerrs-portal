@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCROTasks } from '@/lib/airtable';
+import { getCROTasks, updateCROTaskStatus } from '@/lib/airtable';
+import { mockTasks } from '@/lib/mock-data';
 
 // Configure for Netlify deployment
 export const dynamic = 'force-dynamic';
@@ -10,151 +11,102 @@ export const revalidate = 0;
  */
 export async function GET(request: NextRequest) {
   try {
-    console.log('API route: Fetching CRO tasks');
-    
-    // Instead of getting user session, we'll fetch all tasks without filtering
-    // This simplifies the implementation and avoids the dependency on @/lib/auth
-    
-    // Fetch tasks from Airtable without user filtering
-    const croTasks = await getCROTasks();
-    
-    if (!croTasks || !Array.isArray(croTasks)) {
-      console.error('Invalid CRO tasks data from Airtable');
+    console.log('API route: Fetching CRO tasks from Airtable');
+    console.log('API Key exists:', !!process.env.AIRTABLE_API_KEY);
+    console.log('Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
+
+    // Get user information from the request
+    const userId = request.headers.get('x-user-id');
+    const userRole = request.headers.get('x-user-role');
+    const userClient = request.headers.get('x-user-client');
+
+    console.log('User ID:', userId);
+    console.log('User Role:', userRole);
+    console.log('User Client:', userClient);
+
+    // Parse client IDs if present
+    const clientIds = userClient ? JSON.parse(userClient) : [];
+
+    // Check if we have the required API keys
+    if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
+      console.warn('API route: Missing Airtable credentials');
+      // Return a specific error message with mock data
       return NextResponse.json({
         tasks: [],
-        error: 'Invalid CRO tasks data'
+        isMockData: true,
+        error: 'Missing Airtable API credentials'
       });
     }
-    
-    console.log(`Successfully fetched ${croTasks.length} CRO tasks`);
-    console.log('Raw CRO tasks from Airtable:', JSON.stringify(croTasks, null, 2));
-    
-    // Map the Airtable data to our frontend model
-    const tasks = croTasks.map(task => {
-      // Add debug logging to see what fields are available
-      console.log('Task fields:', Object.keys(task));
-      console.log('Task data:', task);
-      
-      // Extract task fields with proper fallbacks
-      // FIXED: Use 'Action Item Name' field for the task name
-      const name = task['Action Item Name'] || task.Name || task.Title || ''; 
-      
-      // Map Status values based on the provided options
-      let status = 'Not Started'; // Default to 'Not Started' instead of 'To Do'
-      if (task.Status) {
-        const statusValue = String(task.Status).toLowerCase();
-        if (statusValue === 'in progress' || statusValue === 'in-progress') {
-          status = 'In Progress'; // Capital P in 'Progress'
-        } else if (statusValue === 'done' || statusValue === 'complete' || statusValue === 'completed') {
-          status = 'Done';
-        } else if (statusValue === 'to do' || statusValue === 'todo' || statusValue === 'not started') {
-          status = 'Not Started'; // Use 'Not Started' instead of 'To Do'
-        } else if (statusValue === 'blocked' || statusValue === 'on hold') {
-          status = 'Blocked';
-        } else {
-          // For any other status, map to one of our expected values
-          console.warn(`Unknown status value: ${task.Status}, defaulting to 'Not Started'`);
-          status = 'Not Started';
-        }
-      }
-      
-      // Use the original Priority value from Airtable instead of mapping
-      const priority = task.Priority || 'Medium';
-      
-      // Extract assignedTo, handle both array and string formats
-      let assignedTo = 'Unassigned';
-      if (task.AssignedTo || task.Assignee) {
-        const rawAssignedTo = task.AssignedTo || task.Assignee;
-        if (Array.isArray(rawAssignedTo) && rawAssignedTo.length > 0) {
-          assignedTo = rawAssignedTo[0];
-        } else if (typeof rawAssignedTo === 'string' && rawAssignedTo.trim() !== '') {
-          assignedTo = rawAssignedTo;
-        }
-      }
-      
-      // Use the original Impact value from Airtable
-      // For the frontend component, we'll still need a numeric value
-      let impact = 3; // Default medium impact
-      if (task.Impact) {
-        const impactValue = String(task.Impact).toLowerCase();
-        if (impactValue.includes('high') || impactValue.includes('📊📊📊') || impactValue.includes('📈📈📈')) {
-          impact = 5;
-        } else if (impactValue.includes('mid') || impactValue.includes('📊📊') || impactValue.includes('📈📈')) {
-          impact = 3;
-        } else if (impactValue.includes('low') || impactValue.includes('📊') || impactValue.includes('📈')) {
-          impact = 1;
-        } else {
-          // Try to parse as a number
-          const numericImpact = parseInt(String(task.Impact).trim(), 10);
-          if (!isNaN(numericImpact) && numericImpact >= 1 && numericImpact <= 5) {
-            impact = numericImpact;
-          }
-        }
-      }
-      
-      // Use the original Effort value from Airtable
-      // For the frontend component, we'll still need S/M/L
-      let effort = 'M'; // Default medium effort
-      if (task.Effort) {
-        const effortValue = String(task.Effort).toLowerCase();
-        if (effortValue.includes('high') || effortValue.includes('|||') || effortValue.includes('❗❗❗')) {
-          effort = 'L';
-        } else if (effortValue.includes('mid') || effortValue.includes('||') || effortValue.includes('❗❗')) {
-          effort = 'M';
-        } else if (effortValue.includes('low') || effortValue.includes('|') || effortValue.includes('❗')) {
-          effort = 'S';
-        } else {
-          // If it's already S, M, or L, use it directly
-          const effortStr = String(task.Effort).trim().toUpperCase();
-          if (['S', 'M', 'L'].includes(effortStr)) {
-            effort = effortStr;
-          }
-        }
-      }
-      
-      // Extract notes
-      const notes = task.Notes || task.Comments || '';
-      
-      // Format date for display
-      let dateLogged = '';
-      try {
-        // Try to parse the Created field, if available
-        const created = task.Created || task['Created At'] || new Date().toISOString();
-        dateLogged = new Date(created).toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
+
+    try {
+      // Fetch CRO tasks with user filtering
+      const tasks = await getCROTasks(userId, userRole, clientIds);
+
+      if (!tasks || tasks.length === 0) {
+        console.log('API route: No CRO tasks found');
+        // Return empty array with a message
+        return NextResponse.json({
+          tasks: [],
+          isMockData: true,
+          error: 'No CRO tasks found in Airtable'
         });
-      } catch (error) {
-        console.warn('Error parsing date:', error);
-        dateLogged = 'Unknown';
+      }
+
+      // Process the tasks to handle Comments field properly
+      const processedTasks = tasks.map((task: any) => {
+        // Make a copy of the task to avoid modifying the original
+        const processedTask = { ...task };
+        
+        // Handle Comments field if it exists
+        if (processedTask.Comments) {
+          // If Comments is a string (long text field), parse it
+          if (typeof processedTask.Comments === 'string') {
+            // Count the number of comments by splitting on double newlines
+            // This matches the format we use when adding comments: "User Date\nComment text\n\nUser Date\nComment text"
+            const commentBlocks = processedTask.Comments.split('\n\n')
+              .filter((block: string) => block.trim().length > 0);
+            
+            // Add a commentCount property
+            processedTask.commentCount = commentBlocks.length;
+          } else if (Array.isArray(processedTask.Comments)) {
+            // If it's already an array, just count the items
+            processedTask.commentCount = processedTask.Comments.length;
+          } else {
+            // Default to 0 if we can't determine the count
+            processedTask.commentCount = 0;
+          }
+        } else {
+          // No Comments field, set count to 0
+          processedTask.commentCount = 0;
+        }
+        
+        return processedTask;
+      });
+
+      console.log(`API route: Found ${processedTasks.length} CRO tasks`);
+      return NextResponse.json({ tasks: processedTasks });
+    } catch (airtableError: any) {
+      console.error('API route: Airtable error:', airtableError);
+      
+      let errorMessage = 'Error accessing Airtable';
+      
+      // Check for specific Airtable error types
+      if (airtableError.error === 'NOT_AUTHORIZED') {
+        errorMessage = 'Not authorized to access Airtable CRO table';
+      } else if (airtableError.error === 'NOT_FOUND') {
+        errorMessage = 'CRO table not found in Airtable';
+      } else if (airtableError.message) {
+        errorMessage = airtableError.message;
       }
       
-      // Return mapped task with original Airtable values included
-      return {
-        id: task.id,
-        task: name,
-        status,
-        priority,
-        assignedTo,
-        impact,
-        effort,
-        notes,
-        dateLogged,
-        comments: [],
-        commentCount: 0,
-        type: 'CRO',
-        // Include the original values from Airtable for display
-        originalPriority: task.Priority || '',
-        originalImpact: task.Impact || '',
-        originalEffort: task.Effort || ''
-      };
-    });
-    
-    return NextResponse.json({
-      tasks,
-      isMockData: !getCROTasks.toString().includes('base(')
-    });
-  } catch (error) {
+      // Return a specific error with empty tasks
+      return NextResponse.json({
+        tasks: [],
+        isMockData: true,
+        error: errorMessage
+      });
+    }
+  } catch (error: any) {
     console.error('Error in CRO tasks API route:', error);
     
     let errorMessage = 'Unknown error fetching CRO tasks';
@@ -167,5 +119,27 @@ export async function GET(request: NextRequest) {
       isMockData: true,
       error: errorMessage
     });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const { taskId, status } = await request.json();
+
+    if (!taskId || !status) {
+      return NextResponse.json(
+        { error: 'Task ID and status are required' },
+        { status: 400 }
+      );
+    }
+
+    const updatedTask = await updateCROTaskStatus(taskId, status);
+    return NextResponse.json({ task: updatedTask });
+  } catch (error) {
+    console.error('Error updating task:', error);
+    return NextResponse.json(
+      { error: 'Failed to update task' },
+      { status: 500 }
+    );
   }
 } 

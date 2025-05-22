@@ -764,8 +764,21 @@ function TaskTable({
       'Low': 3
     };
 
-    const priorityComparison = priorityOrder[a.priority] - priorityOrder[b.priority];
-    if (priorityComparison !== 0) return priorityComparison;
+    // Handle undefined priority values
+    if (!a.priority && !b.priority) {
+      // If both priorities are undefined, they're equal
+      // Continue to date comparison
+    } else if (!a.priority) {
+      // Undefined priorities go last
+      return 1;
+    } else if (!b.priority) {
+      // Undefined priorities go last
+      return -1;
+    } else {
+      // Both have priorities, compare them
+      const priorityComparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (priorityComparison !== 0) return priorityComparison;
+    }
 
     // Finally sort by date logged (newest first)
     // This is a simplified comparison - in a real app, you'd parse the dates properly
@@ -1209,12 +1222,21 @@ export default function TaskBoards() {
         if (activeBoard === 'cro') {
           // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
           response = await getCROTasks(false);
-          console.log('CRO API response details:', {
-            responseType: typeof response,
-            hasTasksArray: response && typeof response === 'object' && 'tasks' in response,
-            tasksLength: response && typeof response === 'object' && 'tasks' in response ? response.tasks.length : 'N/A',
-            firstTask: response && typeof response === 'object' && 'tasks' in response && response.tasks.length > 0 ? response.tasks[0] : 'No tasks'
-          });
+          console.log('Raw CRO response:', response);
+          
+          // Log the first task's fields if available
+          if (response && Array.isArray(response) && response.length > 0) {
+            console.log('CRO Sample Task Fields:', Object.keys(response[0]));
+            console.log('CRO Sample Task Priority:', response[0].Priority);
+            console.log('CRO Sample Task Impact:', response[0].Impact);
+            console.log('CRO Sample Task Effort:', response[0].Effort);
+          } else if (response && typeof response === 'object' && 'tasks' in response && 
+                    Array.isArray(response.tasks) && response.tasks.length > 0) {
+            console.log('CRO Sample Task Fields:', Object.keys(response.tasks[0]));
+            console.log('CRO Sample Task Priority:', response.tasks[0].Priority);
+            console.log('CRO Sample Task Impact:', response.tasks[0].Impact);
+            console.log('CRO Sample Task Effort:', response.tasks[0].Effort);
+          }
         } else {
           // Use WQA API for other boards
           response = await fetchWQATasks(activeBoard);
@@ -1340,6 +1362,10 @@ export default function TaskBoards() {
                 String(AssignedTo)
               ) : 'Not Assigned',
             dateLogged: dateLogged || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            // Store the original Airtable values for display with emojis
+            originalPriority: priority || undefined,
+            originalImpact: impact || undefined,
+            originalEffort: effort || undefined,
             // Don't set defaults for these fields - keep them blank if not provided by Airtable
             priority: priority ? (priority as TaskPriority) : undefined,
             impact: impact !== undefined && impact !== null ? 
@@ -1410,7 +1436,7 @@ export default function TaskBoards() {
   // Function to apply client filtering to tasks
   const filterTasks = (tasks: Task[]) => {
     // Don't use filterDataByClient if there are no tasks to avoid the domainRating error
-    if (tasks.length === 0) {
+    if (!tasks || tasks.length === 0) {
       setBoards(prev => {
         const newBoards = { ...prev };
         newBoards[activeBoard as keyof typeof boards] = [];
@@ -1423,25 +1449,31 @@ export default function TaskBoards() {
     if (clientId && clientId !== 'all') {
       // Simple client filter that doesn't rely on backlinks detection
       const filteredTasks = tasks.filter(task => {
-        // Use type assertion to access Client/Clients fields
+        // Check if task exists
+        if (!task) return false;
+        
+        // Use type assertion to access Client/Clients fields safely
         const taskAny = task as any;
         
         // Check Clients field (array or string)
-        if (taskAny.Clients) {
+        if (taskAny.Clients !== undefined && taskAny.Clients !== null) {
           if (Array.isArray(taskAny.Clients)) {
             return taskAny.Clients.includes(clientId);
-          } else {
+          } else if (typeof taskAny.Clients === 'string') {
             return taskAny.Clients === clientId;
           }
         }
+        
         // Check Client field (array or string)
-        if (taskAny.Client) {
+        if (taskAny.Client !== undefined && taskAny.Client !== null) {
           if (Array.isArray(taskAny.Client)) {
             return taskAny.Client.includes(clientId);
-          } else {
+          } else if (typeof taskAny.Client === 'string') {
             return taskAny.Client === clientId;
           }
         }
+        
+        // If no client fields found, exclude from filtered results
         return false;
       });
       
@@ -1504,6 +1536,8 @@ export default function TaskBoards() {
       
       // Group tasks by type and map to the correct format
       tasks.forEach((task: any) => {
+        console.log('Mapping task:', task);
+        
         // Map the Airtable fields to our Task type
         const mappedTask = mapAirtableTaskToTask({
           id: task.id,
@@ -1517,10 +1551,19 @@ export default function TaskBoards() {
           Type: task.Type,
           'Impact Level': task['Impact Level'],
           'Effort Level': task['Effort Level'],
+          Impact: task.Impact, // Add Impact field directly from Airtable
+          Effort: task.Effort, // Add Effort field directly from Airtable
           'Created At': task['Created At'],
           'Due Date': task['Due Date'],
           'Completed Date': task['Completed Date'],
           Notes: task.Notes
+        });
+        
+        console.log('Mapped task:', mappedTask);
+        console.log('Original values:', {
+          originalPriority: mappedTask.originalPriority,
+          originalImpact: mappedTask.originalImpact,
+          originalEffort: mappedTask.originalEffort
         });
         
         // Add the task to the appropriate board
@@ -1541,7 +1584,9 @@ export default function TaskBoards() {
       // Apply client filtering
       if (clientId) {
         // Filter tasks by client using our custom filter function instead of filterDataByClient
-        filterTasks(tasks);
+        // Pass the mapped tasks from tasksForBoard, not the raw tasks
+        const currentBoardTasks = tasksForBoard[activeBoard as keyof typeof tasksForBoard] || [];
+        filterTasks(currentBoardTasks);
       } else {
         setBoards(prev => ({
           ...prev,
@@ -1583,10 +1628,11 @@ export default function TaskBoards() {
         newTask = await createCROTask({
           task: task.task,
           status: task.status,
-          priority: task.priority,
+          // Use default values if priority/impact/effort are undefined
+          priority: task.priority || 'Medium',
           assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-          impact: task.impact,
-          effort: task.effort,
+          impact: task.impact || 3,
+          effort: task.effort || 'M',
           notes: task.notes
         });
         console.log('Created new CRO task result:', newTask);
@@ -1595,10 +1641,11 @@ export default function TaskBoards() {
         newTask = await createWQATask({
           task: task.task,
           status: task.status,
-          priority: task.priority,
+          // Use default values if priority/impact/effort are undefined
+          priority: task.priority || 'Medium',
           assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-          impact: task.impact,
-          effort: task.effort,
+          impact: task.impact || 3,
+          effort: task.effort || 'M',
           notes: task.notes,
           boardType: activeBoard
         });
@@ -1631,16 +1678,12 @@ export default function TaskBoards() {
         createdTask = {
           ...taskBase,
           status: 'Done' as TaskStatus,
-          completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          // Add client information if available
-          Clients: newTask.Clients || (clientId && clientId !== 'all' ? clientId : undefined)
+          completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         } as CompletedTask;
       } else {
         createdTask = {
           ...taskBase,
-          status: taskBase.status as 'Not Started' | 'In Progress' | 'Blocked',
-          // Add client information if available
-          Clients: newTask.Clients || (clientId && clientId !== 'all' ? clientId : undefined)
+          status: taskBase.status as 'Not Started' | 'In Progress' | 'Blocked'
         } as ActiveTask;
       }
       
