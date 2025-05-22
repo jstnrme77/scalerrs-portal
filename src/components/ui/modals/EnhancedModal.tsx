@@ -77,7 +77,7 @@ export default function EnhancedModal({
 
   return (
     <div
-      className={`fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`fixed inset-0 bg-transparent flex items-center justify-center z-[9999] p-4 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
