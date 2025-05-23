@@ -20,11 +20,17 @@ export async function GET() {
         console.log('API route: No months found, using mock data');
 
         // Create response with cache control headers
-        const response = NextResponse.json(mockMonths); // Return array directly, not wrapped in object
+        const response = NextResponse.json({
+          months: mockMonths,
+          timestamp: Date.now() // Add timestamp to help client identify fresh responses
+        }); 
 
         // Add cache control headers to prevent caching
-        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+        response.headers.set('Surrogate-Control', 'no-store');
+        response.headers.set('X-Response-Time', Date.now().toString());
 
         return response;
       }
@@ -32,11 +38,17 @@ export async function GET() {
       console.log(`API route: Found ${months.length} available months`);
 
       // Create response with cache control headers
-      const response = NextResponse.json(months); // Return array directly, not wrapped in object
+      const response = NextResponse.json({
+        months: months,
+        timestamp: Date.now() // Add timestamp to help client identify fresh responses
+      });
 
       // Add cache control headers to prevent caching
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
       response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      response.headers.set('Surrogate-Control', 'no-store');
+      response.headers.set('X-Response-Time', Date.now().toString());
 
       return response;
     } catch (functionError) {
@@ -44,11 +56,17 @@ export async function GET() {
       console.log('Falling back to mock data');
 
       // Create response with cache control headers
-      const response = NextResponse.json(mockMonths); // Return array directly, not wrapped in object
+      const response = NextResponse.json({
+        months: mockMonths,
+        timestamp: Date.now() // Add timestamp to help client identify fresh responses
+      });
 
       // Add cache control headers to prevent caching
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
       response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      response.headers.set('Surrogate-Control', 'no-store');
+      response.headers.set('X-Response-Time', Date.now().toString());
 
       return response;
     }
@@ -59,11 +77,17 @@ export async function GET() {
     console.log('API route: Error fetching months, using mock data');
 
     // Create response with cache control headers
-    const response = NextResponse.json(mockMonths); // Return array directly, not wrapped in object
+    const response = NextResponse.json({
+      months: mockMonths,
+      timestamp: Date.now() // Add timestamp to help client identify fresh responses
+    });
 
     // Add cache control headers to prevent caching
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    response.headers.set('Surrogate-Control', 'no-store');
+    response.headers.set('X-Response-Time', Date.now().toString());
 
     return response;
   }

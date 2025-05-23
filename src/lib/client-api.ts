@@ -1267,7 +1267,10 @@ export async function fetchClients(signal?: AbortSignal) {
     }
 
     // In production, always use the Next.js API routes
-    const url = '/api/clients';
+    // Add a cache-busting query parameter with millisecond precision
+    const timestamp = new Date().getTime();
+    const cacheBuster = `_cb=${timestamp}&_t=${Math.random().toString(36).substring(2, 10)}`;
+    const url = `/api/clients?${cacheBuster}`;
 
     console.log('Fetching clients from:', url);
 
@@ -1278,7 +1281,10 @@ export async function fetchClients(signal?: AbortSignal) {
     // Prepare headers with user information
     const headers: Record<string, string> = {
       'Accept': 'application/json',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'X-Requested-With': 'XMLHttpRequest'
     };
 
     // Add user information to headers if available
@@ -1293,29 +1299,83 @@ export async function fetchClients(signal?: AbortSignal) {
       }
     }
 
-    const response = await fetch(url, {
-      signal: signal || (controller ? controller.signal : undefined),
-      headers,
-    });
+    try {
+      const response = await fetch(url, {
+        signal: signal || (controller ? controller.signal : undefined),
+        headers,
+        cache: 'no-store', // Force fresh data from the server
+        next: { revalidate: 0 } // For Next.js 13+ - don't cache this request
+      });
 
-    if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Clients data received:', data);
+      
+      if (!data || !data.clients || !Array.isArray(data.clients)) {
+        console.error('Invalid clients data format:', data);
+        throw new Error('Invalid clients data format');
+      }
+      
+      // Filter client data if the user is a client
+      if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
+        const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+        const filteredClients = data.clients.filter((client: { id: string }) => clientIds.includes(client.id));
+        console.log(`Filtered ${filteredClients.length} out of ${data.clients.length} clients for client user`);
+        return filteredClients;
+      }
+      
+      return data.clients;
+    } catch (fetchError) {
+      console.error('Fetch error getting clients:', fetchError);
+      
+      // Try again with a different cache-busting approach
+      if (!signal) { // Only retry if this wasn't an aborted request
+        console.log('Retrying client fetch with different cache-busting approach...');
+        
+        try {
+          const retryUrl = `/api/clients?nocache=${Date.now()}`;
+          const retryResponse = await fetch(retryUrl, {
+            headers: {
+              ...headers,
+              'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+              'X-Retry': 'true'
+            },
+            cache: 'no-store'
+          });
+          
+          if (!retryResponse.ok) {
+            throw new Error(`Retry API request failed with status ${retryResponse.status}`);
+          }
+          
+          const retryData = await retryResponse.json();
+          
+          if (!retryData || !retryData.clients || !Array.isArray(retryData.clients)) {
+            throw new Error('Invalid clients data format in retry');
+          }
+          
+          console.log('Retry successful, clients received:', retryData.clients.length);
+          
+          // Filter client data if the user is a client
+          if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
+            const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
+            const filteredClients = retryData.clients.filter((client: { id: string }) => clientIds.includes(client.id));
+            return filteredClients;
+          }
+          
+          return retryData.clients;
+        } catch (retryError) {
+          console.error('Retry fetch also failed:', retryError);
+          throw retryError; // Let the outer catch handle it
+        }
+      }
+      
+      throw fetchError; // Re-throw to be caught by outer catch
     }
-
-    const data = await response.json();
-    console.log('Clients data received:', data);
-    
-    // Filter client data if the user is a client
-    if (currentUser && currentUser.Role === 'Client' && currentUser.Clients) {
-      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients];
-      const filteredClients = data.clients.filter((client: { id: string }) => clientIds.includes(client.id));
-      console.log(`Filtered ${filteredClients.length} out of ${data.clients.length} clients for client user`);
-      return filteredClients;
-    }
-    
-    return data.clients;
   } catch (error) {
     console.error('Error fetching clients:', error);
 
@@ -1435,12 +1495,16 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
     const cachedMonths = localStorage.getItem('cached-available-months');
     const cacheTimestamp = localStorage.getItem('cached-months-timestamp');
 
-    // Use cache if it exists and is less than 1 hour old
+    // Use cache if it exists and is less than 30 minutes old (reduced from 1 hour)
     if (cachedMonths && cacheTimestamp) {
       const cacheAge = Date.now() - parseInt(cacheTimestamp);
-      const cacheValidityPeriod = 60 * 60 * 1000; // 1 hour in milliseconds
+      const cacheValidityPeriod = 30 * 60 * 1000; // 30 minutes in milliseconds
+      
+      // Add a random invalidation to prevent all users hitting the API at the same time
+      // This creates a 5% chance of refreshing even if cache is valid
+      const shouldInvalidateRandomly = Math.random() < 0.05;
 
-      if (cacheAge < cacheValidityPeriod) {
+      if (cacheAge < cacheValidityPeriod && !shouldInvalidateRandomly) {
         console.log('Using cached months data');
         try {
           return JSON.parse(cachedMonths);
@@ -1448,6 +1512,8 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
           console.error('Error parsing cached months:', e);
           // Continue to fetch fresh data if parsing fails
         }
+      } else {
+        console.log('Cache expired or randomly invalidated, fetching fresh months data');
       }
     }
   }
@@ -1493,7 +1559,9 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
     }
 
     // In production, always use the Next.js API routes
-    const url = '/api/months';
+    // Add a cache-busting query parameter
+    const cacheBuster = `_cb=${Date.now()}`;
+    const url = `/api/months?${cacheBuster}`;
 
     console.log('Fetching available months from:', url);
 
@@ -1505,8 +1573,11 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
       signal: signal || (controller ? controller.signal : undefined),
       headers: {
         'Accept': 'application/json',
-        'Cache-Control': 'max-age=3600', // Allow caching for 1 hour
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
+      cache: 'no-store' // Force fresh data from the server
     });
 
     if (timeoutId) clearTimeout(timeoutId);
@@ -1515,9 +1586,12 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
       throw new Error(`API request failed with status ${response.status}`);
     }
 
-    const months = await response.json();
-    console.log('Available months data received:', months);
+    const data = await response.json();
+    console.log('Available months data received:', data);
 
+    // Extract months from the response (handle both formats for backward compatibility)
+    const months = Array.isArray(data) ? data : (data.months || []);
+    
     // Cache the months data
     if (isBrowser && months && months.length > 0) {
       localStorage.setItem('cached-available-months', JSON.stringify(months));
@@ -1531,6 +1605,19 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
     // Set a flag in localStorage to indicate Airtable connection issues
     if (isBrowser) {
       localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
+    // Check if we have stale cache data to use instead of hardcoded fallback
+    if (isBrowser) {
+      const cachedMonths = localStorage.getItem('cached-available-months');
+      if (cachedMonths) {
+        try {
+          console.log('Using stale cached months data after fetch error');
+          return JSON.parse(cachedMonths);
+        } catch (e) {
+          console.error('Error parsing stale cached months:', e);
+        }
+      }
     }
 
     // Fall back to hardcoded months

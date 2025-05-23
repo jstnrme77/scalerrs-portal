@@ -11,14 +11,27 @@ import { useClientData } from '@/context/ClientDataContext';
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
 
+// Helper function to get the current month and year in the format "Month YYYY"
+const getCurrentMonthYear = (): string => {
+  const now = new Date();
+  const month = now.toLocaleString('default', { month: 'long' });
+  const year = now.getFullYear();
+  return `${month} ${year}`;
+};
+
 export default function DeliverablePage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
-  const [selectedMonth, setSelectedMonth] = useState<string>('January 2025');
-  const { clientId, filterDataByClient } = useClientData();
+  const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonthYear());
+  const { 
+    clientId,
+    availableClients, 
+    filterDataByClient,
+    refreshClientData 
+  } = useClientData();
 
   // State for Airtable data
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Record<string, string | null>>({});
   const [briefs, setBriefs] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [backlinks, setBacklinks] = useState<any[]>([]);
@@ -123,85 +136,121 @@ export default function DeliverablePage() {
     }, 100);
   }, []);
 
+  // Make fetchData available outside the useEffect
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError({}); // Clear previous errors
+
+      console.log('Starting to fetch deliverables data...');
+      console.log('Selected month:', selectedMonth);
+      console.log('Selected client:', clientId);
+
+      // Check if client data is available, if not refresh it
+      if (availableClients.length === 0) {
+        console.log('No client data available, refreshing client data...');
+        try {
+          await refreshClientData();
+        } catch (clientError) {
+          console.error('Error refreshing client data:', clientError);
+          // Don't fail the entire operation if client refresh fails
+        }
+      }
+
+      // Get current user from localStorage
+      const currentUser = typeof window !== 'undefined' ? 
+        JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+      
+      console.log('Current user from localStorage:', currentUser ? 
+        `${currentUser.Name} (${currentUser.Role})` : 'Not logged in');
+
+      // Fetch each data type separately to better handle errors
+      let briefsData = [];
+      let articlesData = [];
+      let backlinksData = [];
+      let hasError = false;
+
+      try {
+        console.log('Fetching briefs...');
+        briefsData = await fetchBriefs(selectedMonth);
+        console.log(`Fetched ${briefsData.length} briefs`);
+        logData(briefsData, 'Briefs');
+      } catch (briefsError) {
+        console.error('Error fetching briefs:', briefsError);
+        setError(prev => ({ ...prev, briefs: 'Failed to load briefs data' }));
+        hasError = true;
+      }
+
+      try {
+        console.log('Fetching articles...');
+        articlesData = await fetchArticles(selectedMonth);
+        console.log(`Fetched ${articlesData.length} articles`);
+        logData(articlesData, 'Articles');
+      } catch (articlesError) {
+        console.error('Error fetching articles:', articlesError);
+        setError(prev => ({ ...prev, articles: 'Failed to load articles data' }));
+        hasError = true;
+      }
+
+      try {
+        console.log('Fetching backlinks...');
+        backlinksData = await fetchBacklinks(selectedMonth);
+        console.log(`Fetched ${backlinksData.length} backlinks`);
+        logData(backlinksData, 'Backlinks');
+      } catch (backlinksError) {
+        console.error('Error fetching backlinks:', backlinksError);
+        setError(prev => ({ ...prev, backlinks: 'Failed to load backlinks data' }));
+        hasError = true;
+      }
+
+      // Only set general error if all three data types failed
+      if (hasError && briefsData.length === 0 && articlesData.length === 0 && backlinksData.length === 0) {
+        setError(prev => ({ ...prev, general: 'Failed to load deliverables data' }));
+      } else if (!hasError) {
+        // Clear any existing errors if the fetch was successful
+        setError({});
+      }
+
+      setBriefs(briefsData || []);
+      setArticles(articlesData || []);
+      setBacklinks(backlinksData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(prev => ({ ...prev, general: 'Failed to load data' }));
+    } finally {
+      setLoading(false);
+      // Record the time of this refresh
+      localStorage.setItem('deliverables-last-refresh', Date.now().toString());
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (tab: MainTab) => {
+    setMainTab(tab);
+    
+    // If we're switching tabs and data is stale (hasn't been refreshed in 5 minutes), refresh it
+    const lastRefreshTime = parseInt(localStorage.getItem('deliverables-last-refresh') || '0');
+    const refreshThreshold = 5 * 60 * 1000; // 5 minutes
+    
+    if (Date.now() - lastRefreshTime > refreshThreshold) {
+      console.log('Data is stale, refreshing on tab change...');
+      fetchData();
+      localStorage.setItem('deliverables-last-refresh', Date.now().toString());
+    }
+  };
+
   // Fetch data from Airtable
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('Starting to fetch deliverables data...');
-        console.log('Selected month:', selectedMonth);
-        console.log('Selected client:', clientId);
-
-        // Get current user from localStorage
-        const currentUser = typeof window !== 'undefined' ? 
-          JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
-        
-        console.log('Current user from localStorage:', currentUser ? 
-          `${currentUser.Name} (${currentUser.Role})` : 'Not logged in');
-
-        // Fetch each data type separately to better handle errors
-        let briefsData = [];
-        let articlesData = [];
-        let backlinksData = [];
-        let hasErrors = false;
-        const errorMessages = [];
-
-        try {
-          console.log('Fetching briefs...');
-          briefsData = await fetchBriefs(selectedMonth);
-          console.log('Briefs fetched successfully:', briefsData.length, 'records');
-          logData(briefsData, 'Briefs');
-          setBriefs(briefsData);
-        } catch (briefsErr: any) {
-          console.error('Error fetching briefs:', briefsErr);
-          errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
-          hasErrors = true;
-        }
-
-        try {
-          console.log('Fetching articles...');
-          articlesData = await fetchArticles(selectedMonth);
-          console.log('Articles fetched successfully:', articlesData.length, 'records');
-          logData(articlesData, 'Articles');
-          setArticles(articlesData);
-        } catch (articlesErr: any) {
-          console.error('Error fetching articles:', articlesErr);
-          errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
-          hasErrors = true;
-        }
-
-        try {
-          console.log('Fetching backlinks...');
-          backlinksData = await fetchBacklinks(selectedMonth);
-          console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
-          logData(backlinksData, 'Backlinks');
-          setBacklinks(backlinksData);
-        } catch (backlinksErr: any) {
-          console.error('Error fetching backlinks:', backlinksErr);
-          errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
-          hasErrors = true;
-        }
-
-        // URL Performance functionality has been removed
-        console.log('URL Performance functionality has been removed');
-        setUrlPerformance([]);
-
-        // Set error message if any of the fetches failed
-        if (hasErrors) {
-          setError(`Some data could not be fetched: ${errorMessages.join('; ')}.`);
-        }
-      } catch (err: any) {
-        console.error('Error in deliverables data fetching:', err);
-        setError(`An error occurred while fetching deliverables data: ${err.message || 'Unknown error'}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [selectedMonth]);
+    
+    // Set up periodic refresh every 5 minutes to prevent stale data issues
+    const refreshInterval = setInterval(() => {
+      console.log('Performing periodic data refresh...');
+      fetchData();
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    return () => clearInterval(refreshInterval);
+  }, [selectedMonth, clientId]);
 
   // Helper function for sorting
   const sortItems = (items: any[], sort: { column: string; direction: 'asc' | 'desc' } | null) => {
@@ -302,9 +351,27 @@ export default function DeliverablePage() {
       let filtered = clientFiltered;
       if (selectedMonth) {
         filtered = filtered.filter(brief => {
-          const briefMonth = String(brief.Month || '');
-          return briefMonth === selectedMonth || 
-                 (typeof briefMonth === 'string' && briefMonth.startsWith(selectedMonth.split(' ')[0])); // Match just month name
+          try {
+            // Handle different month formats
+            let briefMonth = brief.Month;
+            
+            // Handle case where Month is an object with a name property
+            if (briefMonth && typeof briefMonth === 'object' && 'name' in briefMonth) {
+              briefMonth = briefMonth.name;
+            } else if (briefMonth && typeof briefMonth === 'object' && 'value' in briefMonth) {
+              briefMonth = briefMonth.value;
+            }
+            
+            // Convert to string for comparison
+            const briefMonthStr = String(briefMonth || '');
+            const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+            
+            return briefMonthStr === selectedMonth || 
+                  briefMonthStr.startsWith(selectedMonthName);
+          } catch (e) {
+            console.error('Error filtering brief by month:', e, brief);
+            return false;
+          }
         });
       }
       
@@ -313,8 +380,13 @@ export default function DeliverablePage() {
       // Apply status filter if not 'all'
       if (briefStatusFilter !== 'all') {
         filtered = filtered.filter(brief => {
-          const status = String(brief.Status || '').toLowerCase();
-          return status === briefStatusFilter.toLowerCase();
+          try {
+            const status = String(brief.Status || '').toLowerCase();
+            return status === briefStatusFilter.toLowerCase();
+          } catch (e) {
+            console.error('Error filtering brief by status:', e, brief);
+            return false;
+          }
         });
       }
 
@@ -334,17 +406,40 @@ export default function DeliverablePage() {
       let filtered = clientFiltered;
       if (selectedMonth) {
         filtered = filtered.filter(article => {
-          const articleMonth = String(article.Month || '');
-          return articleMonth === selectedMonth || 
-                 (typeof articleMonth === 'string' && articleMonth.startsWith(selectedMonth.split(' ')[0])); // Match just month name
+          try {
+            // Handle different month formats
+            let articleMonth = article.Month;
+            
+            // Handle case where Month is an object with a name property
+            if (articleMonth && typeof articleMonth === 'object' && 'name' in articleMonth) {
+              articleMonth = articleMonth.name;
+            } else if (articleMonth && typeof articleMonth === 'object' && 'value' in articleMonth) {
+              articleMonth = articleMonth.value;
+            }
+            
+            // Convert to string for comparison
+            const articleMonthStr = String(articleMonth || '');
+            const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+            
+            return articleMonthStr === selectedMonth || 
+                  articleMonthStr.startsWith(selectedMonthName);
+          } catch (e) {
+            console.error('Error filtering article by month:', e, article);
+            return false;
+          }
         });
       }
 
       // Apply status filter if not 'all'
       if (articleStatusFilter !== 'all') {
         filtered = filtered.filter(article => {
-          const status = String(article.Status || '').toLowerCase();
-          return status === articleStatusFilter.toLowerCase();
+          try {
+            const status = String(article.Status || '').toLowerCase();
+            return status === articleStatusFilter.toLowerCase();
+          } catch (e) {
+            console.error('Error filtering article by status:', e, article);
+            return false;
+          }
         });
       }
 
@@ -364,17 +459,40 @@ export default function DeliverablePage() {
       let filtered = clientFiltered;
       if (selectedMonth) {
         filtered = filtered.filter(backlink => {
-          const backlinkMonth = String(backlink.Month || '');
-          return backlinkMonth === selectedMonth || 
-                 (typeof backlinkMonth === 'string' && backlinkMonth.startsWith(selectedMonth.split(' ')[0])); // Match just month name
+          try {
+            // Handle different month formats
+            let backlinkMonth = backlink.Month;
+            
+            // Handle case where Month is an object with a name property
+            if (backlinkMonth && typeof backlinkMonth === 'object' && 'name' in backlinkMonth) {
+              backlinkMonth = backlinkMonth.name;
+            } else if (backlinkMonth && typeof backlinkMonth === 'object' && 'value' in backlinkMonth) {
+              backlinkMonth = backlinkMonth.value;
+            }
+            
+            // Convert to string for comparison
+            const backlinkMonthStr = String(backlinkMonth || '');
+            const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+            
+            return backlinkMonthStr === selectedMonth || 
+                  backlinkMonthStr.startsWith(selectedMonthName);
+          } catch (e) {
+            console.error('Error filtering backlink by month:', e, backlink);
+            return false;
+          }
         });
       }
 
       // Apply status filter if not 'all' - make it case insensitive
       if (statusFilter !== 'all') {
         filtered = filtered.filter(backlink => {
-          const status = String(backlink['Portal Status'] || backlink.Status || '').toLowerCase();
-          return status === statusFilter.toLowerCase();
+          try {
+            const status = String(backlink['Portal Status'] || backlink.Status || '').toLowerCase();
+            return status === statusFilter.toLowerCase();
+          } catch (e) {
+            console.error('Error filtering backlink by status:', e, backlink);
+            return false;
+          }
         });
       }
 
@@ -393,9 +511,14 @@ export default function DeliverablePage() {
         }
         
         filtered = filtered.filter(backlink => {
-          const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
-          const passes = !isNaN(minRating) && dr >= minRating;
-          return passes;
+          try {
+            const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
+            const passes = !isNaN(minRating) && dr >= minRating;
+            return passes;
+          } catch (e) {
+            console.error('Error filtering backlink by DR:', e, backlink);
+            return false;
+          }
         });
         
         console.log(`After DR filtering: ${filtered.length} backlinks remain`);
@@ -481,16 +604,16 @@ export default function DeliverablePage() {
         </div>
       </div>
 
-      {error && (
+      {Object.keys(error).length > 0 && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center">
           <div className="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            <span>{error}</span>
+            <span>{error.general || Object.values(error)[0] || 'An error occurred while fetching deliverables data.'}</span>
           </div>
           <button
-            onClick={() => setError(null)}
+            onClick={() => setError({})}
             className="text-red-700 hover:text-red-900"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -518,7 +641,7 @@ export default function DeliverablePage() {
                       { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> }
                     ]}
                     activeTab={mainTab}
-                    onTabChange={(tab) => setMainTab(tab as MainTab)}
+                    onTabChange={(tab) => handleTabChange(tab as MainTab)}
                     variant="primary"
                   />
                 </div>

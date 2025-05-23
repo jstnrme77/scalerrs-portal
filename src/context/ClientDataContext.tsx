@@ -2,29 +2,37 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { getClientName } from '@/utils/clientUtils';
+import { getClientNameSync } from '@/utils/clientUtils';
 import { clearCacheByPrefix } from '@/lib/client-cache';
+import { fetchClients } from '@/lib/client-api';
 
 interface ClientDataContextType {
   clientId: string | null;
   setClientId: (id: string | null) => void;
   availableClients: { id: string; name: string }[];
   isLoading: boolean;
+  getClientName: (clientId: string) => string;
   filterDataByClient: <T extends {
     client?: string | string[];
     Client?: string | string[];
+    clients?: string | string[];
     Clients?: string | string[];
-    AssignedTo?: string | string[];
-    Writer?: string | string[];
-    Editor?: string | string[];
-    SEOStrategist?: string | string[];
-    ContentWriter?: string | string[];
-    ContentEditor?: string | string[]
+    [key: string]: any;
   }>(data: T[]) => T[];
   clearClientDataCache: () => void;
+  refreshClientData: () => Promise<void>;
 }
 
-const ClientDataContext = createContext<ClientDataContextType | undefined>(undefined);
+export const ClientDataContext = createContext<ClientDataContextType>({
+  clientId: 'all',
+  setClientId: () => {},
+  availableClients: [],
+  isLoading: false,
+  getClientName: () => '',
+  filterDataByClient: (data) => data,
+  clearClientDataCache: () => {},
+  refreshClientData: async () => {},
+});
 
 export function ClientDataProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -58,7 +66,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       const fetchClientData = async () => {
         // Initialize the client cache for the getClientName utility
         try {
-          await getClientName('init-cache');
+          await getClientNameSync('init-cache');
           console.log('Client cache initialized');
         } catch (error) {
           console.error('Error initializing client cache:', error);
@@ -223,13 +231,9 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
   const filterDataByClient = <T extends {
     client?: string | string[];
     Client?: string | string[];
+    clients?: string | string[];
     Clients?: string | string[];
-    AssignedTo?: string | string[];
-    Writer?: string | string[];
-    Editor?: string | string[];
-    SEOStrategist?: string | string[];
-    ContentWriter?: string | string[];
-    ContentEditor?: string | string[]
+    [key: string]: any;
   }>(data: T[]): T[] => {
     console.log('filterDataByClient called with data length:', data.length);
     console.log('Current user:', user?.Name, 'Role:', user?.Role);
@@ -366,6 +370,216 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     return data.filter(item => itemMatchesClient(item, clientId));
   };
 
+  // Function to load clients from API
+  const loadClients = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Loading clients from API...');
+      
+      // Create an AbortController for the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      // First check if we have cached client data
+      const cachedClients = typeof window !== 'undefined' ? 
+        localStorage.getItem('cached-clients-data') : null;
+      const cacheTimestamp = typeof window !== 'undefined' ? 
+        localStorage.getItem('cached-clients-timestamp') : null;
+      
+      // Use cache if it exists and is less than 15 minutes old
+      if (cachedClients && cacheTimestamp) {
+        const cacheAge = Date.now() - parseInt(cacheTimestamp);
+        if (cacheAge < 15 * 60 * 1000) { // 15 minutes
+          console.log('Using cached client data');
+          try {
+            const parsedClients = JSON.parse(cachedClients);
+            if (Array.isArray(parsedClients) && parsedClients.length > 0) {
+              setAvailableClients(parsedClients);
+              
+              // Set default client ID if needed
+              if (parsedClients.length > 0 && !clientId) {
+                const currentUser = typeof window !== 'undefined' ? 
+                  JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+                
+                if (currentUser?.Role === 'Client') {
+                  setClientId(parsedClients[0].id);
+                } else {
+                  setClientId('all');
+                }
+              }
+              
+              // Still fetch fresh data in the background
+              fetchClients(controller.signal)
+                .then(freshClients => {
+                  if (Array.isArray(freshClients) && freshClients.length > 0) {
+                    console.log('Updating cached client data with fresh data');
+                    
+                    // Format clients properly
+                    const formattedClients = freshClients.map(client => ({
+                      id: client.id,
+                      name: client.Name || `Client ${client.id.substring(0, 5)}`
+                    }));
+                    
+                    // Add "All Clients" option for non-client users
+                    const currentUser = typeof window !== 'undefined' ? 
+                      JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+                    
+                    const clientsWithAll = currentUser?.Role !== 'Client' ? 
+                      [{ id: 'all', name: 'All Clients' }, ...formattedClients] : 
+                      formattedClients;
+                    
+                    // Update state and cache
+                    setAvailableClients(clientsWithAll);
+                    localStorage.setItem('cached-clients-data', JSON.stringify(clientsWithAll));
+                    localStorage.setItem('cached-clients-timestamp', Date.now().toString());
+                  }
+                })
+                .catch(error => {
+                  console.error('Background refresh of clients failed:', error);
+                });
+              
+              clearTimeout(timeoutId);
+              setIsLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error('Error parsing cached client data:', e);
+            // Continue to fetch fresh data
+          }
+        }
+      }
+      
+      // Fetch fresh data
+      const fetchedClients = await fetchClients(controller.signal);
+      clearTimeout(timeoutId);
+      
+      if (!Array.isArray(fetchedClients)) {
+        console.error('fetchClients did not return an array:', fetchedClients);
+        throw new Error('Invalid clients data format');
+      }
+      
+      console.log('Successfully fetched clients:', fetchedClients.length);
+      
+      // Format clients properly
+      const formattedClients = fetchedClients.map(client => ({
+        id: client.id,
+        name: client.Name || `Client ${client.id.substring(0, 5)}`
+      }));
+      
+      // Add "All Clients" option for non-client users
+      const currentUser = typeof window !== 'undefined' ? 
+        JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+      
+      const clientsWithAll = currentUser?.Role !== 'Client' ? 
+        [{ id: 'all', name: 'All Clients' }, ...formattedClients] : 
+        formattedClients;
+      
+      // Update state and cache
+      setAvailableClients(clientsWithAll);
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('cached-clients-data', JSON.stringify(clientsWithAll));
+        localStorage.setItem('cached-clients-timestamp', Date.now().toString());
+      }
+      
+      // If there are clients and no client is selected, select the first one
+      if (clientsWithAll.length > 0 && !clientId) {
+        // For non-client users, select "All Clients" by default
+        // For client users, select their first client
+        if (currentUser?.Role === 'Client') {
+          setClientId(clientsWithAll[0].id);
+        } else {
+          setClientId('all');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading clients:', error);
+      
+      // Check for cached data as fallback
+      const cachedClients = typeof window !== 'undefined' ? 
+        localStorage.getItem('cached-clients-data') : null;
+      
+      if (cachedClients) {
+        try {
+          const parsedClients = JSON.parse(cachedClients);
+          console.log('Using cached client data after fetch error');
+          setAvailableClients(parsedClients);
+          
+          // Set default client ID if needed
+          if (parsedClients.length > 0 && !clientId) {
+            const currentUser = typeof window !== 'undefined' ? 
+              JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+            
+            if (currentUser?.Role === 'Client') {
+              setClientId(parsedClients[0].id);
+            } else {
+              setClientId('all');
+            }
+          }
+          
+          setIsLoading(false);
+          return;
+        } catch (e) {
+          console.error('Error parsing cached client data:', e);
+        }
+      }
+      
+      // Last resort fallback - create a minimal client list
+      const currentUser = typeof window !== 'undefined' ? 
+        JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+      
+      if (currentUser?.Role === 'Client' && currentUser?.Clients) {
+        // For client users, create entries based on their assigned clients
+        const clientIds = Array.isArray(currentUser.Clients) ? 
+          currentUser.Clients : [currentUser.Clients];
+        
+        const fallbackClients = clientIds.map((id: string) => ({
+          id,
+          name: `Client ${id.substring(0, 5)}` // Use part of ID as name
+        }));
+        
+        setAvailableClients(fallbackClients);
+        
+        if (fallbackClients.length > 0 && !clientId) {
+          setClientId(fallbackClients[0].id);
+        }
+      } else {
+        // For admin/other users, just provide "All Clients" option
+        setAvailableClients([{ id: 'all', name: 'All Clients' }]);
+        
+        if (!clientId) {
+          setClientId('all');
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Load clients from API
+    loadClients();
+    
+    // Set up periodic refresh every 10 minutes
+    const refreshInterval = setInterval(() => {
+      console.log('Performing periodic client data refresh...');
+      loadClients();
+    }, 10 * 60 * 1000); // 10 minutes
+    
+    // Also set up a refresh when the window regains focus
+    const handleFocus = () => {
+      console.log('Window regained focus, refreshing client data...');
+      loadClients();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      clearInterval(refreshInterval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   return (
     <ClientDataContext.Provider
       value={{
@@ -373,8 +587,12 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
         setClientId,
         availableClients,
         isLoading,
+        getClientName: (clientId: string) => {
+          return getClientNameSync(clientId);
+        },
         filterDataByClient,
-        clearClientDataCache
+        clearClientDataCache,
+        refreshClientData: loadClients,
       }}
     >
       {children}
