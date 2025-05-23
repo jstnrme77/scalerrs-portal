@@ -420,14 +420,20 @@ export default function DeliverablePage() {
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredBriefs.length > 0
-                ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length / filteredBriefs.length) * 100)
+                ? Math.round((filteredBriefs.filter(brief => 
+                    String(brief.Status || '').toLowerCase() === 'brief approved' || 
+                    String(brief.Status || '').toLowerCase() === 'approved'
+                  ).length / filteredBriefs.length) * 100)
                 : 0}%
             </span>
             <span className="text-base font-medium">
               Briefs Approved
             </span>
             <span className="text-base text-mediumGray mt-1">
-              {filteredBriefs.filter(brief => brief.Status === 'Brief Approved' || brief.Status === 'Approved').length} of {filteredBriefs.length} briefs approved
+              {filteredBriefs.filter(brief => 
+                String(brief.Status || '').toLowerCase() === 'brief approved' || 
+                String(brief.Status || '').toLowerCase() === 'approved'
+              ).length} of {filteredBriefs.length} briefs approved
             </span>
           </div>
         </div>
@@ -437,14 +443,18 @@ export default function DeliverablePage() {
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredArticles.length > 0
-                ? Math.round((filteredArticles.filter(article => article.Status === 'Live').length / filteredArticles.length) * 100)
+                ? Math.round((filteredArticles.filter(article => 
+                    String(article.Status || '').toLowerCase() === 'live'
+                  ).length / filteredArticles.length) * 100)
                 : 0}%
             </span>
             <span className="text-base font-medium">
               Articles Live
             </span>
             <span className="text-base text-mediumGray mt-1">
-              {filteredArticles.filter(article => article.Status === 'Live').length} of {filteredArticles.length} articles live
+              {filteredArticles.filter(article => 
+                String(article.Status || '').toLowerCase() === 'live'
+              ).length} of {filteredArticles.length} articles live
             </span>
           </div>
         </div>
@@ -454,14 +464,18 @@ export default function DeliverablePage() {
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredBacklinks.length > 0
-                ? Math.round((filteredBacklinks.filter(backlink => backlink.Status === 'Live').length / filteredBacklinks.length) * 100)
+                ? Math.round((filteredBacklinks.filter(backlink => 
+                    String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
+                  ).length / filteredBacklinks.length) * 100)
                 : 0}%
             </span>
             <span className="text-base font-medium">
               Backlinks Live
             </span>
             <span className="text-base text-mediumGray mt-1">
-              {filteredBacklinks.filter(backlink => backlink.Status === 'Live').length} of {filteredBacklinks.length} backlinks placed
+              {filteredBacklinks.filter(backlink => 
+                String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
+              ).length} of {filteredBacklinks.length} backlinks placed
             </span>
           </div>
         </div>
