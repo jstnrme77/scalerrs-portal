@@ -554,7 +554,14 @@ const sampleReportContent = {
     <div className="space-y-6">
       {/* Quick Links - moved to top */}
       <div className="card bg-white p-6">
-        <h4 className="text-lg font-bold text-dark mb-4">Quick Links</h4>
+        <h4 className="text-lg font-bold text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Link2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Quick Links</span>
+          </div>
+        </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <a
             href="https://search.google.com/search-console"
@@ -712,6 +719,218 @@ const sampleReportContent = {
             <p className="text-sm text-blue-700">
               <span className="font-medium">Improved Lead Tracking:</span> We've connected Google Analytics 4 with your CRM to provide more accurate lead attribution. This data is updated daily.
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Channel Performance - Restored with modifications */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#9EA8FB] shadow-sm mt-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <BarChart2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <h4 className="text-lg font-bold text-dark">Channel Performance</h4>
+          </div>
+          <div className="text-xs text-gray-500">
+            <div className="flex items-center">
+              <Info className="h-3 w-3 mr-1" />
+              <span>Data Source: Google Analytics</span>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h5 className="text-base font-medium text-dark mb-2">
+              Organic Traffic
+            </h5>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={monthlyPerformanceData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="clicks" fill="#9ea8fb" name="Clicks" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div>
+            <h5 className="text-base font-medium text-dark mb-2">
+              Leads & Revenue
+            </h5>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={monthlyPerformanceData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="leads"
+                    stroke="#9ea8fb"
+                    name="Leads"
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#fcdc94"
+                    name="Revenue ($)"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 mt-0.5 mr-3">
+              <Info className="h-3 w-3 text-blue-600" />
+            </div>
+            <p className="text-sm text-blue-700">
+              <span className="font-medium">Note:</span> Leads and Revenue values are calculated estimates based on Average Revenue Per Visitor (ARPV) × Organic Traffic. These are projections and may vary from actual performance.
+            </p>
+          </div>
+        </div>
+        
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-100">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Month
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Organic Traffic
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Leads
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Revenue
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  MoM Change
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {monthlyPerformanceData.map((month, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {month.month} 2025
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {month.clicks.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {month.leads.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${month.revenue.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {index > 0 ? (
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        month.clicks > monthlyPerformanceData[index-1].clicks ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {month.clicks > monthlyPerformanceData[index-1].clicks ? '+' : ''}
+                        {(((month.clicks - monthlyPerformanceData[index-1].clicks) / monthlyPerformanceData[index-1].clicks) * 100).toFixed(1)}%
+                      </span>
+                    ) : "-"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Campaign Projection - Restored with modifications */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#EADCFF] shadow-sm mt-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <TrendingUp className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <h4 className="text-lg font-bold text-dark">Campaign Projection</h4>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h5 className="text-base font-medium text-dark mb-3">Progress vs. Goals</h5>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-dark">Traffic Goal</span>
+                  <span className="text-sm font-medium text-dark">65%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-[#9EA8FB] h-2 rounded-full" style={{ width: '65%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-dark">Revenue</span>
+                  <span className="text-sm font-medium text-dark">42%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-[#EADCFF] h-2 rounded-full" style={{ width: '42%' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h5 className="text-base font-medium text-dark mb-3">Time to Goal</h5>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-dark mb-1">Rank Improvements</div>
+                <div className="text-xl font-bold text-dark">~3 weeks</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-dark mb-1">Traffic Goals</div>
+                <div className="text-xl font-bold text-dark">~7 weeks</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-dark mb-1">Revenue Target</div>
+                <div className="text-xl font-bold text-dark">~9 weeks</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-sm font-medium text-dark mb-1">ROI</div>
+                <div className="text-xl font-bold text-green-600">257%</div>
+              </div>
+            </div>
+            
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 mt-0.5 mr-3">
+                  <Info className="h-3 w-3 text-blue-600" />
+                </div>
+                <p className="text-sm text-blue-700">
+                  <span className="font-medium">Note:</span> Time to goal calculations are based on current trajectory and historical data. These are estimates and may vary based on market conditions and implementation speed.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

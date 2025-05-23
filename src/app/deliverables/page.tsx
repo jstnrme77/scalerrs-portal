@@ -5,8 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ensureUrlProtocol } from '@/utils/field-utils';
-import { mockBriefs, mockArticles, mockBacklinks } from '@/lib/mock-data';
-import mockData2025 from '@/mockups/content-workflow-2025';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 
 // Define types for tabs
@@ -92,114 +90,77 @@ export default function DeliverablePage() {
     }, 100);
   }, []);
 
-  // Immediately set mock data on component mount
+  // Fetch data from Airtable
   useEffect(() => {
-    // Combine regular mock data with 2025 data
-    const combinedBriefs = [
-      ...mockBriefs.map(brief => ({
-        ...brief,
-        Month: brief.Month.includes(' ') ? brief.Month : `${brief.Month} 2024` // Add year if missing
-      })),
-      ...mockData2025.briefs
-    ];
-
-    const combinedArticles = [
-      ...mockArticles.map(article => ({
-        ...article,
-        Month: article.Month.includes(' ') ? article.Month : `${article.Month} 2024` // Add year if missing
-      })),
-      ...mockData2025.articles
-    ];
-
-    const combinedBacklinks = [
-      ...mockBacklinks.map(backlink => ({
-        ...backlink,
-        Month: backlink.Month.includes(' ') ? backlink.Month : `${backlink.Month} 2024` // Add year if missing
-      })),
-      ...mockData2025.backlinks
-    ];
-
-    // Set combined data
-    console.log('Using combined mock data for deliverables page');
-    setBriefs(combinedBriefs);
-    setArticles(combinedArticles);
-    setBacklinks(combinedBacklinks);
-
-    // URL Performance functionality has been removed
-    setUrlPerformance([]);
-    setLoading(false);
-  }, []);
-
-  // Fetch data from Airtable - no longer used but kept for reference
-  const fetchRealData = async () => {
-    // Check if we're in a browser environment
-    const isBrowser = typeof window !== 'undefined';
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      console.log('Starting to fetch content workflow data...');
-
-      // Fetch each data type separately to better handle errors
-      let briefsData = [];
-      let articlesData = [];
-      let backlinksData = [];
-      let urlPerformanceData = [];
-      let hasErrors = false;
-      const errorMessages = [];
-
+    const fetchData = async () => {
       try {
-        console.log('Fetching briefs...');
-        briefsData = await fetchBriefs();
-        console.log('Briefs fetched successfully:', briefsData.length, 'records');
-        logData(briefsData, 'Briefs');
-        setBriefs(briefsData);
-      } catch (briefsErr: any) {
-        console.error('Error fetching briefs:', briefsErr);
-        errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
-        hasErrors = true;
-      }
+        setLoading(true);
+        setError(null);
 
-      try {
-        console.log('Fetching articles...');
-        articlesData = await fetchArticles();
-        console.log('Articles fetched successfully:', articlesData.length, 'records');
-        logData(articlesData, 'Articles');
-        setArticles(articlesData);
-      } catch (articlesErr: any) {
-        console.error('Error fetching articles:', articlesErr);
-        errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
-        hasErrors = true;
-      }
+        console.log('Starting to fetch deliverables data...');
+        console.log('Selected month:', selectedMonth);
 
-      try {
-        console.log('Fetching backlinks...');
-        backlinksData = await fetchBacklinks();
-        console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
-        logData(backlinksData, 'Backlinks');
-        setBacklinks(backlinksData);
-      } catch (backlinksErr: any) {
-        console.error('Error fetching backlinks:', backlinksErr);
-        errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
-        hasErrors = true;
-      }
+        // Fetch each data type separately to better handle errors
+        let briefsData = [];
+        let articlesData = [];
+        let backlinksData = [];
+        let hasErrors = false;
+        const errorMessages = [];
 
-      // URL Performance functionality has been removed
-      console.log('URL Performance functionality has been removed');
-      setUrlPerformance([]);
+        try {
+          console.log('Fetching briefs...');
+          briefsData = await fetchBriefs(selectedMonth);
+          console.log('Briefs fetched successfully:', briefsData.length, 'records');
+          logData(briefsData, 'Briefs');
+          setBriefs(briefsData);
+        } catch (briefsErr: any) {
+          console.error('Error fetching briefs:', briefsErr);
+          errorMessages.push(`Briefs: ${briefsErr.message || 'Unknown error'}`);
+          hasErrors = true;
+        }
 
-      // Set error message if any of the fetches failed
-      if (hasErrors) {
-        setError(`Some data could not be fetched: ${errorMessages.join('; ')}. Using sample data as fallback.`);
+        try {
+          console.log('Fetching articles...');
+          articlesData = await fetchArticles(selectedMonth);
+          console.log('Articles fetched successfully:', articlesData.length, 'records');
+          logData(articlesData, 'Articles');
+          setArticles(articlesData);
+        } catch (articlesErr: any) {
+          console.error('Error fetching articles:', articlesErr);
+          errorMessages.push(`Articles: ${articlesErr.message || 'Unknown error'}`);
+          hasErrors = true;
+        }
+
+        try {
+          console.log('Fetching backlinks...');
+          backlinksData = await fetchBacklinks(selectedMonth);
+          console.log('Backlinks fetched successfully:', backlinksData.length, 'records');
+          logData(backlinksData, 'Backlinks');
+          setBacklinks(backlinksData);
+        } catch (backlinksErr: any) {
+          console.error('Error fetching backlinks:', backlinksErr);
+          errorMessages.push(`Backlinks: ${backlinksErr.message || 'Unknown error'}`);
+          hasErrors = true;
+        }
+
+        // URL Performance functionality has been removed
+        console.log('URL Performance functionality has been removed');
+        setUrlPerformance([]);
+
+        // Set error message if any of the fetches failed
+        if (hasErrors) {
+          setError(`Some data could not be fetched: ${errorMessages.join('; ')}.`);
+        }
+      } catch (err: any) {
+        console.error('Error in deliverables data fetching:', err);
+        setError(`An error occurred while fetching deliverables data: ${err.message || 'Unknown error'}`);
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      console.error('Error in content workflow data fetching:', err);
-      setError(`An error occurred while fetching content workflow data: ${err.message || 'Unknown error'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchData();
+  }, [selectedMonth]);
 
   // Helper function for sorting
   const sortItems = (items: any[], sort: { column: string; direction: 'asc' | 'desc' } | null) => {
@@ -233,8 +194,20 @@ export default function DeliverablePage() {
     // Filter and sort briefs
     if (briefs.length > 0) {
       console.log('All briefs before filtering:', briefs.map(b => ({ id: b.id, Month: b.Month, Title: b.Title })));
-      // Start with month filter
-      let filtered = briefs.filter(brief => brief.Month === selectedMonth);
+      
+      // Start with all briefs for the current month
+      let filtered = briefs;
+      
+      // If month filtering is already done at API level, we don't need to filter again
+      // But keep this check for safety
+      if (selectedMonth) {
+        filtered = filtered.filter(brief => {
+          const briefMonth = brief.Month || '';
+          return briefMonth === selectedMonth || 
+                 briefMonth.startsWith(selectedMonth.split(' ')[0]); // Match just month name
+        });
+      }
+      
       console.log(`Filtering briefs for month: "${selectedMonth}"`, filtered.length);
 
       // Apply status filter if not 'all'
@@ -250,9 +223,18 @@ export default function DeliverablePage() {
 
     // Filter and sort articles
     if (articles.length > 0) {
-      // Start with month filter
-      let filtered = articles.filter(article => article.Month === selectedMonth);
-      console.log(`Filtering articles for month: ${selectedMonth}`, filtered.length);
+      // Start with all articles for the current month
+      let filtered = articles;
+      
+      // If month filtering is already done at API level, we don't need to filter again
+      // But keep this check for safety
+      if (selectedMonth) {
+        filtered = filtered.filter(article => {
+          const articleMonth = article.Month || '';
+          return articleMonth === selectedMonth || 
+                 articleMonth.startsWith(selectedMonth.split(' ')[0]); // Match just month name
+        });
+      }
 
       // Apply status filter if not 'all'
       if (articleStatusFilter !== 'all') {
@@ -267,19 +249,17 @@ export default function DeliverablePage() {
 
     // Filter and sort backlinks
     if (backlinks.length > 0) {
-      // Start with month filter
-      let filtered = backlinks.filter(backlink => backlink.Month === selectedMonth);
-      console.log(`Filtering backlinks for month: ${selectedMonth}`, filtered.length);
-
-      // Apply DR filter if not 'all'
-      if (drFilter !== 'all') {
-        if (drFilter === '50+') {
-          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 50);
-        } else if (drFilter === '60+') {
-          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 60);
-        } else if (drFilter === '70+') {
-          filtered = filtered.filter(backlink => (backlink['Domain Authority/Rating'] || backlink.DomainRating || 0) >= 70);
-        }
+      // Start with all backlinks for the current month
+      let filtered = backlinks;
+      
+      // If month filtering is already done at API level, we don't need to filter again
+      // But keep this check for safety
+      if (selectedMonth) {
+        filtered = filtered.filter(backlink => {
+          const backlinkMonth = backlink.Month || '';
+          return backlinkMonth === selectedMonth || 
+                 backlinkMonth.startsWith(selectedMonth.split(' ')[0]); // Match just month name
+        });
       }
 
       // Apply status filter if not 'all'
@@ -287,17 +267,21 @@ export default function DeliverablePage() {
         filtered = filtered.filter(backlink => backlink.Status === statusFilter);
       }
 
+      // Apply DR filter if not 'all'
+      if (drFilter !== 'all') {
+        const [min, max] = drFilter.split('-').map(Number);
+        filtered = filtered.filter(backlink => {
+          const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || 0);
+          return dr >= min && (max ? dr <= max : true);
+        });
+      }
+
       // Apply sorting
       filtered = sortItems(filtered, backlinkSort);
 
       setFilteredBacklinks(filtered);
     }
-  }, [
-    selectedMonth,
-    briefs, articles, backlinks,
-    briefStatusFilter, articleStatusFilter, statusFilter, drFilter,
-    briefSort, articleSort, backlinkSort
-  ]);
+  }, [briefs, articles, backlinks, selectedMonth, briefStatusFilter, articleStatusFilter, statusFilter, drFilter, briefSort, articleSort, backlinkSort]);
 
   // Note: Status change handlers have been removed as we're using table views instead of kanban boards
   // Status changes are not part of the deliverables page requirements
