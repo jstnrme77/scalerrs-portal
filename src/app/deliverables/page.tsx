@@ -432,8 +432,8 @@ export default function DeliverablePage() {
           </div>
         </div>
 
-        {/* Articles Live Card - Blue Border for Articles */}
-        <div className="rounded-lg border-8 p-6 bg-blue-50 h-[104px] flex items-center shadow-sm border-blue-400">
+        {/* Articles Live Card - Yellow Border for Articles */}
+        <div className="rounded-lg border-8 p-6 bg-yellow-50 h-[104px] flex items-center shadow-sm border-yellow-400">
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredArticles.length > 0
@@ -449,8 +449,8 @@ export default function DeliverablePage() {
           </div>
         </div>
 
-        {/* Backlinks Live Card - Green Border for Backlinks */}
-        <div className="rounded-lg border-8 p-6 bg-green-50 h-[104px] flex items-center shadow-sm border-green-400">
+        {/* Backlinks Live Card - Pink Border for Backlinks */}
+        <div className="rounded-lg border-8 p-6 bg-pink-50 h-[104px] flex items-center shadow-sm border-pink-400">
           <div className="flex flex-col items-center text-center w-full">
             <span className="text-lg font-bold mb-1 notification-text">
               {filteredBacklinks.length > 0
