@@ -16,15 +16,10 @@ export async function GET(request: NextRequest) {
     const userId = request.headers.get('x-user-id');
     const userRole = request.headers.get('x-user-role');
     const userClient = request.headers.get('x-user-client');
-
-    // Parse the URL to get query parameters
-    const url = new URL(request.url);
-    const clientIdParam = url.searchParams.get('clientId');
     
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
     console.log('User Client:', userClient);
-    console.log('Client ID from query parameter:', clientIdParam);
 
     // Parse client IDs from headers if present
     let clientIds = null;
@@ -37,12 +32,6 @@ export async function GET(request: NextRequest) {
       console.error('Error parsing client IDs from header:', e);
     }
     
-    // If clientId is provided in the query parameters, use it
-    if (clientIdParam && clientIdParam !== 'all') {
-      console.log('Using client ID from query parameter:', clientIdParam);
-      clientIds = [clientIdParam];
-    }
-
     // Check if we have the required API keys
     if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
       console.warn('API route: Missing Airtable credentials');
@@ -60,7 +49,7 @@ export async function GET(request: NextRequest) {
       const tasks = await getWQATasks(
         userRole === 'Client' ? null : userId, // Only pass userId if not a client
         userRole,
-        clientIds
+        null // Don't pass clientIds for now to match working CRO implementation
       );
 
       if (!tasks || tasks.length === 0) {

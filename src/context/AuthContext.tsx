@@ -109,13 +109,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const authUser = data.user as unknown as AuthUser;
 
       // Make sure Client is always an array for consistency
-      if (authUser.Client) {
-        if (!Array.isArray(authUser.Client)) {
-          authUser.Client = [authUser.Client];
+      if (authUser.Clients) {
+        if (!Array.isArray(authUser.Clients)) {
+          authUser.Clients = [authUser.Clients];
         }
       } else {
-        authUser.Client = [];
+        authUser.Clients = [];
       }
+
+      // For backward compatibility, also set the Client field
+      authUser.Client = authUser.Clients;
 
       // Ensure the user has a Name field
       if (!authUser.Name) {
@@ -147,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User logged in:', authUser.Name);
       console.log('User role:', authUser.Role);
-      console.log('User clients:', authUser.Client);
+      console.log('User clients:', authUser.Clients);
       console.log('Full user object:', authUser);
 
       return true;
@@ -175,8 +178,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user.Role === 'Admin') return true;
 
     // Client users only have access to their assigned clients
-    if (user.Role === 'Client' && user.Client) {
-      return user.Client.includes(clientId);
+    if (user.Role === 'Client' && user.Clients) {
+      return user.Clients.includes(clientId);
     }
 
     // Default to no access

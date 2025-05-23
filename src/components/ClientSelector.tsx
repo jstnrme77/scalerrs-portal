@@ -88,7 +88,12 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
     return null;
   }
 
-  // For non-admin users, only show if they have multiple clients
+  // MODIFIED: Explicitly hide for Client role users, regardless of how many clients they have
+  if (user.Role === 'Client') {
+    return null;
+  }
+
+  // For other non-admin users, only show if they have multiple clients
   if (user.Role !== 'Admin' && availableClients.length <= 1) {
     return null;
   }

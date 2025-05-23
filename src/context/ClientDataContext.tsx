@@ -131,11 +131,19 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     if (user.Role === 'Client') {
       console.log('[ClientDataContext] Client User Detected. User object:', JSON.parse(JSON.stringify(user)));
       console.log('[ClientDataContext] user.Clients raw:', user.Clients);
+      console.log('[ClientDataContext] user.Client raw:', user.Client);
 
       // If no client ID selected, use the first client ID from the user's clients
-      const filterClientId = clientId || (Array.isArray(user.Clients) && user.Clients.length > 0 ? user.Clients[0] : user.Clients);
+      // Check both Clients and Client fields for backward compatibility
+      const userClientIds = Array.isArray(user.Clients) ? user.Clients : 
+                           (user.Clients ? [user.Clients] : 
+                           (Array.isArray(user.Client) ? user.Client : 
+                           (user.Client ? [user.Client] : [])));
+      
+      const filterClientId = clientId || (userClientIds.length > 0 ? userClientIds[0] : null);
 
       console.log('[ClientDataContext] Initial clientId from state:', clientId);
+      console.log('[ClientDataContext] Available client IDs:', userClientIds);
       console.log('[ClientDataContext] Calculated filterClientId:', filterClientId);
 
       if (!filterClientId) {
@@ -321,10 +329,14 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     }
     
     // Last resort fallback - create a minimal client list
-    if (currentUser?.Role === 'Client' && currentUser?.Clients) {
+    if (currentUser?.Role === 'Client' && (currentUser?.Clients || currentUser?.Client)) {
       // For client users, create entries based on their assigned clients
-      const clientIds = Array.isArray(currentUser.Clients) ? 
-        currentUser.Clients : [currentUser.Clients];
+      const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients : 
+                       (currentUser.Clients ? [currentUser.Clients] : 
+                       (Array.isArray(currentUser.Client) ? currentUser.Client : 
+                       (currentUser.Client ? [currentUser.Client] : [])));
+      
+      console.log('Creating fallback client list with IDs:', clientIds);
       
       const fallbackClients = clientIds.map((id: string) => ({
         id,
@@ -361,9 +373,14 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
         }
         try {
           // If user has Clients field and is a Client role
-          if (user.Clients && user.Role === 'Client') {
-            // Ensure Clients is an array
-            const clientIds = Array.isArray(user.Clients) ? user.Clients : [user.Clients];
+          if ((user.Clients || user.Client) && user.Role === 'Client') {
+            // Ensure Clients is an array - check both Clients and Client fields for backward compatibility
+            const clientIds = Array.isArray(user.Clients) ? user.Clients : 
+                             (user.Clients ? [user.Clients] : 
+                             (Array.isArray(user.Client) ? user.Client : 
+                             (user.Client ? [user.Client] : [])));
+
+            console.log('Client user detected with client IDs:', clientIds);
 
             // Fetch all clients to get their names
             const allClients = await fetchClients();

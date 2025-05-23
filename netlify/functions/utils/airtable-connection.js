@@ -113,9 +113,13 @@ const getFieldValue = (record, fieldNames, defaultValue = '') => {
 const createClientFilter = (clientIds) => {
   if (!clientIds || !clientIds.length) return '';
 
-  const filters = clientIds.map(id =>
-    `FIND("${id}", {Client})`
-  );
+  // Create filters for both Clients and Client fields
+  const filters = clientIds.flatMap(id => [
+    `FIND("${id}", {Clients})`,
+    `FIND("${id}", {Client})`,
+    `{Clients} = "${id}"`,
+    `{Client} = "${id}"`
+  ]);
 
   return filters.length > 1
     ? `OR(${filters.join(',')})`

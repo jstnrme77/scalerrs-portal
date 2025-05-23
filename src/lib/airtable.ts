@@ -492,51 +492,12 @@ export async function getWQATasks(userId?: string | null, userRole?: string | nu
     console.log('Fetching WQA tasks from Airtable...');
     console.log('Using base ID:', baseId);
 
-    // For the WQA table, we'll skip the type/tags filtering since those fields don't exist
-    // We'll just fetch all records from the WQA table
-    let filterFormula = '';
+    // For now, let's not filter by client to match the working CRO implementation
+    // Just fetch all records from the WQA table
+    console.log('Querying WQA table in Airtable without client filtering');
     
-    // Add user-specific filters if needed
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering WQA tasks by client:', clientIds);
-      
-      // If the WQA table has a Client field, we can filter by it
-      // Otherwise, we'll just fetch all records
-      try {
-        const clientFilters = clientIds.map(clientId =>
-          `SEARCH('${clientId}', {Clients})`
-        );
-        
-        filterFormula = `OR(${clientFilters.join(',')})`;  
-        console.log('Using client filter:', filterFormula);
-      } catch (error) {
-        console.warn('Error creating client filter, fetching all records instead:', error);
-      }
-    } 
-    // If user is not an admin or client, filter by assigned user if possible
-    else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering WQA tasks for user: ${userId}, role: ${userRole}`);
-      
-      // If the WQA table has an Assigned To field, we can filter by it
-      try {
-        filterFormula = `SEARCH('${userId}', {Assigned To})`;  
-        console.log('Using assigned user filter:', filterFormula);
-      } catch (error) {
-        console.warn('Error creating assigned user filter, fetching all records instead:', error);
-      }
-    }
-
-    console.log('Using filter formula:', filterFormula);
-    // Use WQA table instead of TASKS table
-    let query;
-    if (filterFormula) {
-      query = base('WQA').select({
-        filterByFormula: filterFormula
-      });
-    } else {
-      // If no filter formula, just select all records
-      query = base('WQA').select();
-    }
+    // Query without filter formula to match working CRO implementation
+    const query = base('WQA').select();
     
     console.log('Querying WQA table in Airtable');
 
@@ -619,25 +580,21 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
     // Build the query with appropriate filters
     let filterFormula = '';
 
-    // If user is a client, filter by client
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering tasks by client:', clientIds);
+    // If we have client IDs, filter by them regardless of user role
+    if (clientIds && clientIds.length > 0) {
+      console.log('Filtering tasks by client IDs:', clientIds);
 
-      // Create a filter formula for client IDs that uses only Clients field
-      const clientFilters = clientIds.map(clientId =>
-        `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
+      // Only use the 'Clients' field with exact capitalization
+      // Airtable error shows that 'client' (lowercase) doesn't exist in the schema
+      const clientFilters = clientIds.map(clientId => 
+        `FIND('${clientId}', {Clients})`
       );
 
       // Combine filters with OR
       filterFormula = `OR(${clientFilters.join(',')})`;
     }
-    // If user is not an admin or client, filter by assigned user
-    else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering tasks for user: ${userId}, role: ${userRole}`);
-
-      // Filter for tasks assigned to this user
-      filterFormula = `SEARCH('${userId}', ARRAYJOIN(AssignedTo, ',')) > 0`;
-    }
+    // No client-specific filtering needed for other cases
+    // Admin users will see all records when no filter is applied
 
     // Apply the filter if one was created
     let query;
@@ -3463,16 +3420,19 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
   try {
     console.log('Fetching CRO tasks from Airtable...');
     
+    
     // Create filter formula if needed
     let filterFormula = '';
     
-    // Add user-specific filters if needed
-    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering CRO tasks by client:', clientIds);
+    // If we have client IDs, filter by them regardless of user role
+    if (clientIds && clientIds.length > 0) {
+      console.log('Filtering CRO tasks by client IDs:', clientIds);
       
       try {
-        const clientFilters = clientIds.map(clientId =>
-          `SEARCH('${clientId}', {Clients})`
+        // Only use the 'Clients' field with exact capitalization
+        // Airtable error shows that 'client' (lowercase) doesn't exist in the schema
+        const clientFilters = clientIds.map(clientId => 
+          `FIND('${clientId}', {Clients})`
         );
         
         filterFormula = `OR(${clientFilters.join(',')})`;  
@@ -3480,18 +3440,9 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
       } catch (error) {
         console.warn('Error creating client filter, fetching all records instead:', error);
       }
-    } 
-    // If user is not an admin or client, filter by assigned user if possible
-    else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering CRO tasks for user: ${userId}, role: ${userRole}`);
-      
-      try {
-        filterFormula = `SEARCH('${userId}', {Assignee})`;  
-        console.log('Using assigned user filter:', filterFormula);
-      } catch (error) {
-        console.warn('Error creating assigned user filter, fetching all records instead:', error);
-      }
     }
+    // No client-specific filtering needed for other cases
+    // Admin users will see all records when no filter is applied
 
     // Query the CRO table
     let query;
