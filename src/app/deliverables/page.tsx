@@ -55,6 +55,23 @@ export default function DeliverablePage() {
       console.log(`${type} fields:`, Object.keys(data[0]));
       console.log(`${type} Status:`, data[0].Status);
       console.log(`${type} DueDate:`, data[0].DueDate);
+      
+      // Log user fields specifically to debug
+      if (type === 'Briefs') {
+        console.log('SEO Strategist field:', data[0].SEOStrategist || data[0]['SEO Strategist']);
+        console.log('SEO Strategist type:', typeof(data[0].SEOStrategist || data[0]['SEO Strategist']));
+        if (typeof(data[0].SEOStrategist || data[0]['SEO Strategist']) === 'object') {
+          console.log('SEO Strategist keys:', Object.keys(data[0].SEOStrategist || data[0]['SEO Strategist'] || {}));
+        }
+      }
+      
+      if (type === 'Articles') {
+        console.log('Writer field:', data[0].Writer || data[0]['Content Writer']);
+        console.log('Writer type:', typeof(data[0].Writer || data[0]['Content Writer']));
+        if (typeof(data[0].Writer || data[0]['Content Writer']) === 'object') {
+          console.log('Writer keys:', Object.keys(data[0].Writer || data[0]['Content Writer'] || {}));
+        }
+      }
     } else {
       console.log(`No ${type} data available`);
     }
@@ -189,6 +206,52 @@ export default function DeliverablePage() {
     });
   };
 
+  // Helper function to extract user name from Airtable User object
+  const getUserName = (userField: any): string => {
+    if (!userField) return '-';
+    
+    // If it's a string already, return it
+    if (typeof userField === 'string') return userField;
+    
+    // If it's an object with name property
+    if (typeof userField === 'object' && !Array.isArray(userField)) {
+      // Common user object properties
+      if (userField.name) return userField.name;
+      if (userField.Name) return userField.Name;
+      if (userField.email) return userField.email;
+      if (userField.Email) return userField.Email;
+      
+      // Airtable specific - collaborator field format
+      if (userField.id && userField.email) return userField.email;
+      if (userField.id && userField.name) return userField.name;
+      
+      // If there's a displayName property
+      if (userField.displayName) return userField.displayName;
+      
+      // If there's a value property (sometimes Airtable returns {value: "Name", label: "Name"})
+      if (userField.value) return userField.value;
+      if (userField.label) return userField.label;
+      
+      // Last resort - return the ID if available
+      if (userField.id) return `User ${userField.id}`;
+      
+      // If we can't extract anything useful, convert the object to a string
+      try {
+        return JSON.stringify(userField);
+      } catch (e) {
+        return 'Unknown User';
+      }
+    }
+    
+    // If it's an array (multiple users assigned)
+    if (Array.isArray(userField)) {
+      if (userField.length === 0) return '-';
+      return userField.map(user => getUserName(user)).join(', ');
+    }
+    
+    return String(userField);
+  };
+
   // Filter and sort data
   useEffect(() => {
     // Filter and sort briefs
@@ -202,9 +265,9 @@ export default function DeliverablePage() {
       // But keep this check for safety
       if (selectedMonth) {
         filtered = filtered.filter(brief => {
-          const briefMonth = brief.Month || '';
+          const briefMonth = String(brief.Month || '');
           return briefMonth === selectedMonth || 
-                 briefMonth.startsWith(selectedMonth.split(' ')[0]); // Match just month name
+                 (typeof briefMonth === 'string' && briefMonth.startsWith(selectedMonth.split(' ')[0])); // Match just month name
         });
       }
       
@@ -230,9 +293,9 @@ export default function DeliverablePage() {
       // But keep this check for safety
       if (selectedMonth) {
         filtered = filtered.filter(article => {
-          const articleMonth = article.Month || '';
+          const articleMonth = String(article.Month || '');
           return articleMonth === selectedMonth || 
-                 articleMonth.startsWith(selectedMonth.split(' ')[0]); // Match just month name
+                 (typeof articleMonth === 'string' && articleMonth.startsWith(selectedMonth.split(' ')[0])); // Match just month name
         });
       }
 
@@ -256,9 +319,9 @@ export default function DeliverablePage() {
       // But keep this check for safety
       if (selectedMonth) {
         filtered = filtered.filter(backlink => {
-          const backlinkMonth = backlink.Month || '';
+          const backlinkMonth = String(backlink.Month || '');
           return backlinkMonth === selectedMonth || 
-                 backlinkMonth.startsWith(selectedMonth.split(' ')[0]); // Match just month name
+                 (typeof backlinkMonth === 'string' && backlinkMonth.startsWith(selectedMonth.split(' ')[0])); // Match just month name
         });
       }
 
@@ -364,7 +427,7 @@ export default function DeliverablePage() {
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <span className="ml-3 text-mediumGray">Loading content workflow data...</span>
+          <span className="ml-3 text-mediumGray">Loading deliverables data...</span>
         </div>
       ) : (
         <div className="page-container mb-6">
@@ -595,8 +658,8 @@ export default function DeliverablePage() {
                           {filteredBriefs.length > 0 ? (
                             filteredBriefs.map((brief) => (
                               <TableRow key={brief.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[25%]">{brief.Title}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[20%]">{brief.SEOStrategist || brief['SEO Strategist'] || '-'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[25%]">{String(brief.Title || '')}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[20%]">{String(getUserName(brief.SEOStrategist || brief['SEO Strategist']))}</TableCell>
                                 <TableCell className="px-4 py-4 text-base text-mediumGray w-[15%]">
                                   {brief.DueDate ? new Date(brief.DueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
                                 </TableCell>
@@ -605,18 +668,18 @@ export default function DeliverablePage() {
                                     ${brief.Status === 'Brief Approved' || brief.Status === 'Approved' ? 'bg-green-100 text-green-800' :
                                     brief.Status === 'Needs Input' ? 'bg-yellow-200 text-yellow-800' :
                                     'bg-gray-100 text-gray-800'}`}>
-                                    {brief.Status === 'Brief Approved' ? 'Approved' : brief.Status}
+                                    {String(brief.Status === 'Brief Approved' ? 'Approved' : brief.Status || 'Unknown')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-4 text-base text-dark w-[15%]">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    {brief.Month || '-'}
+                                    {String(brief.Month || '-')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-4 w-[10%]">
                                   {brief.DocumentLink ? (
                                     <a
-                                      href={brief.DocumentLink}
+                                      href={ensureUrlProtocol(String(brief.DocumentLink))}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-base text-primary hover:underline flex items-center"
@@ -753,9 +816,9 @@ export default function DeliverablePage() {
                           {filteredArticles.length > 0 ? (
                             filteredArticles.map((article) => (
                               <TableRow key={article.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[20%]">{article.Title}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[12%]">{article.Writer || article['Content Writer'] || '-'}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{article.WordCount || article['Word Count'] || '-'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[20%]">{String(article.Title || '')}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[12%]">{String(getUserName(article.Writer || article['Content Writer']))}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{String(article.WordCount || article['Word Count'] || '-')}</TableCell>
                                 <TableCell className="w-[10%]">
                                   {article.DueDate || article['Due Date'] ?
                                     new Date(article.DueDate || article['Due Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -768,18 +831,18 @@ export default function DeliverablePage() {
                                     article.Status === 'Review Draft' ? 'bg-yellow-200 text-yellow-800' :
                                     article.Status === 'In Production' ? 'bg-purple-200 text-purple-800' :
                                     'bg-gray-100 text-gray-800'}`}>
-                                    {article.Status}
+                                    {String(article.Status || 'Unknown')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="w-[10%]">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    {article.Month || '-'}
+                                    {String(article.Month || '-')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="w-[14%]">
                                   {article.DocumentLink || article['Document Link'] ? (
                                     <a
-                                      href={article.DocumentLink || article['Document Link']}
+                                      href={ensureUrlProtocol(String(article.DocumentLink || article['Document Link']))}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-base text-primary hover:underline flex items-center"
@@ -794,7 +857,7 @@ export default function DeliverablePage() {
                                 <TableCell className="w-[14%]">
                                   {article.ArticleURL || article['Article URL'] ? (
                                     <a
-                                      href={article.ArticleURL || article['Article URL']}
+                                      href={ensureUrlProtocol(String(article.ArticleURL || article['Article URL']))}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-base text-primary hover:underline flex items-center"
@@ -919,11 +982,11 @@ export default function DeliverablePage() {
                           {filteredBacklinks.length > 0 ? (
                             filteredBacklinks.map((backlink) => (
                               <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[10%]">{backlink['Source Domain'] || backlink.Domain || 'Unknown Domain'}</TableCell>
-                                <TableCell className="w-[8%]">{backlink['Link Type'] || backlink.LinkType || 'Unknown Type'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[10%]">{String(backlink['Source Domain'] || backlink.Domain || 'Unknown Domain')}</TableCell>
+                                <TableCell className="w-[8%]">{String(backlink['Link Type'] || backlink.LinkType || 'Unknown Type')}</TableCell>
                                 <TableCell className="w-[6%] text-center">
                                   <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-full">
-                                    {backlink['Domain Authority/Rating'] !== undefined ? backlink['Domain Authority/Rating'] : (backlink.DomainRating !== undefined ? backlink.DomainRating : 'N/A')}
+                                    {backlink['Domain Authority/Rating'] !== undefined ? String(backlink['Domain Authority/Rating']) : (backlink.DomainRating !== undefined ? String(backlink.DomainRating) : 'N/A')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="w-[8%] text-center">
@@ -934,12 +997,12 @@ export default function DeliverablePage() {
                                 <TableCell className="w-[12%]">
                                   {backlink["Target URL"] || backlink.TargetPage ? (
                                     <a
-                                      href={backlink["Target URL"] || backlink.TargetPage}
+                                      href={ensureUrlProtocol(String(backlink["Target URL"] || backlink.TargetPage))}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-primary hover:underline"
                                     >
-                                      {backlink["Target URL"] || backlink.TargetPage}
+                                      {String(backlink["Target URL"] || backlink.TargetPage)}
                                     </a>
                                   ) : (
                                     <span className="text-gray-500">No URL</span>
@@ -956,7 +1019,7 @@ export default function DeliverablePage() {
                                   </span>
                                 </TableCell>
                                 <TableCell className="w-[10%]">
-                                  {backlink.AnchorText || backlink['Anchor Text'] || 'SEO best practices'}
+                                  {String(backlink.AnchorText || backlink['Anchor Text'] || 'SEO best practices')}
                                 </TableCell>
                                 <TableCell className="w-[8%] pl-4">
                                   <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
@@ -964,15 +1027,15 @@ export default function DeliverablePage() {
                                     backlink.Status === 'Scheduled' ? 'bg-yellow-200 text-yellow-800' :
                                     backlink.Status === 'Rejected' ? 'bg-red-200 text-red-800' :
                                     'bg-gray-100 text-gray-800'}`}>
-                                    {backlink.Status || 'Unknown Status'}
+                                    {String(backlink.Status || 'Unknown Status')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-4 text-base text-dark w-[8%]">
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    {backlink.Month || selectedMonth}
+                                    {String(backlink.Month || selectedMonth)}
                                   </span>
                                 </TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{backlink.Notes || '—'}</TableCell>
+                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{String(backlink.Notes || '—')}</TableCell>
                               </TableRow>
                             ))
                           ) : (
