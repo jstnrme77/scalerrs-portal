@@ -79,6 +79,15 @@ export default function DeliverablePage() {
         console.log('Target Page URL field:', data[0]['Target Page URL'] || data[0]['Target URL']);
         console.log('URL fields:', Object.keys(data[0]).filter(key => key.toLowerCase().includes('url')));
       }
+      
+      if (type === 'Backlinks') {
+        console.log('Portal Status field:', data[0]['Portal Status']);
+        console.log('Status field:', data[0].Status);
+        console.log('Domain Rating field:', data[0]['DR ( API )'] || data[0].DomainRating || data[0]['Domain Authority/Rating']);
+        
+        // Log status fields
+        console.log('Status fields:', Object.keys(data[0]).filter(key => key.toLowerCase().includes('status')));
+      }
     } else {
       console.log(`No ${type} data available`);
     }
@@ -274,6 +283,12 @@ export default function DeliverablePage() {
     console.log('Current briefs data length:', briefs.length);
     console.log('Current articles data length:', articles.length);
     console.log('Current backlinks data length:', backlinks.length);
+    
+    // Log filter states
+    console.log('Brief status filter:', briefStatusFilter);
+    console.log('Article status filter:', articleStatusFilter);
+    console.log('Backlink status filter:', statusFilter);
+    console.log('DR filter:', drFilter);
 
     // Filter and sort briefs
     if (briefs.length > 0) {
@@ -297,7 +312,10 @@ export default function DeliverablePage() {
 
       // Apply status filter if not 'all'
       if (briefStatusFilter !== 'all') {
-        filtered = filtered.filter(brief => brief.Status === briefStatusFilter);
+        filtered = filtered.filter(brief => {
+          const status = String(brief.Status || '').toLowerCase();
+          return status === briefStatusFilter.toLowerCase();
+        });
       }
 
       // Apply sorting
@@ -324,7 +342,10 @@ export default function DeliverablePage() {
 
       // Apply status filter if not 'all'
       if (articleStatusFilter !== 'all') {
-        filtered = filtered.filter(article => article.Status === articleStatusFilter);
+        filtered = filtered.filter(article => {
+          const status = String(article.Status || '').toLowerCase();
+          return status === articleStatusFilter.toLowerCase();
+        });
       }
 
       // Apply sorting
@@ -349,18 +370,35 @@ export default function DeliverablePage() {
         });
       }
 
-      // Apply status filter if not 'all'
+      // Apply status filter if not 'all' - make it case insensitive
       if (statusFilter !== 'all') {
-        filtered = filtered.filter(backlink => backlink.Status === statusFilter);
+        filtered = filtered.filter(backlink => {
+          const status = String(backlink['Portal Status'] || backlink.Status || '').toLowerCase();
+          return status === statusFilter.toLowerCase();
+        });
       }
 
-      // Apply DR filter if not 'all'
+      // Apply DR filter if not 'all' - handle the "50+", "60+", "70+" format
       if (drFilter !== 'all') {
-        const [min, max] = drFilter.split('-').map(Number);
+        const minRating = parseInt(drFilter, 10);
+        console.log(`Applying DR filter with minimum rating: ${minRating}`);
+        
+        // Log the first few backlinks with their DR values before filtering
+        if (filtered.length > 0) {
+          console.log('Sample backlinks with DR values before filtering:');
+          filtered.slice(0, 3).forEach((backlink, index) => {
+            const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
+            console.log(`Backlink ${index} - Domain: ${backlink.Domain || backlink['Domain URL']}, DR: ${dr}`);
+          });
+        }
+        
         filtered = filtered.filter(backlink => {
-          const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || 0);
-          return dr >= min && (max ? dr <= max : true);
+          const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
+          const passes = !isNaN(minRating) && dr >= minRating;
+          return passes;
         });
+        
+        console.log(`After DR filtering: ${filtered.length} backlinks remain`);
       }
 
       // Apply sorting
@@ -532,9 +570,10 @@ export default function DeliverablePage() {
                         onChange={(e) => setStatusFilter(e.target.value)}
                       >
                         <option value="all">All Statuses</option>
-                        <option value="Live">Live</option>
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="Rejected">Rejected</option>
+                        <option value="live">Live</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="pending">Pending</option>
                       </select>
                       <select
                         className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
@@ -542,9 +581,12 @@ export default function DeliverablePage() {
                         onChange={(e) => setDrFilter(e.target.value)}
                       >
                         <option value="all">All DR</option>
-                        <option value="50+">DR 50+</option>
-                        <option value="60+">DR 60+</option>
-                        <option value="70+">DR 70+</option>
+                        <option value="30">DR 30+</option>
+                        <option value="40">DR 40+</option>
+                        <option value="50">DR 50+</option>
+                        <option value="60">DR 60+</option>
+                        <option value="70">DR 70+</option>
+                        <option value="80">DR 80+</option>
                       </select>
                     </div>
                     {(statusFilter !== 'all' || drFilter !== 'all') && (
@@ -1047,11 +1089,11 @@ export default function DeliverablePage() {
                                 </TableCell>
                                 <TableCell className="w-[8%] pl-4">
                                   <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
-                                    ${backlink.Status === 'Live' ? 'bg-green-100 text-green-800' :
-                                    backlink.Status === 'Scheduled' ? 'bg-yellow-200 text-yellow-800' :
-                                    backlink.Status === 'Rejected' ? 'bg-red-200 text-red-800' :
+                                    ${(String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live') ? 'bg-green-100 text-green-800' :
+                                    (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'scheduled') ? 'bg-yellow-200 text-yellow-800' :
+                                    (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'rejected') ? 'bg-red-200 text-red-800' :
                                     'bg-gray-100 text-gray-800'}`}>
-                                    {String(backlink.Status || 'Unknown Status')}
+                                    {String(backlink['Portal Status'] || backlink.Status || 'Unknown Status')}
                                   </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-4 text-base text-dark w-[8%]">
