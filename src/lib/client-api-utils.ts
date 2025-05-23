@@ -8,8 +8,8 @@ import * as mockData from './mock-data';
 import { getFromCacheOrFetch, clearCacheByPrefix, clearCacheEntry } from './client-cache';
 
 // Cache keys
-const WQA_TASKS_CACHE_KEY = 'wqa-tasks';
-const CRO_TASKS_CACHE_KEY = 'cro-tasks';
+const WQA_TASKS_CACHE_KEY = 'wqa_tasks';
+const CRO_TASKS_CACHE_KEY = 'cro_tasks';
 
 /**
  * Generic function to fetch data from the API
@@ -482,50 +482,96 @@ export async function addApprovalComment(
 }
 
 /**
- * Fetch WQA task data for the Task Boards page
- * @param boardType Type of task board to fetch (technicalSEO, cro, strategyAdHoc)
+ * Fetch WQA tasks from the API
+ * @param boardType Type of board (technicalSEO, strategyAdHoc)
  * @param signal Optional AbortSignal for cancellation
  * @param useCache Whether to use cached data
- * @returns Array of WQA tasks for the specified board type
+ * @param clientId Optional client ID for filtering
+ * @returns Array of WQA tasks
  */
 export async function fetchWQATasks(
   boardType: string,
   signal?: AbortSignal,
-  useCache: boolean = true
+  useCache: boolean = true,
+  clientId?: string | null
 ) {
   // Create a cache key based on the board type
-  const cacheKey = `wqa_tasks_${boardType}`;
+  const cacheKey = `${WQA_TASKS_CACHE_KEY}_${boardType}`;
+  
+  // Always clear the cache before fetching new data to avoid stale data issues
+  if (!useCache) {
+    localStorage.removeItem(cacheKey);
+    console.log(`Cleared cache for ${cacheKey}`);
+  }
+  
+  // Check cache first if useCache is true
+  if (useCache) {
+    const cachedTasks = localStorage.getItem(cacheKey);
+    if (cachedTasks) {
+      try {
+        const parsedTasks = JSON.parse(cachedTasks);
+        console.log(`Using cached WQA tasks for ${boardType}:`, parsedTasks.length);
+        
+        // If clientId is provided, filter the cached tasks
+        if (clientId && clientId !== 'all') {
+          console.log(`Filtering cached WQA tasks by client: ${clientId}`);
+          return parsedTasks.filter((task: any) => {
+            // Check Clients field (array or string)
+            if (task.Clients) {
+              if (Array.isArray(task.Clients)) {
+                return task.Clients.includes(clientId);
+              } else {
+                return task.Clients === clientId;
+              }
+            }
+            // Check Client field (array or string)
+            if (task.Client) {
+              if (Array.isArray(task.Client)) {
+                return task.Client.includes(clientId);
+              } else {
+                return task.Client === clientId;
+              }
+            }
+            return false;
+          });
+        }
+        
+        return parsedTasks;
+      } catch (error) {
+        console.error(`Error parsing cached WQA tasks for ${boardType}:`, error);
+        // Continue to fetch from API
+      }
+    }
+  } else {
+    console.log(`Bypassing cache and fetching fresh WQA tasks for ${boardType}`);
+  }
 
-  return getFromCacheOrFetch(
-    cacheKey,
-    async () => {
-      // Prepare the API endpoint with board type as a query parameter
-      const endpoint = `wqa-tasks?type=${encodeURIComponent(boardType)}`;
-      
-      // Use the generic fetchFromApi function to make the request
-      const response = await fetchFromApi(
-        endpoint,
-        { method: 'GET' },
-        // Fallback mock data based on board type
-        mockData.mockTasks.filter(task => {
-          // Filter mock tasks based on board type
-          // This is just for fallback purposes
-          if (boardType === 'technicalSEO') {
-            return (task as any).Type === 'Technical SEO' || (task as any).Type === 'WQA';
-          } else if (boardType === 'cro') {
-            return (task as any).Type === 'CRO';
-          } else if (boardType === 'strategyAdHoc') {
-            return (task as any).Type === 'Strategy' || (task as any).Type === 'Ad Hoc';
-          }
-          return false;
-        }),
-        signal
-      );
-
-      return response;
-    },
-    5 * 60 * 1000 // 5 minutes cache expiration
+  // Add timestamp to prevent browser caching
+  const timestamp = new Date().getTime();
+  
+  // Create the URL with parameters
+  let url = `wqa-tasks?type=${encodeURIComponent(boardType)}&t=${timestamp}`;
+  
+  // Add clientId parameter if provided
+  if (clientId && clientId !== 'all') {
+    url += `&clientId=${encodeURIComponent(clientId)}`;
+  }
+  
+  // Fetch from API with parameters
+  const response = await fetchFromApi(
+    url,
+    { method: 'GET' },
+    { tasks: [] }, // Default empty array if API fails
+    signal
   );
+
+  // Cache the response if useCache is true
+  if (useCache && response.tasks && Array.isArray(response.tasks)) {
+    localStorage.setItem(cacheKey, JSON.stringify(response.tasks));
+    console.log(`Cached ${response.tasks.length} WQA tasks for ${boardType}`);
+  }
+
+  return response.tasks || [];
 }
 
 /**
@@ -641,8 +687,14 @@ export async function fetchWQATaskComments(
  * Clear the WQA tasks cache
  */
 export function clearWQATasksCache() {
-  clearCacheByPrefix('wqa_tasks_');
+  // Clear all WQA task caches
+  localStorage.removeItem(`${WQA_TASKS_CACHE_KEY}_technicalSEO`);
+  localStorage.removeItem(`${WQA_TASKS_CACHE_KEY}_strategyAdHoc`);
+  
+  // Also clear comments cache
   clearCacheByPrefix('wqa_task_comments_');
+  
+  console.log('Cleared all WQA tasks caches');
 }
 
 /**
@@ -771,11 +823,12 @@ export async function createWQATask(taskData: {
 }
 
 /**
- * Get CRO tasks
- * @param useCache Whether to use cached data (default: false)
+ * Fetch CRO tasks from the API
+ * @param useCache Whether to use cached data
+ * @param clientId Optional client ID for filtering
  * @returns Array of CRO tasks
  */
-export async function getCROTasks(useCache: boolean = false) {
+export async function getCROTasks(useCache: boolean = false, clientId?: string | null) {
   // Always clear the cache before fetching new data to avoid stale data issues
   localStorage.removeItem(CRO_TASKS_CACHE_KEY);
   
@@ -786,6 +839,31 @@ export async function getCROTasks(useCache: boolean = false) {
       try {
         const parsedTasks = JSON.parse(cachedTasks);
         console.log('Using cached CRO tasks:', parsedTasks.length);
+        
+        // If clientId is provided, filter the cached tasks
+        if (clientId && clientId !== 'all') {
+          console.log(`Filtering cached CRO tasks by client: ${clientId}`);
+          return parsedTasks.filter((task: any) => {
+            // Check Clients field (array or string)
+            if (task.Clients) {
+              if (Array.isArray(task.Clients)) {
+                return task.Clients.includes(clientId);
+              } else {
+                return task.Clients === clientId;
+              }
+            }
+            // Check Client field (array or string)
+            if (task.Client) {
+              if (Array.isArray(task.Client)) {
+                return task.Client.includes(clientId);
+              } else {
+                return task.Client === clientId;
+              }
+            }
+            return false;
+          });
+        }
+        
         return parsedTasks;
       } catch (error) {
         console.error('Error parsing cached CRO tasks:', error);
@@ -799,9 +877,17 @@ export async function getCROTasks(useCache: boolean = false) {
   // Add timestamp to prevent browser caching
   const timestamp = new Date().getTime();
   
-  // Fetch from API with timestamp parameter
+  // Create the URL with parameters
+  let url = `cro-tasks?t=${timestamp}`;
+  
+  // Add clientId parameter if provided
+  if (clientId && clientId !== 'all') {
+    url += `&clientId=${encodeURIComponent(clientId)}`;
+  }
+  
+  // Fetch from API with parameters
   const response = await fetchFromApi(
-    `cro-tasks?t=${timestamp}`,
+    url,
     {},
     { tasks: [] } // Default empty array if API fails
   );

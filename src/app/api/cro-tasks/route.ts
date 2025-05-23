@@ -25,7 +25,15 @@ export async function GET(request: NextRequest) {
     console.log('User Client:', userClient);
 
     // Parse client IDs if present
-    const clientIds = userClient ? JSON.parse(userClient) : [];
+    let clientIds = null;
+    try {
+      if (userClient) {
+        clientIds = JSON.parse(userClient);
+        console.log('Parsed client IDs:', clientIds);
+      }
+    } catch (e) {
+      console.error('Error parsing client IDs:', e);
+    }
 
     // Check if we have the required API keys
     if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
@@ -40,7 +48,12 @@ export async function GET(request: NextRequest) {
 
     try {
       // Fetch CRO tasks with user filtering
-      const tasks = await getCROTasks(userId, userRole, clientIds);
+      // For Client role, we should always use clientIds for filtering, not userId
+      const tasks = await getCROTasks(
+        userRole === 'Client' ? null : userId, // Only pass userId if not a client
+        userRole,
+        clientIds
+      );
 
       if (!tasks || tasks.length === 0) {
         console.log('API route: No CRO tasks found');

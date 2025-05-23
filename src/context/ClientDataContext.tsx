@@ -58,172 +58,37 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     }
   }, [clientId]);
 
-  // Initialize available clients based on user data
-  useEffect(() => {
-    if (user) {
-      setIsLoading(true);
+  // Helper function to format clients data
+  const formatClientsData = (clientsData: any[]) => {
+    return clientsData.map(client => ({
+      id: client.id,
+      name: client.Name || `Client ${client.id.substring(0, 5)}`
+    }));
+  };
 
-      const fetchClientData = async () => {
-        // Initialize the client cache for the getClientName utility
-        try {
-          await getClientNameSync('init-cache');
-          console.log('Client cache initialized');
-        } catch (error) {
-          console.error('Error initializing client cache:', error);
-        }
-        try {
-          // If user has Clients field and is a Client role
-          if (user.Clients && user.Role === 'Client') {
-            // Ensure Clients is an array
-            const clientIds = Array.isArray(user.Clients) ? user.Clients : [user.Clients];
-
-            // Fetch all clients to get their names
-            const { fetchClients } = await import('@/lib/client-api');
-            const allClients = await fetchClients();
-
-            // Filter clients to only include those assigned to this user
-            const userClients = allClients
-              .filter((client: { id: string; Name?: string }) => clientIds.includes(client.id))
-              .map((client: { id: string; Name?: string }) => ({
-                id: client.id,
-                name: client.Name || `Client ${client.id.substring(0, 5)}`
-              }));
-
-            setAvailableClients(userClients);
-
-            // Set default client ID to first client only if clientId is not set
-            if (userClients.length > 0 && !clientId) {
-              setClientId(userClients[0].id);
-            }
-          } else if (user.Role === 'Admin') {
-            // For admin users, fetch all clients from Airtable
-            const { fetchClients } = await import('@/lib/client-api');
-            console.log('Fetching clients for admin user...');
-
-            try {
-              // Create an AbortController for the fetch request
-              const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-              // Pass the signal to fetchClients
-              const allClients = await fetchClients(controller.signal);
-              clearTimeout(timeoutId);
-
-              console.log('Successfully fetched clients:', allClients.length);
-
-              // Clear any Airtable connection issues flag since we successfully fetched data
-              if (typeof window !== 'undefined') {
-                console.log('Clearing airtable-connection-issues flag');
-                localStorage.removeItem('airtable-connection-issues');
-                localStorage.removeItem('use-mock-data');
-              }
-
-              // Create client options with id and name
-              const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
-                id: client.id,
-                name: client.Name || `Client ${client.id.substring(0, 5)}`
-              }));
-
-              console.log('Client options:', clientOptions);
-
-              // Add "All Clients" option at the beginning
-              setAvailableClients([
-                { id: 'all', name: 'All Clients' },
-                ...clientOptions
-              ]);
-            } catch (error) {
-              console.error('Error fetching clients:', error);
-              setIsLoading(false);
-
-              // Set a fallback client list with just "All Clients"
-              setAvailableClients([
-                { id: 'all', name: 'All Clients' }
-              ]);
-            }
-
-            // Set default client ID to 'all' only if clientId is not set
-            if (!clientId) {
-              setClientId('all');
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching clients:', error);
-
-          // Fallback for client users
-          if (user.Clients && user.Role === 'Client') {
-            const clientIds = Array.isArray(user.Clients) ? user.Clients : [user.Clients];
-            const clients = clientIds.map(id => ({
-              id,
-              name: `Client ${id.substring(0, 5)}` // Use part of ID as name for demo
-            }));
-
-            setAvailableClients(clients);
-
-            if (clients.length > 0 && !clientId) {
-              setClientId(clients[0].id);
-            }
-          } else if (user.Role === 'Admin') {
-            // Fallback for admin users
-            setAvailableClients([
-              { id: 'all', name: 'All Clients' }
-            ]);
-
-            if (!clientId) {
-              setClientId('all');
-            }
-          }
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchClientData();
-    }
-  }, [user]);
+  // Helper function to get default client ID based on user role
+  const getDefaultClientId = (clients: { id: string; name: string }[], userRole?: string) => {
+    if (clients.length === 0) return null;
+    
+    return userRole === 'Client' ? clients[0].id : 'all';
+  };
 
   // Helper function to check if an item matches the client ID
   const itemMatchesClient = (item: any, clientIdToMatch: string) => {
-    // Check Clients field first (standard field)
-    if (item.Clients) {
-      if (Array.isArray(item.Clients)) {
-        const includes = item.Clients.includes(clientIdToMatch);
-        console.log('Item Clients is array:', item.Clients, 'includes clientId:', includes);
-        return includes;
-      } else {
-        const matches = item.Clients === clientIdToMatch;
-        console.log('Item Clients is string:', item.Clients, 'matches clientId:', matches);
-        return matches;
+    // Check all possible client field variations
+    const clientFields = ['Clients', 'Client', 'clients', 'client'];
+    
+    for (const field of clientFields) {
+      const value = item[field];
+      if (value !== undefined) {
+        if (Array.isArray(value)) {
+          return value.includes(clientIdToMatch);
+        } else {
+          return value === clientIdToMatch;
+        }
       }
     }
     
-    // Check Client field (uppercase) for Airtable data
-    if (item.Client) {
-      if (Array.isArray(item.Client)) {
-        const includes = item.Client.includes(clientIdToMatch);
-        console.log('Item Client is array:', item.Client, 'includes clientId:', includes);
-        return includes;
-      } else {
-        const matches = item.Client === clientIdToMatch;
-        console.log('Item Client is string:', item.Client, 'matches clientId:', matches);
-        return matches;
-      }
-    }
-    
-    // Fall back to client field (lowercase) if others are not present
-    if (item.client) {
-      if (Array.isArray(item.client)) {
-        const includes = item.client.includes(clientIdToMatch);
-        console.log('Item client is array:', item.client, 'includes clientId:', includes);
-        return includes;
-      } else {
-        const matches = item.client === clientIdToMatch;
-        console.log('Item client is string:', item.client, 'matches clientId:', matches);
-        return matches;
-      }
-    }
-    
-    // If neither field is present, return false
-    console.log('Item has no client field:', item);
     return false;
   };
 
@@ -256,18 +121,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
 
       console.log('Admin filtering by specific client:', clientId);
       
-      // Try to detect if we're filtering backlinks
-      const isBacklinksData = data.length > 0 && (
-        (data[0] as any)?.contentType === 'backlinks' || 
-        (data[0] as any)?.domainRating !== undefined || 
-        (data[0] as any)?.linkType !== undefined
-      );
-      
-      if (isBacklinksData) {
-        console.log('Detected backlinks data, using Client field instead of All Clients');
-      }
-
-      // Filter based on client ID and backlinks detection
+      // Filter based on client ID
       const filtered = data.filter(item => itemMatchesClient(item, clientId));
       console.log('Filtered data length:', filtered.length);
       return filtered;
@@ -290,87 +144,47 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       }
 
       console.log('Client user filtering by client ID:', filterClientId);
-      console.log('Client user data:', user);
-      console.log('Available clients for this user:', availableClients);
       
-      // Try to detect if we're filtering backlinks
-      const isBacklinksData = data.length > 0 && 
-        (data[0] as any).contentType === 'backlinks' || 
-        (data[0] as any).domainRating !== undefined || 
-        (data[0] as any).linkType !== undefined;
-      
-      if (isBacklinksData) {
-        console.log('Detected backlinks data, using Client field instead of All Clients');
-      }
-      
-      // Filter based on client ID and backlinks detection
+      // Filter based on client ID
       const filteredData = data.filter(item => itemMatchesClient(item, filterClientId as string));
       console.log(`Filtered data for client ${filterClientId}: ${filteredData.length} items out of ${data.length}`);
       
       return filteredData;
     }
 
-    // For other users (not admin or client), filter by assigned items
+    // For other users (not admin or client)
     // If no client ID is selected, filter by assignments
     if (!clientId) {
       console.log('Non-admin/client user with no client ID selected, filtering by assignments');
       
       return data.filter(item => {
         // Check if the item is assigned to this user in any capacity
-        const isAssigned =
-          // Check AssignedTo field (for tasks)
-          (item.AssignedTo && (
-            (Array.isArray(item.AssignedTo) && item.AssignedTo.includes(user.id)) ||
-            (item.AssignedTo === user.id)
-          )) ||
-          // Check Writer field (for articles)
-          (item.Writer && (
-            (Array.isArray(item.Writer) && item.Writer.includes(user.id)) ||
-            (item.Writer === user.id)
-          )) ||
-          // Check Editor field (for articles)
-          (item.Editor && (
-            (Array.isArray(item.Editor) && item.Editor.includes(user.id)) ||
-            (item.Editor === user.id)
-          )) ||
-          // Check SEO Strategist field (for briefs)
-          (item.SEOStrategist && (
-            (Array.isArray(item.SEOStrategist) && item.SEOStrategist.includes(user.id)) ||
-            (item.SEOStrategist === user.id)
-          )) ||
-          // Check Content Writer field (for briefs)
-          (item.ContentWriter && (
-            (Array.isArray(item.ContentWriter) && item.ContentWriter.includes(user.id)) ||
-            (item.ContentWriter === user.id)
-          )) ||
-          // Check Content Editor field (for briefs)
-          (item.ContentEditor && (
-            (Array.isArray(item.ContentEditor) && item.ContentEditor.includes(user.id)) ||
-            (item.ContentEditor === user.id)
-          ));
-
-        return isAssigned;
+        const assignmentFields = [
+          'AssignedTo', 'Writer', 'Editor', 'SEOStrategist', 
+          'ContentWriter', 'ContentEditor'
+        ];
+        
+        return assignmentFields.some(field => {
+          const value = item[field];
+          if (!value) return false;
+          
+          if (Array.isArray(value)) {
+            return value.includes(user.id);
+          } else {
+            return value === user.id;
+          }
+        });
       });
     }
 
     // If a client ID is selected, filter by that client ID
     console.log('Non-admin/client user with client ID selected, filtering by client:', clientId);
     
-    // Try to detect if we're filtering backlinks
-    const isBacklinksData = data.length > 0 && 
-      (data[0] as any).contentType === 'backlinks' || 
-      (data[0] as any).domainRating !== undefined || 
-      (data[0] as any).linkType !== undefined;
-    
-    if (isBacklinksData) {
-      console.log('Detected backlinks data, using Client field instead of All Clients');
-    }
-    
-    // Filter based on client ID and backlinks detection
+    // Filter based on client ID
     return data.filter(item => itemMatchesClient(item, clientId));
   };
 
-  // Function to load clients from API
+  // Function to load clients from API with caching
   const loadClients = async () => {
     try {
       setIsLoading(true);
@@ -380,11 +194,15 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
       
-      // First check if we have cached client data
+      // Check for cached client data
       const cachedClients = typeof window !== 'undefined' ? 
         localStorage.getItem('cached-clients-data') : null;
       const cacheTimestamp = typeof window !== 'undefined' ? 
         localStorage.getItem('cached-clients-timestamp') : null;
+      
+      // Get current user from localStorage
+      const currentUser = typeof window !== 'undefined' ? 
+        JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
       
       // Use cache if it exists and is less than 15 minutes old
       if (cachedClients && cacheTimestamp) {
@@ -398,14 +216,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
               
               // Set default client ID if needed
               if (parsedClients.length > 0 && !clientId) {
-                const currentUser = typeof window !== 'undefined' ? 
-                  JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
-                
-                if (currentUser?.Role === 'Client') {
-                  setClientId(parsedClients[0].id);
-                } else {
-                  setClientId('all');
-                }
+                setClientId(getDefaultClientId(parsedClients, currentUser?.Role));
               }
               
               // Still fetch fresh data in the background
@@ -415,15 +226,9 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
                     console.log('Updating cached client data with fresh data');
                     
                     // Format clients properly
-                    const formattedClients = freshClients.map(client => ({
-                      id: client.id,
-                      name: client.Name || `Client ${client.id.substring(0, 5)}`
-                    }));
+                    const formattedClients = formatClientsData(freshClients);
                     
                     // Add "All Clients" option for non-client users
-                    const currentUser = typeof window !== 'undefined' ? 
-                      JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
-                    
                     const clientsWithAll = currentUser?.Role !== 'Client' ? 
                       [{ id: 'all', name: 'All Clients' }, ...formattedClients] : 
                       formattedClients;
@@ -461,15 +266,9 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       console.log('Successfully fetched clients:', fetchedClients.length);
       
       // Format clients properly
-      const formattedClients = fetchedClients.map(client => ({
-        id: client.id,
-        name: client.Name || `Client ${client.id.substring(0, 5)}`
-      }));
+      const formattedClients = formatClientsData(fetchedClients);
       
       // Add "All Clients" option for non-client users
-      const currentUser = typeof window !== 'undefined' ? 
-        JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
-      
       const clientsWithAll = currentUser?.Role !== 'Client' ? 
         [{ id: 'all', name: 'All Clients' }, ...formattedClients] : 
         formattedClients;
@@ -484,77 +283,163 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       
       // If there are clients and no client is selected, select the first one
       if (clientsWithAll.length > 0 && !clientId) {
-        // For non-client users, select "All Clients" by default
-        // For client users, select their first client
-        if (currentUser?.Role === 'Client') {
-          setClientId(clientsWithAll[0].id);
-        } else {
-          setClientId('all');
-        }
+        setClientId(getDefaultClientId(clientsWithAll, currentUser?.Role));
       }
     } catch (error) {
       console.error('Error loading clients:', error);
       
-      // Check for cached data as fallback
-      const cachedClients = typeof window !== 'undefined' ? 
-        localStorage.getItem('cached-clients-data') : null;
-      
-      if (cachedClients) {
-        try {
-          const parsedClients = JSON.parse(cachedClients);
-          console.log('Using cached client data after fetch error');
-          setAvailableClients(parsedClients);
-          
-          // Set default client ID if needed
-          if (parsedClients.length > 0 && !clientId) {
-            const currentUser = typeof window !== 'undefined' ? 
-              JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
-            
-            if (currentUser?.Role === 'Client') {
-              setClientId(parsedClients[0].id);
-            } else {
-              setClientId('all');
-            }
-          }
-          
-          setIsLoading(false);
-          return;
-        } catch (e) {
-          console.error('Error parsing cached client data:', e);
-        }
-      }
-      
-      // Last resort fallback - create a minimal client list
-      const currentUser = typeof window !== 'undefined' ? 
-        JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
-      
-      if (currentUser?.Role === 'Client' && currentUser?.Clients) {
-        // For client users, create entries based on their assigned clients
-        const clientIds = Array.isArray(currentUser.Clients) ? 
-          currentUser.Clients : [currentUser.Clients];
-        
-        const fallbackClients = clientIds.map((id: string) => ({
-          id,
-          name: `Client ${id.substring(0, 5)}` // Use part of ID as name
-        }));
-        
-        setAvailableClients(fallbackClients);
-        
-        if (fallbackClients.length > 0 && !clientId) {
-          setClientId(fallbackClients[0].id);
-        }
-      } else {
-        // For admin/other users, just provide "All Clients" option
-        setAvailableClients([{ id: 'all', name: 'All Clients' }]);
-        
-        if (!clientId) {
-          setClientId('all');
-        }
-      }
+      // Handle error cases with fallbacks
+      handleClientLoadingError();
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Helper function to handle client loading errors
+  const handleClientLoadingError = () => {
+    // Check for cached data as fallback
+    const cachedClients = typeof window !== 'undefined' ? 
+      localStorage.getItem('cached-clients-data') : null;
+    
+    const currentUser = typeof window !== 'undefined' ? 
+      JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+    
+    if (cachedClients) {
+      try {
+        const parsedClients = JSON.parse(cachedClients);
+        console.log('Using cached client data after fetch error');
+        setAvailableClients(parsedClients);
+        
+        // Set default client ID if needed
+        if (parsedClients.length > 0 && !clientId) {
+          setClientId(getDefaultClientId(parsedClients, currentUser?.Role));
+        }
+        return;
+      } catch (e) {
+        console.error('Error parsing cached client data:', e);
+      }
+    }
+    
+    // Last resort fallback - create a minimal client list
+    if (currentUser?.Role === 'Client' && currentUser?.Clients) {
+      // For client users, create entries based on their assigned clients
+      const clientIds = Array.isArray(currentUser.Clients) ? 
+        currentUser.Clients : [currentUser.Clients];
+      
+      const fallbackClients = clientIds.map((id: string) => ({
+        id,
+        name: `Client ${id.substring(0, 5)}` // Use part of ID as name
+      }));
+      
+      setAvailableClients(fallbackClients);
+      
+      if (fallbackClients.length > 0 && !clientId) {
+        setClientId(fallbackClients[0].id);
+      }
+    } else {
+      // For admin/other users, just provide "All Clients" option
+      setAvailableClients([{ id: 'all', name: 'All Clients' }]);
+      
+      if (!clientId) {
+        setClientId('all');
+      }
+    }
+  };
+
+  // Initialize available clients based on user data
+  useEffect(() => {
+    if (user) {
+      setIsLoading(true);
+
+      const fetchClientData = async () => {
+        // Initialize the client cache for the getClientName utility
+        try {
+          await getClientNameSync('init-cache');
+          console.log('Client cache initialized');
+        } catch (error) {
+          console.error('Error initializing client cache:', error);
+        }
+        try {
+          // If user has Clients field and is a Client role
+          if (user.Clients && user.Role === 'Client') {
+            // Ensure Clients is an array
+            const clientIds = Array.isArray(user.Clients) ? user.Clients : [user.Clients];
+
+            // Fetch all clients to get their names
+            const allClients = await fetchClients();
+
+            // Filter clients to only include those assigned to this user
+            const userClients = allClients
+              .filter((client: { id: string; Name?: string }) => clientIds.includes(client.id))
+              .map((client: { id: string; Name?: string }) => ({
+                id: client.id,
+                name: client.Name || `Client ${client.id.substring(0, 5)}`
+              }));
+
+            setAvailableClients(userClients);
+
+            // Set default client ID to first client only if clientId is not set
+            if (userClients.length > 0 && !clientId) {
+              setClientId(userClients[0].id);
+            }
+          } else if (user.Role === 'Admin') {
+            // For admin users, fetch all clients from Airtable
+            console.log('Fetching clients for admin user...');
+
+            try {
+              // Create an AbortController for the fetch request
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+              // Pass the signal to fetchClients
+              const allClients = await fetchClients(controller.signal);
+              clearTimeout(timeoutId);
+
+              console.log('Successfully fetched clients:', allClients.length);
+
+              // Clear any Airtable connection issues flag since we successfully fetched data
+              if (typeof window !== 'undefined') {
+                console.log('Clearing airtable-connection-issues flag');
+                localStorage.removeItem('airtable-connection-issues');
+                localStorage.removeItem('use-mock-data');
+              }
+
+              // Create client options with id and name
+              const clientOptions = formatClientsData(allClients);
+
+              console.log('Client options:', clientOptions);
+
+              // Add "All Clients" option at the beginning
+              setAvailableClients([
+                { id: 'all', name: 'All Clients' },
+                ...clientOptions
+              ]);
+            } catch (error) {
+              console.error('Error fetching clients:', error);
+              setIsLoading(false);
+
+              // Set a fallback client list with just "All Clients"
+              setAvailableClients([
+                { id: 'all', name: 'All Clients' }
+              ]);
+            }
+
+            // Set default client ID to 'all' only if clientId is not set
+            if (!clientId) {
+              setClientId('all');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching clients:', error);
+          handleClientLoadingError();
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchClientData();
+    }
+  }, [user]);
 
   useEffect(() => {
     // Load clients from API

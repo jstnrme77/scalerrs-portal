@@ -17,12 +17,31 @@ export async function GET(request: NextRequest) {
     const userRole = request.headers.get('x-user-role');
     const userClient = request.headers.get('x-user-client');
 
+    // Parse the URL to get query parameters
+    const url = new URL(request.url);
+    const clientIdParam = url.searchParams.get('clientId');
+    
     console.log('User ID:', userId);
     console.log('User Role:', userRole);
     console.log('User Client:', userClient);
+    console.log('Client ID from query parameter:', clientIdParam);
 
-    // Parse client IDs if present
-    const clientIds = userClient ? JSON.parse(userClient) : [];
+    // Parse client IDs from headers if present
+    let clientIds = null;
+    try {
+      if (userClient) {
+        clientIds = JSON.parse(userClient);
+        console.log('Parsed client IDs from header:', clientIds);
+      }
+    } catch (e) {
+      console.error('Error parsing client IDs from header:', e);
+    }
+    
+    // If clientId is provided in the query parameters, use it
+    if (clientIdParam && clientIdParam !== 'all') {
+      console.log('Using client ID from query parameter:', clientIdParam);
+      clientIds = [clientIdParam];
+    }
 
     // Check if we have the required API keys
     if (!process.env.AIRTABLE_API_KEY || !process.env.AIRTABLE_BASE_ID) {
@@ -37,7 +56,12 @@ export async function GET(request: NextRequest) {
 
     try {
       // Fetch WQA tasks with user filtering
-      const tasks = await getWQATasks(userId, userRole, clientIds);
+      // For Client role, we should always use clientIds for filtering, not userId
+      const tasks = await getWQATasks(
+        userRole === 'Client' ? null : userId, // Only pass userId if not a client
+        userRole,
+        clientIds
+      );
 
       if (!tasks || tasks.length === 0) {
         console.log('API route: No WQA tasks found');

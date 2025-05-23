@@ -1229,7 +1229,7 @@ export default function TaskBoards() {
         let response;
         if (activeBoard === 'cro') {
           // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
-          response = await getCROTasks(false);
+          response = await getCROTasks(false, clientId);
           console.log('Raw CRO response:', response);
           
           // Log the first task's fields if available
@@ -1247,7 +1247,9 @@ export default function TaskBoards() {
           }
         } else {
           // Use WQA API for other boards
-          response = await fetchWQATasks(activeBoard);
+          // Pass clientId for filtering on the server side and set useCache to false to get fresh data
+          response = await fetchWQATasks(activeBoard, undefined, false, clientId);
+          console.log('Raw WQA response:', response);
         }
         
         console.log(`${activeBoard} Tasks Response:`, response);
@@ -1433,7 +1435,7 @@ export default function TaskBoards() {
     };
 
     fetchTasksForBoard();
-  }, [activeBoard]);
+  }, [activeBoard, clientId]);
 
   // Apply client filtering when clientId changes
   useEffect(() => {
@@ -1511,10 +1513,12 @@ export default function TaskBoards() {
       let response;
       if (activeBoard === 'cro') {
         // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
-        response = await getCROTasks(false);
+        // Pass clientId for filtering on the server side
+        response = await getCROTasks(false, clientId);
       } else {
         // Use WQA API for other boards
-        response = await fetchWQATasks(activeBoard);
+        // Pass clientId for filtering on the server side and set useCache to false to get fresh data
+        response = await fetchWQATasks(activeBoard, undefined, false, clientId);
       }
       
       console.log(`${activeBoard} Tasks Response:`, response);
@@ -1564,7 +1568,10 @@ export default function TaskBoards() {
           'Created At': task['Created At'],
           'Due Date': task['Due Date'],
           'Completed Date': task['Completed Date'],
-          Notes: task.Notes
+          Notes: task.Notes,
+          // Ensure Client/Clients fields are preserved for client filtering
+          Client: task.Client,
+          Clients: task.Clients
         });
         
         console.log('Mapped task:', mappedTask);
@@ -1589,10 +1596,10 @@ export default function TaskBoards() {
         ...tasksForBoard
       }));
       
-      // Apply client filtering
-      if (clientId) {
-        // Filter tasks by client using our custom filter function instead of filterDataByClient
-        // Pass the mapped tasks from tasksForBoard, not the raw tasks
+      // Since we're now filtering on the server side, we can just use the tasks as-is
+      // But we'll still apply client filtering on the client side as a backup
+      if (clientId && clientId !== 'all') {
+        // Filter tasks by client using our custom filter function
         const currentBoardTasks = tasksForBoard[activeBoard as keyof typeof tasksForBoard] || [];
         filterTasks(currentBoardTasks);
       } else {
