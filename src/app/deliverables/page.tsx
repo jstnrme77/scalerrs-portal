@@ -6,6 +6,7 @@ import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ensureUrlProtocol } from '@/utils/field-utils';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
+import { useClientData } from '@/context/ClientDataContext';
 
 // Define types for tabs
 type MainTab = 'briefs' | 'articles' | 'backlinks';
@@ -13,6 +14,7 @@ type MainTab = 'briefs' | 'articles' | 'backlinks';
 export default function DeliverablePage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
   const [selectedMonth, setSelectedMonth] = useState<string>('January 2025');
+  const { clientId, filterDataByClient } = useClientData();
 
   // State for Airtable data
   const [loading, setLoading] = useState(true);
@@ -116,6 +118,14 @@ export default function DeliverablePage() {
 
         console.log('Starting to fetch deliverables data...');
         console.log('Selected month:', selectedMonth);
+        console.log('Selected client:', clientId);
+
+        // Get current user from localStorage
+        const currentUser = typeof window !== 'undefined' ? 
+          JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+        
+        console.log('Current user from localStorage:', currentUser ? 
+          `${currentUser.Name} (${currentUser.Role})` : 'Not logged in');
 
         // Fetch each data type separately to better handle errors
         let briefsData = [];
@@ -254,15 +264,22 @@ export default function DeliverablePage() {
 
   // Filter and sort data
   useEffect(() => {
+    console.log('Filtering data for month:', selectedMonth);
+    console.log('Filtering data for client:', clientId);
+    console.log('Current briefs data length:', briefs.length);
+    console.log('Current articles data length:', articles.length);
+    console.log('Current backlinks data length:', backlinks.length);
+
     // Filter and sort briefs
     if (briefs.length > 0) {
       console.log('All briefs before filtering:', briefs.map(b => ({ id: b.id, Month: b.Month, Title: b.Title })));
       
-      // Start with all briefs for the current month
-      let filtered = briefs;
+      // First filter by client
+      const clientFiltered = filterDataByClient(briefs);
+      console.log('Client filtered briefs:', clientFiltered.length);
       
-      // If month filtering is already done at API level, we don't need to filter again
-      // But keep this check for safety
+      // Then filter by month
+      let filtered = clientFiltered;
       if (selectedMonth) {
         filtered = filtered.filter(brief => {
           const briefMonth = String(brief.Month || '');
@@ -286,11 +303,12 @@ export default function DeliverablePage() {
 
     // Filter and sort articles
     if (articles.length > 0) {
-      // Start with all articles for the current month
-      let filtered = articles;
+      // First filter by client
+      const clientFiltered = filterDataByClient(articles);
+      console.log('Client filtered articles:', clientFiltered.length);
       
-      // If month filtering is already done at API level, we don't need to filter again
-      // But keep this check for safety
+      // Then filter by month
+      let filtered = clientFiltered;
       if (selectedMonth) {
         filtered = filtered.filter(article => {
           const articleMonth = String(article.Month || '');
@@ -312,11 +330,12 @@ export default function DeliverablePage() {
 
     // Filter and sort backlinks
     if (backlinks.length > 0) {
-      // Start with all backlinks for the current month
-      let filtered = backlinks;
+      // First filter by client
+      const clientFiltered = filterDataByClient(backlinks);
+      console.log('Client filtered backlinks:', clientFiltered.length);
       
-      // If month filtering is already done at API level, we don't need to filter again
-      // But keep this check for safety
+      // Then filter by month
+      let filtered = clientFiltered;
       if (selectedMonth) {
         filtered = filtered.filter(backlink => {
           const backlinkMonth = String(backlink.Month || '');
@@ -344,7 +363,7 @@ export default function DeliverablePage() {
 
       setFilteredBacklinks(filtered);
     }
-  }, [briefs, articles, backlinks, selectedMonth, briefStatusFilter, articleStatusFilter, statusFilter, drFilter, briefSort, articleSort, backlinkSort]);
+  }, [briefs, articles, backlinks, selectedMonth, briefStatusFilter, articleStatusFilter, statusFilter, drFilter, briefSort, articleSort, backlinkSort, clientId, filterDataByClient]);
 
   // Note: Status change handlers have been removed as we're using table views instead of kanban boards
   // Status changes are not part of the deliverables page requirements
