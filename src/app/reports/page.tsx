@@ -14,6 +14,15 @@ import {
   Link2,
   ChartColumn,
   TrendingUp,
+  Edit,
+  AlertTriangle,
+  ArrowRight,
+  Info,
+  ArrowUpRight,
+  Video,
+  Users,
+  ThumbsUp,
+  LineChart as LineChartIcon,
 } from "lucide-react";
 import {
   BarChart,
@@ -49,16 +58,13 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
-  BiCheckCircle,
-  BiErrorCircle,
   BiMessageRoundedDetail,
-  BiCalendarCheck,
-  BiDownload,
   BiLinkExternal,
+  BiDownload,
   BiFilter,
-  BiChevronLeft,
-  BiChevronRight,
-  BiChevronDown,
+  BiErrorCircle,
+  BiCheckCircle,
+  BiVideo,
 } from "react-icons/bi";
 import {
   Dialog,
@@ -83,6 +89,36 @@ const monthFilterOptions = [
   { value: "2024-12", label: "December 2024" },
   { value: "2024-11", label: "November 2024" },
 ];
+
+// Colors for charts
+const COLORS = ['#9ea8fb', '#fcdc94', '#eadcff', '#ff9d7d', '#e5e7eb'];
+
+// Custom label function for pie charts
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.65;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <>
+      {/* Semi-transparent background for better readability */}
+      <circle cx={x} cy={y} r={14} fill="rgba(255,255,255,0.7)" />
+      {/* Larger, bolder text */}
+      <text 
+        x={x} 
+        y={y} 
+        fill="#333333" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        fontWeight="600"
+        fontSize="12"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    </>
+  );
+};
 
 // Sample report data
 const reports = {
@@ -329,197 +365,43 @@ const competitorData = [
   },
 ];
 
+// Sample lead source data
+const leadSourceData = [
+  { name: 'Organic Search', value: 65 },
+  { name: 'Direct', value: 15 },
+  { name: 'Referral', value: 10 },
+  { name: 'Social', value: 8 },
+  { name: 'Other', value: 2 },
+];
+
+// Sample lead conversion data
+const leadConversionData = [
+  { name: 'Lead', value: 126 },
+  { name: 'Qualified Lead', value: 186 },
+  { name: 'Conversion', value: 24 },
+];
+
+// Sample top movers
+const topMovers = [
+  { url: "/blog/seo-guide-2025", position: 1, change: 1, traffic: 4500, conversionRate: 28, revenue: 1260 },
+  { url: "/services/technical-seo", position: 2, change: 0, traffic: 3200, conversionRate: 24, revenue: 768 },
+  { url: "/case-studies/ecommerce", position: 3, change: -1, traffic: 2800, conversionRate: 20, revenue: 560 },
+];
+
 // Sample report content for demonstration
 const sampleReportContent = {
   weekly: (
     <div className="space-y-6">
-      {/* Timeframe Covered */}
-
-      {/* What We Did */}
+      {/* Quick Links - moved to top */}
       <div className="card bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">What We Did</h4>
-
-        <div className="space-y-4">
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">Content</h5>
-            <ul className="list-disc pl-6 text-base text-mediumGray">
-              <li>Published 3 new blog posts targeting high-intent keywords</li>
-              <li>
-                Updated 2 existing pages with fresh content and improved CTAs
-              </li>
-              <li>Created 5 new content briefs for upcoming articles</li>
-            </ul>
+        <h4 className="text-lg font-bold text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Link2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Quick Links</span>
           </div>
-
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">SEO</h5>
-            <ul className="list-disc pl-6 text-base text-mediumGray">
-              <li>Fixed 12 broken internal links</li>
-              <li>Improved page load speed on 5 key landing pages</li>
-              <li>Implemented schema markup on product pages</li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">Links</h5>
-            <ul className="list-disc pl-6 text-base text-mediumGray">
-              <li>Secured 4 new backlinks from DA 40+ websites</li>
-              <li>Initiated outreach to 15 potential link partners</li>
-              <li>Completed 3 guest post drafts for submission</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Deliverable Progress */}
-      <div className="card bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">
-          Deliverable Progress
         </h4>
-
-        <div className="space-y-4">
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">
-              Content Briefs Sent
-            </h5>
-            <div className="space-y-3">
-              {sampleBriefs.map((brief) => (
-                <div
-                  key={brief.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded"
-                >
-                  <div>
-                    <p className="text-base font-medium text-dark">
-                      {brief.title}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge
-                      variant={brief.status === "Sent" ? "success" : "warning"}
-                      className="text-sm px-3 py-1"
-                    >
-                      {brief.status}
-                    </Badge>
-                    <a
-                      href={brief.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80"
-                    >
-                      <BiLinkExternal size={20} />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">
-              Articles Published
-            </h5>
-            <div className="space-y-3">
-              {sampleArticles.map((article) => (
-                <div
-                  key={article.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded"
-                >
-                  <div>
-                    <p className="text-base font-medium text-dark">
-                      {article.title}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge variant="success" className="text-sm px-3 py-1">
-                      {article.status}
-                    </Badge>
-                    <a
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80"
-                    >
-                      <BiLinkExternal size={20} />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">
-              Backlinks Live
-            </h5>
-            <div className="space-y-3">
-              {sampleBacklinks.map((backlink) => (
-                <div
-                  key={backlink.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded"
-                >
-                  <div>
-                    <p className="text-base font-medium text-dark">
-                      {backlink.source}
-                    </p>
-                    <p className="text-sm text-mediumGray">
-                      Target: {backlink.targetUrl}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge variant="info" className="text-sm px-3 py-1">
-                      DR {backlink.dr}
-                    </Badge>
-                    <Badge variant="success" className="text-sm px-3 py-1">
-                      {backlink.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Next Steps & Requests */}
-      <div className="card bg-white p-6">
-        <h4 className="text-lg font-medium text-dark mb-4">
-          Next Steps & Requests
-        </h4>
-
-        <div className="space-y-3">
-          <div>
-            <h5 className="text-base font-medium text-dark mb-3">
-              Tasks for Next Week
-            </h5>
-            <ul className="list-disc pl-6 text-base text-mediumGray">
-              <li>Complete technical SEO audit for the new product section</li>
-              <li>Publish 2 new case studies targeting competitive keywords</li>
-              <li>Finalize content calendar for Q2 2025</li>
-            </ul>
-          </div>
-
-          <div className="p-6 rounded-lg border-4 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="font-bold text-dark text-lg mb-1 notification-text">Action Required</p>
-                <ul className="list-disc pl-6 text-base text-mediumGray">
-                  <li className="font-medium">
-                    Review "Top 10 SEO Strategies for 2025" brief by May 2nd
-                  </li>
-                  <li className="font-medium">
-                    Provide feedback on the new homepage design mockup
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Links */}
-      <div className="card bg-white p-6">
-        <h4 className="text-lg font-bold text-dark mb-4">Quick Links</h4>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <a
             href="https://search.google.com/search-console"
@@ -556,12 +438,170 @@ const sampleReportContent = {
           </a>
         </div>
       </div>
+
+      {/* What We Did - with icon */}
+      <div className="card bg-white p-6 border-t-4 border-[#9EA8FB] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <FolderOpen className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>What We Did</span>
+          </div>
+        </h4>
+        <div className="mt-2 space-y-2">
+          <ul className="list-disc pl-5 space-y-2 text-base text-mediumGray">
+            <li>Fixed schema markup on 3 product templates to fix Google warnings</li>
+            <li>Implemented internal link improvements to 7 high-priority pages</li>
+            <li>Created 5 new content briefs for upcoming articles</li>
+            <li>Restructured header to improve mobile navigation</li>
+            <li>Added conversion tracking to 2 landing page forms</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Analytics Snapshot - with icon */}
+      <div className="card bg-white p-6 border-t-4 border-[#FCDC94] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <BarChart2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Analytics Snapshot</span>
+          </div>
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="p-4 bg-[#F3F4FF] rounded-lg text-center">
+            <p className="text-sm text-mediumGray mb-1">Organic Traffic</p>
+            <div className="text-lg font-medium text-dark">5,250</div>
+            <div className="text-xs text-green-600 font-medium">+12% WoW</div>
+          </div>
+          <div className="p-4 bg-[#F3F4FF] rounded-lg text-center">
+            <p className="text-sm text-mediumGray mb-1">Conversions</p>
+            <div className="text-lg font-medium text-dark">126</div>
+            <div className="text-xs text-green-600 font-medium">+8% WoW</div>
+          </div>
+          <div className="p-4 bg-[#F3F4FF] rounded-lg text-center">
+            <p className="text-sm text-mediumGray mb-1">Revenue Impact</p>
+            <div className="text-lg font-medium text-dark">$4,200</div>
+            <div className="text-xs text-green-600 font-medium">+8% WoW</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Weekly Highlights - with icon */}
+      <div className="card bg-white p-6 border-t-4 border-[#EADCFF] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <LineChartIcon className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Weekly Highlights</span>
+          </div>
+        </h4>
+        <div className="space-y-4">
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 mt-0.5 mr-3">
+                <ArrowUpRight className="h-3 w-3 text-green-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">Product comparison article now ranking on page 1</h6>
+                <p className="text-sm text-mediumGray mt-1">
+                  Our article "Best Widgets Comparison" moved from position #13 to #8, now driving significant traffic
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 mt-0.5 mr-3">
+                <Info className="h-3 w-3 text-blue-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">Schema markup fixes improving CTR</h6>
+                <p className="text-sm text-mediumGray mt-1">
+                  After fixing product schema, CTR increased by 15% on key product pages
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Next Steps - with icon */}
+      <div className="card bg-white p-6 border-t-4 border-[#9EA8FB] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <ArrowRight className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Next Steps</span>
+          </div>
+        </h4>
+        <div className="mt-2 space-y-2">
+          <ul className="list-disc pl-5 space-y-2 text-base text-mediumGray">
+            <li>Continue optimizing product page meta descriptions for improved CTR</li>
+            <li>Prepare content briefs for Q2 2025 editorial calendar</li>
+            <li>Launch A/B test on homepage hero section</li>
+            <li>Implement new backlink strategy focused on industry publications</li>
+          </ul>
+        </div>
+      </div>
     </div>
   ),
   monthly: (
     <div className="space-y-6">
+      {/* Quick Links - moved to top */}
+      <div className="card bg-white p-6">
+        <h4 className="text-lg font-bold text-dark mb-4">Quick Links</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <a
+            href="https://search.google.com/search-console"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <ChartColumn className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span className="text-base text-dark">GSC Dashboard</span>
+          </a>
+          <a
+            href="https://drive.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <FolderOpen className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span className="text-base text-dark">Content Folder</span>
+          </a>
+          <a
+            href="https://docs.google.com/spreadsheets"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Link2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span className="text-base text-dark">Backlink Sheet</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Timeframe Covered */}
+
       {/* Executive Summary */}
       <div className="bg-lightGray p-5 rounded-lg">
+        <div className="flex items-center mb-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+            <MessageSquare className="h-5 w-5 text-[#9EA8FB]" />
+          </div>
+          <h4 className="text-lg font-medium text-dark">Executive Summary</h4>
+        </div>
         <div className="mt-2 space-y-2">
           <p className="text-base text-mediumGray">
             Monthly comprehensive analysis of your SEO campaign performance,
@@ -570,1743 +610,313 @@ const sampleReportContent = {
         </div>
       </div>
 
-      {/* Loom Section */}
-      <div className="bg-white p-4 rounded-3x">
-        <div className="flex items-center mb-2">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-            <BiMessageRoundedDetail size={16} className="text-gray-500" />
+      {/* Monthly Walkthrough Section - Add Loom video support */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#9EA8FB] shadow-sm mt-6">
+        <div className="flex items-center mb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+            <Video className="h-5 w-5 text-[#9EA8FB]" />
           </div>
-          <h4 className="font-medium text-dark">Monthly Walkthrough</h4>
+          <h4 className="text-lg font-bold text-dark">Monthly Walkthrough</h4>
         </div>
-        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-mediumGray">Loom video walkthrough</p>
-            <Button variant="outline" size="sm" className="mt-2">
-              <BiLinkExternal size={14} className="mr-1" />
-              Watch Video
+        
+        <div className="bg-gray-50 p-5 rounded-lg mb-4">
+          <div className="aspect-w-16 aspect-h-9 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center">
+            <BiVideo size={48} className="text-gray-400 mb-2" />
+            <p className="text-sm text-gray-500 mb-3 text-center">Embed a Loom video walkthrough of this month's performance</p>
+            <Button variant="outline" size="sm">
+              <BiVideo size={14} className="mr-1" />
+              Embed Loom Video
             </Button>
           </div>
         </div>
+        
+        <div className="text-base text-mediumGray">
+          <p className="mb-3">Key points covered in the video walkthrough:</p>
+          <ul className="list-disc pl-6 space-y-1">
+            <li>Detailed analysis of traffic growth across key pages</li>
+            <li>Breakdown of conversion rate improvements</li>
+            <li>Deep dive into keyword movement and content performance</li>
+            <li>Explanation of our strategy for next month</li>
+          </ul>
+        </div>
       </div>
 
-      {/* Channel Performance */}
-      <div className="bg-white p-4">
-        <h4 className="text-lg font-bold text-dark mb-3">
-          Channel Performance
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h5 className="text-sm font-medium text-dark mb-2">
-              Organic Traffic
-            </h5>
+      {/* Lead Tracking - New section */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#FCDC94] shadow-sm mt-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Users className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <h4 className="text-lg font-bold text-dark">Lead Tracking</h4>
+          </div>
+          <div className="text-xs text-gray-500">
+            <div className="flex items-center">
+              <Info className="h-3 w-3 mr-1" />
+              <span>Data Source: Google Analytics + CRM</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">Lead Source Breakdown</h5>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={leadSourceData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {leadSourceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">Lead Conversion Funnel</h5>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={monthlyPerformanceData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  data={leadConversionData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Legend />
-                  <Bar dataKey="clicks" fill="#9ea8fb" name="Clicks" />
-                  <Bar
-                    dataKey="impressions"
-                    fill="#fcdc94"
-                    name="Impressions"
-                  />
+                  <Bar dataKey="value" fill="#9ea8fb" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
-          <div>
-            <h5 className="text-sm font-medium text-dark mb-2">
-              Leads & Revenue
-            </h5>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={monthlyPerformanceData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="leads"
-                    stroke="#9ea8fb"
-                    name="Leads"
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#fcdc94"
-                    name="Revenue ($)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+        </div>
+        
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 mt-0.5 mr-3">
+              <Info className="h-3 w-3 text-blue-600" />
+            </div>
+            <p className="text-sm text-blue-700">
+              <span className="font-medium">Improved Lead Tracking:</span> We've connected Google Analytics 4 with your CRM to provide more accurate lead attribution. This data is updated daily.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Split Wins & Cautions into separate sections */}
+      {/* Wins Section */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-green-500 shadow-sm mt-6">
+        <div className="flex items-center mb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 mr-3">
+            <ThumbsUp className="h-5 w-5 text-green-600" />
+          </div>
+          <h4 className="text-lg font-bold text-dark">Wins</h4>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 mt-0.5 mr-3">
+                <ArrowUpRight className="h-3 w-3 text-green-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">Significant traffic growth to key product pages</h6>
+                <p className="text-sm text-gray-600 mt-1">
+                  +32% MoM increase in traffic to product category pages, driving 24% more conversions
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 mt-0.5 mr-3">
+                <ArrowUpRight className="h-3 w-3 text-green-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">Technical SEO improvements paying off</h6>
+                <p className="text-sm text-gray-600 mt-1">
+                  Core Web Vitals improvements have led to 15% better engagement metrics and reduced bounce rate
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-green-50 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100 mt-0.5 mr-3">
+                <ArrowUpRight className="h-3 w-3 text-green-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">New backlink strategy showing results</h6>
+                <p className="text-sm text-gray-600 mt-1">
+                  Secured 12 high-quality backlinks (avg. DR 55+) helping boost authority for competitive terms
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Average Keyword Position */}
-      <div className="bg-white p-4">
-        <h4 className="text-lg font-bold text-dark mb-3">
-          Average Keyword Position
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-5 rounded-lg flex flex-col items-center justify-center">
-            <h5 className="text-base font-medium text-dark mb-2">
-              Current Visibility
-            </h5>
-            <div className="text-4xl font-bold text-dark">42.3</div>
-            <div className="text-sm text-[#9EA8FB] font-medium">+4.1</div>
+      {/* Cautions Section */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-amber-500 shadow-sm mt-6">
+        <div className="flex items-center mb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 mr-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600" />
           </div>
-          <div className="bg-gray-50 p-5 rounded-lg flex flex-col items-center justify-center">
-            <h5 className="text-base font-medium text-dark mb-2">
-              vs. Competition
-            </h5>
-            <div className="text-4xl font-bold text-dark">38.7</div>
-            <div className="text-sm text-[#9EA8FB] font-medium">+9%</div>
-          </div>
+          <h4 className="text-lg font-bold text-dark">Cautions & Areas to Watch</h4>
         </div>
-      </div>
-
-      {/* Deliverables Recap */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "24px",
-          marginBottom: "24px",
-        }}
-      >
-        <h4
-          style={{
-            fontWeight: 600,
-            marginBottom: "16px",
-            fontSize: "16px",
-            color: "#111827",
-          }}
-        >
-          Deliverables Recap
-        </h4>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "16px",
-          }}
-        >
-          {/* Briefs Delivered */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              Briefs Delivered
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "8px",
-                color: "#111827",
-              }}
-            >
-              12
-            </div>
-            <div
-              style={{
-                width: "100%",
-                backgroundColor: "#e5e7eb",
-                borderRadius: "9999px",
-                height: "6px",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  height: "100%",
-                  width: "80%",
-                  backgroundColor: "#9ea8fb",
-                  borderRadius: "9999px",
-                  left: 0,
-                  top: 0,
-                }}
-              ></div>
-            </div>
-            <div
-              style={{
-                fontSize: "12px",
-                color: "#4b5563",
-                marginTop: "8px",
-              }}
-            >
-              80% of monthly target
+        
+        <div className="space-y-4">
+          <div className="p-4 bg-amber-50 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 mt-0.5 mr-3">
+                <AlertTriangle className="h-3 w-3 text-amber-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">Competitor activity increasing in primary market</h6>
+                <p className="text-sm text-gray-600 mt-1">
+                  Competitor A has launched an aggressive content campaign targeting our top keywords
+                </p>
+              </div>
             </div>
           </div>
-
-          {/* Blogs Published */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              Blogs Published
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "8px",
-                color: "#111827",
-              }}
-            >
-              8
-            </div>
-            <div
-              style={{
-                width: "100%",
-                backgroundColor: "#e5e7eb",
-                borderRadius: "9999px",
-                height: "6px",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  height: "100%",
-                  width: "100%",
-                  backgroundColor: "#fcdc94",
-                  borderRadius: "9999px",
-                  left: 0,
-                  top: 0,
-                }}
-              ></div>
-            </div>
-            <div
-              style={{
-                fontSize: "12px",
-                color: "#4b5563",
-                marginTop: "8px",
-              }}
-            >
-              100% of monthly target
-            </div>
-          </div>
-
-          {/* Backlinks Live */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              Backlinks Live
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "8px",
-                color: "#111827",
-              }}
-            >
-              15
-            </div>
-            <div
-              style={{
-                width: "100%",
-                backgroundColor: "#e5e7eb",
-                borderRadius: "9999px",
-                height: "6px",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  height: "100%",
-                  width: "125%", // Showing 125% completion
-                  backgroundImage:
-                    "linear-gradient(to right, #eadcff 80%, #d4bfff 80%)", // Gradient effect to show overflow
-                  borderRadius: "9999px",
-                  left: 0,
-                  top: 0,
-                }}
-              ></div>
-            </div>
-            <div
-              style={{
-                fontSize: "12px",
-                color: "#4b5563",
-                marginTop: "8px",
-              }}
-            >
-              125% of monthly target
+          
+          <div className="p-4 bg-amber-50 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 mt-0.5 mr-3">
+                <AlertTriangle className="h-3 w-3 text-amber-600" />
+              </div>
+              <div>
+                <h6 className="text-base font-medium text-dark">Mobile conversion rate lagging</h6>
+                <p className="text-sm text-gray-600 mt-1">
+                  While mobile traffic is up 24%, mobile conversion rate is only up 7% - opportunity for optimization
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content Movers */}
-      <div className="bg-white p-4">
-        <h4 className="text-lg font-bold text-dark mb-3">Content Movers</h4>
+      {/* Content Movers - Updated with new fields */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#EADCFF] shadow-sm mt-6">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <TrendingUp className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <h4 className="text-lg font-bold text-dark">Content Movers</h4>
+          </div>
+        </div>
+        
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
-                >
-                  URL
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Page
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
-                >
-                  Traffic
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Current Pos.
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
-                >
-                  Leads
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
-                >
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Change
                 </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Traffic
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Conv. %
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Revenue
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {topPerformingPages.map((page, index) => (
+              {topMovers.map((page, index) => (
                 <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {page.url}
                   </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {page.position}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      page.change > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {page.change > 0 ? '+' : ''}{page.change}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {page.traffic}
                   </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
-                    {page.conversions}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {page.conversionRate}%
                   </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {page.delta > 0 ? "+" : ""}
-                      {page.delta}%
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    ${page.revenue}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Keyword & SERP Trends */}
-      <div className="bg-white p-6">
-        <h4 className="text-lg font-bold text-dark mb-4">
-          Keyword & SERP Trends
-        </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Keyword Position Movement - Left Column */}
-          <div className="bg-white p-5 rounded-lg">
-            <h5 className="font-medium text-dark mb-4">Keywords</h5>
-
-            <div className="space-y-4">
-              {/* Position 1-3 */}
-              <div className="flex items-center">
-                <div className="w-24 text-sm mr-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-lg"
-                      style={{ backgroundColor: "#9ea8fb" }}
-                    ></div>
-                    <span>
-                      Position
-                      <br />
-                      1-3
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: "25%", backgroundColor: "#9ea8fb" }}
-                  ></div>
-                </div>
-                <div className="text-right ml-4">
-                  <span className="font-medium">42 keywords</span>
-                  <span className="ml-1 text-[#9ea8fb]">+8 (+23%)</span>
-                </div>
-              </div>
-
-              {/* Position 4-10 */}
-              <div className="flex items-center">
-                <div className="w-24 text-sm mr-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: "#fcdc94" }}
-                    ></div>
-                    <span>
-                      Position
-                      <br />
-                      4-10
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: "45%", backgroundColor: "#fcdc94" }}
-                  ></div>
-                </div>
-                <div className="text-right ml-4">
-                  <span className="font-medium">78 keywords</span>
-                  <span className="ml-1 text-[#9ea8fb]">+12 (+18%)</span>
-                </div>
-              </div>
-
-              {/* Position 11-20 */}
-              <div className="flex items-center">
-                <div className="w-24 text-sm mr-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: "#eadcff" }}
-                    ></div>
-                    <span>
-                      Position
-                      <br />
-                      11-20
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: "70%", backgroundColor: "#eadcff" }}
-                  ></div>
-                </div>
-                <div className="text-right ml-4">
-                  <span className="font-medium">124 keywords</span>
-                  <span className="ml-1 text-[#9ea8fb]">(+14%)</span>
-                </div>
-              </div>
-
-              {/* Position 21-50 */}
-              <div className="flex items-center">
-                <div className="w-24 text-sm mr-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: "#ff9d7d" }}
-                    ></div>
-                    <span>
-                      Position
-                      <br />
-                      21-50
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-grow h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: "55%", backgroundColor: "#ff9d7d" }}
-                  ></div>
-                </div>
-                <div className="text-right ml-4">
-                  <span className="font-medium">96 keywords</span>
-                  <span className="ml-1 text-red-500">-7 (-7%)</span>
-                </div>
-              </div>
-
-              {/* Total Tracked Keywords */}
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                <div className="flex justify-between">
-                  <span className="font-medium">Total Tracked Keywords</span>
-                  <div>
-                    <span className="font-bold text-dark text-lg">340</span>
-                    <span className="text-[#9ea8fb] ml-2 text-sm">
-                      +18 this month
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Average Keyword Position - Right Column */}
-          <div className="bg-white p-5 rounded-lg">
-            <h5 className="font-medium text-dark mb-4">
-              Average Keyword Position
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">
+              Key Takeaways
             </h5>
-
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={[
-                    { week: "Week 1", visibility: 32, competitor: 30 },
-                    { week: "Week 2", visibility: 35, competitor: 31 },
-                    { week: "Week 3", visibility: 38, competitor: 32 },
-                    { week: "Week 4", visibility: 41, competitor: 34 },
-                    { week: "Week 5", visibility: 42, competitor: 35 },
-                  ]}
-                  margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#f5f5f5"
-                  />
-                  <XAxis dataKey="week" axisLine={false} tickLine={false} />
-                  <YAxis
-                    domain={[25, 45]}
-                    axisLine={false}
-                    tickLine={false}
-                    orientation="right"
-                  />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="visibility"
-                    stroke="#9ea8fb"
-                    name="Your visibility"
-                    strokeWidth={2}
-                    dot={{
-                      r: 4,
-                      fill: "#9ea8fb",
-                      stroke: "#fff",
-                      strokeWidth: 2,
-                    }}
-                  />
-                  {/* Add separate line for competitor */}
-                  <Line
-                    type="monotone"
-                    dataKey="competitor"
-                    stroke="#eadcff"
-                    name="Competitor avg."
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{
-                      r: 4,
-                      fill: "#eadcff",
-                      stroke: "#fff",
-                      strokeWidth: 2,
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <p className="text-base text-mediumGray leading-relaxed">
+              Opportunity to outrank Competitor B on Local SEO keywords where
+              they've lost positions. Competitor A is gaining ground in Technical
+              SEO - we should accelerate our content production in this area to
+              maintain our advantage.
+            </p>
           </div>
-        </div>
-      </div>
-
-      {/* Conversion & ROI Metrics */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "24px",
-          marginBottom: "24px",
-        }}
-      >
-        <h4
-          style={{
-            fontWeight: 700,
-            marginBottom: "16px",
-            fontSize: "18px",
-            color: "#111827",
-          }}
-        >
-          Conversion & ROI Metrics
-        </h4>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "16px",
-          }}
-        >
-          {/* Lead Generation */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              Lead Generation
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "4px",
-                color: "#111827",
-              }}
-            >
-              320
-            </div>
-            <div className="metric-positive">+15.2% vs. March</div>
-          </div>
-
-          {/* Assisted Conversions */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              Assisted Conversions
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "4px",
-                color: "#111827",
-              }}
-            >
-              86
-            </div>
-            <div className="metric-positive">+9.8% vs. March</div>
-          </div>
-
-          {/* CPC Equivalence */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              CPC Equivalence
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "4px",
-                color: "#111827",
-              }}
-            >
-              $24,800
-            </div>
-            <div className="metric-positive">+12.5% vs. March</div>
-          </div>
-
-          {/* Bounce Rate - for bounce rate, increase ("+") is bad, decrease ("-") is good */}
-          <div
-            style={{
-              backgroundColor: "#f9fafb",
-              padding: "16px",
-              borderRadius: "8px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "8px",
-                color: "#374151",
-              }}
-            >
-              Bounce Rate
-            </div>
-            <div
-              style={{
-                fontSize: "24px",
-                fontWeight: 700,
-                marginBottom: "4px",
-                color: "#111827",
-              }}
-            >
-              48.2%
-            </div>
-            <div className="metric-negative">+2.1% vs. March</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Campaign Projection */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "24px",
-          marginBottom: "24px",
-        }}
-      >
-        <h4
-          style={{
-            fontWeight: 700,
-            marginBottom: "16px",
-            fontSize: "18px",
-            color: "#111827",
-          }}
-        >
-          Campaign Projection
-        </h4>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "24px",
-          }}
-        >
-          <div>
-            <h5
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "16px",
-                color: "#374151",
-              }}
-            >
-              Progress vs. Goals
+          
+          {/* New screenshot upload section */}
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">
+              SERP Screenshots
             </h5>
-
-            <div style={{ marginBottom: "24px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginBottom: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "100px",
-                    display: "flex",
-                    alignItems: "center",
-                    marginRight: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      backgroundColor: "#9ea8fb",
-                      marginRight: "8px",
-                    }}
-                  ></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>
-                    Traffic Goal
-                  </span>
-                </div>
-                <div
-                  style={{
-                    flex: "1",
-                    backgroundColor: "#e5e7eb",
-                    borderRadius: "9999px",
-                    height: "6px",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      height: "100%",
-                      width: "65%",
-                      backgroundColor: "#9ea8fb",
-                      borderRadius: "9999px",
-                      left: 0,
-                      top: 0,
-                    }}
-                  ></div>
-                </div>
-                <div
-                  style={{
-                    width: "40px",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    color: "#374151",
-                    marginLeft: "8px",
-                  }}
-                >
-                  65%
-                </div>
+            <div className="bg-white border border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center">
+              <BiDownload size={32} className="text-gray-400 mb-2" />
+              <p className="text-sm text-gray-500 mb-3 text-center">Upload screenshots from Ahrefs, SEMrush, or other competitor analysis tools</p>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm">
+                  <BiDownload size={14} className="mr-1" />
+                  Upload Screenshot
+                </Button>
               </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginBottom: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "100px",
-                    display: "flex",
-                    alignItems: "center",
-                    marginRight: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      backgroundColor: "#fcdc94",
-                      marginRight: "8px",
-                    }}
-                  ></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>
-                    Lead Goal
-                  </span>
-                </div>
-                <div
-                  style={{
-                    flex: "1",
-                    backgroundColor: "#e5e7eb",
-                    borderRadius: "9999px",
-                    height: "6px",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      height: "100%",
-                      width: "78%",
-                      backgroundColor: "#fcdc94",
-                      borderRadius: "9999px",
-                      left: 0,
-                      top: 0,
-                    }}
-                  ></div>
-                </div>
-                <div
-                  style={{
-                    width: "40px",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    color: "#374151",
-                    marginLeft: "8px",
-                  }}
-                >
-                  78%
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <div
-                  style={{
-                    width: "100px",
-                    display: "flex",
-                    alignItems: "center",
-                    marginRight: "16px",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      borderRadius: "50%",
-                      backgroundColor: "#eadcff",
-                      marginRight: "8px",
-                    }}
-                  ></div>
-                  <span style={{ fontSize: "14px", color: "#374151" }}>
-                    Revenue
-                  </span>
-                </div>
-                <div
-                  style={{
-                    flex: "1",
-                    backgroundColor: "#e5e7eb",
-                    borderRadius: "9999px",
-                    height: "6px",
-                    position: "relative",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      height: "100%",
-                      width: "42%",
-                      backgroundColor: "#eadcff",
-                      borderRadius: "9999px",
-                      left: 0,
-                      top: 0,
-                    }}
-                  ></div>
-                </div>
-                <div
-                  style={{
-                    width: "40px",
-                    textAlign: "right",
-                    fontSize: "14px",
-                    color: "#374151",
-                    marginLeft: "8px",
-                  }}
-                >
-                  42%
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h5
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "16px",
-                color: "#374151",
-              }}
-            >
-              Time to Goal
-            </h5>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "16px",
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: "#f9fafb",
-                  padding: "16px",
-                  borderRadius: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    marginBottom: "8px",
-                    color: "#374151",
-                  }}
-                >
-                  Rank Improvements
-                </div>
-                <div
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  ~3 weeks
-                </div>
-              </div>
-
-              <div
-                style={{
-                  backgroundColor: "#f9fafb",
-                  padding: "16px",
-                  borderRadius: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    marginBottom: "8px",
-                    color: "#374151",
-                  }}
-                >
-                  Traffic Goals
-                </div>
-                <div
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  ~7 weeks
-                </div>
-              </div>
-
-              <div
-                style={{
-                  backgroundColor: "#f9fafb",
-                  padding: "16px",
-                  borderRadius: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    marginBottom: "8px",
-                    color: "#374151",
-                  }}
-                >
-                  Lead Growth
-                </div>
-                <div
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  ~4 weeks
-                </div>
-              </div>
-
-              <div
-                style={{
-                  backgroundColor: "#f9fafb",
-                  padding: "16px",
-                  borderRadius: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    marginBottom: "8px",
-                    color: "#374151",
-                  }}
-                >
-                  Revenue Target
-                </div>
-                <div
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#111827",
-                  }}
-                >
-                  ~9 weeks
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Wins & Cautions */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "24px" }}>
-          {/* Wins Card */}
-          <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-            <h4 style={{ fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", color: "#111827", fontSize: "18px" }}>
-              <span style={{ width: "24px", height: "24px", backgroundColor: "rgba(0, 0, 0, 0.1)", borderRadius: "9999px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }}>
-                <BiCheckCircle style={{ color: "#111827" }} size={18} />
-              </span>
-              Wins
-            </h4>
-            <ul style={{ listStyleType: "disc", paddingLeft: "20px", color: "#111827" }}>
-              <li style={{ marginBottom: "4px" }}>4 new keywords entered top 3 positions</li>
-              <li style={{ marginBottom: "4px" }}>15% increase in lead generation MoM</li>
-              <li style={{ marginBottom: "4px" }}>Page speed improvements reduced bounce rate by 12%</li>
-              <li>New content cluster outperforming expectations by 25%</li>
-            </ul>
-          </div>
-
-          {/* Cautions Card */}
-          <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-            <h4 style={{ fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", color: "#111827", fontSize: "18px" }}>
-              <span style={{ width: "24px", height: "24px", backgroundColor: "rgba(0, 0, 0, 0.1)", borderRadius: "9999px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }}>
-                <BiErrorCircle style={{ color: "#111827" }} size={18} />
-              </span>
-              Cautions
-            </h4>
-            <ul style={{ listStyleType: "disc", paddingLeft: "20px", color: "#111827" }}>
-              <li style={{ marginBottom: "4px" }}>3 core product pages lost rankings (-5 positions)</li>
-              <li style={{ marginBottom: "4px" }}>Home page load time increased by 0.8s</li>
-              <li style={{ marginBottom: "4px" }}>Competitor launched new content hub in our space</li>
-              <li>Mobile conversion rate dropped 2.3% MoM</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Recommendations + Next Steps */}
-      <div
-        style={{
-          backgroundColor: "white",
-          padding: "24px",
-          marginBottom: "24px",
-        }}
-      >
-        <h4
-          style={{
-            fontWeight: 700,
-            marginBottom: "16px",
-            fontSize: "18px",
-            color: "#111827",
-          }}
-        >
-          Recommendations + Next Steps
-        </h4>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "24px",
-          }}
-        >
-          <div>
-            <h5
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "16px",
-                color: "#374151",
-              }}
-            >
-              Priority Actions
-            </h5>
-            <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px" }}>
-              <ol style={{ listStyleType: "decimal", paddingLeft: "20px", color: "#111827" }}>
-                <li style={{ marginBottom: "8px" }}>Implement mobile UX improvements to increase conversion rate</li>
-                <li style={{ marginBottom: "8px" }}>Accelerate content production to catch up on brief schedule</li>
-                <li>Focus link building efforts on 3 keywords that lost positions</li>
-              </ol>
-            </div>
-          </div>
-
-          <div>
-            <h5
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                marginBottom: "16px",
-                color: "#374151",
-              }}
-            >
-              Strategic Adjustments
-            </h5>
-            <div style={{ backgroundColor: "#f9fafb", padding: "16px", borderRadius: "8px" }}>
-              <p style={{ color: "#111827", fontSize: "16px" }}>
-                Based on current trajectory, we recommend shifting 20% of content resources to focus on mobile optimization and conversion rate improvements to ensure we meet Q2 goals.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  ),
-  quarterly: (
-    <div className="space-y-6">
-      {/* Executive Summary */}
-      <div className="p-6g">
-        {/* 3 Summary KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600">
-              Traffic Growth
-            </h4>
-            <div className="mt-2">
-              <div className="text-4xl font-bold text-[#9EA8FB]">61,000</div>
-              <div className="text-xs text-gray-500 mt-1">Target: 65,000</div>
-            </div>
-            <div className="flex items-center mt-3">
-              <div className="flex items-center text-green-600 text-sm font-medium">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                <span>42% YoY</span>
-              </div>
-              <div className="flex items-center text-green-600 text-sm font-medium ml-3">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                <span>17% QoQ</span>
-              </div>
-            </div>
-            {/* Micro-visual: Sparkline */}
-            <div className="mt-3 h-8">
-              <div className="flex items-end space-x-1 h-full">
-                {[35, 45, 55, 65, 75, 80, 90, 95].map((value, i) => (
-                  <div
-                    key={i}
-                    className="w-full bg-[#9EA8FB]/50 rounded-sm"
-                    style={{ height: `${value}%` }}
-                  ></div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600">
-              Leads Generated
-            </h4>
-            <div className="mt-2">
-              <div className="text-4xl font-bold text-[#FFE4A6]">1,350</div>
-              <div className="text-xs text-gray-500 mt-1">Target: 1,500</div>
-            </div>
-            <div className="flex items-center mt-3">
-              <div className="flex items-center text-green-600 text-sm font-medium">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                <span>38% YoY</span>
-              </div>
-              <div className="flex items-center text-green-600 text-sm font-medium ml-3">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                <span>17% QoQ</span>
-              </div>
-            </div>
-            {/* Micro-visual: Sparkline */}
-            <div className="mt-3 h-8">
-              <div className="flex items-end space-x-1 h-full">
-                {[40, 50, 60, 70, 75, 85, 90, 95].map((value, i) => (
-                  <div
-                    key={i}
-                    className="w-full bg-[#FFE4A6]/50 rounded-sm"
-                    style={{ height: `${value}%` }}
-                  ></div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-            <h4 className="text-sm font-medium text-gray-600">
-              Revenue Impact
-            </h4>
-            <div className="mt-2">
-              <div className="text-4xl font-bold text-[#EADCFF]">$108,000</div>
-              <div className="text-xs text-gray-500 mt-1">Target: $120,000</div>
-            </div>
-            <div className="flex items-center mt-3">
-              <div className="flex items-center text-green-600 text-sm font-medium">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                <span>39% YoY</span>
-              </div>
-              <div className="flex items-center text-green-600 text-sm font-medium ml-3">
-                <ArrowUp className="h-4 w-4 mr-1" />
-                <span>17% QoQ</span>
-              </div>
-            </div>
-            {/* Micro-visual: Sparkline */}
-            <div className="mt-3 h-8">
-              <div className="flex items-end space-x-1 h-full">
-                {[45, 55, 65, 70, 75, 80, 85, 90].map((value, i) => (
-                  <div
-                    key={i}
-                    className="w-full bg-[#EADCFF]/50 rounded-sm"
-                    style={{ height: `${value}%` }}
-                  ></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Text Summary - Moved TLDR below KPIs */}
-        <div className="bg-white p-6 ">
-          <h4 className="text-lg font-bold text-dark mb-3">
-            Executive Summary
-          </h4>
-          <p className="text-base text-mediumGray leading-relaxed">
-            Q1 2025 has shown strong performance across all key metrics with
-            significant year-over-year growth. Our focus on content quality and
-            technical improvements has yielded substantial increases in organic
-            traffic, while conversion rate optimizations have successfully
-            translated this traffic into leads and revenue.
-          </p>
-        </div>
-
-        {/* Trendline Chart */}
-        <div className="bg-white p-5  mt-6">
-          <h4 className="text-lg font-bold text-dark mb-4">
-            Performance Trends (Last 4 Quarters)
-          </h4>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={quarterlyPerformanceData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="quarter" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="traffic"
-                  stroke="#9ea8fb"
-                  name="Traffic"
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="leads"
-                  stroke="#fcdc94"
-                  name="Leads"
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#eadcff"
-                  name="Revenue ($)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Traffic & Revenue */}
-      <div className="bg-white p-6 ">
-        <div className="flex justify-between items-center mb-5">
-          <h4 className="text-lg font-bold text-dark">Traffic & Revenue</h4>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                >
-                  <div className="flex items-center">
-                    Metric
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                >
-                  <div className="flex items-center">
-                    Q1 2025
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider"
-                >
-                  Q4 2024
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                >
-                  <div className="flex items-center">
-                    QoQ Change
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider"
-                >
-                  Q1 2024
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                >
-                  <div className="flex items-center">
-                    YoY Change
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
-                  Organic Traffic
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  61,000
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  52,000
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +17.3%
-                  </span>
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  43,000
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +41.9%
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
-                  Leads Generated
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  1,350
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  1,150
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +17.4%
-                  </span>
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  980
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +37.8%
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
-                  Conversion Rate
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  2.2%
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  2.1%
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +4.8%
-                  </span>
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  1.9%
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +15.8%
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
-                  Revenue Impact
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  $108,000
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  $92,000
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +17.4%
-                  </span>
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                  $78,000
-                </td>
-                <td className="px-6 py-5 whitespace-nowrap">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium bg-green-100 text-green-800">
-                    +38.5%
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Deliverables Roll Up */}
-      <div className="bg-white p-6">
-        <h4 className="text-lg font-bold text-dark mb-5">
-          Deliverables Roll Up
-        </h4>
-        <div className="space-y-4">
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">
-              <FolderOpen size={16} className="text-dark" />
-            </div>
-            <div>
-              <p className="text-base font-medium text-dark">
-                36 briefs delivered
-              </p>
-              <p className="text-sm text-mediumGray">
-                100% of quarterly target
-              </p>
-            </div>
-            <div className="ml-auto">
-              <a
-                href="/deliverables?tab=briefs"
-                className="text-primary hover:underline text-sm flex items-center"
-              >
-                <span>View All</span>
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center mr-3">
-              <BiMessageRoundedDetail size={16} className="text-dark" />
-            </div>
-            <div>
-              <p className="text-base font-medium text-dark">
-                24 articles published
-              </p>
-              <p className="text-sm text-mediumGray">
-                Average word count: 1,850
-              </p>
-            </div>
-            <div className="ml-auto">
-              <a
-                href="/deliverables?tab=articles"
-                className="text-primary hover:underline text-sm flex items-center"
-              >
-                <span>View All</span>
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-lavender/10 flex items-center justify-center mr-3">
-              <Link2 size={16} className="text-dark" />
-            </div>
-            <div>
-              <p className="text-base font-medium text-dark">
-                45 backlinks secured
-              </p>
-              <p className="text-sm text-mediumGray">Average DR: 58</p>
-            </div>
-            <div className="ml-auto">
-              <a
-                href="/deliverables?tab=backlinks"
-                className="text-primary hover:underline text-sm flex items-center"
-              >
-                <span>View All</span>
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Top Performing Pages */}
-      <div className="bg-white p-6">
-        <div className="flex justify-between items-center mb-5">
-          <h4 className="text-lg font-bold text-dark">Top Performing Pages</h4>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
-                >
-                  URL
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20"
-                >
-                  <div className="flex items-center">
-                    Traffic
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20"
-                >
-                  <div className="flex items-center">
-                    Conversions
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-[#9EA8FB]/20"
-                >
-                  <div className="flex items-center">
-                    Change
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {topPerformingPages.map((page, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
-                    {page.url}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
-                    {page.traffic}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-black">
-                    {page.conversions}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-sm font-medium ${page.delta > 0
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {page.delta > 0 ? "+" : ""}
-                      {page.delta}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Experiments */}
-      <div className="bg-white p-6">
-        <h4 className="text-lg font-bold text-dark mb-5">Experiments</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 bg-gray-50 rounded-lg">
-            <div className="flex flex-col items-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
-                <ChartColumn className="h-6 w-6 text-[#9EA8FB]" />
-              </div>
-              <p className="text-base font-medium text-dark text-center">Title Tag Tests</p>
-              <p className="text-sm text-mediumGray mt-2 text-center">
-                CTR +1.7 percentage points
-              </p>
-            </div>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-lg">
-            <div className="flex flex-col items-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
-                <MessageSquare className="h-6 w-6 text-[#9EA8FB]" />
-              </div>
-              <p className="text-base font-medium text-dark text-center">
-                Mobile CTA Placement
-              </p>
-              <p className="text-sm text-mediumGray mt-2 text-center">
-                Conversion +0.8 percentage points
-              </p>
-            </div>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-lg">
-            <div className="flex flex-col items-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
-                <Link2 className="h-6 w-6 text-[#9EA8FB]" />
-              </div>
-              <p className="text-base font-medium text-dark text-center">Core Web Vitals</p>
-              <p className="text-sm text-mediumGray mt-2 text-center">
-                Bounce rate -15% on key pages
-              </p>
-            </div>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-lg">
-            <div className="flex flex-col items-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F3F4FF] mb-4">
-                <FolderOpen className="h-6 w-6 text-[#9EA8FB]" />
-              </div>
-              <p className="text-base font-medium text-dark text-center">
-                Content Length Test
-              </p>
-              <p className="text-sm text-mediumGray mt-2 text-center">
-                Long-form +32% more conversions
-              </p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Next Quarter Roadmap */}
-      <div className="bg-white p-6">
-        <h4 className="text-lg font-bold text-dark mb-5">
-          Next Quarter Roadmap
-        </h4>
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#9EA8FB] shadow-sm mt-6">
+        <div className="flex items-center mb-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+            <MessageSquare className="h-5 w-5 text-[#9EA8FB]" />
+          </div>
+          <h4 className="text-lg font-bold text-dark">Next Quarter Roadmap</h4>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-50 p-5 rounded-lg">
             <h5 className="text-base font-medium text-dark mb-3">
@@ -2321,7 +931,7 @@ const sampleReportContent = {
 
           <div className="bg-gray-50 p-5 rounded-lg">
             <h5 className="text-base font-medium text-dark mb-3">
-              Where We&apos;re Heading Next
+              Where We're Heading Next
             </h5>
             <ul className="list-disc pl-6 text-base text-mediumGray space-y-2">
               <li>Expand content clusters around highest-converting topics</li>
@@ -2334,97 +944,17 @@ const sampleReportContent = {
         </div>
       </div>
 
-      {/* Competitor Intel */}
-      <div className="bg-white p-6">
-        <div className="flex justify-between items-center mb-5">
-          <h4 className="text-lg font-bold text-dark">Competitor Intel</h4>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="text-xs">
-              <Filter className="h-3 w-3 mr-1" />
-              Sort by Rank Change
-            </Button>
+      {/* COLLAPSIBLE SECTION - Risks and Tradeoffs */}
+      <div className="bg-white p-6 rounded-lg border-t-4 border-[#FCDC94] shadow-sm mt-6">
+        <div className="flex items-center justify-between mb-4 cursor-pointer">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <BiErrorCircle className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <h4 className="text-lg font-bold text-dark">Risks and Tradeoffs</h4>
           </div>
+          <ChevronDown className="h-5 w-5 text-gray-500" />
         </div>
-        <div className="overflow-x-auto mb-4">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
-                >
-                  Competitor
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
-                >
-                  Keyword Focus
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider cursor-pointer hover:bg-gray-200"
-                >
-                  <div className="flex items-center">
-                    Rank Change (QoQ)
-                    <ChevronDown className="h-4 w-4 ml-1" />
-                  </div>
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-4 text-left text-sm font-medium text-dark uppercase tracking-wider"
-                >
-                  Notable Activity
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {competitorData.map((competitor, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-dark">
-                    {competitor.name}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                    {competitor.keywordFocus}
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium ${competitor.rankChange > 0
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                        }`}
-                    >
-                      {competitor.rankChange > 0 ? "+" : ""}
-                      {competitor.rankChange}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5 whitespace-nowrap text-base text-gray-700">
-                    {competitor.activity}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="bg-gray-50 p-5 rounded-lg">
-          <h5 className="text-base font-medium text-dark mb-3">
-            Key Takeaways
-          </h5>
-          <p className="text-base text-mediumGray leading-relaxed">
-            Opportunity to outrank Competitor B on Local SEO keywords where
-            they've lost positions. Competitor A is gaining ground in Technical
-            SEO - we should accelerate our content production in this area to
-            maintain our advantage.
-          </p>
-        </div>
-      </div>
-
-      {/* Risk and Tradeoffs */}
-      <div className="bg-white p-6 mb-6">
-        <h4 className="text-lg font-bold text-dark mb-4">
-          Risks and Tradeoffs
-        </h4>
         <ul className="list-disc pl-6 text-base text-mediumGray space-y-3">
           <li>
             <span className="font-medium text-dark">Resource allocation:</span>{" "}
@@ -2433,7 +963,7 @@ const sampleReportContent = {
           </li>
           <li>
             <span className="font-medium text-dark">Competitive pressure:</span>{" "}
-            Competitor A&apos;s aggressive content strategy requires us to maintain
+            Competitor A's aggressive content strategy requires us to maintain
             quality over quantity
           </li>
           <li>
@@ -2449,13 +979,18 @@ const sampleReportContent = {
         </ul>
       </div>
 
-      {/* TL;DR */}
-      <div className="bg-gray-50 p-6">
-        <h4 className="text-base font-medium text-dark mb-2">TL;DR</h4>
+      {/* TLDR */}
+      <div className="bg-gray-50 p-6 rounded-lg mt-6">
+        <div className="flex items-center mb-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+            <MessageSquare className="h-5 w-5 text-[#9EA8FB]" />
+          </div>
+          <h4 className="text-base font-medium text-dark">TL;DR</h4>
+        </div>
         <p className="text-base text-mediumGray leading-relaxed">
           Q1 2025 delivered strong results across all KPIs with traffic up 42%
           YoY and leads up 38% YoY. Technical improvements and content quality
-          drove performance gains. For Q2, we&apos;ll focus on mobile optimization,
+          drove performance gains. For Q2, we'll focus on mobile optimization,
           expanding high-converting content clusters, and targeted link building
           for product pages. Main risks include competitive pressure and
           potential algorithm updates favoring UX metrics.
@@ -2463,101 +998,233 @@ const sampleReportContent = {
       </div>
     </div>
   ),
+  quarterly: (
+    <div className="space-y-6">
+      {/* Quick Links - moved to top */}
+      <div className="card bg-white p-6">
+        <h4 className="text-lg font-bold text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Link2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Quick Links</span>
+          </div>
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <a
+            href="https://search.google.com/search-console"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <ChartColumn className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span className="text-base text-dark">GSC Dashboard</span>
+          </a>
+          <a
+            href="https://drive.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <FolderOpen className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span className="text-base text-dark">Content Folder</span>
+          </a>
+          <a
+            href="https://docs.google.com/spreadsheets"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center p-4 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <Link2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span className="text-base text-dark">Quarterly Strategy</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Quarterly Performance Overview */}
+      <div className="card bg-white p-6 border-t-4 border-[#9EA8FB] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <BarChart2 className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Quarterly Performance Overview</span>
+          </div>
+        </h4>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={quarterlyPerformanceData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="quarter" />
+              <YAxis yAxisId="left" orientation="left" stroke="#9ea8fb" />
+              <YAxis yAxisId="right" orientation="right" stroke="#fcdc94" />
+              <Tooltip />
+              <Legend />
+              <Bar yAxisId="left" dataKey="traffic" name="Organic Traffic" fill="#9ea8fb" />
+              <Bar yAxisId="right" dataKey="revenue" name="Revenue ($)" fill="#fcdc94" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Strategic Initiatives */}
+      <div className="card bg-white p-6 border-t-4 border-[#FCDC94] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <TrendingUp className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Strategic Initiatives</span>
+          </div>
+        </h4>
+        <div className="mt-2 space-y-4">
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-2">Content Cluster Development</h5>
+            <p className="text-sm text-mediumGray">
+              Developed 3 comprehensive content clusters around core service offerings, with 15 new supporting articles published this quarter.
+            </p>
+          </div>
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-2">Technical SEO Infrastructure</h5>
+            <p className="text-sm text-mediumGray">
+              Completed site-wide technical audit and implemented Core Web Vitals optimizations, resulting in 32% improvement in page speed metrics.
+            </p>
+          </div>
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-2">Backlink Acquisition Campaign</h5>
+            <p className="text-sm text-mediumGray">
+              Secured 28 high-quality backlinks (avg. DR 62) through strategic outreach and content partnerships.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ROI Analysis */}
+      <div className="card bg-white p-6 border-t-4 border-[#EADCFF] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <LineChartIcon className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>ROI Analysis</span>
+          </div>
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">Investment Breakdown</h5>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Content Creation', value: 40 },
+                      { name: 'Technical SEO', value: 25 },
+                      { name: 'Link Building', value: 20 },
+                      { name: 'Analytics & Reporting', value: 15 }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={renderCustomizedLabel}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {leadSourceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div className="bg-gray-50 p-5 rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-3">ROI Metrics</h5>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-dark">Total Investment</span>
+                  <span className="text-sm font-medium text-dark">$42,000</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-dark">Attributed Revenue</span>
+                  <span className="text-sm font-medium text-dark">$108,000</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-dark">ROI</span>
+                  <span className="text-sm font-medium text-green-600">257%</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-dark">Cost Per Acquisition</span>
+                  <span className="text-sm font-medium text-dark">$124</span>
+                </div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 mt-0.5 mr-3">
+                    <Info className="h-3 w-3 text-blue-600" />
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    <span className="font-medium">ROI Calculation:</span> Based on first-touch attribution model with 90-day lookback window. Revenue includes projected LTV for new customers acquired this quarter.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Next Quarter Strategy */}
+      <div className="card bg-white p-6 border-t-4 border-[#9EA8FB] rounded-lg shadow-sm">
+        <h4 className="text-lg font-medium text-dark mb-4">
+          <div className="flex items-center">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F3F4FF] mr-3">
+              <ArrowRight className="h-5 w-5 text-[#9EA8FB]" />
+            </div>
+            <span>Next Quarter Strategy</span>
+          </div>
+        </h4>
+        <div className="mt-2 space-y-2">
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-2">Focus Areas</h5>
+            <ul className="list-disc pl-5 space-y-2 text-base text-mediumGray">
+              <li>Expand content clusters with 6 new pillar pages targeting high-value keywords</li>
+              <li>Implement structured data enhancements across all product categories</li>
+              <li>Launch targeted link building campaign for key service pages</li>
+              <li>Develop conversion rate optimization strategy for mobile users</li>
+              <li>Implement automated reporting dashboard for real-time performance tracking</li>
+            </ul>
+          </div>
+          <div className="p-4 bg-[#F5F5F9] rounded-lg">
+            <h5 className="text-base font-medium text-dark mb-2">Key Performance Targets</h5>
+            <ul className="list-disc pl-5 space-y-2 text-base text-mediumGray">
+              <li>Increase organic traffic by 25% quarter-over-quarter</li>
+              <li>Improve conversion rate from organic traffic by 15%</li>
+              <li>Secure 30+ high-quality backlinks (DR 60+)</li>
+              <li>Achieve first-page rankings for 10 additional target keywords</li>
+              <li>Reduce mobile bounce rate by 20%</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
 };
 
 // Slack Share Modal Component
-const SlackShareModal = ({
-  isOpen,
-  onClose,
-  reportTitle,
-  reportType,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  reportTitle: string;
-  reportType: string;
-}) => {
-  const [channel, setChannel] = useState("#seo-updates");
-  const [message, setMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
-
-  // Generate default message based on report type and title
-  useEffect(() => {
-    let defaultMessage = "";
-    if (reportType === "weekly") {
-      defaultMessage = `Here's the latest weekly SEO report: ${reportTitle}\n\nKey highlights:\n- Organic traffic up 15% week-over-week\n- 4 new keywords entered top 10 positions\n- 3 new backlinks secured`;
-    } else if (reportType === "monthly") {
-      defaultMessage = `Monthly SEO performance report: ${reportTitle}\n\nKey highlights:\n- Organic traffic up 22% month-over-month\n- Lead generation increased by 18%\n- 12 new content pieces published`;
-    } else if (reportType === "quarterly") {
-      defaultMessage = `Quarterly SEO strategy & performance review: ${reportTitle}\n\nKey highlights:\n- 42% YoY traffic growth\n- 38% YoY lead growth\n- $108K revenue impact`;
-    }
-    setMessage(defaultMessage);
-  }, [reportTitle, reportType]);
-
-  const handleSend = () => {
-    setIsSending(true);
-    // Simulate sending to Slack
-    setTimeout(() => {
-      setIsSending(false);
-      onClose();
-      // Show success message
-      alert("Report summary shared to Slack!");
-    }, 1000);
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Share to Slack</DialogTitle>
-          <DialogDescription>
-            Share a summary of this report to Slack. Customize the message
-            below.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="channel" className="text-right text-sm font-medium">
-              Channel
-            </label>
-            <Input
-              id="channel"
-              value={channel}
-              onChange={(e) => setChannel(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label htmlFor="message" className="text-right text-sm font-medium">
-              Message
-            </label>
-            <Textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="col-span-3"
-              rows={6}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSend}
-            className="bg-[#4A154B] hover:bg-[#3a1039] text-white"
-            disabled={isSending}
-          >
-            {isSending ? "Sending..." : "Send to Slack"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+// ... rest of the file remains unchanged ...
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState("weekly");
@@ -2632,8 +1299,6 @@ export default function Reports() {
       setReportContent(sampleReportContent.quarterly);
     }
   };
-
-  // Date range filter removed as not needed
 
   // Handle month filter change
   const handleMonthChange = (value: string) => {
@@ -2731,14 +1396,6 @@ export default function Reports() {
         onMonthChange: handleMonthChange,
       }}
     >
-      {/* Slack Share Modal */}
-      <SlackShareModal
-        isOpen={isSlackModalOpen}
-        onClose={() => setIsSlackModalOpen(false)}
-        reportTitle={getCurrentReportTitle()}
-        reportType={activeTab}
-      />
-
       <PageContainer className="w-full">
         <div ref={headerRef} className="sticky top-0 z-20 bg-white">
           <PageContainerTabs>
@@ -2796,7 +1453,7 @@ export default function Reports() {
                           {report.title}
                         </p>
                         <div className="flex items-center mt-2">
-                          <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
+                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
                           <p className="text-sm text-mediumGray">
                             {report.date}
                           </p>
@@ -2832,7 +1489,7 @@ export default function Reports() {
                           {report.title}
                         </p>
                         <div className="flex items-center mt-2">
-                          <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
+                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
                           <p className="text-sm text-mediumGray">
                             {report.date}
                           </p>
@@ -2869,7 +1526,7 @@ export default function Reports() {
                           {report.title}
                         </p>
                         <div className="flex items-center mt-2">
-                          <BiCalendarCheck className="h-4 w-4 text-mediumGray mr-2" />
+                          <Calendar className="h-4 w-4 text-mediumGray mr-2" />
                           <p className="text-sm text-mediumGray">
                             {report.date}
                           </p>
@@ -2909,7 +1566,7 @@ export default function Reports() {
                         ].findIndex((r) => r.id === selectedReport) <= 0
                       }
                     >
-                      <BiChevronLeft className="h-5 w-5" />
+                      <ChevronDown className="h-5 w-5 transform -rotate-90" />
                     </Button>
                     <h2 className="text-lg md:text-xl font-medium text-dark">
                       {activeTab === "weekly" &&
@@ -2953,7 +1610,7 @@ export default function Reports() {
                         1
                       }
                     >
-                      <BiChevronRight className="h-5 w-5" />
+                      <ChevronDown className="h-5 w-5 transform rotate-90" />
                     </Button>
                   </div>
                 </div>
