@@ -27,6 +27,8 @@ export async function GET(request: NextRequest) {
     console.log('API route: Fetching tasks from Airtable');
     console.log('API Key exists:', !!process.env.AIRTABLE_API_KEY);
     console.log('Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Vercel environment:', process.env.VERCEL_ENV || 'Not in Vercel');
 
     // Get user information from the request
     const userId = request.headers.get('x-user-id');

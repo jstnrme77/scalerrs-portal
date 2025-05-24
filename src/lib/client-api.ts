@@ -64,6 +64,15 @@ const isNetlify = () => {
          window.location.hostname.includes('vercel.app');
 };
 
+// Add a specific function for Vercel detection
+const isVercel = () => {
+  if (!isBrowser) return false;
+  
+  return window.location.hostname.includes('vercel.app') || 
+         process.env.VERCEL === '1' || 
+         process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined;
+};
+
 // Function to clear Airtable connection issues flag
 // This is not exposed via a button, but is used internally
 function clearAirtableConnectionIssuesInternal() {
@@ -137,6 +146,9 @@ export async function fetchTasks() {
       : '/api/tasks';
 
     console.log('Fetching tasks from:', url);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Is Vercel environment:', isVercel());
+    console.log('Current hostname:', isBrowser ? window.location.hostname : 'server-side');
 
     // Add a timeout to the fetch request
     const controller = new AbortController();

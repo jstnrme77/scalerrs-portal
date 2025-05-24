@@ -5,6 +5,8 @@ const nextConfig = {
     AIRTABLE_API_KEY: process.env.AIRTABLE_API_KEY,
     AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID,
     NEXT_PUBLIC_USE_MOCK_DATA: 'false',
+    IS_VERCEL: process.env.VERCEL === '1' ? 'true' : 'false',
+    DEPLOYMENT_ENV: process.env.VERCEL_ENV || process.env.NODE_ENV
   },
   // For Netlify, we don't want static export
   // This ensures API routes work properly

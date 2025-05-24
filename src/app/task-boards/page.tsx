@@ -319,17 +319,17 @@ function EffortBadge({ effort, originalEffort }: { effort?: TaskEffort, original
   let displayText = originalEffort || effort || '-';
 
   // Determine colors based on effort level
-  if (effort === 'S' || effort === 'Low Effort ❗' || 
+  if (effort === 'S' || effort === 'Low Effort' || 
       (originalEffort && originalEffort.includes('Low')) || 
       (originalEffort && originalEffort.includes('❗') && !originalEffort.includes('❗❗'))) {
     bgColor = 'bg-green-100';
     textColor = 'text-green-800';
-  } else if (effort === 'L' || effort === 'High Effort ❗❗❗' || 
+  } else if (effort === 'L' || effort === 'High Effort' || 
             (originalEffort && originalEffort.includes('High')) || 
             (originalEffort && originalEffort.includes('❗❗❗'))) {
     bgColor = 'bg-orange-100';
     textColor = 'text-orange-800';
-  } else if (effort === 'M' || effort === 'Mid Effort ❗❗' || 
+  } else if (effort === 'M' || effort === 'Mid Effort' || 
             (originalEffort && originalEffort.includes('Medium')) || 
             (originalEffort && originalEffort.includes('Mid')) || 
             (originalEffort && originalEffort.includes('❗❗'))) {
@@ -753,10 +753,13 @@ function TaskTable({
     const priorityOrder = {
       'High': 1,
       'High Priority': 1,
+      'High Priority 🔥🔥🔥': 1,
       'Medium': 2,
       'Mid Priority': 2,
+      'Mid Priority 🔥🔥': 2,
       'Low': 3,
-      'Low Priority': 3
+      'Low Priority': 3,
+      'Low Priority 🔥': 3
     };
 
     // Handle undefined priority values
@@ -1075,10 +1078,10 @@ function AddTaskModal({
       // Reset form
       setTaskData({
         task: '',
-        priority: 'Mid Priority 🔥🔥',
+        priority: 'Mid Priority 🔥🔥' as TaskPriority,
         assignedTo: '',
         impact: 'Mid Impact 📈📈',
-        effort: 'Mid Effort ❗❗',
+        effort: 'Mid Effort ❗❗' as TaskEffort,
         notes: '',
         referenceLinks: ''
       });

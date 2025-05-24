@@ -1,7 +1,7 @@
 // Task Types
 export type TaskStatus = 'Not Started' | 'In Progress' | 'Blocked' | 'Done';
-export type TaskPriority = 'High' | 'Medium' | 'Low' | 'High Priority' | 'Mid Priority' | 'Low Priority';
-export type TaskEffort = 'S' | 'M' | 'L' | 'High Effort' | 'Mid Effort' | 'Low Effort';
+export type TaskPriority = 'High' | 'Medium' | 'Low' | 'High Priority' | 'Mid Priority' | 'Low Priority' | 'High Priority 🔥🔥🔥' | 'Mid Priority 🔥🔥' | 'Low Priority 🔥';
+export type TaskEffort = 'S' | 'M' | 'L' | 'High Effort' | 'Mid Effort' | 'Low Effort' | 'High Effort ❗❗❗' | 'Mid Effort ❗❗' | 'Low Effort ❗';
 export type TaskCategory = 'Technical SEO' | 'CRO' | 'Strategy' | 'Ad Hoc';
 
 // Base Task interface

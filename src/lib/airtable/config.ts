@@ -14,9 +14,15 @@ if (apiKey) {
   if (!apiKey.startsWith('pat')) {
     console.warn('Warning: API key does not appear to be a personal access token (should start with "pat")');
   }
+} else {
+  console.error('CRITICAL: API key is undefined!');
+  console.log('Environment mode:', process.env.NODE_ENV);
+  console.log('Available environment variables:', Object.keys(process.env).filter(key => 
+    !key.includes('SECRET') && !key.includes('KEY') && !key.includes('TOKEN')
+  ));
 }
 
-console.log('Using Airtable base ID:', baseId);
+console.log('Using Airtable base ID:', baseId || 'UNDEFINED');
 
 export const hasAirtableCredentials = !!(apiKey && baseId);
 
