@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { getClientNameSync } from '@/utils/clientUtils';
+import { getClientNameSync, initializeClientCache } from '@/utils/clientUtils';
 import { clearCacheByPrefix } from '@/lib/client-cache';
 import { fetchClients } from '@/lib/client-api';
 
@@ -366,7 +366,7 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       const fetchClientData = async () => {
         // Initialize the client cache for the getClientName utility
         try {
-          await getClientNameSync('init-cache');
+          await initializeClientCache();
           console.log('Client cache initialized');
         } catch (error) {
           console.error('Error initializing client cache:', error);

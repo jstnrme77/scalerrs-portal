@@ -70,6 +70,11 @@ const getDisplayName = (field: any): string => {
 
 // Helper function to truncate URLs in titles
 const formatTitle = (title: string): string => {
+  // Check if title is undefined, null, or not a string
+  if (!title || typeof title !== 'string') {
+    return 'Untitled Brief';
+  }
+
   // Check if the title is a URL (specifically a Frase URL)
   if (title.startsWith('https://app.frase.io/') || title.startsWith('http://app.frase.io/')) {
     return 'Frase Document';

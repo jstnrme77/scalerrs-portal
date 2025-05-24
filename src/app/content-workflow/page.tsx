@@ -9,6 +9,7 @@ import useDocumentViewer from '@/hooks/useDocumentViewer';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import { FileText, BookOpen } from 'lucide-react';
 import { useClientData } from '@/context/ClientDataContext';
+import { initializeClientCache } from '@/utils/clientUtils';
 import RoundedMonthSelector from '@/components/ui/custom/RoundedMonthSelector';
 import MockDataNotification from '@/components/ui/custom/MockDataNotification';
 import '@/styles/kanban.css';
@@ -74,6 +75,14 @@ export default function ContentWorkflowPage() {
 
         console.log('Starting to fetch content workflow data...');
         console.log('Fetching data for month:', selectedMonth);
+
+        // Initialize client cache first to ensure client names are available
+        try {
+          await initializeClientCache();
+          console.log('Client cache initialized for content workflow');
+        } catch (cacheError) {
+          console.error('Error initializing client cache:', cacheError);
+        }
 
         // Clear any existing mock data flag to ensure we're using real data
         if (isBrowser) {

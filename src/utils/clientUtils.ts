@@ -4,6 +4,32 @@ import { fetchClients } from '@/lib/client-api';
 let clientCache: { [key: string]: string } | null = null;
 
 /**
+ * Initialize the client cache
+ * @returns Promise that resolves when cache is initialized
+ */
+export async function initializeClientCache(): Promise<void> {
+  try {
+    if (!clientCache) {
+      const clients = await fetchClients();
+      clientCache = {};
+
+      // Build a map of client IDs to client names
+      clients.forEach((client: { id?: string; Name?: string }) => {
+        if (client.id && client.Name) {
+          clientCache![client.id] = client.Name;
+        }
+      });
+
+      console.log('Client cache initialized with', Object.keys(clientCache).length, 'clients');
+    }
+  } catch (error) {
+    console.error('Error initializing client cache:', error);
+    // Initialize empty cache to prevent repeated failures
+    clientCache = {};
+  }
+}
+
+/**
  * Get client name from client ID
  * @param clientId The client ID to look up
  * @returns The client name, or a formatted version of the client ID if not found
