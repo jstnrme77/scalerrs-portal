@@ -15,6 +15,23 @@ import {
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
 
+// Function to determine if we're on Netlify or Vercel
+const isNetlify = () => {
+  if (!isBrowser) return false;
+
+  // Check for Netlify hostname only
+  return window.location.hostname.includes('netlify.app');
+};
+
+// Function for Vercel detection
+const isVercel = () => {
+  if (!isBrowser) return false;
+  
+  return window.location.hostname.includes('vercel.app') || 
+         process.env.VERCEL === '1' || 
+         process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined;
+};
+
 // Function to determine if we should use mock data
 // This happens if explicitly enabled or if API calls fail
 const shouldUseMockData = () => {
@@ -38,10 +55,8 @@ const shouldUseMockData = () => {
     return useMockData;
   }
 
-  // Check if we're on Netlify/Vercel and having issues with Airtable
-  const isHostedWithAirtableIssues =
-    (isNetlify() || isVercel()) &&
-    localStorage.getItem('airtable-connection-issues') === 'true';
+  // Check if we've had API connection issues
+  const hasConnectionIssues = localStorage.getItem('api-connection-issues') === 'true';
 
   // Check if we've had recent API errors
   const hasRecentApiErrors =
@@ -49,43 +64,24 @@ const shouldUseMockData = () => {
     Date.now() - parseInt(localStorage.getItem('api-error-timestamp') || '0') < 60000; // Within last minute
 
   console.log('Environment mode:', process.env.NODE_ENV);
-  console.log('Using mock data:', useMockData || isHostedWithAirtableIssues || hasRecentApiErrors);
+  console.log('Using mock data:', useMockData || hasConnectionIssues || hasRecentApiErrors);
   console.log('shouldUseMockData details:', {
     useMockData,
-    isHostedWithAirtableIssues,
+    hasConnectionIssues,
     hasRecentApiErrors,
     isVercel: isVercel(),
-    isNetlify: isNetlify(),
-    airtableConnectionIssues: localStorage.getItem('airtable-connection-issues'),
     apiErrorTimestamp: localStorage.getItem('api-error-timestamp')
   });
 
   // Return true if we should use mock data
-  return useMockData || isHostedWithAirtableIssues || hasRecentApiErrors;
-};
-
-// Function to determine if we're on Netlify or Vercel
-const isNetlify = () => {
-  if (!isBrowser) return false;
-
-  // Check for Netlify or Vercel hostnames
-  return window.location.hostname.includes('netlify.app') ||
-         window.location.hostname.includes('vercel.app');
-};
-
-// Add a specific function for Vercel detection
-const isVercel = () => {
-  if (!isBrowser) return false;
-  
-  return window.location.hostname.includes('vercel.app') || 
-         process.env.VERCEL === '1' || 
-         process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined;
+  return useMockData || hasConnectionIssues || hasRecentApiErrors;
 };
 
 // Function to reset all localStorage flags that might cause mock data to be used
 export function resetMockDataFlags() {
   if (isBrowser) {
-    localStorage.removeItem('airtable-connection-issues');
+    localStorage.removeItem('api-connection-issues');
+    localStorage.removeItem('airtable-connection-issues'); // Remove legacy flag
     localStorage.removeItem('api-error-timestamp');
     localStorage.removeItem('use-mock-data');
     console.log('Reset all mock data flags in localStorage');
@@ -161,10 +157,7 @@ export async function fetchTasks() {
     }
 
     // In production, use the API routes
-    // Use Netlify Functions when on Netlify
-    const url = isNetlify()
-      ? '/.netlify/functions/get-tasks'
-      : '/api/tasks';
+    const url = '/api/tasks';
 
     console.log('Fetching tasks from:', url);
     console.log('Environment:', process.env.NODE_ENV);
@@ -239,10 +232,11 @@ export async function fetchTasks() {
   } catch (error) {
     console.error('Error fetching tasks:', error);
 
-    // Set a flag in localStorage to indicate Airtable connection issues
-    if (isNetlify() && isBrowser) {
-      console.log('Setting airtable-connection-issues flag in localStorage');
-      localStorage.setItem('airtable-connection-issues', 'true');
+    // Set a flag in localStorage to indicate API connection issues
+    if (isBrowser) {
+      console.log('Setting api-connection-issues flag in localStorage');
+      localStorage.setItem('api-connection-issues', 'true');
+      localStorage.setItem('api-error-timestamp', Date.now().toString());
     }
 
     // Fall back to mock data if the API call fails
