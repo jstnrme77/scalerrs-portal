@@ -752,11 +752,11 @@ function TaskTable({
     // Then sort by priority
     const priorityOrder = {
       'High': 1,
-      'High Priority 🔥🔥🔥': 1,
+      'High Priority': 1,
       'Medium': 2,
-      'Mid Priority 🔥🔥': 2,
+      'Mid Priority': 2,
       'Low': 3,
-      'Low Priority 🔥': 3
+      'Low Priority': 3
     };
 
     // Handle undefined priority values
@@ -1022,13 +1022,13 @@ function AddTaskModal({
 
   const [taskData, setTaskData] = useState<TaskFormData>({
     task: '',
-    priority: 'Mid Priority 🔥🔥',
+    priority: 'Mid Priority',
     assignedTo: '',
-    impact: 'Mid Impact 📈📈',
-    effort: 'Mid Effort ❗❗',
+    impact: 'Mid Impact',
+    effort: 'Mid Effort',
     notes: '',
     referenceLinks: ''
-  });
+  }); 
 
   if (!isOpen) return null;
 
@@ -1132,9 +1132,9 @@ function AddTaskModal({
                 value={taskData.priority}
                 onChange={(e) => setTaskData({ ...taskData, priority: e.target.value as TaskPriority })}
               >
-                <option value="High Priority 🔥🔥🔥">High Priority 🔥🔥🔥</option>
-                <option value="Mid Priority 🔥🔥">Mid Priority 🔥🔥</option>
-                <option value="Low Priority 🔥">Low Priority 🔥</option>
+                <option value="High Priority 🔥🔥🔥">High Priority</option>
+                <option value="Mid Priority 🔥🔥">Mid Priority</option>
+                <option value="Low Priority 🔥">Low Priority</option>
               </select>
             </div>
 
@@ -1145,9 +1145,9 @@ function AddTaskModal({
                 value={taskData.impact}
                 onChange={(e) => setTaskData({ ...taskData, impact: e.target.value })}
               >
-                <option value="High Impact 📈📈📈">High Impact 📈📈📈</option>
-                <option value="Mid Impact 📈📈">Mid Impact 📈📈</option>
-                <option value="Low Impact 📈">Low Impact 📈</option>
+                <option value="High Impact 📈📈📈">High Impact</option>
+                <option value="Mid Impact 📈📈">Mid Impact</option>
+                <option value="Low Impact 📈">Low Impact</option>
               </select>
             </div>
 
@@ -1158,9 +1158,9 @@ function AddTaskModal({
                 value={taskData.effort}
                 onChange={(e) => setTaskData({ ...taskData, effort: e.target.value as TaskEffort })}
               >
-                <option value="High Effort ❗❗❗">High Effort ❗❗❗</option>
-                <option value="Mid Effort ❗❗">Mid Effort ❗❗</option>
-                <option value="Low Effort ❗">Low Effort ❗</option>
+                <option value="High Effort ❗❗❗">High Effort</option>
+                <option value="Mid Effort ❗❗">Mid Effort</option>
+                <option value="Low Effort ❗">Low Effort</option>
               </select>
             </div>
 
@@ -1236,7 +1236,7 @@ export default function TaskBoards() {
           if (response && Array.isArray(response) && response.length > 0) {
             console.log('CRO Sample Task Fields:', Object.keys(response[0]));
             console.log('CRO Sample Task Priority:', response[0].Priority);
-            console.log('CRO Sample Task Impact:', response[0].Impact);
+            console.log('CRO Sample Task Impact:', response[0]['Portal Impact'] || response[0].Impact);
             console.log('CRO Sample Task Effort:', response[0].Effort);
           } else if (response && typeof response === 'object' && 'tasks' in response && 
                     Array.isArray(response.tasks) && response.tasks.length > 0) {
@@ -1563,7 +1563,7 @@ export default function TaskBoards() {
           Type: task.Type,
           'Impact Level': task['Impact Level'],
           'Effort Level': task['Effort Level'],
-          Impact: task.Impact, // Add Impact field directly from Airtable
+          Impact: task['Portal Impact'], // Add Impact field directly from Airtable
           Effort: task.Effort, // Add Effort field directly from Airtable
           'Created At': task['Created At'],
           'Due Date': task['Due Date'],

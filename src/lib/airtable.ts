@@ -3468,11 +3468,12 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
         Name: fields['Action Item Name'] || '', // Map from "Action Item Name" to "Name"
         Title: fields['Action Item Name'] || '', // Also map to Title for consistency
         Status: fields['Status'] || 'Not Started',
-        Priority: fields['Priority'] || 'Medium', // Provide a default value
-        Impact: fields['Impact'] || 'Medium Impact', // Provide a default value
-        Effort: fields['Effort'] || 'Medium Effort', // Provide a default value
+        Priority: fields['Portal Priority'] || '-', // Provide a default value
+        Impact: fields['Portal Impact'] || '-', // Provide a default value
+        Effort: fields['Portal Effort'] || '-', // Provide a default value
         AssignedTo: fields['Assignee'] || 'Unassigned',
-        Notes: fields['Comments'] || '',
+        Notes: fields['Description'] || '',
+        Comments: fields['Comments'] || '',
         Created: fields['Created'] || new Date().toISOString(),
         Type: 'CRO', // Hardcode type for frontend filtering
         ...fields // Include all other fields too
@@ -3541,31 +3542,13 @@ export async function createCROTask(taskData: {
       Impact: createdRecord.fields['Impact'] || '',
       Effort: createdRecord.fields['Effort'] || '',
       AssignedTo: createdRecord.fields['Assignee'] || 'Unassigned',
-      Notes: createdRecord.fields['Comments'] || '',
+      Notes: createdRecord.fields['Description'] || '',
       Created: createdRecord.fields['Created'] || new Date().toISOString(),
       Type: 'CRO',
       ...createdRecord.fields
     };
   } catch (error) {
     console.error('Error creating CRO task in Airtable:', error);
-    
-    // Return mock data as fallback
-    const newTask = {
-      id: `cro-task-${Date.now()}`,
-      Name: taskData['Action Item Name'],
-      Title: taskData['Action Item Name'],
-      Status: taskData.Status,
-      Priority: taskData.Priority || 'Medium',
-      Impact: taskData.Impact || '3',
-      Effort: taskData.Effort || 'M',
-      AssignedTo: taskData.Assignee || 'Unassigned',
-      Notes: taskData.Comments || '',
-      Created: new Date().toISOString(),
-      Type: 'CRO',
-      Clients: taskData.Clients || []
-    };
-    
-    return newTask;
   }
 }
 
