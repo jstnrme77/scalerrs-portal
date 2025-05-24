@@ -15,23 +15,16 @@ async function directFetchApprovalItems(
   type: string,
   page: number = 1,
   pageSize: number = 10,
-  clientId?: string,
+  clientId: string,
   status?: string
 ) {
   // Build URL with query parameters
   const params = new URLSearchParams({
     type,
     page: page.toString(),
-    pageSize: pageSize.toString()
+    pageSize: pageSize.toString(),
+    clientId
   });
-  
-  // Important: Always include clientId parameter, even if it's 'all'
-  // This ensures the API properly handles client filtering
-  if (clientId) {
-    params.append('clientId', clientId);
-  } else {
-    params.append('clientId', 'all');
-  }
   
   if (status) {
     params.append('status', status);

@@ -31,6 +31,9 @@ if (hasAirtableCredentials) {
   const isBrowser = typeof window !== 'undefined';
 
   if (isBrowser) {
+    // Note: Using public API key in browser bundle exposes read-only access. Ensure
+    // your Airtable token has minimal scopes if you rely on client-side queries.
+
     console.log('Running in browser environment. Using client-side Airtable initialization.');
 
     // In browser environment, we need to use the Next.js public env vars

@@ -465,6 +465,18 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     };
   }, []);
 
+  // Sync selected client id into localStorage so that legacy helpers that
+  // still read `clientRecordID` continue to work (Reports, Approvals, etc.)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (clientId && clientId !== 'all') {
+      localStorage.setItem('clientRecordID', clientId);
+    } else {
+      localStorage.removeItem('clientRecordID');
+    }
+  }, [clientId]);
+
   return (
     <ClientDataContext.Provider
       value={{

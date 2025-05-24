@@ -568,6 +568,14 @@ export async function getWQATasks(userId?: string | null, userRole?: string | nu
 }
 
 export async function getTasks(userId?: string | null, userRole?: string | null, clientIds?: string[] | null) {
+  const cacheKey = 'tasksCache';
+  const cachedTasks = localStorage.getItem(cacheKey);
+
+  if (cachedTasks) {
+    console.log('Returning cached tasks');
+    return JSON.parse(cachedTasks);
+  }
+
   if (!hasAirtableCredentials) {
     console.log('Using mock tasks data - no Airtable credentials');
     console.log('API Key exists:', !!apiKey);
@@ -614,70 +622,32 @@ export async function getTasks(userId?: string | null, userRole?: string | null,
 
   try {
     console.log('Fetching tasks from Airtable...');
-    console.log('Using base ID:', baseId);
-
-    // Build the query with appropriate filters
     let filterFormula = '';
 
-    // If user is a client, filter by client
     if (userRole === 'Client' && clientIds && clientIds.length > 0) {
-      console.log('Filtering tasks by client:', clientIds);
-
-      // Create a filter formula for client IDs that uses only Clients field
       const clientFilters = clientIds.map(clientId =>
         `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
       );
-
-      // Combine filters with OR
       filterFormula = `OR(${clientFilters.join(',')})`;
-    }
-    // If user is not an admin or client, filter by assigned user
-    else if (userId && userRole && userRole !== 'Admin') {
-      console.log(`Filtering tasks for user: ${userId}, role: ${userRole}`);
-
-      // Filter for tasks assigned to this user
+    } else if (userId && userRole && userRole !== 'Admin') {
       filterFormula = `SEARCH('${userId}', ARRAYJOIN(AssignedTo, ',')) > 0`;
     }
 
-    // Apply the filter if one was created
-    let query;
-    if (filterFormula) {
-      console.log('Using filter formula:', filterFormula);
-      query = base(TABLES.TASKS).select({
-        filterByFormula: filterFormula
-      });
-    } else {
-      query = base(TABLES.TASKS).select();
-    }
+    const query = base(TABLES.TASKS).select({
+      fields: ['Name', 'Status', 'DueDate', 'Clients', 'AssignedTo'],
+      filterByFormula: filterFormula || undefined
+    });
 
     const records = await query.all();
-    console.log(`Successfully fetched ${records.length} tasks from Airtable`);
+    const tasks = records.map((record: any) => ({
+      id: record.id,
+      ...record.fields,
+    }));
 
-    return records.map((record: any) => {
-      const fields = record.fields;
+    localStorage.setItem(cacheKey, JSON.stringify(tasks));
+    console.log('Tasks cached');
 
-      // Ensure we have consistent field names
-      // If the record has Title but not Name, add Name as an alias
-      if (fields.Title && !fields.Name) {
-        fields.Name = fields.Title;
-      }
-      // If the record has Name but not Title, add Title as an alias
-      else if (fields.Name && !fields.Title) {
-        fields.Title = fields.Name;
-      }
-
-      // Ensure we have both Client and Clients fields for compatibility
-      if (fields.Client && !fields.Clients) {
-        fields.Clients = fields.Client;
-      } else if (fields.Clients && !fields.Client) {
-        fields.Client = fields.Clients;
-      }
-
-      return {
-        id: record.id,
-        ...fields,
-      };
-    });
+    return tasks;
   } catch (error) {
     console.error('Error fetching tasks from Airtable:', error);
     // Fall back to mock data

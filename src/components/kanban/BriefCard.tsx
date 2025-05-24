@@ -1,8 +1,9 @@
+import React, { memo } from 'react';
 import { useDrag } from 'react-dnd';
-import { ItemTypes } from '@/constants/DragTypes';
-import { Brief, BriefStatus } from '@/types';
-import { getClientNameSync } from '@/utils/clientUtils';
-import { ensureUrlProtocol } from '@/utils/field-utils';
+import { ItemTypes } from '../../constants/DragTypes';
+import { Brief, BriefStatus } from '../../types';
+import { getClientNameSync } from '../../utils/clientUtils';
+import { ensureUrlProtocol } from '../../utils/field-utils';
 import { FileText } from 'lucide-react';
 
 interface BriefCardProps {
@@ -69,28 +70,19 @@ const getDisplayName = (field: any): string => {
 };
 
 // Helper function to truncate URLs in titles
-const formatTitle = (title: string): string => {
-  // Check if the title is a URL (specifically a Frase URL)
-  if (title.startsWith('https://app.frase.io/') || title.startsWith('http://app.frase.io/')) {
-    return 'Frase Document';
-  }
-
-  // Check if it's any other URL
-  if (title.startsWith('https://') || title.startsWith('http://')) {
-    // Extract domain name
-    try {
-      const url = new URL(title);
-      return `Document from ${url.hostname}`;
-    } catch (e) {
-      // If URL parsing fails, truncate the URL
-      return title.length > 40 ? title.substring(0, 37) + '...' : title;
+const formatTitle = (title: string | undefined): string => {
+  // Check if the title is defined and is a string
+  if (typeof title === 'string') {
+    // Check if the title is a URL (specifically a Frase URL)
+    if (title.startsWith('https://app.frase.io/') || title.startsWith('http://app.frase.io/')) {
+      return 'Frase Document';
     }
+    return title; // Return the title if it's not a Frase URL
   }
-
-  return title;
+  return 'Untitled'; // Return a default value if title is undefined
 };
 
-export default function BriefCard({ brief, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: BriefCardProps) {
+export default memo(function BriefCard({ brief, selectedMonth, onStatusChange, hideActions = false, onViewDocument }: BriefCardProps) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.BRIEF_CARD,
     item: { id: brief.id, status: brief.Status },
@@ -327,4 +319,4 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
       )}
     </div>
   );
-}
+});
