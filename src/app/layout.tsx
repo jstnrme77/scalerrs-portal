@@ -4,13 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { ClientDataProvider } from '@/context/ClientDataContext'
 // import { themeScript } from './theme-script' - Theme switching disabled
-import dynamic from 'next/dynamic'
-
-// Dynamically import the ResetMockDataButton to avoid server rendering issues
-const ResetMockDataButton = dynamic(
-  () => import('@/components/ui/custom/ResetMockDataButton'),
-  { ssr: false }
-)
+import ResetButtonWrapper from '@/components/ui/custom/ResetButtonWrapper'
 
 export const metadata: Metadata = {
   title: 'Scalerrs Client Portal',
@@ -31,8 +25,8 @@ export default function RootLayout({
         <AuthProvider>
           <ClientDataProvider>
             {children}
-            {/* Reset Mock Data Button */}
-            <ResetMockDataButton />
+            {/* Reset API Connection Button */}
+            <ResetButtonWrapper />
           </ClientDataProvider>
         </AuthProvider>
       </body>
