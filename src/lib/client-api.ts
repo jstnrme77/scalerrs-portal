@@ -38,9 +38,9 @@ const shouldUseMockData = () => {
     return useMockData;
   }
 
-  // Check if we're on Netlify and having issues with Airtable
-  const isNetlifyWithAirtableIssues =
-    isNetlify() &&
+  // Check if we're on Netlify/Vercel and having issues with Airtable
+  const isHostedWithAirtableIssues =
+    (isNetlify() || isVercel()) &&
     localStorage.getItem('airtable-connection-issues') === 'true';
 
   // Check if we've had recent API errors
@@ -49,10 +49,19 @@ const shouldUseMockData = () => {
     Date.now() - parseInt(localStorage.getItem('api-error-timestamp') || '0') < 60000; // Within last minute
 
   console.log('Environment mode:', process.env.NODE_ENV);
-  console.log('Using mock data:', useMockData || isNetlifyWithAirtableIssues || hasRecentApiErrors);
+  console.log('Using mock data:', useMockData || isHostedWithAirtableIssues || hasRecentApiErrors);
+  console.log('shouldUseMockData details:', {
+    useMockData,
+    isHostedWithAirtableIssues,
+    hasRecentApiErrors,
+    isVercel: isVercel(),
+    isNetlify: isNetlify(),
+    airtableConnectionIssues: localStorage.getItem('airtable-connection-issues'),
+    apiErrorTimestamp: localStorage.getItem('api-error-timestamp')
+  });
 
   // Return true if we should use mock data
-  return useMockData || isNetlifyWithAirtableIssues || hasRecentApiErrors;
+  return useMockData || isHostedWithAirtableIssues || hasRecentApiErrors;
 };
 
 // Function to determine if we're on Netlify or Vercel
@@ -72,6 +81,18 @@ const isVercel = () => {
          process.env.VERCEL === '1' || 
          process.env.NEXT_PUBLIC_VERCEL_ENV !== undefined;
 };
+
+// Function to reset all localStorage flags that might cause mock data to be used
+export function resetMockDataFlags() {
+  if (isBrowser) {
+    localStorage.removeItem('airtable-connection-issues');
+    localStorage.removeItem('api-error-timestamp');
+    localStorage.removeItem('use-mock-data');
+    console.log('Reset all mock data flags in localStorage');
+    return true;
+  }
+  return false;
+}
 
 // Function to clear Airtable connection issues flag
 // This is not exposed via a button, but is used internally
@@ -149,6 +170,11 @@ export async function fetchTasks() {
     console.log('Environment:', process.env.NODE_ENV);
     console.log('Is Vercel environment:', isVercel());
     console.log('Current hostname:', isBrowser ? window.location.hostname : 'server-side');
+
+    // Reset any error flags that might be causing us to use mock data
+    if (isVercel() && !shouldUseMockData()) {
+      resetMockDataFlags();
+    }
 
     // Add a timeout to the fetch request
     const controller = new AbortController();

@@ -43,15 +43,24 @@ if (hasAirtableCredentials) {
     const publicApiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY || apiKey;
     const publicBaseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID || baseId;
 
-    if (publicApiKey && publicBaseId) {
-      airtable = new Airtable({
-        apiKey: publicApiKey,
-        endpointUrl: 'https://api.airtable.com',
-      });
+    console.log('Public API Key exists:', !!publicApiKey);
+    console.log('Public Base ID exists:', !!publicBaseId);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Vercel environment:', process.env.VERCEL_ENV || process.env.NEXT_PUBLIC_VERCEL_ENV || 'Not in Vercel');
 
-      // Get the base
-      base = airtable.base(publicBaseId);
-      console.log('Airtable client initialized with public credentials');
+    if (publicApiKey && publicBaseId) {
+      try {
+        airtable = new Airtable({
+          apiKey: publicApiKey,
+          endpointUrl: 'https://api.airtable.com',
+        });
+
+        // Get the base
+        base = airtable.base(publicBaseId);
+        console.log('Airtable client initialized with public credentials');
+      } catch (error) {
+        console.error('Error initializing Airtable client:', error);
+      }
     } else {
       console.warn('Public Airtable credentials not found. Using mock data.');
       console.warn(`Public API Key exists: ${!!publicApiKey}, Public Base ID exists: ${!!publicBaseId}`);
