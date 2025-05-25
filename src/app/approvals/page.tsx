@@ -16,7 +16,10 @@ async function directFetchApprovalItems(
   page: number = 1,
   pageSize: number = 10,
   clientId?: string,
-  status?: string
+  status?: string,
+  useCache: boolean = true,
+  addTimestamp: boolean = true,
+  timestamp?: string
 ) {
   // Build URL with query parameters
   const params = new URLSearchParams({
@@ -43,15 +46,17 @@ async function directFetchApprovalItems(
   console.log(`Fetching approvals with params: ${params.toString()}`);
   
   // Clear the cache by adding a timestamp to the URL
-  const timestamp = Date.now();
-  params.append('_', timestamp.toString());
+  if (addTimestamp) {
+    const timestamp = Date.now();
+    params.append('_', timestamp.toString());
+  }
   
   // Call the API endpoint directly with no-cache headers
   const response = await fetch(`/api/approvals?${params.toString()}`, {
     headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
+      'Cache-Control': useCache ? 'no-cache, no-store, must-revalidate' : 'no-cache',
+      'Pragma': useCache ? 'no-cache' : 'no-cache',
+      'Expires': useCache ? '0' : '0'
     }
   });
   
@@ -1102,10 +1107,17 @@ export default function Approvals() {
     rejected: { ...defaultPagination }
   });
 
-  // We no longer need main pagination since we're using status-specific pagination
-
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
+
+  // Clear all selections for the current tab
+  const clearSelections = useCallback(() => {
+    setSelectedItems(prev => {
+      const newSelectedItems = { ...prev };
+      newSelectedItems[activeTab as keyof typeof prev] = [];
+      return newSelectedItems;
+    });
+  }, [activeTab]);
 
   // Fetch approvals data using the wrapper function
   const fetchData = useCallback(async (page: number = 1, status?: string) => {
@@ -1128,13 +1140,19 @@ export default function Approvals() {
         clearApprovalsCache(activeTab); // Clear only the current tab's cache
       }
       
+      // Add a timestamp to avoid browser caching
+      const timestamp = Date.now();
+      
       // Use the wrapper function
       const data = await directFetchApprovalItems(
         activeTab,
         page,
         100,
         client,
-        status
+        status,
+        undefined,
+        false, // Don't use cache to ensure fresh data
+        timestamp.toString() // Add timestamp to avoid browser caching
       );
       
       console.log(`Fetched ${activeTab} data with ${data.items?.length || 0} items`);
@@ -1181,6 +1199,7 @@ export default function Approvals() {
         }
       });
 
+      // Update the items state with the new data
       setItems(prev => ({
         ...prev,
         [activeTab]: data.items
@@ -1203,25 +1222,8 @@ export default function Approvals() {
           prevOffset: null
         };
       });
+      
       setStatusPagination(paginationState);
-
-      // Calculate counts
-      const counts: Record<string, number> = {};
-      Object.keys(groupedByStatus).forEach(status => {
-        counts[status] = groupedByStatus[status as keyof GroupedItems].length;
-      });
-
-      // Calculate totals
-      const totalPending = (
-        groupedByStatus.awaiting_approval.length +
-        groupedByStatus.ready_for_review.length
-      );
-
-      const totalApproved = (
-        groupedByStatus.approved.length +
-        groupedByStatus.published.length
-      );
-
       setLoadingStatus(null);
     } catch (error) {
       console.error(`Error fetching ${activeTab} data:`, error);
@@ -1230,23 +1232,6 @@ export default function Approvals() {
       setIsLoading(false);
     }
   }, [activeTab, clientId]);
-
-  // Fetch data when tab or client changes
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Debug log for client ID changes and refresh data
-  useEffect(() => {
-    console.log('Approvals page - clientId changed:', clientId);
-
-    // Force refresh data when client ID changes
-    if (clientId !== null) {
-      console.log('Forcing data refresh due to client ID change');
-      clearApprovalsCache(); // Clear all approvals cache
-      fetchData(1); // Fetch first page
-    }
-  }, [clientId, fetchData]);
 
   // Handle page change for a specific status table
   const handleStatusPageChange = async (status: string, newPage: number) => {
@@ -1271,9 +1256,6 @@ export default function Approvals() {
       
       console.log(`Changing to page ${newPage} for ${status} items`);
       
-      // The rest of the function can remain the same if needed for future API pagination
-      // But for now, we're just updating the local state
-      
       setLoadingStatus(null);
     } catch (error) {
       console.error(`Error changing page for ${status}:`, error);
@@ -1282,15 +1264,6 @@ export default function Approvals() {
       setLoadingStatus(null);
     }
   };
-
-  // Clear all selections for the current tab
-  const clearSelections = useCallback(() => {
-    setSelectedItems(prev => {
-      const newSelectedItems = { ...prev };
-      newSelectedItems[activeTab as keyof typeof prev] = [];
-      return newSelectedItems;
-    });
-  }, [activeTab]);
 
   // Fetch data when component mounts, tab changes, or client changes
   useEffect(() => {
@@ -1308,18 +1281,58 @@ export default function Approvals() {
 
     // Set loading state
     setIsLoading(true);
+    
+    // Clear the cache for the current tab type to ensure fresh data
+    clearApprovalsCache(activeTab);
+
+    // Use a ref to track the current request to avoid race conditions
+    const requestId = Date.now();
+    const currentRequestRef = { current: requestId };
 
     // Add a small delay to ensure the loading state is visible
     const timer = setTimeout(() => {
-      // Fetch first page of data
-      fetchData(1); // Remove the third parameter
+      // Fetch first page of data with the current requestId
+      fetchData(1).then(() => {
+        // Only update loading state if this is still the current request
+        if (currentRequestRef.current === requestId) {
+          setIsLoading(false);
+        }
+      }).catch(error => {
+        console.error(`Error fetching data for ${activeTab}:`, error);
+        // Only update loading state if this is still the current request
+        if (currentRequestRef.current === requestId) {
+          setIsLoading(false);
+          setLoadingStatus('Error fetching data. Please try again.');
+        }
+      });
     }, 100);
 
-    // Cleanup function to prevent state updates after unmount
+    // Cleanup function to prevent state updates after unmount or when dependencies change
     return () => {
       clearTimeout(timer);
+      // Mark this request as obsolete
+      currentRequestRef.current = -1;
     };
   }, [activeTab, clientId, fetchData, defaultPagination, clearSelections]);
+
+  // Handle tab change
+  const handleTabChange = (tab: string) => {
+    console.log(`Changing tab from ${activeTab} to ${tab}`);
+    
+    // Clear cache when changing tabs
+    clearApprovalsCache(tab);
+    
+    // Update the active tab
+    setActiveTab(tab);
+    
+    // Reset selected items for the new tab
+    setSelectedItems(prev => ({
+      ...prev,
+      [tab]: []
+    }));
+    
+    // Note: fetchData will be called by the useEffect that depends on activeTab
+  };
 
   // Calculate counts for pending items in each category
   const pendingCounts = {
@@ -1618,25 +1631,6 @@ export default function Approvals() {
       console.log('Refreshing data after requesting changes');
       fetchData(1);
     }, 1000);
-  };
-
-  // Handle tab change
-  const handleTabChange = (tab: string) => {
-    console.log(`Changing tab from ${activeTab} to ${tab}`);
-    
-    // Clear cache when changing tabs
-    clearApprovalsCache(tab);
-    
-    setActiveTab(tab);
-    
-    // Reset selected items for the new tab
-    setSelectedItems(prev => ({
-      ...prev,
-      [tab]: []
-    }));
-    
-    // Fetch data for the new tab
-    fetchData(1); // Remove the third parameter
   };
 
   return (
