@@ -351,46 +351,61 @@ export async function fetchApprovalItems(
 }
 
 /**
- * Clear the approvals cache for a specific type
+ * Function to clear all cache for approvals - used when switching clients or tabs
  * @param type Type of approval items to clear cache for
- * @param clearFullDataset Whether to also clear the full dataset cache
  */
-export function clearApprovalsCache(type?: string, clearFullDataset: boolean = true) {
-  // Import the efficient-airtable functions
-  const { clearCacheForType, clearFullDatasetCache, clearCache } = require('./efficient-airtable');
-
-  console.log(`Clearing approvals cache for ${type || 'all types'}`);
-
-  if (type) {
-    // Clear client-side cache for specific type (including all client variations)
-    clearCacheByPrefix(`approvals_${type}`);
-
-    // Clear server-side cache if available
-    if (typeof clearCacheForType === 'function') {
-      clearCacheForType(type);
+export function clearApprovalsCache(type?: string) {
+  console.log(`Clearing approvals cache ${type ? `for ${type}` : 'for all types'}`);
+  
+  try {
+    // If running on the client side
+    if (typeof window !== 'undefined') {
+      // Create a timestamp for cache-busting
+      const timestamp = Date.now();
       
-      // Also clear fallback caches for this type
-      clearCacheByPrefix(`approvals_${type}_fallback`);
+      // Immediately clear all localStorage items that contain 'approvals'
+      // This is critical to prevent flashing old data from other clients
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('approvals')) {
+          console.log(`Removing localStorage item: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Optionally store the timestamp in sessionStorage to ensure fresh data
+      // across components that use approvals data
+      sessionStorage.setItem('approvals_cache_timestamp', timestamp.toString());
+      
+      // If a specific type is provided, only clear that type
+      if (type) {
+        // Call the server-side clearCacheForType function via API
+        return fetch(`/api/approvals?clearCache=true&type=${type}&_=${timestamp}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store'
+        });
+      } else {
+        // Clear all types
+        return fetch(`/api/approvals?clearCache=true&_=${timestamp}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store'
+        });
+      }
+    } else {
+      // If running on the server side, do nothing
+      console.log('Running on server side, no localStorage to clear');
+      return Promise.resolve();
     }
-  } else {
-    // Clear all approvals cache
-    clearCacheByPrefix('approvals_');
-
-    // Clear all server-side cache if available
-    if (typeof clearCacheForType === 'function') {
-      ['keywords', 'briefs', 'articles', 'backlinks'].forEach(t => clearCacheForType(t));
-    }
-    
-    // Clear all fallback caches as well
-    if (typeof clearCache === 'function') {
-      clearCache();
-    }
-  }
-
-  // Optionally clear the full dataset cache
-  if (clearFullDataset && typeof clearFullDatasetCache === 'function') {
-    console.log('Clearing full dataset cache');
-    clearFullDatasetCache();
+  } catch (error) {
+    console.error('Error clearing approvals cache:', error);
+    return Promise.resolve();
   }
 }
 

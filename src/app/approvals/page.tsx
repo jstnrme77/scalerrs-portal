@@ -43,14 +43,41 @@ async function directFetchApprovalItems(
     console.log(`Including status filter: ${status}`);
   }
   
-  console.log(`Fetching approvals with params: ${params.toString()}`);
+  console.log(`Fetching approvals with params: ${params.toString()}, useCache: ${useCache}`);
   
-  // Always add a timestamp to avoid browser caching issues
-  const timestampValue = timestamp || Date.now().toString();
-  params.append('_', timestampValue);
+  // Always add a timestamp to avoid browser caching issues when requested
+  if (addTimestamp) {
+    const timestampValue = timestamp || Date.now().toString();
+    params.append('_', timestampValue);
+  }
   
   try {
-    // Call the API endpoint directly with no-cache headers
+    // Generate a cache key for this specific request
+    const cacheKey = `approvals_${type}_${page}_${pageSize}_${clientId || 'all'}_${status || 'all'}`;
+    
+    // Check if we have a cached version in sessionStorage
+    if (useCache && typeof window !== 'undefined') {
+      const cachedData = sessionStorage.getItem(cacheKey);
+      if (cachedData) {
+        try {
+          const parsedData = JSON.parse(cachedData);
+          const cacheTime = parsedData.timestamp || 0;
+          const now = Date.now();
+          
+          // Use cache if it's less than 1 minute old
+          if (now - cacheTime < 60000) {
+            console.log(`Using cached data for ${cacheKey} (${Math.round((now - cacheTime) / 1000)}s old)`);
+            return parsedData.data;
+          } else {
+            console.log(`Cache expired for ${cacheKey} (${Math.round((now - cacheTime) / 1000)}s old)`);
+          }
+        } catch (e) {
+          console.error('Error parsing cached data:', e);
+        }
+      }
+    }
+    
+    // Call the API endpoint directly with strong cache prevention headers
     const response = await fetch(`/api/approvals?${params.toString()}`, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -73,15 +100,31 @@ async function directFetchApprovalItems(
       throw new Error('Invalid response format from API');
     }
     
+    // Store in sessionStorage cache if using cache
+    if (useCache && typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          data,
+          timestamp: Date.now()
+        }));
+        console.log(`Cached data for ${cacheKey}`);
+      } catch (e) {
+        console.error('Error caching data:', e);
+      }
+    }
+    
     // Log the client ID filter for debugging
     if (clientId && clientId !== 'all') {
       console.log(`Received ${data.items.length} items from API for client ${clientId}`);
       
-      // Add an additional validation to ensure client filtering was applied
+      // Verify all items belong to the client by checking the first few
       if (data.items.length > 0) {
-        const firstItem = data.items[0];
-        if (firstItem.Clients) {
-          console.log(`First item client check: ${JSON.stringify(firstItem.Clients)}`);
+        const sampleSize = Math.min(data.items.length, 3);
+        console.log(`Sample verification of ${sampleSize} items for client ${clientId}:`);
+        for (let i = 0; i < sampleSize; i++) {
+          const item = data.items[i];
+          const clientField = item.clients || item.clientRecordId;
+          console.log(`- Item ${i+1} (${item.id}) client field:`, clientField);
         }
       }
     } else {
@@ -476,6 +519,7 @@ function SidebarSummaryPanel({
 }) {
   // Calculate the percentage for the progress circle
   const percentage = totalPending > 0 ? (totalApproved / (totalApproved + totalPending)) * 100 : 0;
+  const totalItems = totalApproved + totalPending;
 
   // Get client-specific title
   const clientText = clientId && clientId !== 'all' ? 'Client' : 'All Clients';
@@ -516,7 +560,7 @@ function SidebarSummaryPanel({
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-lg font-bold text-dark">{totalApproved} <span className="text-sm font-normal mx-1">of</span> {totalApproved + totalPending}</span>
+              <span className="text-lg font-bold text-dark">{totalApproved} <span className="text-sm font-normal mx-1">of</span> {totalItems}</span>
               <span className="text-xs text-mediumGray text-center mt-1">items</span>
               <span className="text-xs text-mediumGray text-center">approved</span>
             </div>
@@ -652,7 +696,9 @@ function ApprovalTable({
         }
       }
     });
-  }, [groupedItems, statusPagination, onStatusPageChange]);
+  // We only want to run this effect when groupedItems changes, not when statusPagination changes
+  // This prevents the infinite loop where updating statusPagination triggers the effect again
+  }, [groupedItems, onStatusPageChange]);
   
   // Define the order of status groups
   const statusOrder = [
@@ -955,7 +1001,7 @@ function ApprovalTable({
                                 onClick={() => onRequestChanges(item.id)}
                                 className="px-4 py-1 text-base font-medium text-[#353233] border border-[#D9D9D9] rounded-[12px] hover:bg-gray-100 transition-colors"
                               >
-                                Revisions Needed
+                                Request Changes
                               </button>
                             </div>
                           )}
@@ -1088,7 +1134,7 @@ interface GroupedItems {
 
 export default function Approvals() {
   // Use the client data context for client filtering
-  const { clientId } = useClientData();
+  const { clientId, isLoading: isClientLoading } = useClientData();
 
   const [activeTab, setActiveTab] = useState<string>('briefs');
   const [items, setItems] = useState<ApprovalItems>({
@@ -1106,6 +1152,7 @@ export default function Approvals() {
     backlinks: [],
     quickwins: []
   });
+  
   // Define pagination type
   type PaginationState = {
     currentPage: number;
@@ -1145,8 +1192,15 @@ export default function Approvals() {
     rejected: { ...defaultPagination }
   });
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // Add a separate loading state for summary components
+  const [isSummaryLoading, setIsSummaryLoading] = useState<boolean>(true);
   const [loadingStatus, setLoadingStatus] = useState<string | null>(null);
+  const [initialLoadComplete, setInitialLoadComplete] = useState<boolean>(false);
+  // Add a state to track if all tabs data is loaded
+  const [allTabsDataLoaded, setAllTabsDataLoaded] = useState<boolean>(false);
+  const clientInitializedRef = useRef<boolean>(false);
+  const currentClientRef = useRef<string | null>(null);
 
   // Clear all selections for the current tab
   const clearSelections = useCallback(() => {
@@ -1158,30 +1212,47 @@ export default function Approvals() {
   }, [activeTab]);
 
   // Fetch approvals data using the wrapper function
-  const fetchData = useCallback(async (page: number = 1, status?: string) => {
+  const fetchData = useCallback(async (page: number = 1, status?: string, forceRefresh: boolean = false) => {
     try {
+      // Don't fetch if client data isn't loaded yet
+      if (isClientLoading) {
+        console.log('Client data still loading, delaying fetch');
+        return;
+      }
+      
+      // Keep loading state active (should already be set)
       setIsLoading(true);
+      // Keep the summary loading state active too
+      setIsSummaryLoading(true);
       setLoadingStatus('Fetching approval items...');
 
-      // Always get the latest clientId from context
-      const client = clientId === null || clientId === 'all' ? 'all' : clientId;
+      // Always get the latest clientId from context, NEVER default to 'all' unconditionally
+      const client = clientId === null ? 'all' : clientId;
+      
+      // Update the current client ref
+      currentClientRef.current = client;
       
       console.log(`Fetching approvals for client: ${client}`);
       
-      // IMPORTANT: Always clear cache before fetching to ensure fresh data
-      clearApprovalsCache(); // Clear all approvals cache for consistency
+      // Only clear cache if force refresh is requested
+      if (forceRefresh) {
+        console.log(`Force refresh requested - clearing cache for ${activeTab} before fetching`);
+        await clearApprovalsCache(activeTab); // Clear cache for current tab and wait for it to complete
+      } else {
+        console.log(`Using cached data if available for ${activeTab}`);
+      }
       
       // Add a timestamp to avoid browser caching
       const timestamp = Date.now();
       
-      // Use the wrapper function
+      // Use the wrapper function with strict client parameter
       const data = await directFetchApprovalItems(
         activeTab,
         page,
         100,
-        client,
+        client, // Always pass the client ID
         status,
-        false, // Don't use cache to ensure fresh data
+        !forceRefresh, // Use cache unless force refresh is requested
         true,  // Always add timestamp
         timestamp.toString() // Add timestamp to avoid browser caching
       );
@@ -1193,7 +1264,13 @@ export default function Approvals() {
         return;
       }
       
-      console.log(`Fetched ${activeTab} data with ${data.items?.length || 0} items`);
+      // Verify we're still on the same client
+      if (currentClientRef.current !== client) {
+        console.log(`Client changed during fetch: was ${client}, now ${currentClientRef.current}. Aborting data update.`);
+        return;
+      }
+      
+      console.log(`Fetched ${activeTab} data with ${data.items?.length || 0} items for client ${client}`);
 
       // Process the data into grouped items by status
       const groupedByStatus: GroupedItems = {
@@ -1220,12 +1297,18 @@ export default function Approvals() {
         }
       });
 
-      // Log the distribution of items by status
-      Object.entries(groupedByStatus).forEach(([status, items]) => {
-        if (items.length > 0) {
-          console.log(`Status ${status}: ${items.length} items`);
+      // Log item counts by status for debugging
+      Object.entries(groupedByStatus).forEach(([status, statusItems]) => {
+        if (statusItems.length > 0) {
+          console.log(`Status ${status}: ${statusItems.length} items`);
         }
       });
+
+      // Verify we're still on the same client before updating state
+      if (currentClientRef.current !== client) {
+        console.log(`Client changed during processing: was ${client}, now ${currentClientRef.current}. Aborting data update.`);
+        return;
+      }
 
       // Update the items state with the new data - completely replace the old data
       setItems(prev => ({
@@ -1253,17 +1336,239 @@ export default function Approvals() {
       
       setStatusPagination(paginationState);
       setLoadingStatus(null);
+      setInitialLoadComplete(true);
+      
+      // First update the main loading state
+      setIsLoading(false);
+      
+      // Since this only loaded one tab, the allTabsDataLoaded state remains unchanged
+      // Keep the summary loading state active if other tabs need to be loaded
+      if (!allTabsDataLoaded) {
+        // When loading a single tab, keep the summary loading until all tabs are loaded
+        console.log('Keeping summary loading state active until all tabs are loaded');
+      } else {
+        // If all tabs were already loaded, we can turn off the summary loading
+        setIsSummaryLoading(false);
+      }
     } catch (error) {
       console.error(`Error fetching ${activeTab} data:`, error);
       setLoadingStatus('Error fetching data. Please try again later.');
-    } finally {
       setIsLoading(false);
+      setIsSummaryLoading(false);
     }
-  }, [activeTab, clientId]);
+  // Remove allTabsDataLoaded from dependency array to prevent infinite loops
+  // We're checking its value inside, but we don't want changes to trigger re-creation
+  }, [activeTab, clientId, isClientLoading]);
+
+  // New function to fetch data for all tabs
+  const fetchAllTabsData = useCallback(async (forceRefresh: boolean = false) => {
+    try {
+      // Don't fetch if client data isn't loaded yet
+      if (isClientLoading) {
+        console.log('Client data still loading, delaying fetch for all tabs');
+        return;
+      }
+      
+      // Set both loading states to true at the start
+      setIsLoading(true);
+      setIsSummaryLoading(true);
+      setAllTabsDataLoaded(false);
+      setLoadingStatus('Fetching data for all tabs...');
+      
+      const client = clientId === null ? 'all' : clientId;
+      
+      // Update the current client ref
+      currentClientRef.current = client;
+      
+      console.log(`Fetching all tabs data for client: ${client}, force refresh: ${forceRefresh}`);
+      
+      // If force refresh is requested, clear all caches
+      if (forceRefresh) {
+        console.log('Force refresh requested - clearing all caches before fetching');
+        await clearApprovalsCache(); // Clear all caches
+      }
+      
+      // Add a timestamp to avoid browser caching
+      const timestamp = Date.now();
+      
+      // The tabs to fetch data for
+      const tabsToFetch = ['keywords', 'briefs', 'articles', 'backlinks', 'quickwins'];
+      
+      // Create an object to store the fetched data
+      const allTabsData: ApprovalItems = {
+        keywords: [],
+        briefs: [],
+        articles: [],
+        backlinks: [],
+        quickwins: []
+      };
+      
+      // Fetch data for each tab in parallel
+      const fetchPromises = tabsToFetch.map(async (tab) => {
+        try {
+          console.log(`Fetching data for ${tab} tab...`);
+          
+          const data = await directFetchApprovalItems(
+            tab,
+            1,
+            100,
+            client,
+            undefined,
+            !forceRefresh, // Use cache unless force refresh is requested
+            true, // Always add timestamp
+            `${timestamp}_${tab}` // Add timestamp and tab to avoid cache collisions
+          );
+          
+          // Validate the data
+          if (data && Array.isArray(data.items)) {
+            console.log(`Fetched ${data.items.length} items for ${tab} tab`);
+            allTabsData[tab as keyof ApprovalItems] = [...data.items];
+          } else {
+            console.error(`Invalid or empty data received for ${tab} tab:`, data);
+            allTabsData[tab as keyof ApprovalItems] = [];
+          }
+        } catch (error) {
+          console.error(`Error fetching ${tab} data:`, error);
+          allTabsData[tab as keyof ApprovalItems] = [];
+        }
+      });
+      
+      // Wait for all fetches to complete
+      await Promise.all(fetchPromises);
+      
+      // Verify we're still on the same client before updating state
+      if (currentClientRef.current !== client) {
+        console.log(`Client changed during all tabs fetch: was ${client}, now ${currentClientRef.current}. Aborting data update.`);
+        return;
+      }
+      
+      // Update the items state with all the fetched data
+      setItems(allTabsData);
+      
+      // Log summary counts for debugging
+      const totalCounts = {
+        keywords: { 
+          total: allTabsData.keywords.length,
+          approved: allTabsData.keywords.filter(item => item.status === 'approved').length,
+          pending: allTabsData.keywords.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        briefs: { 
+          total: allTabsData.briefs.length,
+          approved: allTabsData.briefs.filter(item => item.status === 'approved').length,
+          pending: allTabsData.briefs.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        articles: { 
+          total: allTabsData.articles.length,
+          approved: allTabsData.articles.filter(item => item.status === 'approved').length,
+          pending: allTabsData.articles.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        backlinks: { 
+          total: allTabsData.backlinks.length,
+          approved: allTabsData.backlinks.filter(item => item.status === 'approved').length,
+          pending: allTabsData.backlinks.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        quickwins: { 
+          total: allTabsData.quickwins.length,
+          approved: allTabsData.quickwins.filter(item => item.status === 'approved').length,
+          pending: allTabsData.quickwins.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        }
+      };
+      
+      console.log('All tabs data loaded with counts:', totalCounts);
+      
+      // Update loading states
+      setLoadingStatus(null);
+      setInitialLoadComplete(true);
+      setAllTabsDataLoaded(true);
+      
+      // First turn off the main loading state
+      setIsLoading(false);
+      
+      // Then after a short delay, turn off the summary loading state
+      // This prevents the flash of showing partial data in the summary
+      setTimeout(() => {
+        setIsSummaryLoading(false);
+        console.log('Summary components now showing complete data');
+      }, 50);
+      
+      console.log('All tabs data loaded successfully');
+    } catch (error) {
+      console.error('Error fetching all tabs data:', error);
+      setLoadingStatus('Error fetching data. Please try again later.');
+      setIsLoading(false);
+      setIsSummaryLoading(false);
+      setAllTabsDataLoaded(false);
+    }
+  // Remove allTabsDataLoaded from dependency array to prevent circular updates
+  }, [clientId, isClientLoading]);
+
+  // First effect - only runs on client change
+  // Reset data when client changes
+  useEffect(() => {
+    console.log(`Client ID changed to: ${clientId} (isLoading: ${isClientLoading})`);
+    
+    // Update the current client ref
+    currentClientRef.current = clientId;
+    
+    // If we're still loading client data, wait
+    if (isClientLoading) {
+      console.log('Client data still loading, waiting before resetting data');
+      return;
+    }
+    
+    // CRITICAL: CLEAR ALL DATA IMMEDIATELY when client changes to prevent showing wrong data
+    console.log('CRITICAL: Client changed - clearing all approval data immediately');
+    
+    // Set loading state to true first to show loading UI while data clears
+    setIsLoading(true);
+    
+    // Clear all data before fetching new data
+    setItems({
+      keywords: [],
+      briefs: [],
+      articles: [],
+      backlinks: [],
+      quickwins: []
+    });
+    
+    // Reset pagination
+    setStatusPagination(prev => {
+      const newPagination = { ...prev };
+      Object.keys(newPagination).forEach(status => {
+        newPagination[status] = { ...defaultPagination };
+      });
+      return newPagination;
+    });
+    
+    // Reset selections
+    clearSelections();
+    
+    // Clear all caches immediately (both client and server side)
+    console.log('Client changed, clearing all approvals cache');
+    clearApprovalsCache().then(() => {
+      console.log('All caches cleared, ready to fetch new data');
+      
+      // Only set initialLoadComplete to false after cache clearing is done
+      setInitialLoadComplete(false);
+      
+      // Mark client as initialized
+      clientInitializedRef.current = true;
+      
+      // Fetch data for all tabs when client changes
+      fetchAllTabsData(true);
+    });
+    
+  }, [clientId, isClientLoading, clearSelections, defaultPagination, fetchAllTabsData]);
 
   // Handle page change for a specific status table
   const handleStatusPageChange = async (status: string, newPage: number) => {
     try {
+      // Check if we're already on this page - if so, don't update state
+      if (statusPagination[status] && statusPagination[status].currentPage === newPage) {
+        console.log(`Already on page ${newPage} for ${status}, no state update needed`);
+        return;
+      }
+      
       // Update pagination state immediately to show the new page
       setStatusPagination(prev => ({
         ...prev,
@@ -1274,16 +1579,6 @@ export default function Approvals() {
         }
       }));
       
-      setLoadingStatus(`Loading page ${newPage} for ${status} items...`);
-      
-      // Use the same client handling as in fetchData
-      const client = clientId === null || clientId === 'all' ? 'all' : clientId;
-      
-      // No need to fetch from API for pagination - we already have all the data
-      // Just update the pagination state
-      
-      console.log(`Changing to page ${newPage} for ${status} items`);
-      
       setLoadingStatus(null);
     } catch (error) {
       console.error(`Error changing page for ${status}:`, error);
@@ -1293,73 +1588,117 @@ export default function Approvals() {
     }
   };
 
-  // Fetch data when component mounts, tab changes, or client changes
+  // Use ref to track which statuses have been updated to prevent infinite loops
+  const updatedStatuses = useRef<Set<string>>(new Set());
+  
+  // Reset updated statuses when groupedItems changes (e.g., when tab changes)
   useEffect(() => {
-    // Reset pagination for all statuses
-    setStatusPagination(prev => {
-      const newPagination = { ...prev };
-      Object.keys(newPagination).forEach(status => {
-        newPagination[status] = { ...defaultPagination };
-      });
-      return newPagination;
-    });
+    updatedStatuses.current = new Set();
+  }, [activeTab]);
 
-    // Clear selections when changing tabs or client
-    clearSelections();
-
-    // Set loading state
-    setIsLoading(true);
+  // Second effect - runs on tab change or after client is initialized
+  // Wait for client context to be ready before initial fetch
+  useEffect(() => {
+    // Track if component is mounted
+    let isMounted = true;
     
-    // Clear the cache for ALL types to ensure fresh data
-    clearApprovalsCache();
+    // Only proceed if client data is loaded, we have a valid clientId, and there's no data for this tab yet
+    if (!isClientLoading && isMounted && clientId !== undefined && items[activeTab as keyof typeof items].length === 0 && !initialLoadComplete) {
+      console.log(`Need to load data for ${activeTab} tab, items count: ${items[activeTab as keyof typeof items].length}`);
+      
+      // Mark client as initialized if not already
+      if (!clientInitializedRef.current) {
+        clientInitializedRef.current = true;
+        console.log('Client context initialized for the first time');
+      }
+      
+      // Reset pagination for all statuses
+      setStatusPagination(prev => {
+        const newPagination = { ...prev };
+        Object.keys(newPagination).forEach(status => {
+          newPagination[status] = { ...defaultPagination };
+        });
+        return newPagination;
+      });
 
-    // Use a ref to track the current request to avoid race conditions
-    const requestId = Date.now();
-    const currentRequestRef = { current: requestId };
+      // Clear selections when changing tabs or client
+      clearSelections();
 
-    // Add a small delay to ensure the loading state is visible
-    const timer = setTimeout(() => {
-      // Fetch first page of data with the current requestId
-      fetchData(1).then(() => {
-        // Only update loading state if this is still the current request
-        if (currentRequestRef.current === requestId) {
-          setIsLoading(false);
-        }
-      }).catch(error => {
-        console.error(`Error fetching data for ${activeTab}:`, error);
-        // Only update loading state if this is still the current request
-        if (currentRequestRef.current === requestId) {
+      // IMPORTANT: Set loading state BEFORE clearing data to prevent flash of old data
+      setIsLoading(true);
+      
+      // Only clear the current tab's items, not all tabs
+      setItems(prev => ({
+        ...prev,
+        [activeTab]: []
+      }));
+      
+      // Fetch data for this tab if needed
+      console.log(`Initiating data fetch for ${activeTab} with client ${clientId}`);
+      fetchData(1, undefined, false).catch(error => {
+        if (isMounted) {
+          console.error(`Error in tab data fetch: ${error}`);
           setIsLoading(false);
           setLoadingStatus('Error fetching data. Please try again.');
         }
       });
-    }, 100);
+    } else if (!isClientLoading && isMounted && clientId !== undefined && items[activeTab as keyof typeof items].length > 0) {
+      console.log(`Tab ${activeTab} already has ${items[activeTab as keyof typeof items].length} items, no need to fetch`);
+    } else {
+      console.log(`Waiting for conditions: isClientLoading=${isClientLoading}, clientId=${clientId}, items count=${items[activeTab as keyof typeof items].length}, initialLoadComplete=${initialLoadComplete}`);
+    }
 
-    // Cleanup function to prevent state updates after unmount or when dependencies change
+    // Cleanup function
     return () => {
-      clearTimeout(timer);
-      // Mark this request as obsolete
-      currentRequestRef.current = -1;
+      isMounted = false;
     };
-  }, [activeTab, clientId, fetchData, defaultPagination, clearSelections]);
+    
+    // Removing 'items' from the dependency array to prevent infinite loops
+    // We're checking items.length inside the effect, but we don't want to re-run 
+    // the effect every time items changes, only when tab or client changes
+  }, [activeTab, clientId, isClientLoading, fetchData, defaultPagination, clearSelections, initialLoadComplete]);
 
   // Handle tab change
   const handleTabChange = (tab: string) => {
     console.log(`Changing tab from ${activeTab} to ${tab}`);
     
-    // Always clear all cache when changing tabs to ensure fresh data
-    clearApprovalsCache();
-    
-    // Update the active tab
-    setActiveTab(tab);
-    
-    // Reset selected items for the new tab
-    setSelectedItems(prev => ({
-      ...prev,
-      [tab]: []
-    }));
-    
-    // Note: fetchData will be called by the useEffect that depends on activeTab
+    // Only proceed if we're switching to a different tab (not re-clicking the same tab)
+    if (tab !== activeTab) {
+      console.log(`Switching to ${tab} tab`);
+      
+      // Keep the summary loading state active during tab change to prevent showing partial data
+      setIsSummaryLoading(true);
+      
+      // Update the active tab
+      setActiveTab(tab);
+      
+      // Reset selected items for the new tab
+      setSelectedItems(prev => ({
+        ...prev,
+        [tab]: []
+      }));
+      
+      // No need to fetch data again if we already have it
+      console.log(`${tab} tab data count: ${items[tab as keyof typeof items].length} items`);
+      
+      // Only if we don't have any data for this tab (which should be rare since fetchAllTabsData 
+      // should have loaded all tabs), then we'll set initialLoadComplete to false to trigger the useEffect
+      if (items[tab as keyof typeof items].length === 0) {
+        console.log(`No data found for ${tab} tab, will fetch data...`);
+        setInitialLoadComplete(false);
+      } else {
+        console.log(`Using existing data for ${tab} tab, no need to fetch again`);
+        
+        // If we already have data for this tab, we can turn off the summary loading after a short delay
+        // This delay ensures that the UI has time to update with the new tab data
+        setTimeout(() => {
+          setIsSummaryLoading(false);
+          console.log('Tab change complete, summary components now showing complete data');
+        }, 50);
+      }
+    } else {
+      console.log(`Re-clicked the same tab (${tab}), not doing anything`);
+    }
   };
 
   // Calculate counts for pending items in each category
@@ -1372,8 +1711,23 @@ export default function Approvals() {
   };
 
   // Calculate total approved and pending items
-  const totalApproved = Object.values(items).flat().filter(item => item.status === 'approved').length;
+  const totalApproved = Object.keys(items).reduce((sum, key) => {
+    return sum + items[key as keyof typeof items].filter(item => item.status === 'approved').length;
+  }, 0);
+  
   const totalPending = Object.values(pendingCounts).reduce((sum, count) => sum + count, 0);
+  
+  // Log the counts for debugging
+  console.log('Total counts across all tabs:', {
+    keywords: { pending: pendingCounts.keywords, approved: items.keywords.filter(item => item.status === 'approved').length, total: items.keywords.length },
+    briefs: { pending: pendingCounts.briefs, approved: items.briefs.filter(item => item.status === 'approved').length, total: items.briefs.length },
+    articles: { pending: pendingCounts.articles, approved: items.articles.filter(item => item.status === 'approved').length, total: items.articles.length },
+    backlinks: { pending: pendingCounts.backlinks, approved: items.backlinks.filter(item => item.status === 'approved').length, total: items.backlinks.length },
+    quickwins: { pending: pendingCounts.quickwins, approved: items.quickwins.filter(item => item.status === 'approved').length, total: items.quickwins.length },
+    totalApproved,
+    totalPending,
+    totalItems: totalApproved + totalPending
+  });
 
   // Group items by status
   const groupedItems: GroupedItems = {
@@ -1433,8 +1787,8 @@ export default function Approvals() {
       
       // Refresh data after a short delay to ensure we get the latest from Airtable
       setTimeout(() => {
-        console.log('Refreshing data after approval update');
-        fetchData(1);
+        console.log('Refreshing all tabs data after approval update');
+        fetchAllTabsData(true); // Force refresh all tabs data
       }, 1000);
     } catch (error) {
       console.error('Error approving item:', error);
@@ -1556,8 +1910,8 @@ export default function Approvals() {
     
     // Refresh data after a short delay to ensure we get the latest from Airtable
     setTimeout(() => {
-      console.log('Refreshing data after bulk approval update');
-      fetchData(1);
+      console.log('Refreshing all tabs data after bulk approval update');
+      fetchAllTabsData(true); // Force refresh all tabs data
     }, 1000);
   };
 
@@ -1656,8 +2010,8 @@ export default function Approvals() {
     
     // Refresh data after a short delay to ensure we get the latest from Airtable
     setTimeout(() => {
-      console.log('Refreshing data after requesting changes');
-      fetchData(1);
+      console.log('Refreshing all tabs data after requesting changes');
+      fetchAllTabsData(true); // Force refresh all tabs data
     }, 1000);
   };
 
@@ -1666,7 +2020,7 @@ export default function Approvals() {
       {/* Global Summary Banner */}
       <GlobalSummaryBanner
         counts={pendingCounts}
-        isLoading={isLoading}
+        isLoading={isSummaryLoading || isClientLoading}
         clientId={clientId}
       />
 
@@ -1693,7 +2047,7 @@ export default function Approvals() {
             <PageContainerBody>
               {/* Bulk action buttons */}
               <div className="mb-4 flex justify-end">
-                {tabReviewCount > 0 && (
+                {!isClientLoading && tabReviewCount > 0 && (
                   <div className="flex space-x-3">
                     <button
                       onClick={approveSelectedItems}
@@ -1737,23 +2091,35 @@ export default function Approvals() {
 
               {/* Table View */}
               <div className="overflow-hidden">
-                {isLoading ? (
+                {isLoading || isClientLoading ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9EA8FB] mb-4"></div>
                     <p className="text-gray-600 text-base font-medium mb-2">
-                      {clientId && clientId !== 'all'
+                      {isClientLoading 
+                        ? 'Loading client data...' 
+                        : clientId && clientId !== 'all'
                         ? `Loading ${activeTab} for selected client...`
                         : `Loading ${activeTab}...`}
                     </p>
                     <p className="text-gray-500 text-sm max-w-md text-center">
-                      Fetching all records to provide accurate pagination. This may take a moment for large datasets.
+                      {isClientLoading 
+                        ? 'Preparing your client-specific view...'
+                        : 'Fetching all records to provide accurate pagination. This may take a moment for large datasets.'}
                     </p>
                     <div className="mt-4 flex flex-col items-center">
                       <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div className="h-full bg-[#9EA8FB] animate-pulse"></div>
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">Please wait while we load all records...</p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {isClientLoading ? 'Please wait while we load your client settings...' : 'Please wait while we load all records...'}
+                      </p>
                     </div>
+                  </div>
+                ) : !initialLoadComplete ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9EA8FB] mb-4"></div>
+                    <p className="text-gray-600 text-base font-medium mb-2">Loading data...</p>
+                    <p className="text-gray-500 text-sm">Preparing your {clientId && clientId !== 'all' ? 'client-specific' : ''} view</p>
                   </div>
                 ) : Object.values(groupedItems).some(items => items.length > 0) ? (
                   <>
@@ -1794,7 +2160,7 @@ export default function Approvals() {
             counts={pendingCounts}
             totalApproved={totalApproved}
             totalPending={totalPending}
-            isLoading={isLoading}
+            isLoading={isSummaryLoading || isClientLoading}
             clientId={clientId}
           />
         </div>
