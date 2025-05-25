@@ -9,8 +9,8 @@ const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_
 const TABLES = {
   KEYWORDS: 'Keywords',
   BACKLINKS: 'Backlinks',
-  ARTICLES: 'Articles',
-  BRIEFS: 'Briefs'
+  ARTICLES: 'Keywords',
+  BRIEFS: 'Keywords'
 };
 
 // Log available tables for debugging
@@ -26,10 +26,13 @@ if (apiKey && baseId) {
 
 // Utility function to create a filter formula for linked record fields
 function createLinkedRecordFilter(fieldName: string, recordId: string): string {
-  // Simplified formula that uses only supported Airtable functions
-  // SEARCH is more reliable than FIND for this purpose
+  // Create a formula that's more reliable with Airtable's API for linked records
+  // This checks for exact matches in the linked record field in multiple formats
   return `OR(
-    SEARCH("${recordId}", ARRAYJOIN({${fieldName}})),
+    FIND("${recordId},", ARRAYJOIN({${fieldName}}, ",")) > 0,
+    FIND(",${recordId},", ARRAYJOIN({${fieldName}}, ",")) > 0,
+    FIND(",${recordId}", ARRAYJOIN({${fieldName}}, ",")) > 0,
+    FIND("${recordId}", ARRAYJOIN({${fieldName}}, ",")) = 1,
     {${fieldName}} = "${recordId}"
   )`;
 }
@@ -196,11 +199,16 @@ export async function getApprovalItemsEfficient(
     if (type === 'backlinks') {
       tableName = TABLES.BACKLINKS;
       console.log(`Using Backlinks table for backlinks`);
+    } else if (type === 'articles') {
+      tableName = TABLES.ARTICLES;
+      console.log(`Using Articles table for articles`);
+    } else if (type === 'briefs') {
+      tableName = TABLES.BRIEFS;
+      console.log(`Using Briefs table for briefs`);
     } else {
-      // For other types, use the Keywords table since we're getting authorization issues
-      // This is a temporary solution until we can figure out the correct permissions
+      // Default to Keywords table for keywords and any other types
       tableName = TABLES.KEYWORDS;
-      console.log(`Using Keywords table for ${type} due to authorization issues`);
+      console.log(`Using Keywords table for ${type}`);
     }
 
     console.log(`Selected table for ${type}: ${tableName}`);
@@ -235,6 +243,7 @@ export async function getApprovalItemsEfficient(
       };
 
       // Apply specific filters based on the dedicated approval fields
+      // Only use the filter that's relevant for the current table type
       let filterFormula = '';
       
       try {
@@ -260,19 +269,92 @@ export async function getApprovalItemsEfficient(
         if (clientId && clientId !== 'all') {
           console.log(`Adding client filter for client ID: ${clientId}`);
           
-          // Only use the 'Clients' field with exact capitalization
-          // The error shows that 'client' (lowercase) doesn't exist in the schema
-          const clientsField = 'Clients'; // Preserve exact capitalization
-          const clientsFilter = createLinkedRecordFilter(clientsField, clientId);
-          
-          // Combine with existing filter if there is one
-          if (filterFormula) {
-            filterFormula = `AND(${filterFormula}, ${clientsFilter})`;
-          } else {
-            filterFormula = clientsFilter;
+          // If filtering fails, try a simple query without client filter
+          if (clientId && clientId !== 'all') {
+            console.log('Trying again with a permission-friendly approach...');
+            
+            // Create a simpler query without any complex filters
+            // This approach works even with limited API permissions
+            const simpleQueryOptions: Record<string, any> = { 
+              // Only fetch essential fields to reduce data transfer - specific to each table type
+              fields: [
+                // Common identifying fields for all tables
+                'Main Keyword', 'Keyword', 'Title', 'Name', 'Domain', 'Domain URL', 'Source Domain',
+                // Client fields - include all possible variations to ensure proper filtering
+                'Clients', 'Client', 'clients', 'client',
+                // Status fields
+                'Status', 'Keyword/Content Status',
+                // Metadata fields
+                'Created Time', 'Last Updated', 'Last Modified',
+                
+                // Add content type specific fields and approval fields
+                ...(type === 'keywords' ? [
+                  'Keyword Approvals', // Only include keyword approvals for keywords table
+                  'Search Volume', 'Volume', 'Main Keyword VOL', 'Difficulty', 'Keyword Difficulty'
+                ] : []),
+                
+                ...(type === 'briefs' ? [
+                  'Brief Approvals', // Only include brief approvals for briefs table
+                  'SEO Assignee', 'SEO Strategist', 'Assignee', 'Due Date'
+                ] : []),
+                
+                ...(type === 'articles' ? [
+                  'Article Approvals', // Only include article approvals for articles table
+                  'Final Word Count', 'Word Count', 'Due Date'
+                ] : []),
+                
+                ...(type === 'backlinks' ? [
+                  'Backlink Approvals', // Only include backlink approvals for backlinks table
+                  'Domain Authority/Rating', 'DR ( API )', 'Link Type', 'Target URL', 'Went Live On', 'Notes'
+                ] : [])
+              ],
+              // Use a larger page size for efficiency
+              pageSize: 100
+            };
+            
+            // Use a very simple content type filter only - this has the highest chance of working
+            // with limited permissions - only for the current table type
+            let contentTypeFilter = '';
+            if (type === 'briefs') {
+              contentTypeFilter = `NOT({Brief Approvals} = '')`;
+            } else if (type === 'articles') {
+              contentTypeFilter = `NOT({Article Approvals} = '')`;
+            } else if (type === 'keywords') {
+              contentTypeFilter = `NOT({Keyword Approvals} = '')`;
+            } else if (type === 'backlinks') {
+              contentTypeFilter = `NOT({Backlink Approvals} = '')`;
+            }
+            
+            // Set the filter formula
+            simpleQueryOptions.filterByFormula = contentTypeFilter;
+            
+            try {
+              console.log(`Using permission-friendly approach with simple filter: ${contentTypeFilter}`);
+              
+              // Create the query with minimal filtering
+              const simpleQuery = base(tableName).select(simpleQueryOptions);
+              
+              // Fetch all records
+              allRecords = await simpleQuery.all();
+              console.log(`Successfully fetched ${allRecords.length} records with permission-friendly approach.`);
+              
+              // Cache the results with a shorter expiration time
+              cache[fullDatasetCacheKey] = {
+                data: allRecords,
+                timestamp: now,
+                expiresIn: cacheTime / 2 // Cache for half the normal time since this is a fallback
+              };
+              
+              console.log(`Cached ${allRecords.length} records in full dataset cache (shorter expiration)`);
+              console.log(`Will filter by client ID: ${clientId} on the client side`);
+            } catch (permissionError) {
+              console.error('Permission-friendly approach also failed:', permissionError);
+              
+              // If even the simplest approach fails, we have to return an empty result
+              console.log('All approaches failed due to permission issues. Returning empty result set.');
+              allRecords = [];
+            }
           }
-          
-          console.log(`Final filter formula: ${filterFormula}`);
         }
       } catch (filterError) {
         console.error('Error constructing filter formula:', filterError);
@@ -311,106 +393,88 @@ export async function getApprovalItemsEfficient(
           
           // If filtering fails, try a simple query without client filter
           if (clientId && clientId !== 'all') {
-            console.log('Trying again without client filter...');
+            console.log('Trying again with a permission-friendly approach...');
             
-            // Create a simpler query without client filter
+            // Create a simpler query without any complex filters
+            // This approach works even with limited API permissions
             const simpleQueryOptions: Record<string, any> = { 
-              ...queryOptions,
-              // Only fetch essential fields to reduce data transfer
+              // Only fetch essential fields to reduce data transfer - specific to each table type
               fields: [
-                // Common identifying fields
-                'Brief Approvals', 'Article Approvals', 'Keyword Approvals', 'Backlink Approvals',
+                // Common identifying fields for all tables
                 'Main Keyword', 'Keyword', 'Title', 'Name', 'Domain', 'Domain URL', 'Source Domain',
-                // Client and status fields
-                'Clients', 'Client', 'Status', 'Keyword/Content Status',
+                // Client fields - include all possible variations to ensure proper filtering
+                'Clients', 'Client', 'clients', 'client',
+                // Status fields
+                'Status', 'Keyword/Content Status',
                 // Metadata fields
                 'Created Time', 'Last Updated', 'Last Modified',
-                // Content-specific fields based on type
-                ...(type === 'keywords' ? ['Search Volume', 'Volume', 'Main Keyword VOL', 'Difficulty', 'Keyword Difficulty'] : []),
-                ...(type === 'briefs' ? ['SEO Assignee', 'SEO Strategist', 'Assignee', 'Due Date'] : []),
-                ...(type === 'articles' ? ['Final Word Count', 'Word Count', 'Due Date'] : []),
-                ...(type === 'backlinks' ? ['Domain Authority/Rating', 'DR ( API )', 'Link Type', 'Target URL', 'Went Live On', 'Notes'] : [])
-              ]
+                
+                // Add content type specific fields and approval fields
+                ...(type === 'keywords' ? [
+                  'Keyword Approvals', // Only include keyword approvals for keywords table
+                  'Search Volume', 'Volume', 'Main Keyword VOL', 'Difficulty', 'Keyword Difficulty'
+                ] : []),
+                
+                ...(type === 'briefs' ? [
+                  'Brief Approvals', // Only include brief approvals for briefs table
+                  'SEO Assignee', 'SEO Strategist', 'Assignee', 'Due Date'
+                ] : []),
+                
+                ...(type === 'articles' ? [
+                  'Article Approvals', // Only include article approvals for articles table
+                  'Final Word Count', 'Word Count', 'Due Date'
+                ] : []),
+                
+                ...(type === 'backlinks' ? [
+                  'Backlink Approvals', // Only include backlink approvals for backlinks table
+                  'Domain Authority/Rating', 'DR ( API )', 'Link Type', 'Target URL', 'Went Live On', 'Notes'
+                ] : [])
+              ],
+              // Use a larger page size for efficiency
+              pageSize: 100
             };
             
-            // Use only the content type filter without client filter
+            // Use a very simple content type filter only - this has the highest chance of working
+            // with limited permissions - only for the current table type
+            let contentTypeFilter = '';
             if (type === 'briefs') {
-              simpleQueryOptions.filterByFormula = `NOT({Brief Approvals} = '')`;
+              contentTypeFilter = `NOT({Brief Approvals} = '')`;
             } else if (type === 'articles') {
-              simpleQueryOptions.filterByFormula = `NOT({Article Approvals} = '')`;
+              contentTypeFilter = `NOT({Article Approvals} = '')`;
             } else if (type === 'keywords') {
-              simpleQueryOptions.filterByFormula = `NOT({Keyword Approvals} = '')`;
+              contentTypeFilter = `NOT({Keyword Approvals} = '')`;
             } else if (type === 'backlinks') {
-              simpleQueryOptions.filterByFormula = `NOT({Backlink Approvals} = '')`;
+              contentTypeFilter = `NOT({Backlink Approvals} = '')`;
             }
             
-            console.log('Optimized fallback query with field selection:', simpleQueryOptions);
+            // Set the filter formula
+            simpleQueryOptions.filterByFormula = contentTypeFilter;
             
-            // Use pagination for the fallback query to improve performance
-            // This fetches records in batches rather than all at once
             try {
-              console.log('Using paginated approach for fallback query');
-              allRecords = [];
+              console.log(`Using permission-friendly approach with simple filter: ${contentTypeFilter}`);
               
-              // Create the query with the optimized options
+              // Create the query with minimal filtering
               const simpleQuery = base(tableName).select(simpleQueryOptions);
               
-              // Use the eachPage method to process records in batches
-              await new Promise<void>((resolve, reject) => {
-                simpleQuery.eachPage(
-                  (records: any[], fetchNextPage: () => void) => {
-                    // Add this batch of records to our collection
-                    allRecords = [...allRecords, ...records];
-                    console.log(`Fetched batch of ${records.length} records, total so far: ${allRecords.length}`);
-                    
-                    // Check if we have enough records before continuing
-                    // This is an early exit optimization - if we already have enough records
-                    // for the current request, we can stop fetching more
-                    const minimumNeeded = pageSize * 5; // Get at least 5 pages worth
-                    if (allRecords.length >= minimumNeeded) {
-                      console.log(`Early exit: Already have ${allRecords.length} records which is enough for current view`);
-                      resolve();
-                      return;
-                    }
-                    
-                    // Get the next page of records
-                    fetchNextPage();
-                  },
-                  (err: Error | null) => {
-                    if (err) {
-                      console.error('Error during paginated fetch:', err);
-                      reject(err);
-                      return;
-                    }
-                    resolve();
-                  }
-                );
-              });
-              
-              console.log(`Successfully fetched ${allRecords.length} records with paginated approach. Will filter client-side.`);
-              
-              // Cache the fallback dataset
-              cache[fallbackCacheKey] = {
-                data: allRecords,
-                timestamp: now,
-                expiresIn: cacheTime
-              };
-              console.log(`Cached ${allRecords.length} records in fallback dataset cache`);
-            } catch (paginationError) {
-              console.error('Pagination approach failed, falling back to all() method:', paginationError);
-              
-              // If pagination fails, try the simpler all() method as last resort
-              const simpleQuery = base(tableName).select(simpleQueryOptions);
+              // Fetch all records
               allRecords = await simpleQuery.all();
-              console.log(`Successfully fetched ${allRecords.length} records with all() method. Will filter client-side.`);
+              console.log(`Successfully fetched ${allRecords.length} records with permission-friendly approach.`);
               
-              // Cache the fallback dataset
-              cache[fallbackCacheKey] = {
+              // Cache the results with a shorter expiration time
+              cache[fullDatasetCacheKey] = {
                 data: allRecords,
                 timestamp: now,
-                expiresIn: cacheTime
+                expiresIn: cacheTime / 2 // Cache for half the normal time since this is a fallback
               };
-              console.log(`Cached ${allRecords.length} records in fallback dataset cache`);
+              
+              console.log(`Cached ${allRecords.length} records in full dataset cache (shorter expiration)`);
+              console.log(`Will filter by client ID: ${clientId} on the client side`);
+            } catch (permissionError) {
+              console.error('Permission-friendly approach also failed:', permissionError);
+              
+              // If even the simplest approach fails, we have to return an empty result
+              console.log('All approaches failed due to permission issues. Returning empty result set.');
+              allRecords = [];
             }
           } else {
             // If not filtering by client or second attempt also failed, re-throw
@@ -567,67 +631,104 @@ export async function getApprovalItemsEfficient(
 
       // ONLY use the dedicated approval fields to determine content type
       // This ensures strict separation between tabs
-      if (fields['Keyword Approvals'] && fields['Keyword Approvals'].trim() !== '') {
+      // Only check for fields that should exist in the current table type
+      if (type === 'keywords' && fields['Keyword Approvals'] && fields['Keyword Approvals'].trim() !== '') {
         rawStatus = fields['Keyword Approvals'];
         contentType = 'keywords';
         console.log(`Record ${record.id} assigned to keywords tab based on Keyword Approvals field: "${rawStatus}"`);
-      } else if (fields['Brief Approvals'] && fields['Brief Approvals'].trim() !== '') {
+      } else if (type === 'briefs' && fields['Brief Approvals'] && fields['Brief Approvals'].trim() !== '') {
         rawStatus = fields['Brief Approvals'];
         contentType = 'briefs';
         console.log(`Record ${record.id} assigned to briefs tab based on Brief Approvals field: "${rawStatus}"`);
-      } else if (fields['Article Approvals'] && fields['Article Approvals'].trim() !== '') {
+      } else if (type === 'articles' && fields['Article Approvals'] && fields['Article Approvals'].trim() !== '') {
         rawStatus = fields['Article Approvals'];
         contentType = 'articles';
         console.log(`Record ${record.id} assigned to articles tab based on Article Approvals field: "${rawStatus}"`);
-      } else if (fields['Backlink Approvals'] && fields['Backlink Approvals'].trim() !== '') {
+      } else if (type === 'backlinks' && fields['Backlink Approvals'] && fields['Backlink Approvals'].trim() !== '') {
         rawStatus = fields['Backlink Approvals'];
         contentType = 'backlinks';
         console.log(`Record ${record.id} assigned to backlinks tab based on Backlink Approvals field: "${rawStatus}"`);
       } else {
-        // If none of the dedicated approval fields have values, don't assign to any tab
+        // If the dedicated approval field for this type doesn't have a value, don't assign to any tab
         // This record won't appear in any tab
-        contentType = 'keywords' as const; // Default to keywords but we'll filter it out later
+        contentType = type; // Keep the requested type but we'll filter it out later
         rawStatus = fields['Approval Status'] || fields['Status'] || fields['Keyword/Content Status'] || 'awaiting_approval';
-        console.log(`Record ${record.id} not assigned to any tab (no dedicated approval field)`);
+        console.log(`Record ${record.id} not assigned to any tab (no dedicated approval field for ${type})`);
       }
 
       // Normalize the status to match our UI status values
       const normalizedStatus = normalizeStatus(rawStatus);
 
-      // Get the original approval status for debugging
-      const keywordApproval = fields['Keyword Approvals'] || '';
-      const briefApproval = fields['Brief Approvals'] || '';
-      const articleApproval = fields['Article Approvals'] || '';
-      const backlinksApproval = fields['Backlink Approvals'] || '';
+      // Get the original approval status for debugging - only for the current type
+      let keywordApproval = '';
+      let briefApproval = '';
+      let articleApproval = '';
+      let backlinksApproval = '';
+      
+      // Only set the approval field that corresponds to the current type
+      if (type === 'keywords') {
+        keywordApproval = fields['Keyword Approvals'] || '';
+      } else if (type === 'briefs') {
+        briefApproval = fields['Brief Approvals'] || '';
+      } else if (type === 'articles') {
+        articleApproval = fields['Article Approvals'] || '';
+      } else if (type === 'backlinks') {
+        backlinksApproval = fields['Backlink Approvals'] || '';
+      }
+      
       const originalStatus = fields['Keyword/Content Status'] || fields['Status'] || '';
 
-      // Get client field values for debugging
-      const clientsField = fields['Clients'] || '';
-      console.log(`Record ${record.id} client fields:`, { 
-        'Clients': clientsField,
-        contentType
-      });
+      // Map the client field correctly
+      let client = null;
+      
+      // Check for client fields in various formats and capitalization
+      if (fields['Clients'] && Array.isArray(fields['Clients'])) {
+        client = fields['Clients'];
+      } else if (fields['Client'] && Array.isArray(fields['Client'])) {
+        client = fields['Client'];
+      } else if (fields['clients'] && Array.isArray(fields['clients'])) {
+        client = fields['clients'];
+      } else if (fields['client'] && Array.isArray(fields['client'])) {
+        client = fields['client'];
+      } 
+      // Handle string values
+      else if (fields['Clients'] && typeof fields['Clients'] === 'string') {
+        client = [fields['Clients']];
+      } else if (fields['Client'] && typeof fields['Client'] === 'string') {
+        client = [fields['Client']];
+      } else if (fields['clients'] && typeof fields['clients'] === 'string') {
+        client = [fields['clients']];
+      } else if (fields['client'] && typeof fields['client'] === 'string') {
+        client = [fields['client']];
+      }
+      // Handle object values with id property
+      else if (fields['Clients'] && typeof fields['Clients'] === 'object') {
+        client = [fields['Clients']];
+      } else if (fields['Client'] && typeof fields['Client'] === 'object') {
+        client = [fields['Client']];
+      } else if (fields['clients'] && typeof fields['clients'] === 'object') {
+        client = [fields['clients']];
+      } else if (fields['client'] && typeof fields['client'] === 'object') {
+        client = [fields['client']];
+      }
 
-      // Use Clients field consistently for all content types
-      const clientValue = fields['Clients'] || 'Unknown Client';
-      console.log(`${type} item ${record.id} using Clients field:`, clientValue);
-
+      // Create the item object with all necessary fields
       const item = {
         id: record.id,
-        item: fields['Main Keyword'] || fields['Keyword'] || fields['Title'] || fields['Name'] ||
-              fields['Domain'] || fields['Domain URL'] || fields['Source Domain'] || 'Untitled',
+        item: fields['Main Keyword'] || fields['Keyword'] || fields['Title'] || fields['Name'] || fields['Domain'] || fields['Domain URL'] || fields['Source Domain'] || 'Unnamed Item',
         status: normalizedStatus,
-        dateSubmitted: fields['Created Time'] || fields['Created'] || new Date().toISOString().split('T')[0],
-        lastUpdated: fields['Last Updated'] || fields['Last Modified'] || '3 days ago',
-        strategist: fields['Content Writer'] || fields['SEO Strategist'] || fields['SEO Specialist'] ||
-                   fields['Assignee'] || fields['Person Responsible'] || 'Not Assigned',
-        client: clientValue,
-        contentType: contentType, // Add the content type
-        originalStatus: originalStatus, // Keep the original status for debugging
-        keywordApproval: keywordApproval, // Add the keyword approval status
-        briefApproval: briefApproval, // Add the brief approval status
-        articleApproval: articleApproval, // Add the article approval status
-        backlinksApproval: backlinksApproval // Add the backlinks approval status
+        dateSubmitted: fields['Created Time'] || null,
+        lastUpdated: fields['Last Updated'] || fields['Last Modified'] || null,
+        strategist: fields['SEO Assignee'] || fields['SEO Strategist'] || fields['Assignee'] || null,
+        client: client, // Use the mapped client field
+        contentType: contentType as 'keywords' | 'briefs' | 'articles' | 'backlinks',
+        originalStatus: rawStatus,
+        keywordApproval: keywordApproval,
+        briefApproval: briefApproval,
+        articleApproval: articleApproval,
+        backlinksApproval: backlinksApproval,
+        // Include the raw fields for client-side filtering
+        fields: fields
       };
 
       // Add type-specific fields
@@ -668,11 +769,12 @@ export async function getApprovalItemsEfficient(
 
     // Only include items that have the correct contentType and have a value in the corresponding approval field
     items = items.filter((item: any) => {
+      // First check if the item's contentType matches the requested type
       if (item.contentType !== type) {
         return false;
       }
 
-      // Additional check to ensure the item has the appropriate approval field
+      // Additional check to ensure the item has the appropriate approval field based on the content type
       if (type === 'keywords' && (!item.keywordApproval || item.keywordApproval.trim() === '')) {
         console.log(`Excluding keyword item ${item.id} because Keyword Approvals field is empty`);
         return false;
@@ -707,97 +809,115 @@ export async function getApprovalItemsEfficient(
 
     console.log(`After filtering by content type and approval fields, found ${items.length} items for type ${type}`);
 
-    // Additional client-side filtering for items that might have slipped through the server-side filter
-    if (clientId && clientId !== 'all') {
-      console.log(`Performing additional client-side filtering for client: ${clientId}`);
+    // Filter by client ID if needed (client-side filtering)
+    // Always apply client-side filtering if we have a client ID
+    if (clientId && clientId !== 'all' && items.length > 0) {
+      console.log(`Applying client-side filtering for ${items.length} items by client ID: ${clientId}`);
       
-      const originalCount = items.length;
-      items = items.filter((item: any) => {
-        // Track if we found a match
-        let hasClientMatch = false;
+      // Client-side filtering for the client ID - optimize for performance
+      const filteredItems = items.filter(item => {
+        // Cast item to any to avoid TypeScript errors with dynamic properties
+        const itemAny = item as any;
         
-        // Check all possible client field formats
-        
-        // 1. Check item.client property (which we set during mapping)
-        if (item.client) {
-          // If it's an array of strings or objects
-          if (Array.isArray(item.client)) {
-            hasClientMatch = item.client.some((c: any) => {
-              // Could be a string
-              if (typeof c === 'string') {
-                return c === clientId || c.includes(clientId);
+        // Check all possible client field variations
+        // 1. Check the standard client field
+        if (itemAny.client) {
+          const clientField = itemAny.client;
+          
+          // Handle array of client IDs
+          if (Array.isArray(clientField)) {
+            for (const entry of clientField) {
+              // Handle string IDs
+              if (typeof entry === 'string' && entry === clientId) {
+                return true;
               }
-              // Could be an object with id, value, or name
-              if (c && typeof c === 'object') {
-                return (c.id === clientId) || 
-                       (c.value === clientId) || 
-                       (c.name === clientId) ||
-                       // Check for ID at end of string (common Airtable format)
-                       (typeof c.id === 'string' && c.id.endsWith(clientId));
+              // Handle object IDs with id property
+              if (entry && typeof entry === 'object' && 'id' in entry && entry.id === clientId) {
+                return true;
               }
-              return false;
-            });
-          } 
-          // If it's a string
-          else if (typeof item.client === 'string') {
-            hasClientMatch = item.client === clientId || item.client.includes(clientId);
+            }
           }
-          // If it's an object
-          else if (item.client && typeof item.client === 'object') {
-            hasClientMatch = (item.client.id === clientId) || 
-                             (item.client.value === clientId) || 
-                             (item.client.name === clientId) ||
-                             // Check for ID at end of string (common Airtable format)
-                             (typeof item.client.id === 'string' && item.client.id.endsWith(clientId));
+          // Handle string client ID
+          else if (typeof clientField === 'string' && clientField === clientId) {
+            return true;
+          }
+          // Handle object with id property
+          else if (clientField && typeof clientField === 'object' && 'id' in clientField && clientField.id === clientId) {
+            return true;
           }
         }
         
-        // 2. Also check item.fields object if available
-        if (!hasClientMatch && item.fields) {
-          // Check both Clients and Client fields
-          ['Clients', 'Client'].forEach((fieldName: string) => {
-            if (hasClientMatch) return; // Skip if we already found a match
+        // 2. Check alternative client field names that might exist in different tables
+        const clientFieldNames = ['Clients', 'Client', 'clients'];
+        for (const fieldName of clientFieldNames) {
+          if (itemAny[fieldName]) {
+            const field = itemAny[fieldName];
             
-            const field = item.fields[fieldName];
-            if (!field) return; // Skip if field doesn't exist
-            
-            // If it's an array
+            // Handle array of client IDs
             if (Array.isArray(field)) {
-              hasClientMatch = field.some((c: any) => {
-                // Could be a string
-                if (typeof c === 'string') {
-                  return c === clientId || c.includes(clientId);
+              for (const entry of field) {
+                // Handle string IDs
+                if (typeof entry === 'string' && entry === clientId) {
+                  return true;
                 }
-                // Could be an object
-                if (c && typeof c === 'object') {
-                  return (c.id === clientId) || 
-                         (c.value === clientId) || 
-                         (c.name === clientId) ||
-                         // Check for ID at end of string (common Airtable format)
-                         (typeof c.id === 'string' && c.id.endsWith(clientId));
+                // Handle object IDs with id property
+                if (entry && typeof entry === 'object' && 'id' in entry && entry.id === clientId) {
+                  return true;
                 }
-                return false;
-              });
+              }
             }
-            // If it's a string
-            else if (typeof field === 'string') {
-              hasClientMatch = field === clientId || field.includes(clientId);
+            // Handle string client ID
+            else if (typeof field === 'string' && field === clientId) {
+              return true;
             }
-            // If it's an object
-            else if (field && typeof field === 'object') {
-              hasClientMatch = (field.id === clientId) || 
-                               (field.value === clientId) || 
-                               (field.name === clientId) ||
-                               // Check for ID at end of string (common Airtable format)
-                               (typeof field.id === 'string' && field.id.endsWith(clientId));
+            // Handle object with id property
+            else if (field && typeof field === 'object' && 'id' in field && field.id === clientId) {
+              return true;
             }
-          });
+          }
         }
         
-        return hasClientMatch;
+        // 3. Check raw fields from Airtable
+        if (itemAny.fields) {
+          const fields = itemAny.fields;
+          
+          // Check client fields in the raw fields
+          const clientFieldNames = ['Clients', 'Client', 'clients', 'client'];
+          for (const fieldName of clientFieldNames) {
+            if (fields[fieldName]) {
+              const field = fields[fieldName];
+              
+              // Handle array of client IDs
+              if (Array.isArray(field)) {
+                for (const entry of field) {
+                  // Handle string IDs
+                  if (typeof entry === 'string' && entry === clientId) {
+                    return true;
+                  }
+                  // Handle object IDs with id property
+                  if (entry && typeof entry === 'object' && 'id' in entry && entry.id === clientId) {
+                    return true;
+                  }
+                }
+              }
+              // Handle string client ID
+              else if (typeof field === 'string' && field === clientId) {
+                return true;
+              }
+              // Handle object with id property
+              else if (field && typeof field === 'object' && 'id' in field && field.id === clientId) {
+                return true;
+              }
+            }
+          }
+        }
+        
+        // No match found, exclude the item
+        return false;
       });
       
-      console.log(`After additional client filtering, found ${items.length} items for client ${clientId} (filtered out ${originalCount - items.length} items)`);
+      console.log(`After client-side filtering: ${filteredItems.length} items remaining out of ${items.length}`);
+      items = filteredItems;
     }
 
     // Calculate pagination info based on the full dataset

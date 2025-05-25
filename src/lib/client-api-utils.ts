@@ -357,7 +357,7 @@ export async function fetchApprovalItems(
  */
 export function clearApprovalsCache(type?: string, clearFullDataset: boolean = true) {
   // Import the efficient-airtable functions
-  const { clearCacheForType, clearFullDatasetCache } = require('./efficient-airtable');
+  const { clearCacheForType, clearFullDatasetCache, clearCache } = require('./efficient-airtable');
 
   console.log(`Clearing approvals cache for ${type || 'all types'}`);
 
@@ -368,6 +368,9 @@ export function clearApprovalsCache(type?: string, clearFullDataset: boolean = t
     // Clear server-side cache if available
     if (typeof clearCacheForType === 'function') {
       clearCacheForType(type);
+      
+      // Also clear fallback caches for this type
+      clearCacheByPrefix(`approvals_${type}_fallback`);
     }
   } else {
     // Clear all approvals cache
@@ -376,6 +379,11 @@ export function clearApprovalsCache(type?: string, clearFullDataset: boolean = t
     // Clear all server-side cache if available
     if (typeof clearCacheForType === 'function') {
       ['keywords', 'briefs', 'articles', 'backlinks'].forEach(t => clearCacheForType(t));
+    }
+    
+    // Clear all fallback caches as well
+    if (typeof clearCache === 'function') {
+      clearCache();
     }
   }
 

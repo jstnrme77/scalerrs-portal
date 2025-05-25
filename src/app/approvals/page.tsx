@@ -29,12 +29,15 @@ async function directFetchApprovalItems(
   // This ensures the API properly handles client filtering
   if (clientId) {
     params.append('clientId', clientId);
+    console.log(`Including client filter: ${clientId}`);
   } else {
     params.append('clientId', 'all');
+    console.log('No client filter, using "all"');
   }
   
   if (status) {
     params.append('status', status);
+    console.log(`Including status filter: ${status}`);
   }
   
   console.log(`Fetching approvals with params: ${params.toString()}`);
@@ -56,7 +59,9 @@ async function directFetchApprovalItems(
     throw new Error(`Failed to fetch approval items: ${response.status}`);
   }
   
-  return response.json();
+  const data = await response.json();
+  console.log(`Received ${data.items?.length || 0} items from API`);
+  return data;
 }
 
 // Comment Item Component
@@ -1093,7 +1098,7 @@ export default function Approvals() {
         status
       );
       
-      console.log(`Fetched ${activeTab} data:`, data);
+      console.log(`Fetched ${activeTab} data with ${data.items?.length || 0} items`);
 
       if (!data || !Array.isArray(data.items)) {
         console.error('No items found in the response');
@@ -1127,6 +1132,13 @@ export default function Approvals() {
           groupedByStatus[itemStatus as keyof GroupedItems].push(item);
         } else {
           groupedByStatus.not_started.push(item);
+        }
+      });
+
+      // Log the distribution of items by status
+      Object.entries(groupedByStatus).forEach(([status, items]) => {
+        if (items.length > 0) {
+          console.log(`Status ${status}: ${items.length} items`);
         }
       });
 
@@ -1189,7 +1201,7 @@ export default function Approvals() {
     if (clientId !== null) {
       console.log('Forcing data refresh due to client ID change');
       clearApprovalsCache(); // Clear all approvals cache
-      fetchData(1); // Remove the third parameter
+      fetchData(1); // Fetch first page
     }
   }, [clientId, fetchData]);
 

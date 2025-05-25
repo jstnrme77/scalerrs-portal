@@ -139,89 +139,47 @@ export async function GET(request: NextRequest) {
     // Get status parameter
     const status = searchParams.get('status') || undefined;
 
-    // Get client ID from query parameters
-    const clientIdParam = searchParams.get('clientId');
-
-    // Get user information from the request
-    const userId = request.headers.get('x-user-id');
-    const userRole = request.headers.get('x-user-role');
-    const userClients = request.headers.get('x-user-clients');
-
-    // Use client ID from query parameters if available, otherwise use client ID from headers
-    let clientId = clientIdParam;
-    if (!clientId && userClients) {
-      try {
-        const clientIds = JSON.parse(userClients);
-        clientId = clientIds && clientIds.length > 0 ? clientIds[0] : null;
-      } catch (e) {
-        console.error('Error parsing client ID from headers:', e);
-      }
+    // Get client ID parameter - IMPORTANT for filtering by client
+    const clientId = searchParams.get('clientId') || undefined;
+    
+    // Log the request parameters for debugging
+    console.log(`API route: Fetching ${type} approval items (page ${page}, pageSize ${pageSize})`);
+    if (clientId) {
+      console.log(`API route: Filtering by client ID: ${clientId}`);
+    }
+    if (status) {
+      console.log(`API route: Filtering by status: ${status}`);
     }
 
-    // If clientId is null or undefined, set it to 'all'
-    if (!clientId) {
-      clientId = 'all';
+    // Import the efficient-airtable function
+    const { getApprovalItemsEfficient } = require('../../../lib/efficient-airtable');
+
+    // Use the efficient function to get approval items
+    // Pass all parameters including clientId and status
+    const result = await getApprovalItemsEfficient(
+      type as 'briefs' | 'articles' | 'keywords' | 'backlinks',
+      page,
+      pageSize,
+      offset,
+      clientId,
+      5 * 60 * 1000, // 5 minutes cache time
+      status
+    );
+
+    // Log the results
+    console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page})`);
+    if (clientId) {
+      console.log(`API route: Items filtered by client ID: ${clientId}`);
     }
 
-    console.log('Using client ID:', clientId);
-
-    console.log('User ID:', userId);
-    console.log('User Role:', userRole);
-    console.log('User Clients:', userClients);
-    console.log('Approval Type:', type);
-    console.log('Page:', page, 'Page Size:', pageSize, 'Offset:', offset);
-    console.log('Status filter:', status);
-
-    // Use our new efficient Airtable integration
-    try {
-      console.log('Using efficient Airtable integration...');
-
-      // Always pass the clientId parameter, even if it's 'all'
-      // This ensures proper filtering in getApprovalItemsEfficient
-      const result = await getApprovalItemsEfficient(
-        type as any,
-        page,
-        pageSize,
-        offset,
-        clientId, // Always pass clientId, never undefined
-        undefined, // cacheTime - use default
-        status
-      );
-
-      console.log(`API route: Found ${result.items.length} ${type} approval items (page ${page})`);
-
-      // Create response with cache control headers
-      const response = NextResponse.json(result);
-
-      // Add cache control headers to prevent caching
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      response.headers.set('Pragma', 'no-cache');
-
-      return response;
-    } catch (airtableError) {
-      console.error('Error fetching from Airtable:', airtableError);
-
-      // Fall back to mock data if Airtable fails
-      console.log('Falling back to mock data due to Airtable error');
-      
-      const result = fallbackGetApprovalItems(type, userId, userRole, userClients, page, pageSize);
-      console.log(`API route: Found ${result.items.length} ${type} approval items using fallback (page ${page} of ${result.pagination.totalPages})`);
-
-      // Create response with cache control headers
-      const response = NextResponse.json(result);
-
-      // Add cache control headers to prevent caching
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      response.headers.set('Pragma', 'no-cache');
-
-      return response;
-    }
+    // Return the results
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching approval items:', error);
-    const response = NextResponse.json({ error: 'Failed to fetch approval items' }, { status: 500 });
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    response.headers.set('Pragma', 'no-cache');
-    return response;
+    return NextResponse.json(
+      { error: 'Failed to fetch approval items' },
+      { status: 500 }
+    );
   }
 }
 
