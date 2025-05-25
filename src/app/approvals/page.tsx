@@ -9,6 +9,8 @@ import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, Bar
 import { updateApprovalStatus, clearApprovalsCache } from '@/lib/client-api-utils';
 import Pagination from '@/components/ui/Pagination';
 import { useClientData } from '@/context/ClientDataContext';
+// Import the URL utility function
+import { ensureUrlProtocol, formatDate } from '@/utils/field-utils';
 
 // Direct API fetch function
 async function directFetchApprovalItems(
@@ -824,6 +826,27 @@ function ApprovalTable({
                     // Add selected styling
                     const selectedClass = isSelected ? 'bg-gray-50' : '';
 
+                    // Determine document link based on active tab
+                    const getDocumentLink = () => {
+                      if (activeTab === 'briefs') {
+                        // For briefs, check multiple possible field names
+                        return item.documentLink || 
+                               item['Content Brief Link (G Doc)'] || 
+                               item['Brief Document Link'] || 
+                               null;
+                      } else if (activeTab === 'articles') {
+                        // For articles, check multiple possible field names
+                        return item.documentLink || 
+                               item['Written Content (G Doc)'] || 
+                               item['Content Link (G Doc)'] ||
+                               item['Article Document Link'] ||
+                               null;
+                      }
+                      return null;
+                    };
+
+                    const documentLink = getDocumentLink();
+
                     return (
                       <tr
                         key={item.id}
@@ -848,19 +871,9 @@ function ApprovalTable({
                           <div className="flex items-start">
                             <div>
                               <div className="text-base font-medium text-dark">
-                                {activeTab === 'briefs' && item.documentLink ? (
+                                {documentLink ? (
                                   <a
-                                    href={item.documentLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:text-primary hover:underline flex items-center"
-                                  >
-                                    {item.item}
-                                    <ExternalLink size={14} className="ml-1 inline-block" />
-                                  </a>
-                                ) : activeTab === 'articles' && item.documentLink ? (
-                                  <a
-                                    href={item.documentLink}
+                                    href={ensureUrlProtocol(documentLink)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="hover:text-primary hover:underline flex items-center"
@@ -869,13 +882,12 @@ function ApprovalTable({
                                     <ExternalLink size={14} className="ml-1 inline-block" />
                                   </a>
                                 ) : (
-                                  <a href="#" className="hover:text-primary hover:underline">{item.item}</a>
+                                  <span className="hover:text-primary">{item.item}</span>
                                 )}
                               </div>
                               {'type' in item && <div className="text-base text-mediumGray">{item.type}</div>}
                               {'wordCount' in item && <div className="text-base text-mediumGray">{item.wordCount} words</div>}
                               {'volume' in item && <div className="text-base text-mediumGray">Volume: {item.volume}</div>}
-                              {'count' in item && <div className="text-base text-mediumGray">{item.count} links</div>}
                               {'pages' in item && <div className="text-base text-mediumGray">{item.pages} pages</div>}
 
                               {/* Additional fields for Backlinks */}
@@ -887,11 +899,20 @@ function ApprovalTable({
                                   {item.linkType && (
                                     <div className="text-base text-mediumGray">Link Type: {item.linkType}</div>
                                   )}
+                                  {item.trafficDomain && (
+                                    <div className="text-base text-mediumGray">Domain Traffic: {item.trafficDomain}</div>
+                                  )}
+                                  {item.pageTraffic && (
+                                    <div className="text-base text-mediumGray">Backlink URL Page Traffic: {item.pageTraffic}</div>
+                                  )}
+                                  {item.pageRD && (
+                                    <div className="text-base text-mediumGray">N° RDs Of Referring Page: {item.pageRD}</div>
+                                  )}
                                   {item.targetPage && (
                                     <div className="text-base text-mediumGray">
                                       Target:
                                       <a
-                                        href={String(item.targetPage)}
+                                        href={ensureUrlProtocol(String(item.targetPage))}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="ml-1 text-primary hover:underline"
@@ -915,7 +936,7 @@ function ApprovalTable({
                               {activeTab === 'quickwins' && item.resourceLink && (
                                 <div className="text-base text-mediumGray mt-1">
                                   <a
-                                    href={item.resourceLink}
+                                    href={ensureUrlProtocol(item.resourceLink)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-primary hover:underline flex items-center"
@@ -1094,6 +1115,10 @@ interface ApprovalItem {
   revisionReason?: string;
   documentLink?: string;
   resourceLink?: string;
+  // Document links from Airtable fields
+  'Content Brief Link (G Doc)': string;
+  'Written Content (G Doc)': string;
+  'Content Link (G Doc)': string;
   // Backlinks specific fields
   domainRating?: number;
   linkType?: string;
@@ -1106,6 +1131,8 @@ interface ApprovalItem {
   pageType?: string;
   keywordScore?: string | number;
   comments?: Array<{ id: string; text: string; author?: string; timestamp?: string }>;
+  // Allow for additional fields
+  [key: string]: any;
 }
 
 // Define the type for the items state
@@ -1776,7 +1803,7 @@ export default function Approvals() {
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
             status: 'approved', // Local state can remain 'approved' for UI consistency
-            dateApproved: new Date().toISOString().split('T')[0]
+            dateApproved: formatDate(new Date().toISOString())
           };
         } else {
           console.warn(`Item ${id} not found in local state for update`);
@@ -1897,7 +1924,7 @@ export default function Approvals() {
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
             status: 'approved', // Local state can remain 'approved' for UI consistency
-            dateApproved: new Date().toISOString().split('T')[0]
+            dateApproved: formatDate(new Date().toISOString())
           };
         }
       });
@@ -1978,7 +2005,7 @@ export default function Approvals() {
             return {
               ...item,
               status: 'revisions_needed',
-              dateApproved: new Date().toISOString().split('T')[0],
+              dateApproved: formatDate(new Date().toISOString()),
               revisionReason: reason
             };
           }
@@ -1993,7 +2020,7 @@ export default function Approvals() {
           newItems[activeTab as keyof typeof items][itemIndex] = {
             ...newItems[activeTab as keyof typeof items][itemIndex],
             status: 'revisions_needed',
-            dateApproved: new Date().toISOString().split('T')[0],
+            dateApproved: formatDate(new Date().toISOString()),
             revisionReason: reason
           };
         } else {

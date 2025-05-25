@@ -1,6 +1,7 @@
 import Airtable from 'airtable';
 import { mockBriefs, mockArticles, mockKeywordPerformance, mockBacklinks } from './mock-data';
 import { TABLES, ALT_TABLES } from './airtable-tables';
+import { formatDate } from '@/utils/field-utils';
 
 // Check if we have the required API keys
 const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
@@ -165,15 +166,15 @@ function formatKeywordItem(record: any): ApprovalItem {
     id: record.id,
     item: fields["Main Keyword"] || "Untitled Keyword",
     status: normalizeStatus(fields["Keyword Approvals"] || "not_started"),
-    lastUpdated: fields["Last Modified Time"] || new Date().toISOString(),
+    lastUpdated: formatDate(fields["Any Statuses Last Modified"], 'N/A'),
     clients: fields["Clients"] || [],
     clientRecordId: fields["Client Record ID"] || "",
     strategist: fields["SEO Assignee"] || "Unassigned",
     volume: fields["Main Keyword VOL"] || 0,
     difficulty: fields["Main Keyword KD"] || 0,
     keywordScore: fields["Target KW Score"] || 0,
-    dateSubmitted: fields["Created Time"] || new Date().toISOString(),
-    dateApproved: fields["Keyword Approval Date"] || "",
+    dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
+    dateApproved: formatDate(fields["Keyword Approval Date"], ''),
     revisionReason: fields["Revision Reason"] || "",
     documentLink: fields["Content Brief Link (G Doc)"] || "",
     currentPosition: fields["Current Position"] || "Not Ranked",
@@ -189,7 +190,7 @@ function formatBriefItem(record: any): ApprovalItem {
     id: record.id,
     item: fields["Main Keyword"] || "Untitled Brief",
     status: normalizeStatus(fields["Brief Approvals"] || "not_started"),
-    lastUpdated: fields["Last Modified Time"] || new Date().toISOString(),
+    lastUpdated: formatDate(fields["Any Statuses Last Modified"], 'N/A'),
     clients: fields["Clients"] || [],
     clientRecordId: fields["Client Record ID"] || "",
     strategist: fields["SEO Assignee"] || "Unassigned",
@@ -198,11 +199,14 @@ function formatBriefItem(record: any): ApprovalItem {
     volume: fields["Main Keyword VOL"] || 0,
     difficulty: fields["Main Keyword KD"] || 0,
     type: fields["Page Type ( Main )"] || "Not Specified",
-    wordCount: fields["Target Word Count"] || 0,
-    dateSubmitted: fields["Created Time"] || new Date().toISOString(),
-    dateApproved: fields["Brief Approval Date"] || "",
+    wordCount: fields["Final Word Count"] || fields["Target Word Count"] || 0,
+    dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
+    dateApproved: formatDate(fields["Brief Approval Date"], ''),
     revisionReason: fields["Brief Revision Reason"] || "",
-    documentLink: fields["Content Brief Link (G Doc)"] || ""
+    documentLink: fields["Content Brief Link (G Doc)"] || fields["Brief Document Link"] || "",
+    // Store the original field values for use in the UI
+    "Content Brief Link (G Doc)": fields["Content Brief Link (G Doc)"] || "",
+    "Brief Document Link": fields["Brief Document Link"] || ""
   };
 }
 
@@ -214,18 +218,22 @@ function formatArticleItem(record: any): ApprovalItem {
     id: record.id,
     item: fields["Main Keyword"] || fields["Title"] || "Untitled Article",
     status: normalizeStatus(fields["Article Approvals"] || "not_started"),
-    lastUpdated: fields["Last Modified Time"] || new Date().toISOString(),
+    lastUpdated: formatDate(fields["Any Statuses Last Modified"], 'N/A'),
     clients: fields["Clients"] || [],
     clientRecordId: fields["Client Record ID"] || "",
     strategist: fields["SEO Assignee"] || "Unassigned",
     writer: fields["Content Writer"] || "Unassigned",
     editor: fields["Content Editor"] || "Unassigned",
-    wordCount: fields["Word Count"] || fields["Target Word Count"] || 0,
+    wordCount: fields["Final Word Count"] || fields["Target Word Count"] || 0,
     type: fields["Content Type"] || fields["Page Type ( Main )"] || "Not Specified",
-    dateSubmitted: fields["Created Time"] || new Date().toISOString(),
-    dateApproved: fields["Article Approval Date"] || "",
+    dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
+    dateApproved: formatDate(fields["Article Approval Date"], ''),
     revisionReason: fields["Article Revision Reason"] || "",
-    documentLink: fields["Article Google Doc"] || fields["Content Brief Link (G Doc)"] || ""
+    documentLink: fields["Written Content (G Doc)"] || fields["Article Google Doc"] || fields["Content Link (G Doc)"] || "",
+    // Store the original field values for use in the UI
+    "Written Content (G Doc)": fields["Written Content (G Doc)"] || "",
+    "Content Link (G Doc)": fields["Content Link (G Doc)"] || "",
+    "Article Google Doc": fields["Article Google Doc"] || ""
   };
 }
 
@@ -235,20 +243,24 @@ function formatBacklinkItem(record: any): ApprovalItem {
   
   return {
     id: record.id,
-    item: fields["Domain"] || "Untitled Backlink",
+    item: fields["Domain URL"] || "Untitled Backlink",
     status: normalizeStatus(fields["Backlink Approvals"] || "not_started"),
-    lastUpdated: fields["Last Modified Time"] || new Date().toISOString(),
+    lastUpdated: formatDate(fields["Last Modified"], 'N/A'),
     clients: fields["Clients"] || [],
     clientRecordId: fields["Client Record ID"] || "",
-    strategist: fields["SEO Assignee"] || "Unassigned",
-    domainRating: fields["Domain Rating"] || 0,
+    strategist: fields["Link Builder Assignee"] || "Unassigned",
+    domainRating: fields["DR ( API )"] || 0,
     linkType: fields["Link Type"] || "Not Specified",
-    targetPage: fields["Target Page"] || "",
-    wentLiveOn: fields["Went Live On"] || "",
+    targetPage: fields["Client Target Page URL"] || "",
+    trafficDomain: fields["Domain Traffic ( API )"] || "",
+    pageTraffic: fields["Backlink URL Page Traffic ( API )"] || "",
+    pageRD: fields["N° RDs Of Referring Page ( API )"] || "",
+    keywordScore: fields["Client Target Page URL"] || "",
+    wentLiveOn: formatDate(fields["Went Live On"], ''),
     notes: fields["Notes"] || "",
     count: 1, // Default to 1 link
-    dateSubmitted: fields["Created Time"] || new Date().toISOString(),
-    dateApproved: fields["Backlink Approval Date"] || "",
+    dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
+    dateApproved: formatDate(fields["Backlink Approval Date"], ''),
     revisionReason: fields["Backlink Revision Reason"] || ""
   };
 }

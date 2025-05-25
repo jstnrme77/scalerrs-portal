@@ -146,3 +146,29 @@ export function ensureUrlProtocol(url: string): string {
   // Add https:// protocol if missing
   return `https://${url}`;
 }
+
+/**
+ * Format a date string from Airtable to display only the date part
+ * @param dateString The date string to format (ISO format from Airtable)
+ * @param fallback Optional fallback string if date is invalid
+ * @returns Formatted date string (YYYY-MM-DD)
+ */
+export function formatDate(dateString: string | undefined | null, fallback: string = ''): string {
+  if (!dateString) return fallback;
+  
+  try {
+    // Parse the ISO date string
+    const date = new Date(dateString);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return fallback;
+    }
+    
+    // Format as YYYY-MM-DD
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return fallback;
+  }
+}
