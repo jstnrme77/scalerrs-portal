@@ -575,6 +575,25 @@ function ApprovalTable({
       console.log(`Conversation history not available for ${activeTab} tab`);
     }
   };
+  
+  // Use effect to handle pagination updates for each status
+  // This prevents setState during render errors
+  useEffect(() => {
+    // Check pagination for each status and update if needed
+    Object.entries(groupedItems).forEach(([status, allItems]) => {
+      if (allItems && allItems.length > 0) {
+        const pageSize = 5; // 5 items per page for each status table
+        const totalPages = Math.ceil(allItems.length / pageSize);
+        
+        // Only update if the pagination state is different
+        if (statusPagination[status] && statusPagination[status].totalPages !== totalPages) {
+          console.log(`Updating pagination for ${status}: totalPages from ${statusPagination[status].totalPages} to ${totalPages}`);
+          onStatusPageChange(status, 1); // Reset to page 1 with correct pagination
+        }
+      }
+    });
+  }, [groupedItems, statusPagination, onStatusPageChange]);
+  
   // Define the order of status groups
   const statusOrder = [
     'not_started',
@@ -620,7 +639,10 @@ function ApprovalTable({
     const startIndex = (pagination.currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, allItems.length);
     const items = allItems.slice(startIndex, endIndex);
-
+    
+    // Calculate correct pagination values
+    const totalPages = Math.ceil(allItems.length / pageSize);
+    
     // If we're on a page that doesn't have any items but we're not loading,
     // show a message instead of redirecting
     if (items.length === 0 && pagination.currentPage > 1 && loadingStatus !== status) {
@@ -896,9 +918,9 @@ function ApprovalTable({
                 ) : (
                   <Pagination
                     currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
+                    totalPages={Math.ceil(allItems.length / 5)}
                     onPageChange={(page) => onStatusPageChange(status, page)}
-                    hasNextPage={pagination.currentPage < pagination.totalPages}
+                    hasNextPage={pagination.currentPage < Math.ceil(allItems.length / 5)}
                     hasPreviousPage={pagination.currentPage > 1}
                     totalItems={allItems.length}
                     pageSize={5}
@@ -1150,13 +1172,17 @@ export default function Approvals() {
       // Set pagination for each status
       const paginationState: Record<string, PaginationState> = {};
       Object.keys(groupedByStatus).forEach(status => {
+        const itemCount = groupedByStatus[status as keyof GroupedItems].length;
+        const pageSize = 5; // 5 items per page for each status table
+        const totalPages = Math.ceil(itemCount / pageSize);
+        
         paginationState[status] = {
           currentPage: 1,
-          totalPages: Math.ceil(groupedByStatus[status as keyof GroupedItems].length / 100),
-          totalItems: groupedByStatus[status as keyof GroupedItems].length,
-          hasNextPage: groupedByStatus[status as keyof GroupedItems].length > 100,
+          totalPages: totalPages,
+          totalItems: itemCount,
+          hasNextPage: itemCount > pageSize,
           hasPrevPage: false,
-          nextOffset: groupedByStatus[status as keyof GroupedItems].length > 100 ? '2' : null,
+          nextOffset: itemCount > pageSize ? '2' : null,
           prevOffset: null
         };
       });
@@ -1208,84 +1234,29 @@ export default function Approvals() {
   // Handle page change for a specific status table
   const handleStatusPageChange = async (status: string, newPage: number) => {
     try {
+      // Update pagination state immediately to show the new page
+      setStatusPagination(prev => ({
+        ...prev,
+        [status]: {
+          ...prev[status],
+          currentPage: newPage,
+          hasPrevPage: newPage > 1,
+        }
+      }));
+      
       setLoadingStatus(`Loading page ${newPage} for ${status} items...`);
       
       // Use the same client handling as in fetchData
       const client = clientId === null || clientId === 'all' ? 'all' : clientId;
       
-      // Use the wrapper function
-      const result = await directFetchApprovalItems(
-        activeTab,
-        newPage,
-        100,
-        client,
-        status
-      );
+      // No need to fetch from API for pagination - we already have all the data
+      // Just update the pagination state
       
-      console.log(`Result from fetchApprovalItems for ${activeTab} status ${status}:`, result);
+      console.log(`Changing to page ${newPage} for ${status} items`);
       
-      // Process the data into grouped items by status
-      const groupedByStatus: GroupedItems = {
-        not_started: [],
-        in_progress: [],
-        ready_for_review: [],
-        awaiting_approval: [],
-        revisions_needed: [],
-        approved: [],
-        published: [],
-        // Legacy statuses
-        resubmitted: [],
-        needs_revision: [],
-        rejected: []
-      };
-
-      // If result.items is an array, process it
-      result.items.forEach((item: ApprovalItem) => {
-        const itemStatus = item.status || 'not_started';
-        if (groupedByStatus[itemStatus as keyof GroupedItems]) {
-          groupedByStatus[itemStatus as keyof GroupedItems].push(item);
-        } else {
-          groupedByStatus.not_started.push(item);
-        }
-      });
-
-      setItems(prev => ({
-        ...prev,
-        [activeTab]: result.items
-      }));
+      // The rest of the function can remain the same if needed for future API pagination
+      // But for now, we're just updating the local state
       
-      // Set pagination for each status
-      const paginationState: Record<string, PaginationState> = {};
-      Object.keys(groupedByStatus).forEach(status => {
-        paginationState[status] = {
-          currentPage: 1,
-          totalPages: Math.ceil(groupedByStatus[status as keyof GroupedItems].length / 100),
-          totalItems: groupedByStatus[status as keyof GroupedItems].length,
-          hasNextPage: groupedByStatus[status as keyof GroupedItems].length > 100,
-          hasPrevPage: false,
-          nextOffset: groupedByStatus[status as keyof GroupedItems].length > 100 ? '2' : null,
-          prevOffset: null
-        };
-      });
-      setStatusPagination(paginationState);
-
-      // Calculate counts
-      const counts: Record<string, number> = {};
-      Object.keys(groupedByStatus).forEach(status => {
-        counts[status] = groupedByStatus[status as keyof GroupedItems].length;
-      });
-
-      // Calculate totals
-      const totalPending = (
-        groupedByStatus.awaiting_approval.length +
-        groupedByStatus.ready_for_review.length
-      );
-
-      const totalApproved = (
-        groupedByStatus.approved.length +
-        groupedByStatus.published.length
-      );
-
       setLoadingStatus(null);
     } catch (error) {
       console.error(`Error changing page for ${status}:`, error);
