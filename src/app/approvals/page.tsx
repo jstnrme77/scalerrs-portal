@@ -45,28 +45,66 @@ async function directFetchApprovalItems(
   
   console.log(`Fetching approvals with params: ${params.toString()}`);
   
-  // Clear the cache by adding a timestamp to the URL
-  if (addTimestamp) {
-    const timestamp = Date.now();
-    params.append('_', timestamp.toString());
-  }
+  // Always add a timestamp to avoid browser caching issues
+  const timestampValue = timestamp || Date.now().toString();
+  params.append('_', timestampValue);
   
-  // Call the API endpoint directly with no-cache headers
-  const response = await fetch(`/api/approvals?${params.toString()}`, {
-    headers: {
-      'Cache-Control': useCache ? 'no-cache, no-store, must-revalidate' : 'no-cache',
-      'Pragma': useCache ? 'no-cache' : 'no-cache',
-      'Expires': useCache ? '0' : '0'
+  try {
+    // Call the API endpoint directly with no-cache headers
+    const response = await fetch(`/api/approvals?${params.toString()}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      // Use no-store to prevent the browser from using cached responses
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch approval items: ${response.status}`);
     }
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch approval items: ${response.status}`);
+    
+    const data = await response.json();
+    
+    // Validate that the response contains the expected data structure
+    if (!data || !Array.isArray(data.items)) {
+      console.error('Invalid response format from API', data);
+      throw new Error('Invalid response format from API');
+    }
+    
+    // Log the client ID filter for debugging
+    if (clientId && clientId !== 'all') {
+      console.log(`Received ${data.items.length} items from API for client ${clientId}`);
+      
+      // Add an additional validation to ensure client filtering was applied
+      if (data.items.length > 0) {
+        const firstItem = data.items[0];
+        if (firstItem.Clients) {
+          console.log(`First item client check: ${JSON.stringify(firstItem.Clients)}`);
+        }
+      }
+    } else {
+      console.log(`Received ${data.items.length} items from API (all clients)`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error(`Error fetching ${type} data:`, error);
+    // Return empty data structure instead of throwing to prevent UI breaks
+    return {
+      items: [],
+      pagination: {
+        currentPage: page,
+        totalPages: 0,
+        totalItems: 0,
+        hasNextPage: false,
+        hasPrevPage: false,
+        nextOffset: null,
+        prevOffset: null
+      }
+    };
   }
-  
-  const data = await response.json();
-  console.log(`Received ${data.items?.length || 0} items from API`);
-  return data;
 }
 
 // Comment Item Component
@@ -1130,15 +1168,8 @@ export default function Approvals() {
       
       console.log(`Fetching approvals for client: ${client}`);
       
-      // Clear cache every time to ensure fresh data
-      // Clear ALL approvals cache when changing clients to avoid stale data
-      if (client !== 'all') {
-        console.log('Clearing all approvals cache for fresh client data');
-        clearApprovalsCache(); // Clear all approvals cache
-      } else {
-        console.log('Clearing cache for current tab type:', activeTab);
-        clearApprovalsCache(activeTab); // Clear only the current tab's cache
-      }
+      // IMPORTANT: Always clear cache before fetching to ensure fresh data
+      clearApprovalsCache(); // Clear all approvals cache for consistency
       
       // Add a timestamp to avoid browser caching
       const timestamp = Date.now();
@@ -1150,22 +1181,19 @@ export default function Approvals() {
         100,
         client,
         status,
-        undefined,
         false, // Don't use cache to ensure fresh data
+        true,  // Always add timestamp
         timestamp.toString() // Add timestamp to avoid browser caching
       );
       
-      console.log(`Fetched ${activeTab} data with ${data.items?.length || 0} items`);
-
+      // Validate the data - if we get an empty response or error, don't update state
       if (!data || !Array.isArray(data.items)) {
-        console.error('No items found in the response');
-        setLoadingStatus('No items found. Please try again later.');
-        setItems(prev => ({
-          ...prev,
-          [activeTab]: []
-        }));
+        console.error('Invalid or empty data received from API:', data);
+        setLoadingStatus('Error loading data. Please try again.');
         return;
       }
+      
+      console.log(`Fetched ${activeTab} data with ${data.items?.length || 0} items`);
 
       // Process the data into grouped items by status
       const groupedByStatus: GroupedItems = {
@@ -1199,10 +1227,10 @@ export default function Approvals() {
         }
       });
 
-      // Update the items state with the new data
+      // Update the items state with the new data - completely replace the old data
       setItems(prev => ({
         ...prev,
-        [activeTab]: data.items
+        [activeTab]: [...data.items] // Use spread to create a new array reference
       }));
       
       // Set pagination for each status
@@ -1282,8 +1310,8 @@ export default function Approvals() {
     // Set loading state
     setIsLoading(true);
     
-    // Clear the cache for the current tab type to ensure fresh data
-    clearApprovalsCache(activeTab);
+    // Clear the cache for ALL types to ensure fresh data
+    clearApprovalsCache();
 
     // Use a ref to track the current request to avoid race conditions
     const requestId = Date.now();
@@ -1319,8 +1347,8 @@ export default function Approvals() {
   const handleTabChange = (tab: string) => {
     console.log(`Changing tab from ${activeTab} to ${tab}`);
     
-    // Clear cache when changing tabs
-    clearApprovalsCache(tab);
+    // Always clear all cache when changing tabs to ensure fresh data
+    clearApprovalsCache();
     
     // Update the active tab
     setActiveTab(tab);
