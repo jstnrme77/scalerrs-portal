@@ -119,34 +119,46 @@ export default function Home() {
         return;
       }
       
-      const actionItemsConfig = [
-        { category: 'Keywords', type: 'keywords', status: 'Brief Creation Needed' },
-        { category: 'Keywords', type: 'keywords', status: 'Brief Awaiting Client Review' },
-        { category: 'Keywords', type: 'keywords', status: 'Brief Awaiting Client Depth' },
-        { category: 'Briefs', type: 'briefs', status: 'Brief Awaiting Client Review' },
-        { category: 'Briefs', type: 'briefs', status: 'Brief Awaiting Client Depth' },
-        { category: 'Articles', type: 'articles', status: 'Article Awaiting Client Review' },
-        { category: 'Articles', type: 'articles', status: 'Revisions Needed' },
-        { category: 'Backlinks', type: 'backlinks', status: 'Awaiting Approval' },
-      ];
-
       try {
-        const promises = actionItemsConfig.map(async (config) => {
+        // Define the approval item types to fetch
+        const approvalTypes = ['keywords', 'briefs', 'articles', 'backlinks'];
+        
+        // Fetch all items for each category regardless of status to match approvals page counts
+        const promises = approvalTypes.map(async (type) => {
           try {
+            // Fetch all items for this type with a large pageSize to get everything
             const result = await fetchApprovalItems(
-              config.type,
+              type,
               1, 
-              1, 
+              100, // Large enough to get all items
               undefined, 
               undefined, 
               true, 
-              clientIdToUse, 
-              config.status
+              clientIdToUse,
+              undefined // Don't filter by status here, we'll do it client-side
             );
-            return { ...config, count: result?.pagination?.totalItems || 0 };
+            
+            // Filter items client-side to match the exact same criteria used in approvals page
+            const pendingStatuses = ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'];
+            
+            // Only count items with pending statuses
+            const pendingItems = result?.items?.filter(item => 
+              pendingStatuses.includes(item.status)
+            ) || [];
+            
+            return { 
+              type, 
+              count: pendingItems.length,
+              // Convert type to proper category name (capitalize first letter)
+              category: type.charAt(0).toUpperCase() + type.slice(1)
+            };
           } catch (error) {
-            console.error(`Error fetching action items for ${config.category} (${config.type} - ${config.status}):`, error);
-            return { ...config, count: 0 }; 
+            console.error(`Error fetching approval items for ${type}:`, error);
+            return { 
+              type, 
+              count: 0,
+              category: type.charAt(0).toUpperCase() + type.slice(1)
+            }; 
           }
         });
 
@@ -154,14 +166,14 @@ export default function Home() {
         
         const countsByCategory: ClientActionsByCategory = {};
         let totalPending = 0;
-        results.forEach(item => {
-          countsByCategory[item.category] = (countsByCategory[item.category] || 0) + item.count;
-          totalPending += item.count;
+        
+        results.forEach(result => {
+          countsByCategory[result.category] = result.count;
+          totalPending += result.count;
         });
 
         setClientActionsByCategory(countsByCategory);
         setTotalClientActionItemCount(totalPending);
-
       } catch (error) {
         console.error('Error fetching client action items in Promise.all:', error);
         setClientActionsByCategory({});
@@ -242,13 +254,19 @@ export default function Home() {
               <p className="text-base text-[#4F515E] mb-6 ml-13">Review items that require your attention.</p>
               <div className="text-center my-auto py-4 flex-grow flex flex-col justify-center items-center">
                 {isLoadingClientActions || isLoadingClientContext ? (
-                  <p className="text-base text-[#4F515E]">Loading actions...</p>
+                  <div className="flex flex-col items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#9EA8FB] mb-4"></div>
+                    <p className="text-base text-[#4F515E]">Loading actions...</p>
+                  </div>
                 ) : totalClientActionItemCount > 0 ? (
                   <div className="space-y-2 w-full px-4">
-                    <AlertTriangle size={48} className="text-yellow-500 mx-auto" />
-                    <p className="text-lg font-semibold text-[#12131C]">
-                      {totalClientActionItemCount} item{totalClientActionItemCount > 1 ? 's' : ''} require attention
-                    </p>
+                    <div className="flex flex-col items-center mb-4">
+                      <AlertTriangle size={36} className="text-yellow-500 mb-2" />
+                      <p className="text-lg font-semibold text-[#12131C]">
+                        {totalClientActionItemCount} item{totalClientActionItemCount > 1 ? 's' : ''} require attention
+                      </p>
+                    </div>
+                    
                     {Object.keys(clientActionsByCategory).length > 0 && (
                       <ul className="text-sm text-gray-700 list-none p-0 max-h-40 overflow-y-auto text-left divide-y divide-gray-200">
                         {Object.entries(clientActionsByCategory).map(([category, count]) => (

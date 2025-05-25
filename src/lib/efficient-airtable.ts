@@ -368,46 +368,46 @@ export async function getApprovalItems(
         console.log(`Using Briefs table for briefs`);
         break;
       case 'backlinks':
-        tableName = TABLES.BACKLINKS;
-        console.log(`Using Backlinks table for backlinks`);
+      tableName = TABLES.BACKLINKS;
+      console.log(`Using Backlinks table for backlinks`);
         break;
       default:
-        tableName = TABLES.KEYWORDS;
+      tableName = TABLES.KEYWORDS;
         console.log(`No specific table for ${type}, using Keywords table`);
     }
-    
+
     // Log the selected table for debugging
     console.log(`Selected table for ${type}: ${tableName}`);
-    
+
     // Initialize filter formula based on type
-    let filterFormula = '';
+      let filterFormula = '';
     
     // Define the needed client filtering
     const needsClientFiltering = clientId && clientId !== 'all';
-    
-    try {
-      if (type === 'briefs') {
-        // Only show records with a value in the "Brief Approvals" field
-        filterFormula = `NOT({Brief Approvals} = '')`;
-        console.log('Filtering briefs by Brief Approvals field');
-      } else if (type === 'articles') {
-        // Only show records with a value in the "Article Approvals" field
-        filterFormula = `NOT({Article Approvals} = '')`;
-        console.log('Filtering articles by Article Approvals field');
-      } else if (type === 'keywords') {
-        // Only show records with a value in the "Keyword Approvals" field
-        filterFormula = `NOT({Keyword Approvals} = '')`;
-        console.log('Filtering keywords by Keyword Approvals field');
-      } else if (type === 'backlinks') {
-        // Only show records with a value in the "Backlink Approvals" field
-        filterFormula = `NOT({Backlink Approvals} = '')`;
-        console.log('Filtering backlinks by Backlink Approvals field');
-      }
       
+      try {
+        if (type === 'briefs') {
+          // Only show records with a value in the "Brief Approvals" field
+          filterFormula = `NOT({Brief Approvals} = '')`;
+          console.log('Filtering briefs by Brief Approvals field');
+        } else if (type === 'articles') {
+          // Only show records with a value in the "Article Approvals" field
+          filterFormula = `NOT({Article Approvals} = '')`;
+          console.log('Filtering articles by Article Approvals field');
+        } else if (type === 'keywords') {
+          // Only show records with a value in the "Keyword Approvals" field
+          filterFormula = `NOT({Keyword Approvals} = '')`;
+          console.log('Filtering keywords by Keyword Approvals field');
+        } else if (type === 'backlinks') {
+          // Only show records with a value in the "Backlink Approvals" field
+          filterFormula = `NOT({Backlink Approvals} = '')`;
+          console.log('Filtering backlinks by Backlink Approvals field');
+        }
+        
       // Apply client filtering if a specific client is selected (not 'all')
       if (needsClientFiltering) {
-        console.log(`Adding client filter for client ID: ${clientId}`);
-        
+          console.log(`Adding client filter for client ID: ${clientId}`);
+          
         // Use OR with multiple ways to match the client ID for better compatibility
         const clientFilter = `OR(
           SEARCH("${clientId}", ARRAYJOIN({Clients}, ",")) > 0,
@@ -416,9 +416,9 @@ export async function getApprovalItems(
         )`;
         
         // Combine with existing filter formula
-        if (filterFormula) {
+          if (filterFormula) {
           filterFormula = `AND(${filterFormula}, ${clientFilter})`;
-        } else {
+          } else {
           filterFormula = clientFilter;
         }
       }
@@ -529,8 +529,8 @@ export async function getApprovalItems(
                 totalItems: 0
               }
             };
-          }
-        } else {
+      }
+    } else {
           // For other errors, return empty data
           console.error(`Unknown error fetching data:`, error);
           return {
@@ -677,8 +677,8 @@ export async function getApprovalItems(
             return true;
           }
           
-          return false;
-        });
+                return false;
+              });
         console.log(`After client-side filtering: ${filteredItems.length} items remaining out of ${items.length}`);
         
         // Verify a few items to ensure client filtering worked correctly
@@ -697,17 +697,17 @@ export async function getApprovalItems(
       const startIndex = (page - 1) * pageSize;
       const endIndex = Math.min(startIndex + pageSize, totalItems);
       const paginatedItems = filteredItems.slice(startIndex, endIndex);
-      
-      console.log(`Total items: ${totalItems}, Total pages: ${totalPages}, Current page: ${page}, Page size: ${pageSize}`);
+
+    console.log(`Total items: ${totalItems}, Total pages: ${totalPages}, Current page: ${page}, Page size: ${pageSize}`);
       console.log(`Paginating items: page ${page}, showing items ${startIndex+1}-${endIndex} of ${totalItems}`);
       
       // Prepare the response object
       const result = {
-        items: paginatedItems,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems,
+      items: paginatedItems,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
           nextOffset: page < totalPages ? (page + 1).toString() : null,
