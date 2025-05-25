@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 // import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
@@ -562,6 +562,9 @@ function ApprovalTable({
     itemTitle: ''
   });
 
+  // Use ref to track which statuses have been updated to prevent infinite loops
+  const updatedStatuses = useRef<Set<string>>(new Set());
+
   // Function to open conversation modal - with safety check for allowed content types
   const openConversationModal = (itemId: string, itemTitle: string) => {
     // Only allow opening the modal for Keywords and Briefs tabs
@@ -576,6 +579,11 @@ function ApprovalTable({
     }
   };
   
+  // Reset updated statuses when groupedItems changes (e.g., when tab changes)
+  useEffect(() => {
+    updatedStatuses.current = new Set();
+  }, [activeTab]);
+  
   // Use effect to handle pagination updates for each status
   // This prevents setState during render errors
   useEffect(() => {
@@ -585,9 +593,18 @@ function ApprovalTable({
         const pageSize = 5; // 5 items per page for each status table
         const totalPages = Math.ceil(allItems.length / pageSize);
         
-        // Only update if the pagination state is different
-        if (statusPagination[status] && statusPagination[status].totalPages !== totalPages) {
+        // Only update if the pagination state is different AND we haven't updated this status yet
+        if (
+          statusPagination[status] && 
+          statusPagination[status].totalPages !== totalPages && 
+          !updatedStatuses.current.has(status)
+        ) {
           console.log(`Updating pagination for ${status}: totalPages from ${statusPagination[status].totalPages} to ${totalPages}`);
+          
+          // Mark this status as updated to prevent infinite loops
+          updatedStatuses.current.add(status);
+          
+          // Update pagination for this status
           onStatusPageChange(status, 1); // Reset to page 1 with correct pagination
         }
       }
