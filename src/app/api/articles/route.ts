@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
             // Check if article has Clients or Client field that matches any of the user's clients
             if (article.Clients) {
               if (Array.isArray(article.Clients)) {
-                return article.Clients.some(client => clientIds.includes(client));
+                return article.Clients.some((client: string) => clientIds.includes(client));
               } else {
                 return clientIds.includes(article.Clients);
               }
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             // Fallback to Client field for backward compatibility
             else if (article.Client) {
               if (Array.isArray(article.Client)) {
-                return article.Client.some(client => clientIds.includes(client));
+                return article.Client.some((client: string) => clientIds.includes(client));
               } else {
                 return clientIds.includes(article.Client);
               }
