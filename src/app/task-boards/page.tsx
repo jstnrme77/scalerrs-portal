@@ -239,7 +239,7 @@ const taskBoards: Record<string, Task[]> = {
 // Priority Badge Component
 function PriorityBadge({ priority, originalPriority }: { priority?: TaskPriority, originalPriority?: string }) {
   if (!priority && !originalPriority) {
-    return <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+    return <span className="px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full bg-lightGray text-mediumGray">-</span>;
   }
   
   let bgColor = '';
@@ -250,21 +250,33 @@ function PriorityBadge({ priority, originalPriority }: { priority?: TaskPriority
   if (priority?.includes('High') || originalPriority?.includes('High') || priority === 'High') {
     bgColor = 'bg-red-100';
     textColor = 'text-red-800';
+    // Remove emojis if present
+    if (originalPriority && originalPriority.includes('🔥')) {
+      displayText = 'High Priority';
+    }
   } else if (priority?.includes('Low') || originalPriority?.includes('Low') || priority === 'Low') {
     bgColor = 'bg-green-100';
     textColor = 'text-green-800';
+    // Remove emojis if present
+    if (originalPriority && originalPriority.includes('🔥')) {
+      displayText = 'Low Priority';
+    }
   } else if (priority?.includes('Medium') || priority?.includes('Mid') || 
              originalPriority?.includes('Medium') || originalPriority?.includes('Mid') || 
              priority === 'Medium') {
     bgColor = 'bg-gold/10';
     textColor = 'text-gold';
+    // Remove emojis if present
+    if (originalPriority && originalPriority.includes('🔥')) {
+      displayText = 'Mid Priority';
+    }
   } else {
     bgColor = 'bg-lightGray';
     textColor = 'text-mediumGray';
   }
 
   return (
-    <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
+    <span className={`px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full ${bgColor} ${textColor}`}>
       {displayText}
     </span>
   );
@@ -273,7 +285,7 @@ function PriorityBadge({ priority, originalPriority }: { priority?: TaskPriority
 // Impact Badge Component
 function ImpactBadge({ impact, originalImpact }: { impact?: number, originalImpact?: string }) {
   if (impact === undefined && !originalImpact) {
-    return <span className="min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+    return <span className="px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full bg-lightGray text-mediumGray">-</span>;
   }
   
   let bgColor = '';
@@ -281,28 +293,40 @@ function ImpactBadge({ impact, originalImpact }: { impact?: number, originalImpa
   let displayText = originalImpact || (impact !== undefined ? impact.toString() : '-');
 
   // Determine colors based on impact level
-  if (impact === 5 || (originalImpact && (originalImpact.includes('High') || originalImpact.includes('📈📈📈')))) {
+  if (impact === 5 || (originalImpact && originalImpact.includes('High'))) {
     bgColor = 'bg-gray-200';
     textColor = 'text-gray-800';
+    // Remove emojis if present
+    if (originalImpact && originalImpact.includes('📈')) {
+      displayText = 'High Impact';
+    }
   } else if (impact === 4) {
     bgColor = 'bg-blue-100';
     textColor = 'text-blue-800';
-  } else if (impact === 3 || (originalImpact && (originalImpact.includes('Medium') || originalImpact.includes('Mid') || originalImpact.includes('📈📈')))) {
+  } else if (impact === 3 || (originalImpact && (originalImpact.includes('Medium') || originalImpact.includes('Mid')))) {
     bgColor = 'bg-indigo-100';
     textColor = 'text-indigo-800';
+    // Remove emojis if present
+    if (originalImpact && originalImpact.includes('📈')) {
+      displayText = 'Mid Impact';
+    }
   } else if (impact === 2) {
     bgColor = 'bg-teal-100';
     textColor = 'text-teal-800';
-  } else if (impact === 1 || (originalImpact && (originalImpact.includes('Low') || originalImpact.includes('📈')))) {
+  } else if (impact === 1 || (originalImpact && originalImpact.includes('Low'))) {
     bgColor = 'bg-gray-100';
     textColor = 'text-gray-800';
+    // Remove emojis if present
+    if (originalImpact && originalImpact.includes('📈')) {
+      displayText = 'Low Impact';
+    }
   } else {
     bgColor = 'bg-lightGray';
     textColor = 'text-mediumGray';
   }
 
   return (
-    <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
+    <span className={`px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full ${bgColor} ${textColor}`}>
       {displayText}
     </span>
   );
@@ -311,7 +335,7 @@ function ImpactBadge({ impact, originalImpact }: { impact?: number, originalImpa
 // Effort Badge Component
 function EffortBadge({ effort, originalEffort }: { effort?: TaskEffort, originalEffort?: string }) {
   if (!effort && !originalEffort) {
-    return <span className="min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+    return <span className="px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full bg-lightGray text-mediumGray">-</span>;
   }
   
   let bgColor = '';
@@ -320,28 +344,36 @@ function EffortBadge({ effort, originalEffort }: { effort?: TaskEffort, original
 
   // Determine colors based on effort level
   if (effort === 'S' || effort === 'Low Effort' || 
-      (originalEffort && originalEffort.includes('Low')) || 
-      (originalEffort && originalEffort.includes('❗') && !originalEffort.includes('❗❗'))) {
+      (originalEffort && originalEffort.includes('Low'))) {
     bgColor = 'bg-green-100';
     textColor = 'text-green-800';
+    // Remove emojis if present
+    if (originalEffort && originalEffort.includes('❗')) {
+      displayText = 'Low Effort';
+    }
   } else if (effort === 'L' || effort === 'High Effort' || 
-            (originalEffort && originalEffort.includes('High')) || 
-            (originalEffort && originalEffort.includes('❗❗❗'))) {
+            (originalEffort && originalEffort.includes('High'))) {
     bgColor = 'bg-orange-100';
     textColor = 'text-orange-800';
+    // Remove emojis if present
+    if (originalEffort && originalEffort.includes('❗')) {
+      displayText = 'High Effort';
+    }
   } else if (effort === 'M' || effort === 'Mid Effort' || 
-            (originalEffort && originalEffort.includes('Medium')) || 
-            (originalEffort && originalEffort.includes('Mid')) || 
-            (originalEffort && originalEffort.includes('❗❗'))) {
+            (originalEffort && (originalEffort.includes('Medium') || originalEffort.includes('Mid')))) {
     bgColor = 'bg-yellow-100';
     textColor = 'text-yellow-800';
+    // Remove emojis if present
+    if (originalEffort && originalEffort.includes('❗')) {
+      displayText = 'Mid Effort';
+    }
   } else {
     bgColor = 'bg-lightGray';
     textColor = 'text-mediumGray';
   }
 
   return (
-    <span className={`min-w-8 h-8 px-2 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
+    <span className={`px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full ${bgColor} ${textColor}`}>
       {displayText}
     </span>
   );
@@ -609,7 +641,7 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   }
 
   return (
-    <span className={`px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center ${bgColor} ${textColor}`}>
+    <span className={`px-3 py-1.5 text-sm font-medium rounded-lg inline-flex items-center justify-center w-full ${bgColor} ${textColor}`}>
       {status}
     </span>
   );
@@ -627,9 +659,13 @@ function TaskCard({
     <div className="card bg-white p-6 rounded-lg border-2 border-gray-200" style={{ color: '#353233' }}>
       <div className="flex justify-between items-start mb-5">
         <h3 className="text-base font-medium text-text-light dark:text-text-dark mt-2">{task.task}</h3>
-        <div className="flex space-x-2">
-          <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
-          <StatusBadge status={task.status} />
+        <div className="flex gap-2 min-w-[200px]">
+          <div className="flex-1">
+            <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
+          </div>
+          <div className="flex-1">
+            <StatusBadge status={task.status} />
+          </div>
         </div>
       </div>
 
@@ -649,12 +685,12 @@ function TaskCard({
         )}
       </div>
 
-      <div className="flex items-center space-x-5 mb-5">
-        <div>
+      <div className="flex items-center gap-5 mb-5">
+        <div className="flex-1 max-w-[120px]">
           <span className="text-base text-mediumGray dark:text-gray-300 block mb-2">Impact</span>
           <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
         </div>
-        <div>
+        <div className="flex-1 max-w-[120px]">
           <span className="text-base text-mediumGray dark:text-gray-300 block mb-2">Effort</span>
           <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
         </div>
@@ -750,16 +786,13 @@ function TaskTable({
     if (statusComparison !== 0) return statusComparison;
 
     // Then sort by priority
-    const priorityOrder = {
+    const priorityOrder: Record<string, number> = {
       'High': 1,
       'High Priority': 1,
-      'High Priority 🔥🔥🔥': 1,
       'Medium': 2,
-      'Mid Priority': 2,
-      'Mid Priority 🔥🔥': 2,
+      'Mid Priority': 2, 
       'Low': 3,
-      'Low Priority': 3,
-      'Low Priority 🔥': 3
+      'Low Priority': 3
     };
 
     // Handle undefined priority values
@@ -774,7 +807,18 @@ function TaskTable({
       return -1;
     } else {
       // Both have priorities, compare them
-      const priorityComparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+      // Normalize priority values by removing emojis and getting their base priority level
+      const getNormalizedPriority = (priority: string): number => {
+        if (priority.includes('High')) return 1;
+        if (priority.includes('Mid') || priority.includes('Medium')) return 2;
+        if (priority.includes('Low')) return 3;
+        return 4; // Default for unknown priorities
+      };
+      
+      const aPriority = getNormalizedPriority(a.priority);
+      const bPriority = getNormalizedPriority(b.priority);
+      
+      const priorityComparison = aPriority - bPriority;
       if (priorityComparison !== 0) return priorityComparison;
     }
 
@@ -875,12 +919,12 @@ function TaskTable({
           <thead>
             <tr className="bg-gray-100 border-b border-gray-200">
               <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">Task</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Status</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[12%]">Status</th>
               <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Assigned to</th>
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">Date Logged</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Impact</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%]">Effort</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">Date Logged</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[12%]">Priority</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[12%]">Impact</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[9%]">Effort</th>
               <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%] rounded-br-[12px]">Comments</th>
             </tr>
           </thead>
@@ -896,19 +940,27 @@ function TaskTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-center w-[10%]">
-                    <StatusBadge status={task.status} />
+                  <td className="px-4 py-4 text-center w-[12%]">
+                    <div className="max-w-full mx-auto">
+                      <StatusBadge status={task.status} />
+                    </div>
                   </td>
                   <td className="px-4 py-4 text-base text-dark w-[15%]">{task.assignedTo}</td>
-                  <td className="px-4 py-4 text-base text-mediumGray w-[12%] whitespace-nowrap">{task.dateLogged}</td>
-                  <td className="px-4 py-4 text-center w-[10%]">
-                    <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
+                  <td className="px-4 py-4 text-base text-mediumGray w-[10%] whitespace-nowrap">{task.dateLogged}</td>
+                  <td className="px-4 py-4 text-center w-[12%]">
+                    <div className="max-w-full mx-auto">
+                      <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
+                    </div>
                   </td>
-                  <td className="px-4 py-4 text-center w-[8%]">
-                    <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
+                  <td className="px-4 py-4 text-center w-[12%]">
+                    <div className="max-w-full mx-auto">
+                      <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
+                    </div>
                   </td>
-                  <td className="px-4 py-4 text-center w-[5%]">
-                    <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
+                  <td className="px-4 py-4 text-center w-[9%]">
+                    <div className="max-w-full mx-auto">
+                      <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
+                    </div>
                   </td>
                   <td className="px-4 py-4 text-center w-[5%]">
                     <div className="flex justify-center">
@@ -1078,10 +1130,10 @@ function AddTaskModal({
       // Reset form
       setTaskData({
         task: '',
-        priority: 'Mid Priority 🔥🔥' as TaskPriority,
+        priority: 'Mid Priority' as TaskPriority,
         assignedTo: '',
-        impact: 'Mid Impact 📈📈',
-        effort: 'Mid Effort ❗❗' as TaskEffort,
+        impact: 'Mid Impact',
+        effort: 'Mid Effort' as TaskEffort,
         notes: '',
         referenceLinks: ''
       });
@@ -1135,9 +1187,9 @@ function AddTaskModal({
                 value={taskData.priority}
                 onChange={(e) => setTaskData({ ...taskData, priority: e.target.value as TaskPriority })}
               >
-                <option value="High Priority 🔥🔥🔥">High Priority</option>
-                <option value="Mid Priority 🔥🔥">Mid Priority</option>
-                <option value="Low Priority 🔥">Low Priority</option>
+                <option value="High Priority">High Priority</option>
+                <option value="Mid Priority">Mid Priority</option>
+                <option value="Low Priority">Low Priority</option>
               </select>
             </div>
 
@@ -1148,9 +1200,9 @@ function AddTaskModal({
                 value={taskData.impact}
                 onChange={(e) => setTaskData({ ...taskData, impact: e.target.value })}
               >
-                <option value="High Impact 📈📈📈">High Impact</option>
-                <option value="Mid Impact 📈📈">Mid Impact</option>
-                <option value="Low Impact 📈">Low Impact</option>
+                <option value="High Impact">High Impact</option>
+                <option value="Mid Impact">Mid Impact</option>
+                <option value="Low Impact">Low Impact</option>
               </select>
             </div>
 
@@ -1161,9 +1213,9 @@ function AddTaskModal({
                 value={taskData.effort}
                 onChange={(e) => setTaskData({ ...taskData, effort: e.target.value as TaskEffort })}
               >
-                <option value="High Effort ❗❗❗">High Effort</option>
-                <option value="Mid Effort ❗❗">Mid Effort</option>
-                <option value="Low Effort ❗">Low Effort</option>
+                <option value="High Effort">High Effort</option>
+                <option value="Mid Effort">Mid Effort</option>
+                <option value="Low Effort">Low Effort</option>
               </select>
             </div>
 
@@ -1208,6 +1260,7 @@ function AddTaskModal({
     </div>
   );
 }
+
 export default function TaskBoards() {
   const [activeBoard, setActiveBoard] = useState('technicalSEO');
   const [boards, setBoards] = useState<Record<string, Task[]>>(taskBoards);
@@ -1221,6 +1274,114 @@ export default function TaskBoards() {
   // Track raw data before filtering
   const [rawBoards, setRawBoards] = useState<Record<string, Task[]>>(taskBoards);
 
+  // Direct API fetch function with client filtering parameter
+  const directFetchTasks = async (
+    boardType: string,
+    skipCache: boolean = true
+  ) => {
+    try {
+      // Add timestamp to prevent browser caching
+      const timestamp = Date.now().toString();
+      
+      // Create the URL with parameters
+      let url = boardType === 'cro' 
+        ? `cro-tasks?t=${timestamp}` 
+        : `wqa-tasks?type=${encodeURIComponent(boardType)}&t=${timestamp}`;
+      
+      // Add clientId parameter if provided and not 'all'
+      if (clientId && clientId !== 'all') {
+        url += `&clientId=${encodeURIComponent(clientId)}`;
+      }
+      
+      // Create a cache key based on the board type and client ID
+      const cacheKey = `tasks_${boardType}_${clientId || 'all'}`;
+      
+      // Check cache first if not skipping
+      if (!skipCache && typeof window !== 'undefined') {
+        const cachedData = sessionStorage.getItem(cacheKey);
+        if (cachedData) {
+          try {
+            const parsedData = JSON.parse(cachedData);
+            const cacheTime = parsedData.timestamp || 0;
+            const now = Date.now();
+            
+            // Use cache if it's less than 1 minute old
+            if (now - cacheTime < 60000) {
+              console.log(`Using cached data for ${cacheKey} (${Math.round((now - cacheTime) / 1000)}s old)`);
+              return parsedData.data;
+            } else {
+              console.log(`Cache expired for ${cacheKey} (${Math.round((now - cacheTime) / 1000)}s old)`);
+            }
+          } catch (e) {
+            console.error('Error parsing cached data:', e);
+          }
+        }
+      }
+      
+      // Call the API endpoint directly with cache prevention headers
+      const response = await fetch(`/api/${url}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        cache: 'no-store'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch tasks: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Validate that the response contains expected data structure
+      if (!data || !data.tasks) {
+        console.error('Invalid response format from API', data);
+        throw new Error('Invalid response format from API');
+      }
+      
+      // Store in sessionStorage cache
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            data,
+            timestamp: Date.now()
+          }));
+          console.log(`Cached data for ${cacheKey}`);
+        } catch (e) {
+          console.error('Error caching data:', e);
+        }
+      }
+      
+      // Log client ID filter for debugging
+      if (clientId && clientId !== 'all') {
+        console.log(`Received ${data.tasks.length} tasks from API for client ${clientId}`);
+        
+        // Verify a sample of items to ensure client filtering worked
+        if (data.tasks.length > 0) {
+          const sampleSize = Math.min(3, data.tasks.length);
+          console.log(`Sample verification of ${sampleSize} tasks for client ${clientId}:`);
+          for (let i = 0; i < sampleSize; i++) {
+            const task = data.tasks[i];
+            const clientField = task.Clients || task.Client;
+            console.log(`- Task ${i+1} (${task.id}) client field:`, clientField);
+          }
+        }
+      } else {
+        console.log(`Received ${data.tasks.length} tasks from API (all clients)`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error(`Error fetching ${boardType} tasks:`, error);
+      // Return empty data structure instead of throwing
+      return {
+        tasks: [],
+        error: (error as Error).message
+      };
+    }
+  };
+
   // Fetch tasks from API
   useEffect(() => {
     const fetchTasksForBoard = async () => {
@@ -1228,54 +1389,15 @@ export default function TaskBoards() {
       setError('');
       
       try {
-        // Fetch tasks based on the active board type
-        let response;
-        if (activeBoard === 'cro') {
-          // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
-          response = await getCROTasks(false, clientId);
-          console.log('Raw CRO response:', response);
-          
-          // Log the first task's fields if available
-          if (response && Array.isArray(response) && response.length > 0) {
-            console.log('CRO Sample Task Fields:', Object.keys(response[0]));
-            console.log('CRO Sample Task Priority:', response[0].Priority);
-            console.log('CRO Sample Task Impact:', response[0]['Portal Impact'] || response[0].Impact);
-            console.log('CRO Sample Task Effort:', response[0].Effort);
-          } else if (response && typeof response === 'object' && 'tasks' in response && 
-                    Array.isArray(response.tasks) && response.tasks.length > 0) {
-            console.log('CRO Sample Task Fields:', Object.keys(response.tasks[0]));
-            console.log('CRO Sample Task Priority:', response.tasks[0].Priority);
-            console.log('CRO Sample Task Impact:', response.tasks[0].Impact);
-            console.log('CRO Sample Task Effort:', response.tasks[0].Effort);
-          }
-        } else {
-          // Use WQA API for other boards
-          // Pass clientId for filtering on the server side and set useCache to false to get fresh data
-          response = await fetchWQATasks(activeBoard, undefined, false, clientId);
-          console.log('Raw WQA response:', response);
-        }
-        
+        // Use direct fetch with client filtering built in
+        const response = await directFetchTasks(activeBoard, true);
         console.log(`${activeBoard} Tasks Response:`, response);
         
-        // Extract tasks from the response - handle different possible response formats
-        let tasks: any[] = [];
-        if (response) {
-          if (Array.isArray(response)) {
-            // Response is already an array of tasks
-            tasks = response;
-          } else if (typeof response === 'object' && response !== null) {
-            // Check if response has a tasks property that is an array
-            if ('tasks' in response && Array.isArray((response as any).tasks)) {
-              tasks = (response as any).tasks;
-            } else {
-              // Treat the entire response as a single task if it's not in expected format
-              tasks = [response];
-            }
-          }
-        }
+        // Extract tasks from the response
+        const tasks = response.tasks || [];
         
         // Map the Airtable tasks to our Task type
-        const mappedTasks = Array.isArray(tasks) ? tasks.map((task: any) => {
+        const mappedTasks = tasks.map((task: any) => {
           // Extract the task fields
           const {
             id,
@@ -1291,14 +1413,14 @@ export default function TaskBoards() {
             Actions: actions,
             Notes: notes,
             'Completed Date': completedDate,
-            Client: client
+            Client: client,
+            Clients: clients
           } = task;
           
           // Process comments if they exist
           let processedComments: any[] = [];
           if (comments) {
             if (Array.isArray(comments)) {
-              // If comments is an array of objects with proper structure
               processedComments = comments.map((comment: any, index: number) => {
                 if (typeof comment === 'object' && comment !== null) {
                   return {
@@ -1308,7 +1430,6 @@ export default function TaskBoards() {
                     timestamp: comment.timestamp || comment.CreatedAt || new Date().toLocaleDateString()
                   };
                 } else {
-                  // If comment is just a string or primitive
                   return {
                     id: `comment-${index}`,
                     author: 'User',
@@ -1318,7 +1439,6 @@ export default function TaskBoards() {
                 }
               });
             } else if (typeof comments === 'object' && comments !== null) {
-              // If it's a single comment object
               processedComments = [{
                 id: comments.id || 'comment-1',
                 author: comments.author || comments.User || 'User',
@@ -1326,37 +1446,28 @@ export default function TaskBoards() {
                 timestamp: comments.timestamp || comments.CreatedAt || new Date().toLocaleDateString()
               }];
             } else if (typeof comments === 'string') {
-              // If it's a string - might be a newline-separated list of comments in the long text field
-              // Split by double newlines to separate different comments
               const commentBlocks = comments.split('\n\n')
                 .filter(block => block.trim().length > 0);
               
-              // Parse each comment block
               processedComments = commentBlocks.map((block, index) => {
-                // Split the first line from the rest of the comment
                 const lines = block.split('\n');
-                
-                // First line should contain username and date
                 const headerLine = lines[0] || '';
                 
-                // Try to extract username and date
                 let author = 'User';
                 let timestamp = new Date().toLocaleDateString();
                 
-                // Try to parse the header line
                 const headerMatch = headerLine.match(/^(.+?)\s+(\d{1,2}\/\d{1,2}\/\d{4}|\d{1,2}\/\d{1,2}\/\d{2})$/);
                 if (headerMatch) {
                   author = headerMatch[1].trim();
                   timestamp = headerMatch[2].trim();
                 }
                 
-                // The rest of the lines make up the comment text
                 const commentText = lines.slice(1).join('\n').trim();
                 
                 return {
                   id: `comment-${id}-${index}`,
                   author,
-                  text: commentText || headerLine, // If parsing failed, use the whole line as text
+                  text: commentText || headerLine,
                   timestamp
                 };
               });
@@ -1389,10 +1500,9 @@ export default function TaskBoards() {
             // Use the commentCount from the API response if available
             commentCount: commentCount !== undefined ? commentCount : processedComments.length,
             notes: notes || '',
-            // Add Client fields for filtering - use BOTH 'Client' and 'Clients' for better compatibility
-            // since the ClientDataContext checks both fields
-            Client: client || task.Client || task.Clients || task.client,
-            Clients: client || task.Client || task.Clients || task.client
+            // Preserve client fields for filtering
+            Client: client || task.Client,
+            Clients: clients || task.Clients
           };
           
           // Add completedDate if Status is Done
@@ -1405,23 +1515,26 @@ export default function TaskBoards() {
           }
           
           return mappedTask;
-        }) : [];
+        });
         
-        // Store the raw (unfiltered) tasks
+        // Store the raw tasks (no client filtering since the API already filtered)
         setRawBoards(prev => {
           const newBoards = { ...prev };
-          newBoards[activeBoard as keyof typeof boards] = mappedTasks;
+          newBoards[activeBoard] = mappedTasks;
           return newBoards;
         });
         
-        // Apply client filtering to the tasks and update the boards state
-        filterTasks(mappedTasks);
+        // Set the filtered tasks (same as raw since API already filtered)
+        setBoards(prev => {
+          const newBoards = { ...prev };
+          newBoards[activeBoard] = mappedTasks;
+          return newBoards;
+        });
+        
+        setLoading(false);
       } catch (err: any) {
         console.error('Error fetching tasks:', err);
         setError(`An error occurred while fetching tasks: ${err.message}`);
-
-        // Instead of falling back to sample data, just set empty arrays
-        console.log('Error occurred, setting empty task arrays');
         
         // Set empty arrays for both raw and filtered boards
         const emptyBoards = {
@@ -1432,7 +1545,6 @@ export default function TaskBoards() {
         
         setRawBoards(emptyBoards);
         setBoards(emptyBoards);
-      } finally {
         setLoading(false);
       }
     };
@@ -1440,192 +1552,57 @@ export default function TaskBoards() {
     fetchTasksForBoard();
   }, [activeBoard, clientId]);
 
-  // Apply client filtering when clientId changes
-  useEffect(() => {
-    const currentRawTasks = rawBoards[activeBoard as keyof typeof rawBoards] || [];
-    filterTasks(currentRawTasks);
-  }, [clientId, activeBoard, rawBoards]);
-
-  // Function to apply client filtering to tasks
-  const filterTasks = (tasks: Task[]) => {
-    // Don't use filterDataByClient if there are no tasks to avoid the domainRating error
-    if (!tasks || tasks.length === 0) {
-      setBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [];
-        return newBoards;
-      });
-      return;
-    }
-    
-    // For task boards, we'll implement our own simple filtering to avoid the backlinks detection logic
-    if (clientId && clientId !== 'all') {
-      // Simple client filter that doesn't rely on backlinks detection
-      const filteredTasks = tasks.filter(task => {
-        // Check if task exists
-        if (!task) return false;
-        
-        // Use type assertion to access Client/Clients fields safely
-        const taskAny = task as any;
-        
-        // Check Clients field (array or string)
-        if (taskAny.Clients !== undefined && taskAny.Clients !== null) {
-          if (Array.isArray(taskAny.Clients)) {
-            return taskAny.Clients.includes(clientId);
-          } else if (typeof taskAny.Clients === 'string') {
-            return taskAny.Clients === clientId;
-          }
-        }
-        
-        // Check Client field (array or string)
-        if (taskAny.Client !== undefined && taskAny.Client !== null) {
-          if (Array.isArray(taskAny.Client)) {
-            return taskAny.Client.includes(clientId);
-          } else if (typeof taskAny.Client === 'string') {
-            return taskAny.Client === clientId;
-          }
-        }
-        
-        // If no client fields found, exclude from filtered results
-        return false;
-      });
-      
-      // Update the boards state with filtered tasks
-      setBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = filteredTasks;
-        return newBoards;
-      });
-    } else {
-      // If 'all' clients selected, just use all tasks
-      setBoards(prev => {
-        const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = tasks;
-        return newBoards;
-      });
-    }
-  };
-
   // Function to refresh task data
   const refreshData = async () => {
     setLoading(true);
     setError('');
     
     try {
-      // Fetch tasks based on the active board type
-      let response;
-      if (activeBoard === 'cro') {
-        // Use CRO-specific API for CRO board with useCache set to false to always get fresh data
-        // Pass clientId for filtering on the server side
-        response = await getCROTasks(false, clientId);
-      } else {
-        // Use WQA API for other boards
-        // Pass clientId for filtering on the server side and set useCache to false to get fresh data
-        response = await fetchWQATasks(activeBoard, undefined, false, clientId);
-      }
+      // Use direct fetch with client filtering built in
+      const response = await directFetchTasks(activeBoard, true);
+      console.log(`Refreshed ${activeBoard} Tasks Response:`, response);
       
-      console.log(`${activeBoard} Tasks Response:`, response);
+      // Extract and map tasks
+      const tasks = response.tasks || [];
+      const mappedTasks = tasks.map((task: any) => mapAirtableTaskToTask(task));
       
-      // Extract tasks from the response - handle different possible response formats
-      let tasks: any[] = [];
-      if (response) {
-        if (Array.isArray(response)) {
-          // Response is already an array of tasks
-          tasks = response;
-        } else if (typeof response === 'object' && response !== null) {
-          // Check if response has a tasks property that is an array
-          if ('tasks' in response && Array.isArray((response as any).tasks)) {
-            tasks = (response as any).tasks;
-          }
-        }
-      }
-      
-      console.log('Parsed tasks:', tasks);
-      
-      // Update both raw and filtered boards
+      // Group tasks by type
       const tasksForBoard = {
         technicalSEO: [] as Task[],
         cro: [] as Task[],
         strategyAdHoc: [] as Task[]
       };
       
-      // Group tasks by type and map to the correct format
-      tasks.forEach((task: any) => {
-        console.log('Mapping task:', task);
+      // Sort tasks into the right boards
+      mappedTasks.forEach((task: Task) => {
+        const taskAny = task as any;
+        const type = taskAny.Type || 'Unknown';
         
-        // Map the Airtable fields to our Task type
-        const mappedTask = mapAirtableTaskToTask({
-          id: task.id,
-          Name: task.Name,
-          Title: task.Title, // Fallback to Title if Name is not available
-          Description: task.Notes || task.Description,
-          Status: task.Status,
-          Priority: task.Priority,
-          AssignedTo: task['Assigned To'] || task.AssignedTo,
-          Category: task.Category,
-          Type: task.Type,
-          'Impact Level': task['Impact Level'],
-          'Effort Level': task['Effort Level'],
-          Impact: task['Portal Impact'], // Add Impact field directly from Airtable
-          Effort: task.Effort, // Add Effort field directly from Airtable
-          'Created At': task['Created At'],
-          'Due Date': task['Due Date'],
-          'Completed Date': task['Completed Date'],
-          Notes: task.Notes,
-          // Ensure Client/Clients fields are preserved for client filtering
-          Client: task.Client,
-          Clients: task.Clients
-        });
-        
-        console.log('Mapped task:', mappedTask);
-        console.log('Original values:', {
-          originalPriority: mappedTask.originalPriority,
-          originalImpact: mappedTask.originalImpact,
-          originalEffort: mappedTask.originalEffort
-        });
-        
-        // Add the task to the appropriate board
-        if (task.Type === 'Technical SEO' || task.Type === 'WQA') {
-          tasksForBoard.technicalSEO.push(mappedTask);
-        } else if (task.Type === 'CRO') {
-          tasksForBoard.cro.push(mappedTask);
+        if (type === 'CRO' || activeBoard === 'cro') {
+          tasksForBoard.cro.push(task);
+        } else if (type === 'Technical SEO' || type === 'WQA' || activeBoard === 'technicalSEO') {
+          tasksForBoard.technicalSEO.push(task);
         } else {
-          tasksForBoard.strategyAdHoc.push(mappedTask);
+          tasksForBoard.strategyAdHoc.push(task);
         }
       });
       
+      // Update both raw and boards with the new data
+      // Since API already filtered by client, we don't need additional filtering
       setRawBoards(prev => ({
         ...prev,
-        ...tasksForBoard
+        [activeBoard]: tasksForBoard[activeBoard as keyof typeof tasksForBoard]
       }));
       
-      // Since we're now filtering on the server side, we can just use the tasks as-is
-      // But we'll still apply client filtering on the client side as a backup
-      if (clientId && clientId !== 'all') {
-        // Filter tasks by client using our custom filter function
-        const currentBoardTasks = tasksForBoard[activeBoard as keyof typeof tasksForBoard] || [];
-        filterTasks(currentBoardTasks);
-      } else {
-        setBoards(prev => ({
-          ...prev,
-          ...tasksForBoard
-        }));
-      }
+      setBoards(prev => ({
+        ...prev,
+        [activeBoard]: tasksForBoard[activeBoard as keyof typeof tasksForBoard]
+      }));
       
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching tasks:', err);
-      setError('Failed to fetch tasks. Please try again.');
-      
-      // Set empty arrays instead of falling back to sample data
-      const emptyBoards = {
-        technicalSEO: [] as Task[],
-        cro: [] as Task[],
-        strategyAdHoc: [] as Task[]
-      };
-      
-      setRawBoards(emptyBoards);
-      setBoards(emptyBoards);
+      console.error('Error refreshing tasks:', err);
+      setError('Failed to refresh tasks. Please try again.');
       setLoading(false);
     }
   };
@@ -1634,37 +1611,27 @@ export default function TaskBoards() {
     try {
       setLoading(true);
       
-      // Get the current client for debugging
-      const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
-      console.log(`Adding task with client filter: ${currentClient}`);
-      
       let newTask;
+      let taskData = {
+        task: task.task,
+        status: task.status,
+        // Use original form values if available, otherwise use defaults
+        priority: originalFormData?.priority || task.priority || 'Mid Priority',
+        assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
+        impact: originalFormData?.impact || task.impact || 'Mid Impact',
+        effort: originalFormData?.effort || task.effort || 'Mid Effort',
+        notes: task.notes
+      };
       
       // Call the appropriate API based on the active board
       if (activeBoard === 'cro') {
         // Use CRO-specific API for CRO board
-        newTask = await createCROTask({
-          task: task.task,
-          status: task.status,
-          // Use original form values if available, otherwise use defaults
-          priority: originalFormData?.priority || task.priority || 'Mid Priority 🔥🔥',
-          assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-          impact: originalFormData?.impact || task.impact || 'Mid Impact 📈📈',
-          effort: originalFormData?.effort || task.effort || 'Mid Effort ❗❗',
-          notes: task.notes
-        });
+        newTask = await createCROTask(taskData);
         console.log('Created new CRO task result:', newTask);
       } else {
-        // Use WQA API for other boards
+        // Use WQA API for other boards with board type
         newTask = await createWQATask({
-          task: task.task,
-          status: task.status,
-          // Use original form values if available, otherwise use defaults
-          priority: originalFormData?.priority || task.priority || 'Mid Priority 🔥🔥',
-          assignedTo: task.assignedTo && task.assignedTo !== 'Unassigned' ? task.assignedTo : '',
-          impact: originalFormData?.impact || 'Mid Impact 📈📈',
-          effort: originalFormData?.effort || task.effort || 'Mid Effort ❗❗',
-          notes: task.notes,
+          ...taskData,
           boardType: activeBoard
         });
         console.log('Created new WQA task result:', newTask);
@@ -1708,8 +1675,8 @@ export default function TaskBoards() {
       // Add the new task to our local state
       setRawBoards(prev => {
         const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
+        newBoards[activeBoard] = [
+          ...newBoards[activeBoard],
           createdTask
         ];
         return newBoards;
@@ -1718,8 +1685,8 @@ export default function TaskBoards() {
       // Also add to filtered boards
       setBoards(prev => {
         const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
+        newBoards[activeBoard] = [
+          ...newBoards[activeBoard],
           createdTask
         ];
         return newBoards;
@@ -1728,9 +1695,7 @@ export default function TaskBoards() {
       setAddTaskModal(false);
       setLoading(false);
       
-      // Refresh the task list to ensure we have the latest data with correct client filtering
-      // This is important especially when filtering by client
-      console.log('Refreshing data after adding task');
+      // Refresh the task list to ensure we have the latest data
       setTimeout(() => {
         refreshData();
       }, 1000);
@@ -1742,8 +1707,8 @@ export default function TaskBoards() {
       // Still update the UI for better UX
       setRawBoards(prev => {
         const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
+        newBoards[activeBoard] = [
+          ...newBoards[activeBoard],
           task
         ];
         return newBoards;
@@ -1752,8 +1717,8 @@ export default function TaskBoards() {
       // Also add to filtered boards
       setBoards(prev => {
         const newBoards = { ...prev };
-        newBoards[activeBoard as keyof typeof boards] = [
-          ...newBoards[activeBoard as keyof typeof boards],
+        newBoards[activeBoard] = [
+          ...newBoards[activeBoard],
           task
         ];
         return newBoards;
@@ -1764,7 +1729,7 @@ export default function TaskBoards() {
   };
 
   // Get the current board's tasks
-  const currentTasks = boards[activeBoard as keyof typeof boards] || [];
+  const currentTasks = boards[activeBoard] || [];
 
   const handleStatusChange = async (id: number | string, newStatus: TaskStatus) => {
     try {
@@ -1782,8 +1747,10 @@ export default function TaskBoards() {
           airtableStatus = 'In Progress';
           break;
         case 'Blocked':
+          airtableStatus = 'Blocked';
+          break;
         case 'Done':
-          airtableStatus = 'Setup';
+          airtableStatus = 'Complete';
           break;
         default:
           airtableStatus = 'To Do';
@@ -1805,13 +1772,13 @@ export default function TaskBoards() {
       // Update local state with frontend status
       setBoards(prev => {
         const newBoards = { ...prev };
-        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+        const taskIndex = newBoards[activeBoard].findIndex(task =>
           task.id === id || task.id.toString() === id.toString()
         );
 
         if (taskIndex !== -1) {
-          console.log(`Updating local state for task ${id} from ${newBoards[activeBoard as keyof typeof boards][taskIndex].status} to ${newStatus}`);
-          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+          console.log(`Updating local state for task ${id} from ${newBoards[activeBoard][taskIndex].status} to ${newStatus}`);
+          const currentTask = newBoards[activeBoard][taskIndex];
 
           if (newStatus === 'Done') {
             // When moving to Done, add completedDate
@@ -1820,7 +1787,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             } as CompletedTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           } else {
             // When moving to other statuses
             const updatedTask = {
@@ -1828,7 +1795,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: undefined
             } as ActiveTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           }
         } else {
           console.warn(`Task with ID ${id} not found in ${activeBoard} board`);
@@ -1840,13 +1807,13 @@ export default function TaskBoards() {
       // Also update the raw boards state
       setRawBoards(prev => {
         const newBoards = { ...prev };
-        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+        const taskIndex = newBoards[activeBoard].findIndex(task =>
           task.id === id || task.id.toString() === id.toString()
         );
 
         if (taskIndex !== -1) {
           console.log(`Updating raw state for task ${id}`);
-          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+          const currentTask = newBoards[activeBoard][taskIndex];
 
           if (newStatus === 'Done') {
             // When moving to Done, add completedDate
@@ -1855,7 +1822,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             } as CompletedTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           } else {
             // When moving to other statuses
             const updatedTask = {
@@ -1863,7 +1830,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: undefined
             } as ActiveTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           }
         }
 
@@ -1871,26 +1838,22 @@ export default function TaskBoards() {
       });
       
       // Refresh data after a short delay to ensure we get the latest from Airtable
-      // This is especially important when filtering by client
-      if (clientId && clientId !== 'all') {
-        console.log('Client filtering is active, refreshing data after status update');
-        setTimeout(() => {
-          console.log('Refreshing data after status update');
-          refreshData();
-        }, 1000);
-      }
+      setTimeout(() => {
+        console.log('Refreshing data after status update');
+        refreshData();
+      }, 1000);
     } catch (err) {
       console.error('Error updating task status:', err);
 
       // Update local state anyway for better UX
       setBoards(prev => {
         const newBoards = { ...prev };
-        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+        const taskIndex = newBoards[activeBoard].findIndex(task =>
           task.id === id || task.id.toString() === id.toString()
         );
 
         if (taskIndex !== -1) {
-          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+          const currentTask = newBoards[activeBoard][taskIndex];
 
           if (newStatus === 'Done') {
             // When moving to Done, add completedDate
@@ -1899,7 +1862,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             } as CompletedTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           } else {
             // When moving to other statuses
             const updatedTask = {
@@ -1907,7 +1870,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: undefined
             } as ActiveTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           }
         } else {
           console.warn(`Task with ID ${id} not found in ${activeBoard} board`);
@@ -1919,12 +1882,12 @@ export default function TaskBoards() {
       // Also update the raw boards state
       setRawBoards(prev => {
         const newBoards = { ...prev };
-        const taskIndex = newBoards[activeBoard as keyof typeof boards].findIndex(task =>
+        const taskIndex = newBoards[activeBoard].findIndex(task =>
           task.id === id || task.id.toString() === id.toString()
         );
 
         if (taskIndex !== -1) {
-          const currentTask = newBoards[activeBoard as keyof typeof boards][taskIndex];
+          const currentTask = newBoards[activeBoard][taskIndex];
 
           if (newStatus === 'Done') {
             // When moving to Done, add completedDate
@@ -1933,7 +1896,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             } as CompletedTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           } else {
             // When moving to other statuses
             const updatedTask = {
@@ -1941,7 +1904,7 @@ export default function TaskBoards() {
               status: newStatus,
               completedDate: undefined
             } as ActiveTask;
-            newBoards[activeBoard as keyof typeof boards][taskIndex] = updatedTask;
+            newBoards[activeBoard][taskIndex] = updatedTask;
           }
         }
 

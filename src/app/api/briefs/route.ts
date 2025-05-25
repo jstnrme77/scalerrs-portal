@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
             // Check if brief has Clients or Client field that matches any of the user's clients
             if (brief.Clients) {
               if (Array.isArray(brief.Clients)) {
-                return brief.Clients.some(client => clientIds.includes(client));
+                return brief.Clients.some((client: string) => clientIds.includes(client));
               } else {
                 return clientIds.includes(brief.Clients);
               }
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             // Fallback to Client field for backward compatibility
             else if (brief.Client) {
               if (Array.isArray(brief.Client)) {
-                return brief.Client.some(client => clientIds.includes(client));
+                return brief.Client.some((client: string) => clientIds.includes(client));
               } else {
                 return clientIds.includes(brief.Client);
               }
