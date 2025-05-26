@@ -1,8 +1,15 @@
 export function getTableName(boardType: string) {
-    switch (boardType) {
-        case "cro":        return "CRO Tasks";
-        case "technical":  return "Technical CRO Tasks";
-        case "strategy":   return "Strategy Ad Hoc Tasks";
-        default:           return "CRO Tasks";
+    switch (boardType?.toLowerCase()) {
+        case "cro":
+            return "CRO";
+        case "technical":
+        case "technicalseo":
+            return "WQA";
+        case "strategy":
+        case "strategyadhoc":
+            return "Strategy Tasks";
+        default:
+            console.warn(`getTableName: Unknown boardType '${boardType}'. No table mapping found.`);
+            return "";
     }
 } 
