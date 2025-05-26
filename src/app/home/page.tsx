@@ -201,12 +201,23 @@ export default function Home() {
     }
   }, [clientId, isLoadingClientContext]);
 
+  // Limit the Latest-Activity card so it never grows taller than the
+  // Campaign Progress card.  Show at most 6 of the newest log rows.
+  const MAX_ACTIVITY_ITEMS = 6;
+
   const groupedLogs = useMemo(() => {
-    return activityLogs.reduce((acc, log) => {
+    // 1️⃣  Sort newest → oldest
+    const sorted = [...activityLogs].sort((a, b) =>
+      (new Date(b.Timestamp).getTime()) - (new Date(a.Timestamp).getTime())
+    );
+
+    // 2️⃣  Take only the first N items
+    const limited = sorted.slice(0, MAX_ACTIVITY_ITEMS);
+
+    // 3️⃣  Group by Category for the UI
+    return limited.reduce((acc, log) => {
       const category = log.Category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
+      if (!acc[category]) acc[category] = [];
       acc[category].push(log);
       return acc;
     }, {} as GroupedActivityLogs);

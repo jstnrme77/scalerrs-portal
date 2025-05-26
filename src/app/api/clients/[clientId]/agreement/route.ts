@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
+import { type NextRequest } from 'next/server';
 
-export async function GET(_: Request, { params }: { params: { clientId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
   const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
     .base(process.env.AIRTABLE_BASE_ID!);
 

@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
+import { type NextRequest } from 'next/server';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
   .base(process.env.AIRTABLE_BASE_ID!);
 
 const TABLE = 'client access & logins'; // exactly as in Airtable
 
-export async function GET(_: Request, { params }: { params: { clientId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
   const records = await base(TABLE)
     .select({ filterByFormula: `{Client Record ID} = '${params.clientId}'` })
     .all();
@@ -22,8 +26,11 @@ export async function GET(_: Request, { params }: { params: { clientId: string }
   );
 }
 
-export async function POST(req: Request, { params }: { params: { clientId: string } }) {
-  const body = await req.json();
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
+  const body = await request.json();
   const record = await base(TABLE).create({
     Name: body.name,
     Username: body.username ?? '',
@@ -34,8 +41,11 @@ export async function POST(req: Request, { params }: { params: { clientId: strin
   return NextResponse.json({ id: record.id });
 }
 
-export async function PATCH(req: Request, { params }: { params: { clientId: string } }) {
-  const { id, ...fields } = await req.json();
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
+  const { id, ...fields } = await request.json();
 
   const airtableFields: Airtable.FieldSet = {};
   if (fields.username !== undefined) airtableFields['Username'] = fields.username;

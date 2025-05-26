@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
@@ -27,8 +27,20 @@ import {
   ExternalLink,
   BarChart4,
   LineChart,
-  PieChart
+  PieChart as PieChartIcon,
+  CheckCircle,
+  Target as TargetIcon,
+  BarChart3
 } from "lucide-react";
+import { fetchClientsByMonth } from '@/lib/airtable/tables/clientsByMonth';
+import { fetchFromAirtable } from '@/lib/airtable/helpers';
+import { getClientId } from '@/lib/airtable/getClientId';
+import { ResponsiveContainer } from 'recharts';
+import { Cell } from 'recharts';
+import { Legend } from 'recharts';
+import { Tooltip } from 'recharts';
+import { Pie } from 'recharts';
+import { PieChart } from 'recharts';
 
 // Custom styles to fix z-index issues
 const customStyles = {
@@ -44,9 +56,29 @@ const customStyles = {
   }
 };
 
-// Sample KPI data
-const kpiData = {
+// Colour palette reused across Page-Type charts
+const PAGE_TYPE_COLORS = ['#9EA8FB', '#FFE4A6', '#B1E3FF', '#A5D7A7', '#F8BBD0'];
+
+// Sample KPI data (static) – dynamic summary will be merged in component
+const sampleKpiData = {
   summary: {
+    /* Placeholder critical KPIs – overwritten once Airtable data loads */
+    revenueImpact: {
+      total: 0,
+      target: 0,
+    },
+    conversionRate: {
+      current: 0,
+      goal: 0,
+    },
+    sqls: {
+      current: 0,
+      goal: 0,
+    },
+    trafficGrowth: {
+      current: 0,
+      goal: 0,
+    },
     organicTraffic: {
       current: 45250,
       previous: 38750,
@@ -233,6 +265,18 @@ const kpiData = {
           { url: '/blog/link-building-2023', metric: 18, change: -8.3, tag: 'Needs Refresh' }
         ]
       },
+      clicks: {
+        high: [
+          { url: '/product/seo-tool', metric: 4250, change: 15.2, tag: 'Top Performer' },
+          { url: '/blog/seo-strategy-2025', metric: 3850, change: 22.4, tag: 'Top Performer' },
+          { url: '/case-studies/ecommerce', metric: 2650, change: 18.6, tag: 'Top Performer' }
+        ],
+        low: [
+          { url: '/resources/seo-checklist', metric: 450, change: -8.2, tag: 'Needs Refresh' },
+          { url: '/blog/link-building-2023', metric: 620, change: -12.5, tag: 'Under Review' },
+          { url: '/services/content-writing', metric: 780, change: -5.1, tag: 'Needs Refresh' }
+        ]
+      },
       timeOnPage: {
         high: [
           { url: '/case-studies/ecommerce', metric: '4:35', change: 12.8, tag: 'Top Performer' },
@@ -312,6 +356,224 @@ function KpiDashboard() {
   const [selectedComparison, setSelectedComparison] = useState(comparisonOptions[0]);
   const [activeTab, setActiveTab] = useState('summary');
   const [forecastView, setForecastView] = useState('standard');
+
+  /* -------------------------------------------------------------- */
+  /*  KPI summary derived from Airtable (Clients by Month)           */
+  /* -------------------------------------------------------------- */
+  const [summaryData, setSummaryData] = useState<any | null>(null);
+  const [pageData, setPageData] = useState<{ topPages: any[]; newPages: any[] }>({ topPages: [], newPages: [] });
+  const [momRows, setMomRows] = useState<any[]>([]);
+  // Dynamic Yearly + Quarterly breakdown
+  const [yearlyBreakdown, setYearlyBreakdown] = useState<any | null>(null);
+  const [quarterRows, setQuarterRows] = useState<any[]>([]);
+  const [pageTypeData, setPageTypeData] = useState<any | null>(null);
+
+  /* Deep-merge summary so live fields overwrite placeholders */
+  const kpiData = useMemo(() => ({
+    ...sampleKpiData,
+    summary: {
+      ...sampleKpiData.summary,
+      ...(summaryData ?? {}),
+    },
+    topPages: pageData.topPages.length ? pageData.topPages : sampleKpiData.topPages,
+    newPages: pageData.newPages.length ? pageData.newPages : sampleKpiData.newPages,
+    forecasting: {
+      ...sampleKpiData.forecasting,
+      yearlyBreakdown: yearlyBreakdown ?? sampleKpiData.forecasting.yearlyBreakdown,
+    },
+    pageTypeBreakdown: pageTypeData ? {
+      traffic: pageTypeData.rows,
+      highLowPerformers: pageTypeData.highLow,
+      opportunities: pageTypeData.opportunities,
+    } : sampleKpiData.pageTypeBreakdown,
+  }), [summaryData, pageData, yearlyBreakdown, pageTypeData]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const records = await fetchClientsByMonth();
+        if (!records.length) return;
+
+        /* Sort newest → oldest by Month Start */
+        const sorted = [...records].sort((a: any, b: any) => {
+          const d = (r: any) => new Date((r.fields as any)['Month Start'] || (r.fields as any)['Month'] || r.id).getTime();
+          return d(b) - d(a);
+        });
+
+        const latest = sorted[0].fields as any;
+        const prev   = (sorted[1]?.fields ?? {}) as any;
+
+        const pct = (cur: number, prv: number) => (prv ? Math.round(((cur - prv) / prv) * 100) : 0);
+
+        /* -------------------------------------------------------------- */
+        /*  Compute average MoM traffic growth – actual & projected       */
+        /* -------------------------------------------------------------- */
+        const asc = [...sorted].reverse(); // oldest → newest
+        let actSum = 0, actCnt = 0;
+        let projSum = 0, projCnt = 0;
+        for (let i = 1; i < asc.length; i++) {
+          const curF  = asc[i].fields  as any;
+          const prevF = asc[i-1].fields as any;
+
+          const curActual  = Number(curF ['Clicks (Actual)']   ?? curF ['Organic Traffic (Actual)']   ?? 0);
+          const prevActual = Number(prevF['Clicks (Actual)']   ?? prevF['Organic Traffic (Actual)']  ?? 0);
+          if (prevActual) { actSum  += (curActual - prevActual) / prevActual * 100; actCnt++; }
+
+          const curProj  = Number(curF ['Clicks (Projected)']  ?? curF ['Organic Traffic (Projected)']  ?? 0);
+          const prevProj = Number(prevF['Clicks (Projected)']  ?? prevF['Organic Traffic (Projected)'] ?? 0);
+          if (prevProj)  { projSum += (curProj - prevProj) / prevProj * 100;  projCnt++; }
+        }
+
+        const avgActualGrowth = actCnt  ? parseFloat((actSum  / actCnt).toFixed(1)) : 0;
+        const avgProjGrowth   = projCnt ? parseFloat((projSum / projCnt).toFixed(1)) : 0;
+
+        const summary = {
+          revenueImpact: {
+            total: Number(latest['Estimated Revenue'] ?? 0),
+            target: Number(latest['Estimated Revenue Projection'] ?? latest['Estimated Revenue (Projected)'] ?? 0),
+          },
+          organicTraffic: {
+            current: Number(latest['Clicks (Actual)'] ?? latest['Organic Traffic (Actual)'] ?? 0),
+            goal:    Number(latest['Clicks (Projected)'] ?? latest['Organic Traffic (Projected)'] ?? 0),
+            change:  pct(Number(latest['Clicks (Actual)'] ?? 0), Number(prev['Clicks (Actual)'] ?? 0)),
+          },
+          organicConversions: {
+            current: Number(latest['Leads'] ?? 0),
+            goal:    Number(latest['Leads Projected'] ?? latest['Leads (Projected)'] ?? 0),
+            change:  pct(Number(latest['Leads'] ?? 0), Number(prev['Leads'] ?? 0)),
+          },
+          conversionRate: {
+            current: Number(latest['Conversion Rate'] ?? 0),
+            goal:    Number(latest['Conversion Rate (Projected)'] ?? 0),
+          },
+          sqls: {
+            current: Number(latest['SQL'] ?? latest['SQLs'] ?? 0),
+            goal:    Number(latest['SQL Projected'] ?? latest['SQLs Projected'] ?? 0),
+          },
+          trafficGrowth: {
+            current: avgActualGrowth,
+            goal:    avgProjGrowth,
+          },
+          keywordRankings: {
+            top3: {
+              current: Number(latest['Keywords In Top 3 Positions'] ?? 0),
+              previous: Number(prev['Keywords In Top 3 Positions'] ?? 0),
+              change: pct(Number(latest['Keywords In Top 3 Positions'] ?? 0), Number(prev['Keywords In Top 3 Positions'] ?? 0)),
+            },
+            top10: {
+              current: Number(latest['Keywords In Top 10 Positions'] ?? 0),
+              previous: Number(prev['Keywords In Top 10 Positions'] ?? 0),
+              change: pct(Number(latest['Keywords In Top 10 Positions'] ?? 0), Number(prev['Keywords In Top 10 Positions'] ?? 0)),
+            },
+            top100: {
+              current: Number(latest['Keywords In Top 100 Positions'] ?? 0),
+              previous: Number(prev['Keywords In Top 100 Positions'] ?? 0),
+              change: pct(Number(latest['Keywords In Top 100 Positions'] ?? 0), Number(prev['Keywords In Top 100 Positions'] ?? 0)),
+            },
+          },
+        };
+
+        /* -------------------------------------------------------------- */
+        /*  Build Month-over-Month rows for MoM Growth table              */
+        /* -------------------------------------------------------------- */
+        const momRowsArray = asc
+          .map((rec, idx) => {
+            const f = rec.fields as any;
+            const label = new Date(
+              f['Month Start'] || f['Month'] || rec.id
+            ).toLocaleString('default', { month: 'short', year: 'numeric' });
+
+            const trafficVal = Number(
+              f['Organic Traffic (Actual)'] ?? f['Clicks (Actual)'] ?? 0
+            );
+
+            let growth: number | null = null;
+            if (idx > 0) {
+              const prevF = asc[idx - 1].fields as any;
+              const prevTraffic = Number(
+                prevF['Organic Traffic (Actual)'] ?? prevF['Clicks (Actual)'] ?? 0
+              );
+              if (prevTraffic) {
+                growth = +(
+                  ((trafficVal - prevTraffic) / prevTraffic) * 100
+                ).toFixed(1);
+              }
+            }
+
+            return { month: label, traffic: trafficVal, growth } as const;
+          })
+          .reverse(); // newest first for UI table
+
+        setMomRows(momRowsArray);
+
+        setSummaryData(summary);
+
+        /* -------------------------------------------------------------- */
+        /*  Yearly + Quarterly breakdown                                  */
+        /* -------------------------------------------------------------- */
+        const nowYear   = new Date().getFullYear();
+        const prevYear  = nowYear - 1;
+        const nextYear  = nowYear + 1;
+        const prevPrev  = nowYear - 2;
+
+        /* Aggregate totals by year */
+        const totalsByYear: Record<number, { actual: number; projected: number }> = {};
+        records.forEach((rec: any) => {
+          const f = rec.fields as any;
+          const dateStr = f['Month Start'] || f['Month'] || rec.id;
+          const yr = new Date(dateStr).getFullYear();
+          totalsByYear[yr] = totalsByYear[yr] || { actual: 0, projected: 0 };
+          totalsByYear[yr].actual    += Number(f['Organic Traffic (Actual)']    ?? f['Clicks (Actual)']    ?? 0);
+          totalsByYear[yr].projected += Number(f['Organic Traffic (Projected)'] ?? f['Clicks (Projected)'] ?? 0);
+        });
+
+        const pctYoY = (cur: number, base: number) => (base ? +(((cur - base) / base) * 100).toFixed(1) : null);
+
+        setYearlyBreakdown({
+          previousYear: {
+            total: totalsByYear[prevYear]?.actual || 0,
+            growth: pctYoY(totalsByYear[prevYear]?.actual || 0, totalsByYear[prevPrev]?.actual || 0),
+          },
+          thisYear: {
+            total: totalsByYear[nowYear]?.actual || 0,
+            growth: pctYoY(totalsByYear[nowYear]?.actual || 0, totalsByYear[prevYear]?.actual || 0),
+          },
+          nextYearForecast: {
+            total: totalsByYear[nextYear]?.projected || 0,
+            growth: pctYoY(totalsByYear[nextYear]?.projected || 0, totalsByYear[nowYear]?.actual || 0),
+          },
+        });
+
+        /* Quarterly breakdown for current year */
+        const qArr = [
+          { quarter: 'Q1', total: 0, isActual: false },
+          { quarter: 'Q2', total: 0, isActual: false },
+          { quarter: 'Q3', total: 0, isActual: false },
+          { quarter: 'Q4', total: 0, isActual: false },
+        ];
+
+        records.forEach((rec: any) => {
+          const f = rec.fields as any;
+          const dateStr = f['Month Start'] || f['Month'] || rec.id;
+          const d = new Date(dateStr);
+          if (d.getFullYear() !== nowYear) return;
+          const qIdx = Math.floor(d.getMonth() / 3);
+          const act = Number(f['Organic Traffic (Actual)'] ?? f['Clicks (Actual)'] ?? 0);
+          const proj = Number(f['Organic Traffic (Projected)'] ?? f['Clicks (Projected)'] ?? 0);
+          if (act) {
+            qArr[qIdx].total += act;
+            qArr[qIdx].isActual = true;
+          } else if (!qArr[qIdx].isActual) {
+            qArr[qIdx].total += proj;
+          }
+        });
+
+        setQuarterRows(qArr);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, []);
 
   // Add global styles for z-index fixes
   useEffect(() => {
@@ -403,6 +665,202 @@ function KpiDashboard() {
     onComparisonChange: handleComparisonChange
   };
 
+  /* ------------------------------------------------------------------ */
+  /*  Fetch Top Pages + New Pages from Keywords table                    */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    (async () => {
+      try {
+        const clientRecordID = getClientId();
+        if (!clientRecordID) return;
+
+        const formula = `{Client Record ID} = '${clientRecordID}'`;
+        const kw = await fetchFromAirtable<any>('Keywords', formula);
+
+        const rows = kw.map((r:any)=>{
+          const f = r.fields as any;
+          const url = (f['Target Page URL'] ?? '') as string;
+          const pathOnly = url ? url.replace(/^https?:\/\//,'').replace(/^[^/]+\//,'/') : '';
+          const traffic = Number(f['Traffic This Month'] ?? f['Clicks Last Month'] ?? 0);
+          const clicks = Number(f['Clicks This Month'] ?? f['Clicks Last Month'] ?? 0);
+          const conversions = Number(f['Conversions This Month'] ?? f['Leads'] ?? 0);
+          const convRateRaw = Number(f['Conversion Rate'] ?? f['Sign Up CVR % (Tag)'] ?? f['Adjusted CVR%'] ?? 0);
+          const conversionRate = convRateRaw >= 1 ? convRateRaw : convRateRaw * 100;
+          const position = Number(f['Main Keyword Position'] ?? 0);
+          const lastPos = Number(f['Main Keyword Position Last Month'] ?? position);
+          const startPosition = Number(f['Starting Keyword Position'] ?? position);
+          const pageType = f['Page Type ( Main )'] as string | undefined;
+          return {
+            id: r.id,
+            pageType: pageType || 'Other',
+            url: pathOnly || url,
+            traffic,
+            clicks,
+            conversions,
+            conversionRate: +conversionRate.toFixed(2),
+            avgPosition: position,
+            lastPos,
+            change: startPosition ? +( ( (startPosition - position) / startPosition) * 100 ).toFixed(1 ) : 0,
+            publicationDate: f['Due Date (Publication)'] ?? f['Publication'] ?? f['Last Updated'] ?? null,
+          };
+        }).filter((r:any)=>r.url);
+
+        /* Top Pages – top 5 by traffic */
+        const topPages = [...rows].sort((a,b)=> b.traffic - a.traffic).slice(0,5);
+
+        /* New Pages – published in last 30 days */
+        const now = Date.now();
+        const newPages = rows.filter(r=>{
+          if(!r.publicationDate) return false;
+          const diff = now - new Date(r.publicationDate as string).getTime();
+          return diff <= 30*24*3600*1000;
+        }).sort((a,b)=> new Date(b.publicationDate).getTime()-new Date(a.publicationDate).getTime()).slice(0,10);
+
+        /* ------------------------------------------------------------------ */
+        /*  Build Page Type breakdown                                         */
+        /* ------------------------------------------------------------------ */
+        const byType: Record<string, { traffic: number; clicks: number; conversions: number; convRates: number[]; positions: number[]; lastPos: number[] }> = {};
+
+        rows.forEach((r:any) => {
+          const type = r.pageType;
+          if(!byType[type]) byType[type] = { traffic:0, clicks:0, conversions:0, convRates:[], positions:[], lastPos:[] };
+          byType[type].traffic += r.traffic;
+          byType[type].clicks  += r.clicks;
+          byType[type].conversions  += r.conversions;
+          byType[type].convRates.push(r.conversionRate);
+          byType[type].positions.push(r.avgPosition);
+          byType[type].lastPos.push(r.lastPos);
+        });
+
+        const trafficArr = Object.entries(byType).map(([type,data])=>({
+          type,
+          traffic:data.traffic,
+          clicks:data.clicks,
+          conversions:data.conversions,
+          conversionRate: data.convRates.length? +(data.convRates.reduce((a,b)=>a+b,0)/data.convRates.length).toFixed(2):0,
+          avgPosition: data.positions.length? +(data.positions.reduce((a,b)=>a+b,0)/data.positions.length).toFixed(1):0,
+          momChange: (()=>{
+            const prevAvg = data.lastPos.length? data.lastPos.reduce((a,b)=>a+b,0)/data.lastPos.length:0;
+            const currAvg = data.positions.length? data.positions.reduce((a,b)=>a+b,0)/data.positions.length:0;
+            return prevAvg? +(((prevAvg-currAvg)/prevAvg)*100).toFixed(1):0; // positive if improvement
+          })()
+        }));
+
+        /* High / low performers by clicks and traffic */
+        const pagesByClicks = [...rows].sort((a,b)=> b.clicks - a.clicks);
+        const pagesByTraffic = [...rows].sort((a,b)=> b.traffic - a.traffic);
+
+        const highLow = {
+          traffic:{
+            high: pagesByTraffic.slice(0,3).map(p=>({url:p.url,metric:p.traffic,change:p.change})),
+            low: pagesByTraffic.filter(p=>p.traffic>0).slice(-3).map(p=>({url:p.url,metric:p.traffic,change:p.change}))
+          },
+          clicks:{
+            high: pagesByClicks.slice(0,3).map(p=>({url:p.url,metric:p.clicks,change:p.change})),
+            low: pagesByClicks.filter(p=>p.clicks>0).slice(-3).map(p=>({url:p.url,metric:p.clicks,change:p.change}))
+          },
+          timeOnPage:{
+            high:[],
+            low:[]
+          }
+        };
+
+        setPageTypeData({ rows:trafficArr, highLow, opportunities: [] });
+
+        setPageData({ topPages, newPages });
+      } catch(err){
+        console.error(err);
+      }
+    })();
+  }, []);
+
+  // --- Standard Forecasting (current month) derived metrics ---
+  const [forecastStd, setForecastStd] = useState<{
+    trafficGoal: number;
+    trafficActual: number;
+    leadsGoal: number;
+    leadsActual: number;
+    pctGoalAchieved: number;
+    projectedPct: number;
+    gap: number;
+    gapPct: number;
+    deliverables: { category: string; count: number }[];
+  } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      /* -------------------------------------------------------------- */
+      /*  Forecast Standard metrics for the current month               */
+      /* -------------------------------------------------------------- */
+      try {
+        const clientRecordID = getClientId();
+        if (!clientRecordID) return;
+
+        const all = await fetchClientsByMonth();
+        if (!all.length) return;
+
+        const today = new Date();
+        const monthIso = today.toISOString().slice(0, 7); // YYYY-MM
+
+        const rec = all.find((r) => {
+          const f = r.fields as any;
+          const dStr = f['Month Start'] || f['Month'] || r.id;
+          return dStr.slice(0, 7) === monthIso;
+        });
+
+        if (rec) {
+          const f = rec.fields as any;
+
+          /* Monthly KPI targets + actuals */
+          const trafficGoal = Number(f['Organic Traffic (Projected)'] ?? f['Clicks (Projected)'] ?? 0);
+          const trafficActual = Number(f['Organic Traffic (Actual)'] ?? f['Clicks (Actual)'] ?? 0);
+          const leadsGoal = Number(f['Leads Projected'] ?? f['Leads (Projected)'] ?? 0);
+          const leadsActual = Number(f['Leads'] ?? 0);
+
+          /* Days + pacing */
+          const daysPassed = today.getDate();
+          const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+          const runRate = daysPassed ? trafficActual / daysPassed : 0;
+          const projectedTraffic = runRate * daysInMonth;
+
+          const pctGoalAchieved = trafficGoal ? (trafficActual / trafficGoal) * 100 : 0;
+          const projectedPct = trafficGoal ? (projectedTraffic / trafficGoal) * 100 : 0;
+          const gap = trafficGoal - projectedTraffic;
+          const gapPct = trafficGoal ? (gap / trafficGoal) * 100 : 0;
+
+          /* Deliverable counts – Activity Log */
+          let deliverables: { category: string; count: number }[] = [];
+          const clientPlusMonth = f['Client + Month'];
+          if (clientPlusMonth) {
+            const formula = `{Client + Month} = '${clientPlusMonth}'`;
+            const logs = await fetchFromAirtable<any>('Activity Log', formula);
+            const counts: Record<string, number> = {};
+            logs.forEach((r: any) => {
+              const cat = (r.fields['Category'] as string) || 'Uncategorised';
+              counts[cat] = (counts[cat] || 0) + 1;
+            });
+            deliverables = Object.entries(counts).map(([category, count]) => ({ category, count }));
+          }
+
+          setForecastStd({
+            trafficGoal,
+            trafficActual,
+            leadsGoal,
+            leadsActual,
+            pctGoalAchieved,
+            projectedPct,
+            gap,
+            gapPct,
+            deliverables,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      /* -------------------------------------------------------------- */
+    })();
+  }, []);
+
   return (
     <DashboardLayout topNavBarProps={topNavBarProps}>
       {/* Performance Summary Banner */}
@@ -421,7 +879,7 @@ function KpiDashboard() {
             tabs={[
               { id: 'summary', label: 'KPI Summary', icon: <BarChart4 size={18} /> },
               { id: 'forecasting', label: 'Forecasting Model', icon: <LineChart size={18} /> },
-              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type', icon: <PieChart size={18} /> },
+              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type', icon: <PieChartIcon size={18} /> },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -442,7 +900,7 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">Revenue Impact</CardTitle>
-                      <div className="flex items-center text-green-600 text-sm font-medium">
+                      <div className="flex items-center text-green-600 text-sm font-medium hidden">
                         <ArrowUp className="h-4 w-4 mr-1" />
                         <span>12%</span>
                       </div>
@@ -451,8 +909,8 @@ function KpiDashboard() {
                   <CardContent>
                     <div className="flex flex-col">
                       <div>
-                        <div className="text-3xl font-bold text-[#FFE4A6]">$125,500</div>
-                        <div className="text-xs text-gray-500 mt-1">Target: $150,000</div>
+                        <div className="text-3xl font-bold text-[#FFE4A6]">{kpiData ? `$${kpiData.summary.revenueImpact.total.toLocaleString()}` : '—'}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData ? `$${kpiData.summary.revenueImpact.target.toLocaleString()}` : '—'}</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -476,21 +934,21 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">Organic Clicks</CardTitle>
-                      <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {kpiData.summary.organicTraffic.change >= 0 ? (
+                      <div className={`hidden items-center text-sm font-medium ${kpiData ? (kpiData.summary.organicTraffic.change >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                        {kpiData ? (
                           <ArrowUp className="h-4 w-4 mr-1" />
                         ) : (
                           <ArrowDown className="h-4 w-4 mr-1" />
                         )}
-                        <span>{kpiData.summary.organicTraffic.change}%</span>
+                        <span>{kpiData ? kpiData.summary.organicTraffic.change + '%' : ''}</span>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col">
                       <div>
-                        <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData.summary.organicTraffic.current.toLocaleString()}</div>
-                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicTraffic.goal.toLocaleString()}</div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData ? kpiData.summary.organicTraffic.current.toLocaleString() : '—'}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData ? kpiData.summary.organicTraffic.goal.toLocaleString() : '—'}</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -514,7 +972,7 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
-                      <div className="flex items-center text-green-600 text-sm font-medium">
+                      <div className="hidden items-center text-green-600 text-sm font-medium">
                         <ArrowUp className="h-4 w-4 mr-1" />
                         <span>0.3%</span>
                       </div>
@@ -523,8 +981,8 @@ function KpiDashboard() {
                   <CardContent>
                     <div className="flex flex-col">
                       <div>
-                        <div className="text-3xl font-bold text-[#9EA8FB]">2.8%</div>
-                        <div className="text-xs text-gray-500 mt-1">Target: 3.5%</div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData ? `${kpiData.summary.conversionRate.current}%` : '—'}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData ? `${kpiData.summary.conversionRate.goal}%` : '—'}</div>
                       </div>
 
                       {/* Micro-visual: Bar chart */}
@@ -550,21 +1008,21 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">Leads</CardTitle>
-                      <div className={`flex items-center text-sm font-medium ${kpiData.summary.organicConversions.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {kpiData.summary.organicConversions.change >= 0 ? (
+                      <div className={`hidden items-center text-sm font-medium ${kpiData ? (kpiData.summary.organicConversions.change >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                        {kpiData ? (
                           <ArrowUp className="h-4 w-4 mr-1" />
                         ) : (
                           <ArrowDown className="h-4 w-4 mr-1" />
                         )}
-                        <span>{kpiData.summary.organicConversions.change}%</span>
+                        <span>{kpiData ? kpiData.summary.organicConversions.change + '%' : ''}</span>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-col">
                       <div>
-                        <div className="text-3xl font-bold text-[#FFE4A6]">{kpiData.summary.organicConversions.current.toLocaleString()}</div>
-                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData.summary.organicConversions.goal.toLocaleString()}</div>
+                        <div className="text-3xl font-bold text-[#FFE4A6]">{kpiData ? kpiData.summary.organicConversions.current.toLocaleString() : '—'}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData ? kpiData.summary.organicConversions.goal.toLocaleString() : '—'}</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -588,7 +1046,7 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">SQLs</CardTitle>
-                      <div className="flex items-center text-green-600 text-sm font-medium">
+                      <div className="hidden items-center text-green-600 text-sm font-medium">
                         <ArrowUp className="h-4 w-4 mr-1" />
                         <span>18%</span>
                       </div>
@@ -597,8 +1055,8 @@ function KpiDashboard() {
                   <CardContent>
                     <div className="flex flex-col">
                       <div>
-                        <div className="text-3xl font-bold text-[#9EA8FB]">385</div>
-                        <div className="text-xs text-gray-500 mt-1">Target: 450</div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData ? kpiData.summary.sqls.current.toLocaleString() : '—'}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData ? kpiData.summary.sqls.goal.toLocaleString() : '—'}</div>
                       </div>
 
                       {/* Micro-visual: Bar chart */}
@@ -622,7 +1080,7 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">Traffic Growth</CardTitle>
-                      <div className="flex items-center text-green-600 text-sm font-medium">
+                      <div className="hidden items-center text-green-600 text-sm font-medium">
                         <ArrowUp className="h-4 w-4 mr-1" />
                         <span>5.2%</span>
                       </div>
@@ -631,8 +1089,8 @@ function KpiDashboard() {
                   <CardContent>
                     <div className="flex flex-col">
                       <div>
-                        <div className="text-3xl font-bold text-[#9EA8FB]">16.8%</div>
-                        <div className="text-xs text-gray-500 mt-1">Target: 20%</div>
+                        <div className="text-3xl font-bold text-[#9EA8FB]">{kpiData ? `${kpiData.summary.trafficGrowth.current}%` : '—'}</div>
+                        <div className="text-xs text-gray-500 mt-1">Target: {kpiData ? `${kpiData.summary.trafficGrowth.goal}%` : '—'}</div>
                       </div>
 
                       {/* Micro-visual: Sparkline */}
@@ -736,7 +1194,7 @@ function KpiDashboard() {
                     <CardTitle>Top Pages Performance</CardTitle>
                     <CardDescription>Pages with highest organic traffic</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" className="ml-auto">
+                  <Button variant="outline" size="sm" className="ml-auto hidden">
                     <Download className="h-4 w-4 mr-1" />
                     Export
                   </Button>
@@ -845,7 +1303,7 @@ function KpiDashboard() {
                     Yearly
                   </Button>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="ml-auto">
                   <Download className="h-4 w-4 mr-1" />
                   Export
                 </Button>
@@ -870,7 +1328,7 @@ function KpiDashboard() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* 1. Projected Outcomes */}
-                      <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <div className="space-y-2 border-b border-gray-100 pb-4 min-h-[140px]">
                         <h3 className="text-sm font-medium text-gray-600 flex items-center">
                           <TrendingUp className="h-4 w-4 mr-1 text-gray-500" />
                           Projected Outcomes
@@ -878,66 +1336,115 @@ function KpiDashboard() {
                         <div className="space-y-1">
                           <div className="flex justify-between">
                             <span className="text-sm">Total Forecasted Traffic by {getTimePeriodText()}</span>
-                            <span className="text-sm font-medium">{kpiData.forecasting.trafficForecast[8]?.forecast?.toLocaleString() || '60,500'}</span>
+                            <span className="text-sm font-medium">{forecastStd ? forecastStd.trafficGoal.toLocaleString() : '—'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm">Forecasted Leads</span>
-                            <span className="text-sm font-medium">{kpiData.forecasting.conversionForecast[8]?.forecast?.toLocaleString() || '1,750'}</span>
+                            <span className="text-sm font-medium">{forecastStd ? forecastStd.leadsGoal.toLocaleString() : '—'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm">% of Original KPI Target</span>
-                            <span className="text-sm font-medium text-amber-600">65%</span>
+                            <span className="text-sm font-medium text-amber-600">{forecastStd ? forecastStd.pctGoalAchieved.toFixed(1) + '%' : '—'}</span>
                           </div>
                         </div>
                         <div className="text-sm text-amber-600 mt-1 flex items-center">
                           <AlertTriangle className="h-4 w-4 mr-1" />
-                          Expected to reach 65% of {getPacingText()} traffic goal at current pacing
+                          {forecastStd ? `Expected to reach ${Math.round(forecastStd.projectedPct)}% of ${getPacingText()} traffic goal at current pacing` : 'Calculating…'}
                         </div>
                       </div>
 
                       {/* 2. Deliverable Breakdown */}
-                      <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <div className="space-y-2 border-b border-gray-100 pb-4 min-h-[160px]">
                         <h3 className="text-sm font-medium text-gray-600 flex items-center">
-                          <PieChart className="h-4 w-4 mr-1 text-gray-500" />
+                          <PieChartIcon className="h-4 w-4 mr-1 text-gray-500" />
                           Deliverable Breakdown
                         </h3>
-                        <div className="space-y-1">
-                          <div className="flex justify-between">
-                            <span className="text-sm">Content Briefs/Month</span>
-                            <span className="text-sm font-medium">8</span>
+                        {forecastStd ? (
+                          <div className="space-y-1">
+                            {forecastStd.deliverables.map((d) => (
+                              <div key={d.category} className="flex justify-between">
+                                <span className="text-sm">{d.category}</span>
+                                <span className="text-sm font-medium">{d.count}</span>
+                              </div>
+                            ))}
+                            {forecastStd.deliverables.length === 0 && (
+                              <p className="text-sm text-mediumGray">No deliverables logged for this month.</p>
+                            )}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Backlinks/Month</span>
-                            <span className="text-sm font-medium">12</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Tech SEO Fixes Completed</span>
-                            <span className="text-sm font-medium">15</span>
-                          </div>
-                        </div>
+                        ) : (
+                          <p className="text-sm text-mediumGray">Loading…</p>
+                        )}
                       </div>
 
-                      {/* 3. Visual Pacing Bar */}
-                      <div className="space-y-2">
+                      {/* 3. Progress Towards Target */}
+                      <div className="space-y-4 min-h-[200px]">
                         <h3 className="text-sm font-medium text-gray-600 flex items-center">
-                          <BarChart4 className="h-4 w-4 mr-1 text-gray-500" />
+                          <BarChart3 className="h-4 w-4 mr-1 text-gray-500" />
                           Progress Towards Target
                         </h3>
-                        <div className="w-full h-4 bg-gray-100 rounded-full relative">
-                          <div className="h-4 bg-[#9EA8FB] rounded-full" style={{ width: '65%' }}></div>
-                          <div className="absolute top-6 left-[65%] transform -translate-x-1/2 text-xs text-[#9EA8FB]">
-                            Current Forecast
-                          </div>
-                          <div className="absolute top-6 right-0 transform translate-x-0 text-xs text-gray-600">
-                            Target
-                          </div>
-                        </div>
-                        <div className="flex justify-between mt-6">
-                          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 flex items-center">
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            At Risk
-                          </Badge>
-                        </div>
+
+                        {(() => {
+                          if (!forecastStd) return <p className="text-sm text-mediumGray">Loading…</p>;
+                          const pct = forecastStd.projectedPct;
+                          const status = pct >= 100 ? 'onTrack' : pct >= 90 ? 'onPace' : 'atRisk';
+                          const badge = {
+                            onTrack: { colour: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-3 w-3" />, label: 'On Track' },
+                            onPace:  { colour: 'bg-amber-100 text-amber-800', icon: <TrendingUp className="h-3 w-3" />, label: 'On Pace' },
+                            atRisk:  { colour: 'bg-rose-100 text-rose-800', icon: <AlertTriangle className="h-3 w-3" />, label: 'At Risk' },
+                          }[status];
+
+                          const progressPct = Math.min(forecastStd.pctGoalAchieved, 100);
+
+                          return (
+                            <>
+                              {/* Status & numbers */}
+                              <div className="flex justify-between items-center">
+                                <Badge className={`flex items-center gap-1 ${badge.colour}`}>{badge.icon}<span>{badge.label}</span></Badge>
+                                <div className="text-sm text-muted-foreground">
+                                  {forecastStd.trafficActual.toLocaleString()} / {forecastStd.trafficGoal.toLocaleString()}
+                                </div>
+                              </div>
+
+                              {/* Progress bar */}
+                              <div className="relative">
+                                {/* track */}
+                                <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-[#9EA8FB] to-[#6A6AC9] transition-all duration-500"
+                                    style={{ width: `${progressPct.toFixed(1)}%` }}
+                                  />
+                                  {/* Target indicator */}
+                                  <div
+                                    className="absolute top-0 w-1 h-full bg-red-500"
+                                    style={{ left: '100%', transform: 'translateX(-50%)' }}
+                                  >
+                                    <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+                                      <TargetIcon className="h-4 w-4 text-red-500" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Dynamic pacing message */}
+                              <p className="text-xs text-gray-600 mt-2">
+                                {pct >= 100
+                                  ? 'Goal already achieved for this month!'
+                                  : `At this pace you're projected to reach ~${Math.round(pct)}% of the monthly traffic & leads goal by the end of the month`}
+                              </p>
+
+                              {/* Context call-out when At Risk */}
+                              <div className={status === 'atRisk' ? 'bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2' : 'hidden'}>
+                                <div className="flex items-start gap-3">
+                                  <TrendingUp className="h-5 w-5 text-amber-600 mt-0.5" />
+                                  <div>
+                                    <p className="text-sm font-medium text-amber-800">{Math.max(0, 100 - Math.round(pct))}% behind target</p>
+                                    <p className="text-xs text-amber-700 mt-1">Action needed to reach goal by month end.</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* 4. Timeline Estimate */}
@@ -966,7 +1473,7 @@ function KpiDashboard() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* 1. Target KPI Summary */}
-                      <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <div className="space-y-2 border-b border-gray-100 pb-4 min-h-[140px]">
                         <h3 className="text-sm font-medium text-gray-600 flex items-center">
                           <ChevronUp className="h-4 w-4 mr-1 text-gray-500" />
                           Target KPI Summary
@@ -988,7 +1495,7 @@ function KpiDashboard() {
                       </div>
 
                       {/* 2. Gap Analysis */}
-                      <div className="space-y-2 border-b border-gray-100 pb-4">
+                      <div className="space-y-2 border-b border-gray-100 pb-4 min-h-[160px]">
                         <h3 className="text-sm font-medium text-gray-600 flex items-center">
                           <AlertOctagon className="h-4 w-4 mr-1 text-gray-500" />
                           Gap Analysis
@@ -996,68 +1503,68 @@ function KpiDashboard() {
                         <div className="space-y-1">
                           <div className="flex justify-between">
                             <span className="text-sm">% of Gap to Close</span>
-                            <div className="flex items-center text-rose-600">
-                              <ArrowUp className="h-4 w-4 mr-1" />
-                              <span className="text-sm font-medium">35%</span>
-                            </div>
+                            {forecastStd && (
+                              <div className={`flex items-center ${forecastStd.gap > 0 ? 'text-rose-600' : 'text-green-600'}`}>
+                                {forecastStd.gap > 0 ? <ArrowUp className="h-4 w-4 mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                                <span className="text-sm font-medium">{Math.abs(forecastStd.gapPct).toFixed(1)}%</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm">Estimated Shortfall</span>
-                            <span className="text-sm font-medium text-rose-600">~31,500 visits below {getPacingText()} target</span>
+                            {forecastStd && (
+                              <span className={`text-sm font-medium ${forecastStd.gap > 0 ? 'text-rose-600' : 'text-green-600'}`}>
+                                {forecastStd.gap > 0
+                                  ? `~${Math.round(Math.abs(forecastStd.gap)).toLocaleString()} visits below ${getPacingText()} target`
+                                  : `Projected to exceed target by ~${Math.round(Math.abs(forecastStd.gap)).toLocaleString()} visits`}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      {/* 3. Required Adjustments */}
-                      <div className="space-y-2 border-b border-gray-100 pb-4">
-                        <h3 className="text-sm font-medium text-gray-600 flex items-center">
-                          <Filter className="h-4 w-4 mr-1 text-gray-500" />
-                          Required Adjustments
-                        </h3>
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm">Deliverables</span>
-                            <span className="text-sm font-medium">+4 briefs / month</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Timeline</span>
-                            <span className="text-sm font-medium">+2 months</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-sm">Conversion Rate</span>
-                            <span className="text-sm font-medium">↑ from 1.7% → 2.1%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 4. Visual Comparison Chart */}
-                      <div className="space-y-2">
+                      {/* 3. Trajectory Comparison */}
+                      <div className="space-y-2 min-h-[180px]">
                         <h3 className="text-sm font-medium text-gray-600 flex items-center">
                           <BarChart4 className="h-4 w-4 mr-1 text-gray-500" />
                           Trajectory Comparison
                         </h3>
-                        <div className="h-[150px] w-full bg-gray-50 rounded-lg border border-gray-200 p-2">
-                          <div className="flex items-end h-full w-full">
-                            {/* Simplified chart visualization */}
-                            <div className="flex-1 flex flex-col items-center">
-                              <div className="h-[60%] w-4 bg-[#9EA8FB] rounded-t-sm"></div>
-                              <div className="text-xs text-gray-500 mt-1">Current</div>
+                        {forecastStd ? (
+                          <>
+                            <div className="h-[150px] w-full bg-gray-50 rounded-lg border border-gray-200 p-2">
+                              <div className="flex items-end h-full w-full">
+                                {/* Current actual progress */}
+                                <div className="flex-1 flex flex-col items-center">
+                                  <div
+                                    className="w-4 rounded-t-sm bg-[#9EA8FB]"
+                                    style={{ height: `${forecastStd.pctGoalAchieved}%` }}
+                                  />
+                                  <div className="text-xs text-gray-500 mt-1">Current</div>
+                                </div>
+                                {/* Projected */}
+                                <div className="flex-1 flex flex-col items-center">
+                                  <div
+                                    className="w-4 rounded-t-sm bg-amber-400"
+                                    style={{ height: `${Math.min(forecastStd.projectedPct,100)}%` }}
+                                  />
+                                  <div className="text-xs text-gray-500 mt-1">Projected</div>
+                                </div>
+                                {/* Target */}
+                                <div className="flex-1 flex flex-col items-center">
+                                  <div className="w-4 h-full bg-green-500 rounded-t-sm"></div>
+                                  <div className="text-xs text-gray-500 mt-1">Target</div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex-1 flex flex-col items-center">
-                              <div className="h-[100%] w-4 bg-green-500 rounded-t-sm"></div>
-                              <div className="text-xs text-gray-500 mt-1">Target</div>
+                            <div className="flex justify-between text-xs text-gray-500">
+                              <span>Current: {forecastStd.trafficActual.toLocaleString()}</span>
+                              <span>Projected: {Math.round(forecastStd.projectedPct)}%</span>
+                              <span>Target: 100%</span>
                             </div>
-                            <div className="flex-1 flex flex-col items-center">
-                              <div className="h-[85%] w-4 bg-amber-500 rounded-t-sm"></div>
-                              <div className="text-xs text-gray-500 mt-1">Required</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>Current: 60,500</span>
-                          <span>Required: 78,200</span>
-                          <span>Target: 92,000</span>
-                        </div>
+                          </>
+                        ) : (
+                          <p className="text-xs text-mediumGray">Loading…</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -1092,37 +1599,32 @@ function KpiDashboard() {
                             </tr>
                           </thead>
                           <tbody>
-                            {kpiData.forecasting.trafficForecast.map((item, index) => (
+                            {momRows.length ? momRows.map((row, index) => (
                               <tr key={index} className="hover:bg-gray-50 border-b">
-                                <td className="px-4 py-4 text-base font-medium text-gray-900">{item.month}</td>
+                                <td className="px-4 py-4 text-base font-medium text-gray-900">{row.month}</td>
                                 <td className="px-4 py-4 text-base text-gray-700">
-                                  {(item.actual || item.forecast)?.toLocaleString()}
+                                  {row.traffic?.toLocaleString()}
                                 </td>
                                 <td className="px-4 py-4">
-                                  {kpiData.forecasting.trafficForecastMoM[index].growth !== null ? (
+                                  {row.growth !== null && row.growth !== undefined ? (
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
-                                      kpiData.forecasting.trafficForecastMoM[index].growth >= 5 
-                                        ? 'bg-[#9EA8FB]/20 text-[#6A6AC9]' 
-                                        : kpiData.forecasting.trafficForecastMoM[index].growth >= 0
-                                          ? 'bg-[#FFE4A6]/20 text-[#B58B2A]'
-                                          : 'bg-red-100 text-red-800'
+                                      row.growth >= 5 ? 'bg-[#9EA8FB]/20 text-[#6A6AC9]' : row.growth >= 0 ? 'bg-[#FFE4A6]/20 text-[#B58B2A]' : 'bg-red-100 text-red-800'
                                     }`}>
-                                      {kpiData.forecasting.trafficForecastMoM[index].growth >= 0 ? '+' : ''}
-                                      {kpiData.forecasting.trafficForecastMoM[index].growth}%
+                                      {row.growth >= 0 ? '+' : ''}{row.growth}%
                                     </span>
                                   ) : (
                                     <span className="text-gray-500">-</span>
                                   )}
                                 </td>
                                 <td className="px-4 py-4">
-                                  {kpiData.forecasting.trafficForecastMoM[index].growth !== null && (
+                                  {row.growth !== null && row.growth !== undefined && (
                                     <div className="flex items-center">
-                                      {kpiData.forecasting.trafficForecastMoM[index].growth >= 5 ? (
+                                      {row.growth >= 5 ? (
                                         <>
                                           <TrendingUp className="h-4 w-4 mr-1 text-[#6A6AC9]" />
                                           <span className="text-xs text-[#6A6AC9]">Strong</span>
                                         </>
-                                      ) : kpiData.forecasting.trafficForecastMoM[index].growth >= 0 ? (
+                                      ) : row.growth >= 0 ? (
                                         <>
                                           <ArrowUpDown className="h-4 w-4 mr-1 text-[#B58B2A]" />
                                           <span className="text-xs text-[#B58B2A]">Stable</span>
@@ -1137,7 +1639,11 @@ function KpiDashboard() {
                                   )}
                                 </td>
                               </tr>
-                            ))}
+                            )) : (
+                              <tr>
+                                <td colSpan={4} className="px-4 py-4 text-center text-sm text-gray-500">No month-over-month data available.</td>
+                              </tr>
+                            )}
                           </tbody>
                         </table>
                       </div>
@@ -1228,17 +1734,18 @@ function KpiDashboard() {
                       <div className="mt-8">
                         <h3 className="text-sm font-medium text-gray-700 mb-4">Quarterly Breakdown</h3>
                         <div className="grid grid-cols-4 gap-4">
-                          {['Q1', 'Q2', 'Q3', 'Q4'].map((quarter, index) => (
-                            <div key={quarter} className="bg-white p-4 rounded-lg border border-gray-200">
-                              <div className="text-sm font-medium mb-2">{quarter}</div>
-                              <div className="text-xl font-bold">
-                                {(kpiData.forecasting.yearlyBreakdown.thisYear.total / 4 * (0.85 + index * 0.1)).toLocaleString(undefined, {maximumFractionDigits: 0})}
-                              </div>
-                              <div className="mt-2 text-xs text-gray-500">
-                                {index < 2 ? 'Actual' : 'Forecast'}
-                              </div>
+                          {quarterRows.length ? quarterRows.map((q) => (
+                            <div
+                              key={q.quarter}
+                              className={`p-4 rounded-lg border border-gray-200 ${q.isActual ? 'bg-[#F3F4FF]' : 'bg-[#FFF9CC]'}`}
+                            >
+                              <div className="text-sm font-medium mb-2">{q.quarter}</div>
+                              <div className="text-xl font-bold">{q.total.toLocaleString()}</div>
+                              <div className="mt-2 text-xs text-gray-500">{q.isActual ? 'Actual' : 'Forecast'}</div>
                             </div>
-                          ))}
+                          )) : (
+                            <p className="text-sm text-gray-500 col-span-4">No quarterly data available.</p>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -1259,92 +1766,52 @@ function KpiDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="h-[300px] w-full">
-                      {/* Chart for Traffic Share with Figma-matched colors */}
-                      <div className="bg-white h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
-                        <div className="flex flex-col items-center w-full">
-                          <div className="relative h-56 w-56 flex items-center justify-center">
-                            {/* Overlapping rectangles */}
-                            <div className="absolute left-10 top-8 w-24 h-24 bg-[#9EA8FB] rounded-lg transform -rotate-6"></div>
-                            <div className="absolute right-6 top-10 w-22 h-22 bg-[#FFE4A6] rounded-lg transform rotate-6"></div>
-                            <div className="absolute right-12 bottom-8 w-20 h-20 bg-[#B1E3FF] rounded-lg transform rotate-3"></div>
-                            <div className="absolute left-12 bottom-12 w-20 h-18 bg-[#A5D7A7] rounded-lg transform -rotate-3"></div>
-                            <div className="absolute left-6 top-24 w-14 h-14 bg-[#F8BBD0] rounded-lg transform rotate-12"></div>
-
-                            {/* Central text bubble */}
-                            <div className="bg-white rounded-lg shadow-sm z-10 p-3 flex flex-col items-center justify-center">
-                              <span className="text-xs text-gray-700 font-medium">Traffic</span>
-                              <span className="text-xs text-gray-700 font-medium">Share</span>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-x-6 gap-y-2 mt-8">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#9EA8FB]"></div>
-                              <span className="text-xs text-gray-500">Blog (35%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#FFE4A6]"></div>
-                              <span className="text-xs text-gray-500">Product (25%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#B1E3FF]"></div>
-                              <span className="text-xs text-gray-500">Category (20%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#A5D7A7]"></div>
-                              <span className="text-xs text-gray-500">Landing (15%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#F8BBD0]"></div>
-                              <span className="text-xs text-gray-500">Resource (5%)</span>
-                            </div>
-                          </div>
-                        </div>
+                      {/* Traffic Share Pie Chart */}
+                      <div className="bg-white h-full w-full rounded-lg border border-gray-200 p-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Tooltip />
+                            <Pie
+                              data={kpiData.pageTypeBreakdown.traffic}
+                              dataKey="traffic"
+                              nameKey="type"
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={100}
+                              label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                            >
+                              {kpiData.pageTypeBreakdown.traffic.map((_: any, idx: number) => (
+                                <Cell key={`cell-traffic-${idx}`} fill={PAGE_TYPE_COLORS[idx % PAGE_TYPE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '0.75rem' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
 
                     <div className="h-[300px] w-full">
-                      {/* Chart for Conversion Share with Figma-matched colors */}
-                      <div className="bg-white h-full w-full rounded-lg border border-gray-200 p-4 flex items-center justify-center">
-                        <div className="flex flex-col items-center w-full">
-                          <div className="relative h-56 w-56 flex items-center justify-center">
-                            {/* Overlapping rectangles */}
-                            <div className="absolute left-12 top-8 w-20 h-20 bg-[#9EA8FB] rounded-lg transform -rotate-6"></div>
-                            <div className="absolute right-6 top-8 w-28 h-28 bg-[#FFE4A6] rounded-lg transform rotate-6"></div>
-                            <div className="absolute right-12 bottom-8 w-18 h-18 bg-[#B1E3FF] rounded-lg transform rotate-3"></div>
-                            <div className="absolute left-10 bottom-10 w-20 h-20 bg-[#A5D7A7] rounded-lg transform -rotate-3"></div>
-                            <div className="absolute left-6 top-28 w-10 h-10 bg-[#F8BBD0] rounded-lg transform rotate-12"></div>
-
-                            {/* Central text bubble */}
-                            <div className="bg-white rounded-lg shadow-sm z-10 p-3 flex flex-col items-center justify-center">
-                              <span className="text-xs text-gray-700 font-medium">Conversion</span>
-                              <span className="text-xs text-gray-700 font-medium">Share</span>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-x-6 gap-y-2 mt-8">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#9EA8FB]"></div>
-                              <span className="text-xs text-gray-500">Blog (25%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#FFE4A6]"></div>
-                              <span className="text-xs text-gray-500">Product (40%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#B1E3FF]"></div>
-                              <span className="text-xs text-gray-500">Category (15%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#A5D7A7]"></div>
-                              <span className="text-xs text-gray-500">Landing (18%)</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full bg-[#F8BBD0]"></div>
-                              <span className="text-xs text-gray-500">Resource (2%)</span>
-                            </div>
-                          </div>
-                        </div>
+                      {/* Conversion Share Pie Chart */}
+                      <div className="bg-white h-full w-full rounded-lg border border-gray-200 p-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Tooltip />
+                            <Pie
+                              data={kpiData.pageTypeBreakdown.traffic}
+                              dataKey="clicks"
+                              nameKey="type"
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={100}
+                              label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                            >
+                              {kpiData.pageTypeBreakdown.traffic.map((_: any, idx: number) => (
+                                <Cell key={`cell-conv-${idx}`} fill={PAGE_TYPE_COLORS[idx % PAGE_TYPE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '0.75rem' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
                   </div>
@@ -1357,18 +1824,18 @@ function KpiDashboard() {
                           <tr className="bg-gray-100 border-b border-gray-200">
                             <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-bl-[12px]">Page Type</th>
                             <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Traffic</th>
-                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Conversions</th>
+                            <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Clicks</th>
                             <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Conversion Rate</th>
                             <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%]">Avg. Position</th>
                             <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[16%] rounded-br-[12px]">MoM Change</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {kpiData.pageTypeBreakdown.traffic.map((item, index) => (
+                          {kpiData.pageTypeBreakdown.traffic.map((item: any, index: number) => (
                             <tr key={index} className="hover:bg-gray-50 border-b">
                               <td className="px-4 py-4 text-base font-medium text-gray-900">{item.type}</td>
                               <td className="px-4 py-4 text-base text-gray-700">{item.traffic.toLocaleString()}</td>
-                              <td className="px-4 py-4 text-base text-gray-700">{item.conversions.toLocaleString()}</td>
+                              <td className="px-4 py-4 text-base text-gray-700">{item.clicks.toLocaleString()}</td>
                               <td className="px-4 py-4 text-base text-gray-700">{item.conversionRate.toFixed(2)}%</td>
                               <td className="px-4 py-4 text-base text-gray-700">{item.avgPosition.toFixed(1)}</td>
                               <td className="px-4 py-4">
@@ -1399,7 +1866,7 @@ function KpiDashboard() {
                           <div>
                             <h6 className="text-xs text-gray-500 mb-2">Top 3</h6>
                             <div className="space-y-2">
-                              {kpiData.pageTypeBreakdown.highLowPerformers.traffic.high.map((item, index) => (
+                              {kpiData.pageTypeBreakdown.highLowPerformers.traffic.high.map((item: any, index: number) => (
                                 <div key={index} className="flex justify-between items-center text-xs">
                                   <div className="truncate w-36">
                                     {item.url}
@@ -1418,7 +1885,7 @@ function KpiDashboard() {
                           <div>
                             <h6 className="text-xs text-gray-500 mb-2">Bottom 3</h6>
                             <div className="space-y-2">
-                              {kpiData.pageTypeBreakdown.highLowPerformers.traffic.low.map((item, index) => (
+                              {kpiData.pageTypeBreakdown.highLowPerformers.traffic.low.map((item: any, index: number) => (
                                 <div key={index} className="flex justify-between items-center text-xs">
                                   <div className="truncate w-36">
                                     {item.url}
@@ -1437,23 +1904,23 @@ function KpiDashboard() {
                         </div>
                       </div>
 
-                      {/* Conversions Section */}
+                      {/* Clicks Section */}
                       <div className="bg-white p-4 rounded-lg border border-gray-200">
                         <h5 className="text-sm font-medium mb-3 flex items-center">
                           <span className="w-2 h-2 rounded-full bg-[#FFE4A6] mr-2"></span>
-                          Conversions
+                          Clicks
                         </h5>
                         <div className="space-y-4">
                           <div>
                             <h6 className="text-xs text-gray-500 mb-2">Top 3</h6>
                             <div className="space-y-2">
-                              {kpiData.pageTypeBreakdown.highLowPerformers.conversions.high.map((item, index) => (
+                              {kpiData.pageTypeBreakdown.highLowPerformers.clicks.high.map((item: any, index: number) => (
                                 <div key={index} className="flex justify-between items-center text-xs">
                                   <div className="truncate w-36">
                                     {item.url}
                                   </div>
                                   <div className="flex items-center">
-                                    <span className="mr-2">{item.metric}</span>
+                                    <span className="mr-2">{item.metric.toLocaleString()}</span>
                                     <div className="flex items-center text-[#6A6AC9]">
                                       <ArrowUp className="h-3 w-3 mr-1" />
                                       {item.change}%
@@ -1466,61 +1933,13 @@ function KpiDashboard() {
                           <div>
                             <h6 className="text-xs text-gray-500 mb-2">Bottom 3</h6>
                             <div className="space-y-2">
-                              {kpiData.pageTypeBreakdown.highLowPerformers.conversions.low.map((item, index) => (
+                              {kpiData.pageTypeBreakdown.highLowPerformers.clicks.low.map((item: any, index: number) => (
                                 <div key={index} className="flex justify-between items-center text-xs">
                                   <div className="truncate w-36">
                                     {item.url}
                                   </div>
                                   <div className="flex items-center">
-                                    <span className="mr-2">{item.metric}</span>
-                                    <div className="flex items-center text-[#B58B2A]">
-                                      <ArrowDown className="h-3 w-3 mr-1" />
-                                      {Math.abs(item.change)}%
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Time on Page Section */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200">
-                        <h5 className="text-sm font-medium mb-3 flex items-center">
-                          <span className="w-2 h-2 rounded-full bg-[#B1E3FF] mr-2"></span>
-                          Time on Page
-                        </h5>
-                        <div className="space-y-4">
-                          <div>
-                            <h6 className="text-xs text-gray-500 mb-2">Top 3</h6>
-                            <div className="space-y-2">
-                              {kpiData.pageTypeBreakdown.highLowPerformers.timeOnPage.high.map((item, index) => (
-                                <div key={index} className="flex justify-between items-center text-xs">
-                                  <div className="truncate w-36">
-                                    {item.url}
-                                  </div>
-                                  <div className="flex items-center">
-                                    <span className="mr-2">{item.metric}</span>
-                                    <div className="flex items-center text-[#6A6AC9]">
-                                      <ArrowUp className="h-3 w-3 mr-1" />
-                                      {item.change}%
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <h6 className="text-xs text-gray-500 mb-2">Bottom 3</h6>
-                            <div className="space-y-2">
-                              {kpiData.pageTypeBreakdown.highLowPerformers.timeOnPage.low.map((item, index) => (
-                                <div key={index} className="flex justify-between items-center text-xs">
-                                  <div className="truncate w-36">
-                                    {item.url}
-                                  </div>
-                                  <div className="flex items-center">
-                                    <span className="mr-2">{item.metric}</span>
+                                    <span className="mr-2">{item.metric.toLocaleString()}</span>
                                     <div className="flex items-center text-[#B58B2A]">
                                       <ArrowDown className="h-3 w-3 mr-1" />
                                       {Math.abs(item.change)}%
@@ -1563,7 +1982,7 @@ function KpiDashboard() {
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Page Type Optimization Opportunities</h4>
                     <div className="space-y-4">
-                      {kpiData.pageTypeBreakdown.opportunities.map((item, index) => (
+                      {(kpiData.pageTypeBreakdown.opportunities ?? []).map((item: any, index: number) => (
                         <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                           <div className="flex items-start">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${

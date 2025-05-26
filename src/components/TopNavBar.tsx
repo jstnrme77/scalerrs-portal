@@ -155,60 +155,6 @@ export default function TopNavBar({
           </div>
         )}
 
-        {isKpiDashboardPage && (
-          <div className="flex items-center gap-2">
-            <Select
-              value={dateView}
-              onValueChange={(value) => {
-                if (onDateViewChange) {
-                  onDateViewChange(value);
-                }
-              }}
-            >
-              <SelectTrigger className="month-selector-rounded w-[180px] h-9 flex items-center bg-white rounded-lg">
-                <Calendar className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="View">
-                  {dateView === 'monthly' ? 'Monthly View' :
-                   dateView === 'quarterly' ? 'Quarterly View' :
-                   'Yearly View'}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="monthly">Monthly View</SelectItem>
-                <SelectItem value="quarterly">Quarterly View</SelectItem>
-                <SelectItem value="yearly">Yearly View</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={comparisonPeriod}
-              onValueChange={(value) => {
-                if (onComparisonChange) {
-                  onComparisonChange(value);
-                }
-              }}
-            >
-              <SelectTrigger className="month-selector-rounded w-[180px] h-9 flex items-center bg-white rounded-lg">
-                <SelectValue placeholder="Comparison">
-                  {comparisonPeriod === 'previous-period' ? 'Previous Period' :
-                   comparisonPeriod === 'previous-year' ? 'Previous Year' :
-                   'Custom Period'}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="previous-period">Previous Period</SelectItem>
-                <SelectItem value="previous-year">Previous Year</SelectItem>
-                <SelectItem value="custom">Custom Period</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <button className="month-selector-rounded justify-center rounded-lg font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-[#12131C] bg-white text-[#12131C] hover:opacity-90 h-10 px-4 py-2 text-sm flex items-center">
-              <Download className="h-4 w-4 mr-1" />
-              Export Report
-            </button>
-          </div>
-        )}
-
         {isTaskBoardsPage && onAddTask && (
           <button
             onClick={onAddTask}

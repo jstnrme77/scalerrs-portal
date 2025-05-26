@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getUserByEmail } from '@/lib/airtable';
 import { User } from '@/types';
+import { type NextRequest } from 'next/server';
 
 // Configure for dynamic API route
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   console.log('Login API route called');
 
   try {

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
 import { TABLES } from '@/lib/airtable';
+import { type NextRequest } from 'next/server';
 
 // Configure for Netlify deployment
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   // Get Airtable credentials from environment variables
   const apiKey = process.env.AIRTABLE_API_KEY;
   const baseId = process.env.AIRTABLE_BASE_ID;

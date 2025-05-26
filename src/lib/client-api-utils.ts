@@ -11,6 +11,7 @@ import { getFromCacheOrFetch, clearCacheByPrefix, clearCacheEntry } from './clie
 const WQA_TASKS_CACHE_KEY = 'wqa_tasks';
 const CRO_TASKS_CACHE_KEY = 'cro_tasks';
 const STRATEGY_TASKS_CACHE_KEY = 'strategy_tasks';
+const TASK_FIELD_OPTIONS_CACHE_KEY = 'task_field_options';
 
 /**
  * Generic function to fetch data from the API
@@ -577,9 +578,8 @@ export async function fetchWQATasks(
   // route now returns all WQA rows and applies filtering solely by client ID.
   let url = `wqa-tasks?t=${timestamp}`;
 
-  
-  // Add clientId parameter if provided
-  if (clientId && clientId !== 'all') {
+  // Forward the concrete clientId when we have one (never "all")
+  if (clientId) {
     url += `&clientId=${encodeURIComponent(clientId)}`;
   }
   
@@ -798,52 +798,31 @@ export async function createWQATask(taskData: {
   effort: string;
   notes?: string;
   boardType: string;
-  clients?: string[]; // Add clients property to the type
+  clients?: string[];
 }) {
+  console.log("createWQATask called with taskData (including clients):", taskData);
   // Clear the WQA tasks cache to ensure we get fresh data
   clearWQATasksCache();
+  
+  // Build the payload exactly as the API route expects (client-side labels)
+  const payload = {
+    task      : taskData.task,
+    status    : taskData.status,
+    priority  : taskData.priority,
+    impact    : taskData.impact,
+    effort    : taskData.effort,
+    notes     : taskData.notes,
+    assignedTo: taskData.assignedTo,
+    boardType : taskData.boardType,
+    clients   : taskData.clients
+  };
 
-    // Build the payload exactly as the API route expects (client-side labels)
-    const payload = {
-      task      : taskData.task,
-      status    : taskData.status,
-      priority  : taskData.priority,
-      impact    : taskData.impact,
-      effort    : taskData.effort,
-      notes     : taskData.notes,
-      assignedTo: taskData.assignedTo,
-      boardType : taskData.boardType,
-      clients   : taskData.clients
-    };
-  
-  // Map the status to Airtable accepted values
-  let airtableStatus: string;
-  switch (taskData.status.toLowerCase()) {
-    case 'not started':
-      airtableStatus = 'To Do';
-      break;
-    case 'in progress':
-      airtableStatus = 'In Progress';
-      break;
-    case 'blocked':
-    case 'done':
-      airtableStatus = 'Setup';
-      break;
-    default:
-      airtableStatus = 'To Do';
-  }
-  
-  // Note: We're not passing the Type field to Airtable as it's causing errors
-  // Create the task via the API
   const resp = await fetchFromApi(
     'wqa-tasks/add-task',
     {
-      method: 'POST',
+      method : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        ...taskData,
-        status: airtableStatus // Use the mapped status value
-      })
+      body   : JSON.stringify(payload)
     },
     // Fallback mock data
     {
@@ -861,7 +840,7 @@ export async function createWQATask(taskData: {
     }
   );
 
-  // API returns { success: true, task: {...} } – unwrap
+  // API returns { success: true, task: {...} } – unwrap to keep a flat Task object
   if (resp && typeof resp === 'object' && 'task' in resp) {
     return (resp as any).task;
   }
@@ -965,13 +944,12 @@ export async function createCROTask(taskData: {
   // Clear the CRO tasks cache to ensure we get fresh data
   clearCROTasksCache();
   
-  // Create the task via the API
   const resp = await fetchFromApi(
     'cro-tasks/add-task',
     {
-      method: 'POST',
+      method : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(taskData)
+      body   : JSON.stringify(taskData)
     },
     // Fallback mock data
     {
@@ -986,7 +964,7 @@ export async function createCROTask(taskData: {
       dateLogged  : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       comments    : [],
       commentCount: 0,
-      type: 'CRO'
+      type        : 'CRO'
     }
   );
 
@@ -1032,7 +1010,6 @@ export async function updateCROTaskStatus(taskId: string, status: string) {
 export function clearCROTasksCache() {
   localStorage.removeItem(CRO_TASKS_CACHE_KEY);
 }
-
 
 /**
  * Fetch Strategy / Ad-hoc tasks from the API (Airtable table: "Strategy Tasks")
@@ -1157,10 +1134,28 @@ export async function createStrategyTask(taskData: {
     }
   );
 
-  // API returns { success: true, task: {...} } – unwrap
+  // API returns { task: { ... } } or { success: true, task: { ... } } – unwrap
   if (resp && typeof resp === 'object' && 'task' in resp) {
     return (resp as any).task;
   }
 
   return resp;
+}
+
+export async function getTaskFieldOptions(boardType: string) {
+    const res = await fetch(`/api/task-field-options?boardType=${boardType}`);
+    if (!res.ok) throw new Error("Unable to load options");
+    return res.json();            // { assignedTo: [...], priority: [...], ... }
+}
+
+export async function addTask(
+    boardType: string,
+    data: Record<string, any>,
+) {
+    const res = await fetch("/api/task-add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ boardType, data }),
+    });
+    return res.ok;
 }

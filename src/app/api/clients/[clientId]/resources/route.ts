@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import Airtable from 'airtable';
+import { type NextRequest } from 'next/server';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
   .base(process.env.AIRTABLE_BASE_ID!);
 
 const TABLE = 'client resources';
 
-export async function GET(_: Request, { params }: { params: { clientId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
   const rs = await base(TABLE)
     .select({ filterByFormula: `{Client Record ID} = '${params.clientId}'` })
     .all();
@@ -22,9 +26,12 @@ export async function GET(_: Request, { params }: { params: { clientId: string }
   );
 }
 
-export async function POST(req: Request, context: { params: { clientId: string } }) {
-  const body = await req.json(); // first async op
-  const clientId = context.params.clientId; // safe to access after await
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { clientId: string } }
+) {
+  const body = await request.json(); // first async op
+  const clientId = params.clientId; // safe to access after await
 
   /* --------------------------------------------------------------
    * Determine if we have a data-URL that must be uploaded via
