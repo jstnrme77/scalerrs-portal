@@ -550,7 +550,7 @@ export default function DeliverablePage() {
                 : 0}%
             </span>
             <span className="text-base font-medium">
-              Briefs Approved
+              Briefs Delivered
             </span>
             <span className="text-base text-mediumGray mt-1">
               {filteredBriefs.filter(brief => 
