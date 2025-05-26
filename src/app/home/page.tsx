@@ -249,13 +249,14 @@ export default function Home() {
                 <p className="text-base text-[#12131C]">Tasks Completed</p>
               </div>
               <div className="mt-auto pt-6">
-              <LinkButton 
-                  href="/get-started" 
+                <Button
                   variant="primary"
-                  className="text-base get-started-btn w-full"
+                  size="lg"
+                  className="mt-auto get-started-btn text-base w-full"
+                  onClick={() => setChecklistModalOpen(true)}
                 >
-                  Complete Onboarding Forms
-                  </LinkButton>
+                  Resume Checklist
+                </Button>
               </div>
             </div>
 
