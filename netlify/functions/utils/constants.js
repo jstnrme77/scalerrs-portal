@@ -51,6 +51,7 @@ const FIELD_MAPPINGS = {
   BRIEF_DUE_DATE: ['Due Date', 'Due Date (Publication)'],
   BRIEF_DOCUMENT_LINK: ['Content Brief Link (G Doc)', 'Document Link'],
   BRIEF_APPROVAL: 'Brief Approval',
+  BRIEF_NEW_REFRESH: ['New/Refresh', 'New or Refresh'],
   
   // Article specific fields
   ARTICLE_WRITER: ['Content Writer', 'Writer'],

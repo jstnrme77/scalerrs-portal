@@ -30,6 +30,7 @@ const FIELD_CATEGORIES = {
   domainRating: ['Domain Authority/Rating', 'DR', 'Domain Rating', 'DA', 'Domain Authority'],
   linkType: ['Link Type', 'Type'],
   targetURL: ['Target URL', 'Target Page', 'Destination URL']
+  newRefresh: ['New/Refresh', 'New or Refresh', 'Content Type']
 };
 
 /**

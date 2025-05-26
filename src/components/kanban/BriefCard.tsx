@@ -4,6 +4,8 @@ import { Brief, BriefStatus } from '@/types';
 import { getClientNameSync } from '@/utils/clientUtils';
 import { ensureUrlProtocol } from '@/utils/field-utils';
 import { FileText } from 'lucide-react';
+import { getFieldValue } from '@/lib/airtable/utils';
+import { FIELD_MAPPINGS } from '@/constants/FieldMappings';
 
 interface BriefCardProps {
   brief: Brief;
@@ -133,6 +135,10 @@ export default function BriefCard({ brief, selectedMonth, onStatusChange, hideAc
       </div>
 
       <div className="grid grid-cols-2 gap-x-2 gap-y-2 mb-4">
+        <div className="flex items-center col-span-2">
+          <span className="text-xs text-gray-500 mr-1">New/Refresh:</span>
+          <span className="text-xs text-gray-700 truncate">{formatTitle(getFieldValue(brief, ['New/Refresh', 'New or Refresh'], ''))}</span>
+        </div>
         <div className="flex items-center col-span-2">
           <span className="text-xs text-gray-500 mr-1">SEO Strategist:</span>
           <span className="text-xs text-gray-700 truncate">{getDisplayName(brief['SEO Strategist'] || brief['SEO Assignee'])}</span>
