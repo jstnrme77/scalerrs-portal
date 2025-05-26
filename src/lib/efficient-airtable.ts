@@ -170,15 +170,15 @@ function formatKeywordItem(record: any): ApprovalItem {
     clients: fields["Clients"] || [],
     clientRecordId: fields["Client Record ID"] || "",
     strategist: fields["SEO Assignee"] || "Unassigned",
-    volume: fields["Main Keyword VOL"] || 0,
-    difficulty: fields["Main Keyword KD"] || 0,
-    keywordScore: fields["Target KW Score"] || 0,
+    volume: fields["Main Keyword VOL"] || "0",
+    difficulty: fields["Main Keyword KD"] || "0",
+    keywordScore: fields["Target KW Score"] || "0",
     dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
     dateApproved: formatDate(fields["Keyword Approval Date"], ''),
     revisionReason: fields["Revision Reason"] || "",
     documentLink: fields["Content Brief Link (G Doc)"] || "",
     currentPosition: fields["Current Position"] || "Not Ranked",
-    keywordUplift: fields["Keyword Uplift"] || 0
+    keywordUplift: fields["Keyword Uplift"] || "0"
   };
 }
 
@@ -196,10 +196,10 @@ function formatBriefItem(record: any): ApprovalItem {
     strategist: fields["SEO Assignee"] || "Unassigned",
     writer: fields["Content Writer"] || "Unassigned",
     editor: fields["Content Editor"] || "Unassigned",
-    volume: fields["Main Keyword VOL"] || 0,
-    difficulty: fields["Main Keyword KD"] || 0,
+    volume: fields["Main Keyword VOL"] || "0",
+    difficulty: fields["Main Keyword KD"] || "0",
     type: fields["Page Type ( Main )"] || "Not Specified",
-    wordCount: fields["Final Word Count"] || fields["Target Word Count"] || 0,
+    wordCount: fields["Final Word Count"] || fields["Target Word Count"] || "0",
     dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
     dateApproved: formatDate(fields["Brief Approval Date"], ''),
     revisionReason: fields["Brief Revision Reason"] || "",
@@ -224,7 +224,7 @@ function formatArticleItem(record: any): ApprovalItem {
     strategist: fields["SEO Assignee"] || "Unassigned",
     writer: fields["Content Writer"] || "Unassigned",
     editor: fields["Content Editor"] || "Unassigned",
-    wordCount: fields["Final Word Count"] || fields["Target Word Count"] || 0,
+    wordCount: fields["Final Word Count"] || fields["Target Word Count"] || "0",
     type: fields["Content Type"] || fields["Page Type ( Main )"] || "Not Specified",
     dateSubmitted: formatDate(fields["Created Time"], 'N/A'),
     dateApproved: formatDate(fields["Article Approval Date"], ''),

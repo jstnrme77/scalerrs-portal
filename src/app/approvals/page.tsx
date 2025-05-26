@@ -9,6 +9,7 @@ import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, Bar
 import { updateApprovalStatus, clearApprovalsCache } from '@/lib/client-api-utils';
 import Pagination from '@/components/ui/Pagination';
 import { useClientData } from '@/context/ClientDataContext';
+import { ConversationHistoryModal } from '@/components/ui/modals';
 // Import the URL utility function
 import { ensureUrlProtocol, formatDate } from '@/utils/field-utils';
 
@@ -611,8 +612,395 @@ function SidebarSummaryPanel({
   );
 }
 
-// Import the ConversationHistoryModal
-import { ConversationHistoryModal } from '@/components/ui/modals';
+
+
+// Approval Card Component
+function ApprovalCard({
+  item,
+  isSelected,
+  showInteractiveCheckbox,
+  activeTab,
+  onToggleItemSelection,
+  onApprove,
+  onRequestChanges,
+  openConversationModal
+}: {
+  item: ApprovalItem;
+  isSelected: boolean;
+  showInteractiveCheckbox: boolean;
+  activeTab: string;
+  onToggleItemSelection: (id: string) => void;
+  onApprove: (id: string) => void;
+  onRequestChanges: (id: string) => void;
+  openConversationModal: (itemId: string, itemTitle: string) => void;
+}) {
+  // Determine document link based on active tab
+  const getDocumentLink = () => {
+    if (activeTab === 'briefs') {
+      return item.documentLink || 
+             item['Content Brief Link (G Doc)'] || 
+             item['Brief Document Link'] || 
+             null;
+    } else if (activeTab === 'articles') {
+      return item.documentLink || 
+             item['Written Content (G Doc)'] || 
+             item['Content Link (G Doc)'] ||
+             item['Article Document Link'] ||
+             null;
+    }
+    return null;
+  };
+
+  const documentLink = getDocumentLink();
+
+  return (
+    <div className={`bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
+      <div className="flex items-start gap-4">
+        {/* Checkbox */}
+        <div className="flex items-center justify-center mt-1">
+          {showInteractiveCheckbox ? (
+            <input
+              type="checkbox"
+              className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+              checked={isSelected}
+              onChange={() => onToggleItemSelection(item.id)}
+            />
+          ) : (
+            <div className="h-5 w-5"></div>
+          )}
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 space-y-4">
+          {/* Header with URL and Status */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-blue-600" />
+                {documentLink ? (
+                  <a
+                    href={ensureUrlProtocol(documentLink)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-lg font-medium text-blue-600 hover:underline"
+                  >
+                    {item.item}
+                  </a>
+                ) : (
+                  <span className="text-lg font-medium text-gray-900">{item.item}</span>
+                )}
+              </div>
+              {activeTab === 'backlinks' && item.linkType && (
+                <p className="text-sm text-gray-600">Link Type: {item.linkType}</p>
+              )}
+              {activeTab === 'articles' && (
+                <div className="space-y-1">
+                  {item.wordCount && <p className="text-sm text-gray-600">{item.wordCount} words</p>}
+                  {item.type && <p className="text-sm text-gray-600">Type: {item.type}</p>}
+                </div>
+              )}
+              {activeTab === 'briefs' && (
+                <div className="space-y-1">
+                  {item.pages && <p className="text-sm text-gray-600">{item.pages} pages</p>}
+                  {item.type && <p className="text-sm text-gray-600">Type: {item.type}</p>}
+                  {item.volume && <p className="text-sm text-gray-600">Volume: {item.volume}</p>}
+                </div>
+              )}
+              {activeTab === 'keywords' && (
+                <div className="space-y-1">
+                  {item.volume && <p className="text-sm text-gray-600">Volume: {item.volume}</p>}
+                  {item.difficulty && <p className="text-sm text-gray-600">Difficulty: {item.difficulty}</p>}
+                </div>
+              )}
+              {activeTab === 'quickwins' && (
+                <div className="space-y-1">
+                  {item.count && <p className="text-sm text-gray-600">{item.count} links</p>}
+                  {item.type && <p className="text-sm text-gray-600">Type: {item.type}</p>}
+                </div>
+              )}
+            </div>
+            <div className="text-right text-sm text-gray-500">
+              <StatusBadge status={item.status} />
+              <p className="mt-1">Last Updated: {item.lastUpdated}</p>
+              {activeTab === 'articles' ? (
+                <p>Writer: {
+                  (() => {
+                    if (!item.writer && !item.strategist) return 'Unassigned';
+                    if (typeof item.writer === 'string') return item.writer;
+                    
+                    if (item.writer) {
+                      if (Array.isArray(item.writer)) {
+                        return item.writer.map(w => w.name).join(', ') || 'Unknown Writer';
+                      }
+                      return item.writer.name || 'Unknown Writer';
+                    }
+                    
+                    if (typeof item.strategist === 'string') return item.strategist;
+                    if (Array.isArray(item.strategist)) {
+                      return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
+                    }
+                    return item.strategist?.name || 'Unknown Strategist';
+                  })()
+                }</p>
+              ) : (
+                <p>Assigned to: {
+                  (() => {
+                    if (!item.strategist) return 'Unassigned';
+                    if (typeof item.strategist === 'string') return item.strategist;
+                    if (Array.isArray(item.strategist)) {
+                      return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
+                    }
+                    return item.strategist.name || 'Unknown Strategist';
+                  })()
+                }</p>
+              )}
+            </div>
+          </div>
+
+          {/* Metrics Grid for different tabs */}
+          {activeTab === 'backlinks' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-t border-gray-100">
+              {item.domainRating !== undefined && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.domainRating}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Domain Rating</div>
+                </div>
+              )}
+              {item.trafficDomain && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.trafficDomain.toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Domain Traffic</div>
+                </div>
+              )}
+              {item.pageTraffic && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.pageTraffic}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Page Traffic</div>
+                </div>
+              )}
+              {item.pageRD && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.pageRD}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Referring Domains</div>
+                </div>
+              )}
+              {item.pageType && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {item.pageType}
+                  </div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    Page Type
+                  </div>
+                </div>
+              )}
+              {item.upliftPotential && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {item.upliftPotential}
+                  </div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    Keyword Uplift Potential
+                  </div>
+                </div>
+              )}
+              {item.currentPosition && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {item.currentPosition}
+                  </div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    Current Position
+                  </div>
+                </div>
+              )}
+              {item.keywordScore && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {item.keywordScore}
+                  </div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    Keyword Score
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Metrics Grid for Keywords */}
+          {/* {activeTab === 'keywords' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
+              {item.volume && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.volume.toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Search Volume</div>
+                </div>
+              )}
+              {item.difficulty && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.difficulty}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Difficulty</div>
+                </div>
+              )}
+              {item.type && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Type</div>
+                </div>
+              )}
+            </div>
+          )} */}
+
+          {/* Metrics Grid for Articles */}
+          {/* {activeTab === 'articles' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
+              {item.wordCount && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.wordCount.toLocaleString()}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Word Count</div>
+                </div>
+              )}
+              {item.type && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Content Type</div>
+                </div>
+              )}
+              {item.dateSubmitted && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{formatDate(item.dateSubmitted)}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Date Submitted</div>
+                </div>
+              )}
+            </div>
+          )} */}
+
+          {/* Metrics Grid for Briefs */}
+          {/* {activeTab === 'briefs' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
+              {item.pages && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.pages}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Pages</div>
+                </div>
+              )}
+              {item.type && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Brief Type</div>
+                </div>
+              )}
+              {item.dateSubmitted && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{formatDate(item.dateSubmitted)}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Date Submitted</div>
+                </div>
+              )}
+            </div>
+          )} */}
+
+          {/* Metrics Grid for Quick Wins */}
+          {activeTab === 'quickwins' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
+              {item.count && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.count}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Link Count</div>
+                </div>
+              )}
+              {item.type && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Type</div>
+                </div>
+              )}
+              {item.dateSubmitted && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{formatDate(item.dateSubmitted)}</div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Date Submitted</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Target URL section for backlinks */}
+          {activeTab === 'backlinks' && item.targetPage && (
+            <div className="border-t border-gray-100 pt-3">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-500">Target:</span>
+                <a 
+                  href={ensureUrlProtocol(String(item.targetPage))} 
+                  className="text-blue-600 hover:underline truncate max-w-md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {String(item.targetPage)}
+                </a>
+                <ExternalLink className="h-3 w-3 text-gray-400" />
+              </div>
+            </div>
+          )}
+
+          {/* Quick Wins resource links */}
+          {activeTab === 'quickwins' && item.resourceLink && (
+            <div className="text-sm text-mediumGray">
+              <a
+                href={ensureUrlProtocol(item.resourceLink)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline flex items-center"
+              >
+                View Resource
+                <ExternalLink size={14} className="ml-1 inline-block" />
+              </a>
+            </div>
+          )}
+
+
+
+          {item.revisionReason && (
+            <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
+              <span className="font-medium">Revision: </span>{item.revisionReason}
+            </div>
+          )}
+
+          {/* Comments section - only show for Keywords and Briefs tabs */}
+          {(activeTab === 'keywords' || activeTab === 'briefs') && (
+            <div>
+              <button
+                onClick={() => openConversationModal(item.id, item.item)}
+                className="flex items-center text-sm text-primary hover:underline"
+              >
+                <MessageCircle size={14} className="mr-1" />
+                View Conversation History
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Actions Column */}
+        <div className="flex flex-col gap-2 min-w-[200px]">
+          {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => onApprove(item.id)}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => onRequestChanges(item.id)}
+                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+              >
+                Request Changes
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Table Component
 function ApprovalTable({
@@ -763,10 +1151,6 @@ function ApprovalTable({
     // Always show checkbox column for consistent layout, but only make them interactive for actionable items
     const showInteractiveCheckboxes = ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(status);
 
-    // Define table styles without outside border
-    const tableBorderClass = "overflow-hidden";
-    const tableHeaderClass = "bg-gray-50";
-
     return (
       <div key={status} className="mb-10">
         <h2 className="font-bold text-dark mb-4 text-lg">
@@ -790,260 +1174,47 @@ function ApprovalTable({
           </div>
         ) : items.length > 0 ? (
           <>
-            <div className={tableBorderClass}>
-              <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white border-collapse" style={{ tableLayout: 'fixed' }}>
-                <thead className={tableHeaderClass}>
-                  <tr>
-                    <th className="px-4 py-3 w-12">
-                      <div className="flex items-center justify-center">
-                        {/* Always show checkbox for header alignment, but only make it interactive when needed */}
-                        {showInteractiveCheckboxes ? (
-                          <input
-                            type="checkbox"
-                            className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
-                            checked={allSelected}
-                            onChange={() => onToggleGroupSelection(items, !allSelected)}
-                          />
-                        ) : (
-                          <div className="h-5 w-5"></div>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '35%' }}>Deliverable</th>
-                    <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '15%' }}>
-                      {activeTab === 'articles' ? 'Writer' : 'Assigned To'}
-                    </th>
-                    <th className="px-4 py-3 text-left text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '15%' }}>Last Updated</th>
-                    <th className="px-4 py-3 text-center text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '10%' }}>Status</th>
-                    <th className="px-4 py-3 text-right text-base font-bold text-gray-700 uppercase tracking-wider" style={{ width: '25%' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {items.map((item: ApprovalItem) => {
-                    // Check if this item is selected
-                    const isSelected = selectedItems.includes(item.id);
+            {/* Header with select all checkbox */}
+            <div className="flex items-center justify-between mb-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                {showInteractiveCheckboxes ? (
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+                    checked={allSelected}
+                    onChange={() => onToggleGroupSelection(items, !allSelected)}
+                  />
+                ) : (
+                  <div className="h-5 w-5"></div>
+                )}
+                <span className="text-sm font-medium text-gray-700">
+                  {allSelected ? 'Deselect All' : 'Select All'} ({items.length} items)
+                </span>
+              </div>
+              <div className="text-sm text-gray-500">
+                Showing {items.length} of {allItems.length} items
+              </div>
+            </div>
 
-                    // Add selected styling
-                    const selectedClass = isSelected ? 'bg-gray-50' : '';
+            {/* Cards Grid */}
+            <div className="space-y-4">
+              {items.map((item: ApprovalItem) => {
+                const isSelected = selectedItems.includes(item.id);
 
-                    // Determine document link based on active tab
-                    const getDocumentLink = () => {
-                      if (activeTab === 'briefs') {
-                        // For briefs, check multiple possible field names
-                        return item.documentLink || 
-                               item['Content Brief Link (G Doc)'] || 
-                               item['Brief Document Link'] || 
-                               null;
-                      } else if (activeTab === 'articles') {
-                        // For articles, check multiple possible field names
-                        return item.documentLink || 
-                               item['Written Content (G Doc)'] || 
-                               item['Content Link (G Doc)'] ||
-                               item['Article Document Link'] ||
-                               null;
-                      }
-                      return null;
-                    };
-
-                    const documentLink = getDocumentLink();
-
-                    return (
-                      <tr
-                        key={item.id}
-                        className={`hover:bg-gray-50 ${selectedClass}`}
-                      >
-                        <td className="px-4 py-3 w-12">
-                          <div className="flex items-center justify-center">
-                            {/* Always show checkbox for alignment, but only make it interactive when needed */}
-                            {showInteractiveCheckboxes ? (
-                              <input
-                                type="checkbox"
-                                className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
-                                checked={isSelected}
-                                onChange={() => onToggleItemSelection(item.id)}
-                              />
-                            ) : (
-                              <div className="h-5 w-5"></div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3" style={{ width: '35%' }}>
-                          <div className="flex items-start">
-                            <div>
-                              <div className="text-base font-medium text-dark">
-                                {documentLink ? (
-                                  <a
-                                    href={ensureUrlProtocol(documentLink)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:text-primary hover:underline flex items-center"
-                                  >
-                                    {item.item}
-                                    <ExternalLink size={14} className="ml-1 inline-block" />
-                                  </a>
-                                ) : (
-                                  <span className="hover:text-primary">{item.item}</span>
-                                )}
-                              </div>
-                              {'type' in item && <div className="text-base text-mediumGray">{item.type}</div>}
-                              {'wordCount' in item && <div className="text-base text-mediumGray">{item.wordCount} words</div>}
-                              {'volume' in item && <div className="text-base text-mediumGray">Volume: {item.volume}</div>}
-                              {'pages' in item && <div className="text-base text-mediumGray">{item.pages} pages</div>}
-
-                              {/* Additional fields for Backlinks */}
-                              {activeTab === 'backlinks' && (
-                                <>
-                                  {item.domainRating !== undefined && (
-                                    <div className="text-base text-mediumGray">Domain Rating: {item.domainRating}</div>
-                                  )}
-                                  {item.linkType && (
-                                    <div className="text-base text-mediumGray">Link Type: {item.linkType}</div>
-                                  )}
-                                  {item.pageType && (
-                                    <div className="text-base text-mediumGray">Page Type: {item.pageType}</div>
-                                  )}
-                                  {item.upliftPotential && (
-                                    <div className="text-base text-mediumGray">Keyword Uplift Potential: {item.upliftPotential}</div>
-                                  )}
-                                  {item.currentPosition && (
-                                    <div className="text-base text-mediumGray">Current Position: {item.currentPosition}</div>
-                                  )}
-                                  {item.keywordScore && (
-                                    <div className="text-base text-mediumGray">Keyword Score: {item.keywordScore}</div>
-                                  )}
-                                  {item.trafficDomain && (
-                                    <div className="text-base text-mediumGray">Domain Traffic: {item.trafficDomain}</div>
-                                  )}
-                                  {item.pageTraffic && (
-                                    <div className="text-base text-mediumGray">Backlink URL Page Traffic: {item.pageTraffic}</div>
-                                  )}
-                                  {item.pageRD && (
-                                    <div className="text-base text-mediumGray">N° RDs Of Referring Page: {item.pageRD}</div>
-                                  )}
-                                  {item.targetPage && (
-                                    <div className="text-base text-mediumGray">
-                                      Target:
-                                      <a
-                                        href={ensureUrlProtocol(String(item.targetPage))}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="ml-1 text-primary hover:underline"
-                                      >
-                                        {String(item.targetPage).replace(/^https?:\/\//, '').substring(0, 30)}
-                                        {String(item.targetPage).length > 30 ? '...' : ''}
-                                        <ExternalLink size={12} className="ml-1 inline-block" />
-                                      </a>
-                                    </div>
-                                  )}
-                                  {item.wentLiveOn && (
-                                    <div className="text-base text-mediumGray">Live Date: {String(item.wentLiveOn)}</div>
-                                  )}
-                                  {item.notes && (
-                                    <div className="text-base text-mediumGray">Notes: {String(item.notes)}</div>
-                                  )}
-                                </>
-                              )}
-
-                              {/* Quick Wins resource links */}
-                              {activeTab === 'quickwins' && item.resourceLink && (
-                                <div className="text-base text-mediumGray mt-1">
-                                  <a
-                                    href={ensureUrlProtocol(item.resourceLink)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary hover:underline flex items-center"
-                                  >
-                                    View Resource
-                                    <ExternalLink size={14} className="ml-1 inline-block" />
-                                  </a>
-                                </div>
-                              )}
-
-                              {item.revisionReason && (
-                                <div className="text-base text-gray-700 mt-1 bg-gray-50 p-1 rounded border border-gray-200">
-                                  <span className="font-medium">Revision: </span>{item.revisionReason}
-                                </div>
-                              )}
-
-                              {/* Comments section - only show for Keywords and Briefs tabs */}
-                              {(activeTab === 'keywords' || activeTab === 'briefs') && (
-                                <div className="mt-2">
-                                  <button
-                                    onClick={() => openConversationModal(item.id, item.item)}
-                                    className="flex items-center text-sm text-primary hover:underline"
-                                  >
-                                    <MessageCircle size={14} className="mr-1" />
-                                    View Conversation History
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3" style={{ width: '15%' }}>
-                          <div className="text-base text-dark">
-                            {activeTab === 'articles' ? (
-                              // For Articles, show "Writer" instead of "Assigned to"
-                              (() => {
-                                if (!item.writer && !item.strategist) return 'Unassigned';
-                                if (typeof item.writer === 'string') return item.writer;
-                                
-                                // Handle writer as object or array
-                                if (item.writer) {
-                                  if (Array.isArray(item.writer)) {
-                                    return item.writer.map(w => w.name).join(', ') || 'Unknown Writer';
-                                  }
-                                  return item.writer.name || 'Unknown Writer';
-                                }
-                                
-                                // Fall back to strategist
-                                if (typeof item.strategist === 'string') return item.strategist;
-                                if (Array.isArray(item.strategist)) {
-                                  return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
-                                }
-                                return item.strategist?.name || 'Unknown Strategist';
-                              })()
-                            ) : (
-                              (() => {
-                                if (!item.strategist) return 'Unassigned';
-                                if (typeof item.strategist === 'string') return item.strategist;
-                                if (Array.isArray(item.strategist)) {
-                                  return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
-                                }
-                                return item.strategist.name || 'Unknown Strategist';
-                              })()
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3" style={{ width: '15%' }}>
-                          <div className="text-base text-mediumGray">{item.lastUpdated}</div>
-                        </td>
-                        <td className="px-4 py-3 text-center" style={{ width: '10%' }}>
-                          <StatusBadge status={item.status} />
-                        </td>
-                        <td className="px-4 py-3 text-right" style={{ width: '25%' }}>
-                          {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => onApprove(item.id)}
-                                className="px-4 py-1 text-base font-medium text-white bg-black rounded-[12px] hover:bg-gray-800 transition-colors"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => onRequestChanges(item.id)}
-                                className="px-4 py-1 text-base font-medium text-[#353233] border border-[#D9D9D9] rounded-[12px] hover:bg-gray-100 transition-colors"
-                              >
-                                Request Changes
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                return (
+                  <ApprovalCard
+                    key={item.id}
+                    item={item}
+                    isSelected={isSelected}
+                    showInteractiveCheckbox={showInteractiveCheckboxes}
+                    activeTab={activeTab}
+                    onToggleItemSelection={onToggleItemSelection}
+                    onApprove={onApprove}
+                    onRequestChanges={onRequestChanges}
+                    openConversationModal={openConversationModal}
+                  />
+                );
+              })}
             </div>
 
             {/* Pagination for this status table */}
