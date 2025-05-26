@@ -29,7 +29,7 @@ const FIELD_CATEGORIES = {
   dueDate: ['Due Date', 'Due Date (Publication)', 'Deadline'],
   domainRating: ['Domain Authority/Rating', 'DR', 'Domain Rating', 'DA', 'Domain Authority'],
   linkType: ['Link Type', 'Type'],
-  targetURL: ['Target URL', 'Target Page', 'Destination URL']
+  targetURL: ['Target URL', 'Target Page', 'Destination URL'],
   newRefresh: ['New/Refresh', 'New or Refresh', 'Content Type']
 };
 
