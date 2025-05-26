@@ -36,6 +36,14 @@ export default function GetStartedPage() {
   const [checklist, setChecklist] = useState(checklistItems);
 
   const [localStorageClientId, setLocalStorageClientId] = useState<string | null>(null);
+  const [clientLinks, setClientLinks] = useState<{ 
+    slackUrl: string | null; 
+    googleDriveUrl: string | null;
+  }>({
+    slackUrl: null,
+    googleDriveUrl: null
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // This code runs only on the client-side
@@ -43,10 +51,38 @@ export default function GetStartedPage() {
     console.log("GetStartedPage: clientRecordID from localStorage:", clientIdFromStorage);
     if (clientIdFromStorage && clientIdFromStorage !== 'all') {
       setLocalStorageClientId(clientIdFromStorage);
+      
+      // Fetch client links
+      fetchClientLinks(clientIdFromStorage);
     } else {
-      console.warn("GetStartedPage: No valid clientId found in localStorage for Fillout form.");
+      console.warn("GetStartedPage: No valid clientId found in localStorage.");
+      setIsLoading(false);
     }
   }, []);
+
+  // Function to fetch client links
+  const fetchClientLinks = async (clientId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/clients/${clientId}/links`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch client links: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("GetStartedPage: Client links fetched:", data);
+      
+      setClientLinks({
+        slackUrl: data.slackUrl,
+        googleDriveUrl: data.googleDriveUrl
+      });
+    } catch (error) {
+      console.error("GetStartedPage: Error fetching client links:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle checklist item toggle
   const handleChecklistItemToggle = (id: string, completed: boolean) => {
@@ -65,22 +101,22 @@ export default function GetStartedPage() {
   // Create quick access links with proper React node icons
   const quickLinks = [
     {
-      id: 'slack',
-      icon: <MessageSquare size={20} className="text-[#9EA8FB]" />,
-      label: 'Slack',
-      url: 'https://slack.com'
+      id: 'dashboard',
+      icon: <BarChart3 size={20} className="text-[#9EA8FB]" />,
+      label: 'Reporting Dashboard',
+      url: '/kpi-dashboard'
     },
     {
       id: 'drive',
       icon: <FolderOpen size={20} className="text-[#9EA8FB]" />,
       label: 'Google Drive',
-      url: 'https://drive.google.com'
+      url: clientLinks.googleDriveUrl || 'https://drive.google.com'
     },
     {
-      id: 'dashboard',
-      icon: <BarChart3 size={20} className="text-[#9EA8FB]" />,
-      label: 'Reporting Dashboard',
-      url: '/kpi-dashboard'
+      id: 'slack',
+      icon: <MessageSquare size={20} className="text-[#9EA8FB]" />,
+      label: 'Slack',
+      url: clientLinks.slackUrl || 'https://slack.com'
     }
   ];
 

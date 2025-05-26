@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Slack, FileText, BarChart3, Plus, X } from 'lucide-react';
+import { MessageSquare, FolderOpen, BarChart3, Plus, X } from 'lucide-react';
 
 type QuickLink = {
   id: string;
