@@ -899,6 +899,18 @@ function ApprovalTable({
                                   {item.linkType && (
                                     <div className="text-base text-mediumGray">Link Type: {item.linkType}</div>
                                   )}
+                                  {item.pageType && (
+                                    <div className="text-base text-mediumGray">Page Type: {item.pageType}</div>
+                                  )}
+                                  {item.upliftPotential && (
+                                    <div className="text-base text-mediumGray">Keyword Uplift Potential: {item.upliftPotential}</div>
+                                  )}
+                                  {item.currentPosition && (
+                                    <div className="text-base text-mediumGray">Current Position: {item.currentPosition}</div>
+                                  )}
+                                  {item.keywordScore && (
+                                    <div className="text-base text-mediumGray">Keyword Score: {item.keywordScore}</div>
+                                  )}
                                   {item.trafficDomain && (
                                     <div className="text-base text-mediumGray">Domain Traffic: {item.trafficDomain}</div>
                                   )}
@@ -1126,11 +1138,10 @@ interface ApprovalItem {
   targetPage?: string;
   wentLiveOn?: string;
   notes?: string;
-  // Legacy fields
-  keywordUplift?: string | number;
-  currentPosition?: string | number;
+  upliftPotential?: number;
+  currentPosition?: number;
   pageType?: string;
-  keywordScore?: string | number;
+  keywordScore?: number;
   comments?: Array<{ id: string; text: string; author?: string; timestamp?: string }>;
   airtableCommentCount?: number; // New field for Airtable comment count
   // Allow for additional fields
