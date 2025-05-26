@@ -1,0 +1,104 @@
+# Developer Checklist: Dynamic Interactive Onboarding Checklist
+
+This checklist outlines the tasks required to implement the dynamic interactive onboarding checklist on the Home Page. The checklist's state (checked/unchecked items) for a logged-in client is determined by their completion status recorded in the "Client Portal Checklist" Airtable (or equivalent database table).
+
+## 1. Backend Development (API & Logic)
+
+*   **Database Schema & Interaction:**
+    *   [ ] **Confirm Table Structure:** Verify the "Client Portal Checklist" table structure and column names. Expected columns:
+        *   `ItemID` (Unique identifier for the checklist item, e.g., `onboarding_form_completion`)
+        *   `Name` (Text description of the checklist item, e.g., "Complete Onboarding Form")
+        *   `Clients` (Array/List of `ClientRecordID`s for clients who have completed this item)
+        *   *(Optional: `DefaultCheckState` (Boolean, if there's a master default, though dynamic state overrides)*
+        *   *(Clarify if "Client Record ID" mentioned in comments refers to the ID of the checklist item itself or if there's another client-specific ID column on this table. Assuming `Clients` column stores IDs of clients.)*
+    *   [ ] **Data Retrieval Function:**
+        *   Create a function to fetch all items from the "Client Portal Checklist" table.
+        *   This function will be used to determine the full list of onboarding tasks.
+*   **API Endpoint: Get Checklist Status for Client**
+    *   [ ] **Endpoint Definition:** Create a GET endpoint (e.g., `/api/onboarding-checklist/status`).
+    *   [ ] **Authentication:** Ensure the endpoint requires an authenticated client session to identify the `current_client_record_id`.
+    *   [ ] **Logic:**
+        *   Fetch all items from the "Client Portal Checklist" table.
+        *   For each item, check if the `current_client_record_id` is present in its `Clients` array/list.
+        *   Return a list of checklist items, each with its `ItemID`, `Name`, and a boolean `isCompletedByCurrentUser` status.
+*   **API Endpoint: Update Checklist Item Status for Client**
+    *   [ ] **Endpoint Definition:** Create a POST or PUT endpoint (e.g., `/api/onboarding-checklist/item/{itemID}/update`).
+    *   [ ] **Authentication:** Ensure the endpoint requires an authenticated client session.
+    *   [ ] **Request Body:** Expect the desired state (e.g., `{"completed": true}` or `{"completed": false}`).
+    *   [ ] **Logic for Marking as Complete (`completed: true`):**
+        *   Identify the `current_client_record_id`.
+        *   Retrieve the specific checklist item from "Client Portal Checklist" table using `itemID`.
+        *   Check if the `current_client_record_id` is already present in the item's `Clients` array/list.
+        *   If not present, add the `current_client_record_id` to the `Clients` array/list. **Crucially, do not remove any existing IDs.**
+        *   Save the updated checklist item back to the database.
+        *   Return a success response.
+    *   [ ] **Logic for Marking as Incomplete (`completed: false` - Unchecking):**
+        *   Identify the `current_client_record_id`.
+        *   Retrieve the specific checklist item using `itemID`.
+        *   If the `current_client_record_id` is present in the item's `Clients` array/list, remove it.
+        *   Save the updated checklist item.
+        *   Return a success response.
+    *   [ ] **Idempotency:** Ensure that marking an already completed item as complete (or an incomplete item as incomplete) does not cause errors or unintended data changes.
+
+## 2. Frontend Development (Home Page Integration)
+
+*   **Data Fetching & State Management:**
+    *   [ ] **On Login/Home Page Load:**
+        *   When a user logs in and lands on the Home Page, call the `/api/onboarding-checklist/status` endpoint to get the personalized checklist for the current client.
+    *   [ ] **State Storage:** Store the fetched checklist (items and their completion status) in the frontend application's state (e.g., using React Context, Redux, Vuex, or component state).
+*   **Displaying the Interactive Checklist:**
+    *   [ ] **Dynamic Rendering:**
+        *   If the API returns checklist items, dynamically render the "Interactive Checklist" component on the Home Page.
+        *   For each checklist item received from the API:
+            *   Display its `Name`.
+            *   Set its checkbox state (checked/unchecked) based on the `isCompletedByCurrentUser` flag.
+    *   [ ] **Conditional Display (If no items or all complete):**
+        *   Determine behavior if the checklist is empty or if all items are already completed by the client (e.g., hide the checklist or show a "Well done!" message). The primary requirement is to show it if there are incomplete items.
+*   **User Interaction:**
+    *   [ ] **Checkbox Click Handler:**
+        *   When a client clicks a checkbox for a checklist item:
+            *   Optimistically update the UI to reflect the new checked/unchecked state (optional, for better UX).
+            *   Determine the `itemID` of the clicked item and its new desired state (true if checked, false if unchecked).
+            *   Call the `/api/onboarding-checklist/item/{itemID}/update` endpoint with the `itemID` and the new state.
+    *   [ ] **API Response Handling:**
+        *   On successful API response: Confirm the UI state matches the server state.
+        *   On API error:
+            *   Revert any optimistic UI update.
+            *   Display an appropriate error message to the user (e.g., "Could not save your progress, please try again.").
+*   **Component Design:**
+    *   [ ] Ensure the "Interactive Checklist" component is styled according to the portal's design guidelines.
+
+## 3. Testing & Validation
+
+*   **Backend Tests:**
+    *   [ ] Unit test the logic for adding a client ID to the `Clients` list (ensure no duplicates, no removal of others).
+    *   [ ] Unit test the logic for removing a client ID from the `Clients` list.
+    *   [ ] Integration test the API endpoints for fetching status and updating status.
+*   **Frontend Tests:**
+    *   [ ] Component test the rendering of the checklist with various states (all incomplete, some complete, all complete).
+    *   [ ] Test the checkbox click interaction and the subsequent API call.
+    *   [ ] Test error handling scenarios.
+*   **End-to-End (E2E) Tests:**
+    *   [ ] **Scenario 1 (New Client):**
+        *   Log in as a client with no checklist items completed.
+        *   Verify all checklist items appear unchecked on the Home Page.
+        *   Check an item. Verify it becomes checked in the UI and the backend data is updated correctly (client ID added to the `Clients` list for that item).
+        *   Log out and log back in. Verify the previously checked item remains checked.
+    *   [ ] **Scenario 2 (Partially Completed Client):**
+        *   Manually set up a client in the database to have completed some checklist items.
+        *   Log in as this client. Verify the correct items are pre-checked.
+        *   Check an unchecked item. Verify update.
+        *   Uncheck a checked item. Verify update (client ID removed from `Clients` list for that item).
+    *   [ ] **Scenario 3 (Multiple Clients):**
+        *   Ensure that one client completing an item does not affect the checklist status for another client.
+        *   Client A completes Item 1. Client B logs in; Item 1 should still be unchecked for Client B.
+*   **Data Integrity:**
+    *   [ ] Manually verify in the database that the `Clients` column is updated correctly (IDs are added, not replaced; IDs are correctly removed when unchecking).
+
+## 4. Documentation
+
+*   [ ] Document the new API endpoints.
+*   [ ] Update any relevant frontend component documentation.
+*   [ ] Briefly note the logic in internal developer guides if necessary.
+
+---

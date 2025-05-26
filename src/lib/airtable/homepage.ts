@@ -201,7 +201,7 @@ export async function getHomepageData(
       status: 'Awaiting feedback'
     }));
 
-    / 4. Fetch Campaign Progress
+    // 4. Fetch Campaign Progress
     // a. Calculate overall progress percentage
     const currentMonth = new Date().toLocaleString('default', { month: 'long' });
     const currentYear = new Date().getFullYear();
