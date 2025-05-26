@@ -1,0 +1,114 @@
+Detailed Task List: Airtable Comments API Implementation
+Phase 1: API Infrastructure Setup
+Task 1.1: Create Airtable Comments API Routes
+[x] 1.1.1 Create src/app/api/airtable-comments/route.ts
+[x] Implement GET handler to list comments for a record
+[x] Add proper error handling and validation
+[x] Include cache control headers
+[x] Add logging for debugging
+[x] Validate recordId parameter
+[x] 1.1.2 Create src/app/api/airtable-comments/add/route.ts
+[x] Implement POST handler to add new comments
+[x] Validate request body (recordId, text)
+[x] Get current user information
+[x] Add proper error handling
+[x] Return formatted response
+[x] 1.1.3 Add Airtable Comments API utility functions
+[x] Create src/lib/airtable-comments.ts
+[x] Implement listRecordComments(recordId: string)
+[x] Implement addRecordComment(recordId: string, text: string)
+[x] Add proper TypeScript types
+[x] Include error handling and retry logic
+Task 1.2: Update Client API Utils
+[x] 1.2.1 Update src/lib/client-api-utils.ts
+[x] Add fetchAirtableComments(recordId: string) function
+[x] Add addAirtableComment(recordId: string, text: string) function
+[x] Maintain backward compatibility with existing functions
+[x] Add proper error handling and loading states
+Phase 2: Component Updates
+Task 2.1: Enhanced ConversationHistoryModal
+[x] 2.1.1 Update src/components/ui/modals/ConversationHistoryModal.tsx
+[x] Add toggle between old and new comment systems
+[x] Update props to accept useAirtableComments?: boolean
+[x] Implement new data fetching logic
+[x] Update comment display format
+[x] Add loading states for Airtable API calls
+[x] 2.1.2 Add comment type definitions
+[x] Create src/types/airtable-comments.ts
+[x] Define AirtableComment interface
+[x] Define API response types
+[x] Export common comment-related types
+Task 2.2: Update Approvals Page Integration
+[x] 2.2.1 Update src/app/approvals/page.tsx
+[x] Modify openConversationModal function
+[x] Pass useAirtableComments={true} prop
+[x] Update comment count display logic
+[x] Add real-time comment indicators
+[x] 2.2.2 Update ApprovalItem interface
+[x] Add airtableCommentCount?: number field
+[x] Update existing comment-related fields
+[x] Ensure backward compatibility
+Phase 3: API Integration & Testing
+Task 3.1: Airtable Comments API Integration
+[x] 3.1.1 Research Airtable Comments API endpoints
+[x] Document required API endpoints and parameters
+[x] Test API calls using Postman/curl
+[x] Verify authentication and permissions
+[x] Check rate limiting requirements
+[x] 3.1.2 Implement Airtable Comments service
+[x] Create src/services/airtable-comments.service.ts
+[x] Implement rate limiting and caching
+[x] Add retry mechanisms for failed requests
+[x] Include proper error handling
+Task 3.2: Environment Configuration
+[x] 3.2.1 Update environment variables
+[x] Verify Airtable API key has comments permissions
+[x] Add any new required environment variables
+[x] Update .env.example with new variables
+[x] Document required Airtable permissions
+Phase 4: UI/UX Enhancements
+Task 4.1: Enhanced Comment Display
+[x] 4.1.1 Improve comment formatting
+[x] Add proper timestamp formatting
+[x] Include user avatars/initials
+[ ] Add comment threading support (if available)
+[x] Implement read/unread status
+[x] 4.1.2 Add real-time features
+[x] Implement comment count badges
+[x] Add auto-refresh for new comments
+[ ] Include typing indicators (if feasible)
+[x] Add comment notifications
+Task 4.2: Loading and Error States
+[x] 4.2.1 Enhanced loading states
+[x] Add skeleton loaders for comments
+[x] Implement progressive loading
+[x] Add retry buttons for failed loads
+[x] Include empty state messaging
+[x] 4.2.2 Error handling improvements
+[x] Add user-friendly error messages
+[x] Implement fallback to old system
+[x] Add network error detection
+[x] Include offline state handling
+Phase 5: Data Migration & Compatibility
+Task 5.1: Backward Compatibility
+[x] 5.1.1 Maintain existing functionality
+[x] Keep old API routes functional
+[x] Add feature flag for new comments system
+[x] Ensure existing comments remain accessible
+[x] Provide migration path documentation
+[x] 5.1.2 Data validation and testing
+[x] Test with existing Keywords records
+[x] Verify comment associations work correctly
+[x] Test both Keywords and Briefs workflows
+[x] Validate user permissions and access
+Task 5.2: Performance Optimization
+[x] 5.2.1 Implement caching strategy
+[x] Add comment caching in sessionStorage
+[x] Implement cache invalidation logic
+[x] Add cache warming for frequently accessed records
+[x] Monitor and optimize API call patterns
+[x] 5.2.2 Optimize component rendering
+[x] Implement virtual scrolling for large comment lists
+[x] Add comment pagination
+[x] Optimize re-renders with React.memo
+[x] Implement lazy loading for old comments

@@ -507,6 +507,88 @@ export async function addApprovalComment(
 }
 
 /**
+ * Fetch Airtable comments for a record
+ * @param recordId Record ID to fetch comments for
+ * @param contentType Content type (keywords, briefs, articles, backlinks) - defaults to keywords
+ * @returns Array of Airtable comments
+ */
+export async function fetchAirtableComments(recordId: string, contentType: string = 'keywords') {
+  if (!recordId) {
+    console.error('No recordId provided to fetchAirtableComments');
+    return [];
+  }
+
+  try {
+    // Use Keywords table for both keywords and backlinks as requested
+    const tableName = 'Keywords';
+    
+    const response = await fetchFromApi(
+      `airtable-comments?recordId=${encodeURIComponent(recordId)}&tableIdOrName=${encodeURIComponent(tableName)}`,
+      { method: 'GET' },
+      { comments: [], recordId, total: 0 }
+    );
+
+    return response.comments || [];
+  } catch (error) {
+    console.error('Error fetching Airtable comments:', error);
+    return [];
+  }
+}
+
+/**
+ * Add a comment to Airtable
+ * @param recordId Record ID to add comment to
+ * @param text Comment text
+ * @param contentType Content type (keywords, briefs, articles, backlinks) - defaults to keywords
+ * @returns Added comment
+ */
+export async function addAirtableComment(
+  recordId: string, 
+  text: string, 
+  contentType: string = 'keywords'
+) {
+  if (!recordId || !text) {
+    throw new Error('Record ID and text are required');
+  }
+
+  try {
+    // Use Keywords table for both keywords and backlinks as requested
+    const tableName = 'Keywords';
+    
+    const response = await fetchFromApi(
+      'airtable-comments/add',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          recordId, 
+          text, 
+          contentType: contentType || '',
+          tableIdOrName: tableName
+        })
+      },
+      {
+        comment: {
+          id: `comment-${Date.now()}`,
+          text,
+          author: 'You',
+          timestamp: new Date().toLocaleDateString(),
+          contentType: contentType || '',
+          recordId,
+          createdAt: new Date().toISOString()
+        },
+        success: true
+      }
+    );
+
+    return response.comment;
+  } catch (error) {
+    console.error('Error adding Airtable comment:', error);
+    throw error;
+  }
+}
+
+/**
  * Fetch WQA tasks from the API
  * @param boardType Type of board (technicalSEO, strategyAdHoc)
  * @param signal Optional AbortSignal for cancellation

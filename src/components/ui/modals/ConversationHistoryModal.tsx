@@ -2,9 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { EnhancedModal } from '@/components/ui/modals';
-import { MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Send, ToggleLeft, ToggleRight } from 'lucide-react';
 import { fetchConversationHistory, addApprovalComment } from '@/lib/client-api-utils';
+import { AirtableComment } from '@/types/airtable-comments';
+import CommentsList from '@/components/ui/comments/CommentsList';
+import { useAirtableComments } from '@/hooks/useAirtableComments';
 
+// Legacy comment type for backward compatibility
 type Comment = {
   id: string;
   text: string;
@@ -18,6 +22,7 @@ type ConversationHistoryModalProps = {
   itemId: string;
   itemTitle: string;
   contentType: 'keywords' | 'briefs'; // Only allow Keywords and Briefs content types
+  enableAirtableComments?: boolean; // New prop to toggle comment systems
 };
 
 export default function ConversationHistoryModal({
@@ -25,57 +30,95 @@ export default function ConversationHistoryModal({
   onClose,
   itemId,
   itemTitle,
-  contentType
+  contentType,
+  enableAirtableComments = false // Default to legacy system
 }: ConversationHistoryModalProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
+  // Legacy comments state
+  const [legacyComments, setLegacyComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [legacyLoading, setLegacyLoading] = useState(false);
+  const [legacySubmitting, setLegacySubmitting] = useState(false);
+  const [useAirtable, setUseAirtable] = useState(enableAirtableComments);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch comments when the modal opens
+  // New Airtable comments functionality using Keywords table for both keywords and backlinks
+  const {
+    comments: airtableComments,
+    loading: airtableLoading,
+    error: airtableError,
+    addComment: addAirtableComment,
+    refreshComments: refreshAirtableComments
+  } = useAirtableComments({ 
+    recordId: itemId, 
+    autoRefresh: true,
+    tableName: 'Keywords' // Use Keywords table for both keywords and backlinks
+  });
+
+  // Fetch legacy comments when needed
   useEffect(() => {
-    if (isOpen && itemId) {
-      fetchComments();
+    if (isOpen && itemId && !useAirtable) {
+      fetchLegacyComments();
     }
-  }, [isOpen, itemId, contentType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, itemId, contentType, useAirtable]);
 
-  const fetchComments = async () => {
-    setIsLoading(true);
+  const fetchLegacyComments = async () => {
+    setLegacyLoading(true);
+    setError(null);
+    
     try {
-      const result = await fetchConversationHistory(contentType, itemId);
-      setComments(result || []);
+      console.log('Fetching legacy comments for:', contentType, itemId);
+      const legacyResult = await fetchConversationHistory(contentType, itemId);
+      setLegacyComments(legacyResult || []);
     } catch (error) {
-      console.error('Error fetching comments:', error);
-      // If there's an error, set empty comments
-      setComments([]);
+      console.error('Error fetching legacy comments:', error);
+      setError('Failed to load legacy comments. Please try again.');
+      setLegacyComments([]);
     } finally {
-      setIsLoading(false);
+      setLegacyLoading(false);
     }
   };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
-    setIsSubmitting(true);
+    setError(null);
+    
     try {
-      const result = await addApprovalComment(contentType, itemId, newComment);
+      if (useAirtable) {
+        // Add to Airtable comments system using the new hook
+        console.log('Adding Airtable comment for record:', itemId);
+        const success = await addAirtableComment(newComment.trim(), contentType);
 
-      // Add the new comment to the list
-      if (result) {
-        setComments([...comments, {
-          id: result.id || `temp-${Date.now()}`,
-          text: newComment,
-          author: 'You', // This would be the current user in a real app
-          timestamp: new Date().toLocaleDateString()
-        }]);
+        if (success) {
+          setNewComment(''); // Clear the input
+        } else {
+          setError('Failed to add comment. Please try again.');
+        }
+      } else {
+        // Add to legacy system
+        setLegacySubmitting(true);
+        console.log('Adding legacy comment for:', contentType, itemId);
+        const result = await addApprovalComment(contentType, itemId, newComment);
+
+        if (result) {
+          // Add the new comment to the legacy comments list
+          setLegacyComments(prev => [...prev, {
+            id: result.id || `temp-${Date.now()}`,
+            text: newComment,
+            author: 'You', // This would be the current user in a real app
+            timestamp: new Date().toLocaleDateString()
+          }]);
+          setNewComment(''); // Clear the input
+        } else {
+          setError('Failed to add comment. Please try again.');
+        }
       }
-
-      // Clear the input
-      setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      setError('Failed to add comment. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setLegacySubmitting(false);
     }
   };
 
@@ -87,6 +130,19 @@ export default function ConversationHistoryModal({
     }
   };
 
+  // Toggle between comment systems
+  const handleToggleCommentSystem = () => {
+    const newValue = !useAirtable;
+    setUseAirtable(newValue);
+    setError(null);
+  };
+
+  // Get current loading state and comments based on selected system
+  const isLoading = useAirtable ? airtableLoading : legacyLoading;
+  const isSubmitting = useAirtable ? false : legacySubmitting; // Airtable hook handles its own submission state
+  const currentError = useAirtable ? airtableError : error;
+  const currentComments = useAirtable ? airtableComments : legacyComments;
+
   return (
     <EnhancedModal
       isOpen={isOpen}
@@ -95,76 +151,89 @@ export default function ConversationHistoryModal({
       size="md"
     >
       <div className="flex flex-col h-[60vh]">
+        {/* Error Message */}
+        {currentError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700">{currentError}</p>
+          </div>
+        )}
+
         {/* Comments List */}
-        <div className="flex-1 overflow-y-auto mb-4 p-2">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="w-8 h-8 rounded-full border-2 border-t-transparent border-[#9EA8FB] animate-spin"></div>
-              <span className="ml-2 text-gray-500">Loading comments...</span>
-            </div>
-          ) : comments.length > 0 ? (
-            <div className="space-y-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="bg-gray-50 p-3 rounded-lg">
-                  <div className="flex items-start">
-                    <div className="bg-[#9EA8FB] rounded-full w-8 h-8 flex items-center justify-center mr-2 text-white">
-                      <span>{comment.author ? comment.author.charAt(0).toUpperCase() : 'U'}</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-sm font-medium">{comment.author || 'User'}</span>
-                        <span className="text-xs text-gray-500">{comment.timestamp || 'Just now'}</span>
+        <div className="flex-1 overflow-y-auto mb-4">
+          {useAirtable ? (
+            <CommentsList
+              comments={airtableComments}
+              isLoading={airtableLoading}
+              error={airtableError}
+              onRefresh={refreshAirtableComments}
+              showContentType={true}
+              showFullTimestamp={true}
+              maxHeight="300px"
+              emptyStateMessage="No comments yet"
+              emptyStateSubMessage={`Be the first to comment on this ${contentType.slice(0, -1)}`}
+            />
+          ) : (
+            // Legacy comments display
+            isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="w-8 h-8 rounded-full border-2 border-t-transparent border-[#9EA8FB] animate-spin"></div>
+                <span className="ml-2 text-gray-500">Loading comments...</span>
+              </div>
+            ) : currentComments.length > 0 ? (
+              <div className="space-y-4">
+                {(currentComments as Comment[]).map((comment) => (
+                  <div key={comment.id} className="bg-[#9EA8FB] p-3 rounded-lg">
+                    <div className="flex items-start">
+                      <div className="bg-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-[#9EA8FB]">
+                        <span>{comment.author ? comment.author.charAt(0).toUpperCase() : 'U'}</span>
                       </div>
-                      <p className="text-sm mt-1">{comment.text}</p>
+                      <div className="flex-1">
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-sm font-medium text-white">{comment.author || 'User'}</span>
+                          <span className="text-xs text-white/80">{comment.timestamp || 'Just now'}</span>
+                        </div>
+                        <p className="text-sm mt-1 text-white">{comment.text}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <MessageCircle size={32} className="mb-2 text-gray-400" />
-              <p>No comments yet</p>
-              <p className="text-sm">Be the first to start the conversation</p>
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <MessageCircle size={32} className="mb-2 text-gray-400" />
+                <p>No comments yet</p>
+                <p className="text-sm">Be the first to start the conversation</p>
+                <p className="text-xs mt-2 text-center text-gray-400">
+                  Using {useAirtable ? 'Airtable Comments (New)' : 'Legacy Comments'} system
+                </p>
+              </div>
+            )
           )}
         </div>
 
-        {/* Comment Input */}
+        {/* Add Comment Section */}
         <div className="border-t pt-4">
-          <div className="flex items-center">
-            <textarea
+          <div className="flex gap-2">
+            <input
+              type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Add a comment..."
-              className="flex-1 border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#9EA8FB] min-h-[80px] resize-none"
+              onKeyPress={handleKeyPress}
+              placeholder={`Add a comment about this ${contentType.slice(0, -1)}...`}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#9EA8FB] focus:border-transparent text-sm"
               disabled={isSubmitting}
             />
-          </div>
-          <div className="flex justify-end mt-2">
             <button
               onClick={handleAddComment}
               disabled={!newComment.trim() || isSubmitting}
-              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
-                !newComment.trim() || isSubmitting
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#000000] text-white hover:bg-gray-800'
-              }`}
+              className="px-4 py-2 bg-[#9EA8FB] text-white rounded-lg hover:bg-[#7C85FB] disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
             >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 rounded-full border-2 border-t-transparent border-white animate-spin mr-2"></div>
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send size={16} className="mr-2" />
-                  Send
-                </>
-              )}
+              {isSubmitting ? 'Adding...' : 'Add'}
             </button>
           </div>
+          {/* <p className="text-xs text-gray-500 mt-1">
+            Press Enter to submit • Currently using {useAirtable ? 'Airtable Comments (Keywords table)' : 'Legacy Comments'}
+          </p> */}
         </div>
       </div>
     </EnhancedModal>

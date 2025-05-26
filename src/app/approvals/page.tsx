@@ -1079,6 +1079,7 @@ function ApprovalTable({
           itemId={conversationModal.itemId}
           itemTitle={conversationModal.itemTitle}
           contentType={activeTab as 'keywords' | 'briefs'}
+          enableAirtableComments={true}
         />
       )}
     </div>
@@ -1131,6 +1132,7 @@ interface ApprovalItem {
   pageType?: string;
   keywordScore?: string | number;
   comments?: Array<{ id: string; text: string; author?: string; timestamp?: string }>;
+  airtableCommentCount?: number; // New field for Airtable comment count
   // Allow for additional fields
   [key: string]: any;
 }
