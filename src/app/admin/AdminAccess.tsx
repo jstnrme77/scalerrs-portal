@@ -40,13 +40,14 @@ export default function AdminAccess({
   const [newAccess, setNewAccess] = useState({
     service: '',
     username: '',
+    password: '',
     notes: ''
   });
   const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
 
   const handleAddAccess = () => {
     onAddAccess(newAccess);
-    setNewAccess({ service: '', username: '', notes: '' });
+    setNewAccess({ service: '', username: '', password: '', notes: '' });
     setIsAddModalOpen(false);
   };
 
@@ -179,6 +180,18 @@ export default function AdminAccess({
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-mediumGray">Password</label>
+              <Input
+                id="password"
+                type="password"
+                value={newAccess.password}
+                onChange={(e) => setNewAccess({...newAccess, password: e.target.value})}
+                placeholder="Password"
+                className="w-full rounded-[8px]"
+              />
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="notes" className="block text-sm font-medium text-mediumGray">Notes (Optional)</label>
               <Textarea
                 id="notes"
@@ -201,7 +214,7 @@ export default function AdminAccess({
             <Button
               variant="default"
               onClick={handleAddAccess}
-              disabled={!newAccess.service || !newAccess.username}
+              disabled={!newAccess.service || !newAccess.username || !newAccess.password}
               className="font-bold rounded-[16px]"
             >
               Add Access

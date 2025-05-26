@@ -70,7 +70,9 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
   const getDefaultClientId = (clients: { id: string; name: string }[], userRole?: string) => {
     if (clients.length === 0) return null;
     
-    return userRole === 'Client' ? clients[0].id : 'all';
+    if (userRole === 'Client') return clients[0].id;    // client users → first (and only) client
+    if (userRole === 'Admin')  return 'all';            // admins keep global view
+    return null;                                        // everything else: no default
   };
 
   // Helper function to check if an item matches the client ID

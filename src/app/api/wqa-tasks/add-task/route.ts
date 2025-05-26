@@ -20,8 +20,18 @@ export async function POST(request: NextRequest) {
 
     // Set default values for required fields
     if (!taskData.status) {
-      taskData.status = 'Not Started';
+      taskData.status = 'To Do'; // default valid value
     }
+    
+    // Map common UI strings to the single-select options configured in Airtable
+    const mapStatus = (s: string) => {
+      const v = s.toLowerCase();
+      if (v.includes('not started')) return 'To Do';
+      if (v.includes('completed') || v.includes('done')) return 'Complete';
+      return s; // In Progress / others passthrough
+    };
+
+    taskData.status = mapStatus(taskData.status);
     
     // Map from our frontend model to Airtable model - but with minimal transformation
     // Don't include the 'Type' or 'Assigned To' fields as they're causing issues
@@ -30,24 +40,29 @@ export async function POST(request: NextRequest) {
       Status: taskData.status  // Use status directly
     };
     
-    // Only add fields if they are defined
+    // Only add fields if they are defined, and make sure they match valid options
     if (taskData.priority) {
       airtableTaskData.Priority = taskData.priority;
     }
     
     if (taskData.impact !== undefined && taskData.impact !== null) {
-      airtableTaskData['Impact'] = taskData.impact.toString(); // Convert impact to string if present
+      airtableTaskData['Impact'] = taskData.impact;
     }
     
     if (taskData.effort) {
-      airtableTaskData['Effort'] = taskData.effort; // Use effort directly
+      airtableTaskData['Effort'] = taskData.effort;
     }
     
     if (taskData.notes) {
       airtableTaskData['Notes By Scalerrs During Audit'] = taskData.notes;
     }
 
-    console.log('Airtable task data:', airtableTaskData);
+    // Add the Clients field if present in the incoming taskData
+    if (taskData.clients && Array.isArray(taskData.clients) && taskData.clients.length > 0) {
+      airtableTaskData['Clients'] = taskData.clients; // Assuming 'Clients' is the correct Airtable field name
+    }
+
+    console.log('Airtable task data (with Clients):', airtableTaskData);
 
     // Create the task in Airtable
     const newTask = await createWQATask(airtableTaskData);

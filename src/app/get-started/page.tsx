@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/forms/Button';
 import {
@@ -34,6 +34,19 @@ export default function GetStartedPage() {
 
   // Checklist state
   const [checklist, setChecklist] = useState(checklistItems);
+
+  const [localStorageClientId, setLocalStorageClientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // This code runs only on the client-side
+    const clientIdFromStorage = localStorage.getItem('clientRecordID');
+    console.log("GetStartedPage: clientRecordID from localStorage:", clientIdFromStorage);
+    if (clientIdFromStorage && clientIdFromStorage !== 'all') {
+      setLocalStorageClientId(clientIdFromStorage);
+    } else {
+      console.warn("GetStartedPage: No valid clientId found in localStorage for Fillout form.");
+    }
+  }, []);
 
   // Handle checklist item toggle
   const handleChecklistItemToggle = (id: string, completed: boolean) => {
@@ -234,7 +247,14 @@ export default function GetStartedPage() {
             variant="primary"
             size="lg"
             className="mt-auto get-started-btn"
-            onClick={() => setFormModalOpen(true)}
+            onClick={() => {
+                if (localStorageClientId) {
+                    setFormModalOpen(true);
+                } else {
+                    alert('Client ID not found. Cannot open onboarding form.');
+                    console.error("GetStartedPage: Cannot open FormModal, localStorageClientId is not set.");
+                }
+            }}
           >
             Complete Forms
           </Button>
@@ -252,7 +272,8 @@ export default function GetStartedPage() {
       <FormModal
         isOpen={formModalOpen}
         onClose={() => setFormModalOpen(false)}
-        formUrl="https://build.fillout.com/editor/preview/utTZkyHh2cus"
+        filloutId="utTZkyHh2cus"
+        clientId={localStorageClientId}
         title="Onboarding Forms"
       />
 

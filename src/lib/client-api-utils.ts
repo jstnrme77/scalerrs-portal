@@ -10,6 +10,7 @@ import { getFromCacheOrFetch, clearCacheByPrefix, clearCacheEntry } from './clie
 // Cache keys
 const WQA_TASKS_CACHE_KEY = 'wqa_tasks';
 const CRO_TASKS_CACHE_KEY = 'cro_tasks';
+const STRATEGY_TASKS_CACHE_KEY = 'strategy_tasks';
 
 /**
  * Generic function to fetch data from the API
@@ -569,11 +570,13 @@ export async function fetchWQATasks(
     console.log(`Bypassing cache and fetching fresh WQA tasks for ${boardType}`);
   }
 
-  // Add timestamp to prevent browser caching
-  const timestamp = new Date().getTime();
-  
-  // Create the URL with parameters
-  let url = `wqa-tasks?type=${encodeURIComponent(boardType)}&t=${timestamp}`;
+  // Add timestamp to prevent browser caching and build base URL
+  const timestamp = Date.now();
+
+  // Construct URL – we no longer include any "type" discriminator; the server
+  // route now returns all WQA rows and applies filtering solely by client ID.
+  let url = `wqa-tasks?t=${timestamp}`;
+
   
   // Add clientId parameter if provided
   if (clientId && clientId !== 'all') {
@@ -795,9 +798,23 @@ export async function createWQATask(taskData: {
   effort: string;
   notes?: string;
   boardType: string;
+  clients?: string[]; // Add clients property to the type
 }) {
   // Clear the WQA tasks cache to ensure we get fresh data
   clearWQATasksCache();
+
+    // Build the payload exactly as the API route expects (client-side labels)
+    const payload = {
+      task      : taskData.task,
+      status    : taskData.status,
+      priority  : taskData.priority,
+      impact    : taskData.impact,
+      effort    : taskData.effort,
+      notes     : taskData.notes,
+      assignedTo: taskData.assignedTo,
+      boardType : taskData.boardType,
+      clients   : taskData.clients
+    };
   
   // Map the status to Airtable accepted values
   let airtableStatus: string;
@@ -818,7 +835,7 @@ export async function createWQATask(taskData: {
   
   // Note: We're not passing the Type field to Airtable as it's causing errors
   // Create the task via the API
-  return fetchFromApi(
+  const resp = await fetchFromApi(
     'wqa-tasks/add-task',
     {
       method: 'POST',
@@ -830,19 +847,26 @@ export async function createWQATask(taskData: {
     },
     // Fallback mock data
     {
-      id: `task-${Date.now()}`,
-      task: taskData.task,
-      status: taskData.status,
-      priority: taskData.priority,
-      assignedTo: taskData.assignedTo || 'Unassigned',
-      impact: taskData.impact,
-      effort: taskData.effort,
-      notes: taskData.notes,
-      dateLogged: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      comments: [],
+      id          : `task-${Date.now()}`,
+      task        : taskData.task,
+      status      : taskData.status,
+      priority    : taskData.priority,
+      assignedTo  : taskData.assignedTo || 'Unassigned',
+      impact      : taskData.impact,
+      effort      : taskData.effort,
+      notes       : taskData.notes,
+      dateLogged  : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      comments    : [],
       commentCount: 0
     }
   );
+
+  // API returns { success: true, task: {...} } – unwrap
+  if (resp && typeof resp === 'object' && 'task' in resp) {
+    return (resp as any).task;
+  }
+
+  return resp;
 }
 
 /**
@@ -936,12 +960,13 @@ export async function createCROTask(taskData: {
   impact: number | string; // Allow both number and string for backward compatibility
   effort: string;
   notes?: string;
+  clients?: string[];
 }) {
   // Clear the CRO tasks cache to ensure we get fresh data
   clearCROTasksCache();
   
   // Create the task via the API
-  return fetchFromApi(
+  const resp = await fetchFromApi(
     'cro-tasks/add-task',
     {
       method: 'POST',
@@ -950,20 +975,27 @@ export async function createCROTask(taskData: {
     },
     // Fallback mock data
     {
-      id: `task-${Date.now()}`,
-      task: taskData.task,
-      status: taskData.status,
-      priority: taskData.priority,
-      assignedTo: taskData.assignedTo || 'Unassigned',
-      impact: taskData.impact,
-      effort: taskData.effort,
-      notes: taskData.notes,
-      dateLogged: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      comments: [],
+      id          : `task-${Date.now()}`,
+      task        : taskData.task,
+      status      : taskData.status,
+      priority    : taskData.priority,
+      assignedTo  : taskData.assignedTo || 'Unassigned',
+      impact      : taskData.impact,
+      effort      : taskData.effort,
+      notes       : taskData.notes,
+      dateLogged  : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      comments    : [],
       commentCount: 0,
       type: 'CRO'
     }
   );
+
+  // API returns { success: true, task: {...} } – unwrap
+  if (resp && typeof resp === 'object' && 'task' in resp) {
+    return (resp as any).task;
+  }
+
+  return resp;
 }
 
 /**
@@ -999,4 +1031,136 @@ export async function updateCROTaskStatus(taskId: string, status: string) {
  */
 export function clearCROTasksCache() {
   localStorage.removeItem(CRO_TASKS_CACHE_KEY);
+}
+
+
+/**
+ * Fetch Strategy / Ad-hoc tasks from the API (Airtable table: "Strategy Tasks")
+ * @param useCache Whether to use cached data
+ * @param clientId Optional client ID for filtering
+ */
+export async function getStrategyTasks(useCache: boolean = false, clientId?: string | null) {
+  // Always clear the cache before fetching new data to avoid stale data issues
+  localStorage.removeItem(STRATEGY_TASKS_CACHE_KEY);
+
+  // Check cache first if useCache is true
+  if (useCache) {
+    const cachedTasks = localStorage.getItem(STRATEGY_TASKS_CACHE_KEY);
+    if (cachedTasks) {
+      try {
+        const parsedTasks = JSON.parse(cachedTasks);
+        console.log('Using cached Strategy tasks:', parsedTasks.length);
+
+        // If clientId is provided, filter the cached tasks
+        if (clientId && clientId !== 'all') {
+          console.log(`Filtering cached Strategy tasks by client: ${clientId}`);
+          return parsedTasks.filter((task: any) => {
+            if (task.Clients) {
+              if (Array.isArray(task.Clients)) return task.Clients.includes(clientId);
+              return task.Clients === clientId;
+            }
+            if (task.Client) {
+              if (Array.isArray(task.Client)) return task.Client.includes(clientId);
+              return task.Client === clientId;
+            }
+            return false;
+          });
+        }
+
+        return parsedTasks;
+      } catch (error) {
+        console.error('Error parsing cached Strategy tasks:', error);
+      }
+    }
+  } else {
+    console.log('Bypassing cache and fetching fresh Strategy tasks from API');
+  }
+
+  // Add timestamp to prevent browser caching
+  const timestamp = new Date().getTime();
+
+  // Build URL
+  let url = `strategy-tasks?t=${timestamp}`;
+  if (clientId && clientId !== 'all') {
+    url += `&clientId=${encodeURIComponent(clientId)}`;
+  }
+
+  // Fetch from API
+  const response = await fetchFromApi(
+    url,
+    {},
+    { tasks: [] }
+  );
+
+  // Cache if needed
+  if (useCache && response.tasks && Array.isArray(response.tasks)) {
+    localStorage.setItem(STRATEGY_TASKS_CACHE_KEY, JSON.stringify(response.tasks));
+  }
+
+  return response.tasks || [];
+}
+
+/** Clear the Strategy tasks cache */
+export function clearStrategyTasksCache() {
+  localStorage.removeItem(STRATEGY_TASKS_CACHE_KEY);
+}
+
+/**
+ * Create a new Strategy / Ad-hoc task (table "Strategy Tasks")
+ * @param taskData Task fields coming from the modal
+ */
+export async function createStrategyTask(taskData: {
+  task: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  impact: number | string;
+  effort: string;
+  notes?: string;
+  clients?: string[];
+}) {
+  // No dedicated cache for strategy tasks yet, but clear the generic one
+  clearStrategyTasksCache?.();
+  
+  const payload = {
+    task      : taskData.task,
+    status    : taskData.status,
+    priority  : taskData.priority,
+    impact    : taskData.impact,
+    effort    : taskData.effort,
+    notes     : taskData.notes,
+    assignedTo: taskData.assignedTo,
+    clients   : taskData.clients
+  };
+
+  const resp = await fetchFromApi(
+    'strategy-tasks/add-task',
+    {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(payload)
+    },
+    // Fallback mock
+    {
+      id          : `strategy-task-${Date.now()}`,
+      task        : taskData.task,
+      status      : taskData.status,
+      priority    : taskData.priority,
+      impact      : taskData.impact,
+      effort      : taskData.effort,
+      assignedTo  : taskData.assignedTo || 'Unassigned',
+      notes       : taskData.notes || '',
+      dateLogged  : new Date().toISOString(),
+      comments    : [],
+      commentCount: 0,
+      type        : 'Strategy'
+    }
+  );
+
+  // API returns { success: true, task: {...} } – unwrap
+  if (resp && typeof resp === 'object' && 'task' in resp) {
+    return (resp as any).task;
+  }
+
+  return resp;
 }

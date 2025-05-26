@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 // import { DocumentCard, Document } from '@/components/ui/cards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,12 +40,14 @@ export default function AdminResources({
   const [newResource, setNewResource] = useState({
     name: '',
     type: '',
-    size: '0 KB'
+    size: '0 KB',
+    file: null as File | null,
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = () => {
     onUpload(newResource);
-    setNewResource({ name: '', type: '', size: '0 KB' });
+    setNewResource({ name: '', type: '', size: '0 KB', file: null });
     setIsUploadModalOpen(false);
   };
 
@@ -208,15 +210,18 @@ export default function AdminResources({
               <label className="block text-sm font-medium text-mediumGray">Upload File</label>
               <div className="border-2 border-dashed border-gray-300 rounded-[8px] p-6 text-center">
                 <p className="text-sm text-mediumGray mb-2">Drag and drop your file here, or</p>
-                <Button 
+                <Button
+                  type="button"
                   variant="outline"
                   className="font-medium text-sm bg-white"
+                  onClick={() => fileInputRef.current?.click()}
                 >
                   Browse Files
                 </Button>
-                <input 
-                  type="file" 
-                  className="hidden" 
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
@@ -225,7 +230,8 @@ export default function AdminResources({
                         ...newResource,
                         name: file.name.split('.')[0],
                         type: file.name.split('.').pop()?.toUpperCase() || '',
-                        size: fileSize
+                        size: fileSize,
+                        file,
                       });
                     }
                   }}

@@ -27,7 +27,7 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
   // Fetch clients directly if context doesn't provide them
   useEffect(() => {
     // Only fetch if user is admin and context doesn't have clients
-    if (user?.Role === 'Admin' && contextClients.length <= 1 && !contextLoading) {
+    if (contextClients.length <= 1 && !contextLoading) {
       const fetchClientData = async () => {
         try {
           setLocalLoading(true);
@@ -42,21 +42,17 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
           const allClients = await fetchClients();
           console.log('ClientSelector: Fetched clients directly:', allClients.length);
 
-          // Create client options
+          // Create client options (id / name pairs)
           const clientOptions = allClients.map((client: { id: string; Name?: string }) => ({
             id: client.id,
             name: client.Name || `Client ${client.id.substring(0, 5)}`
           }));
 
-          // Add "All Clients" option
-          setLocalClients([
-            { id: 'all', name: 'All Clients' },
-            ...clientOptions
-          ]);
+          // All roles: just the real list
+          setLocalClients(clientOptions);
 
-          // Set default client ID if not already set
-          if (!localClientId) {
-            setLocalClientId('all');
+          if (!localClientId && clientOptions.length > 0) {
+            setLocalClientId(clientOptions[0].id);
           }
         } catch (error) {
           console.error('Error fetching clients directly:', error);
@@ -67,7 +63,7 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
 
       fetchClientData();
     }
-  }, [user, contextClients, contextLoading, localClientId]);
+  }, [contextClients, contextLoading, localClientId]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -88,13 +84,8 @@ export default function ClientSelector({ className = '' }: ClientSelectorProps) 
     return null;
   }
 
-  // MODIFIED: Explicitly hide for Client role users, regardless of how many clients they have
-  if (user.Role === 'Client') {
-    return null;
-  }
-
-  // For other non-admin users, only show if they have multiple clients
-  if (user.Role !== 'Admin' && availableClients.length <= 1) {
+  // Hide the picker unless there is more than one client to choose from
+  if (availableClients.length <= 1) {
     return null;
   }
 

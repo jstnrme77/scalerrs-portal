@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useClientData } from '@/context/ClientDataContext';
 import DashboardLayout from '@/components/DashboardLayout';
 import AdminAgreement from './AdminAgreement';
 import AdminResources from './AdminResources';
@@ -14,7 +15,6 @@ import { FileText, KeyRound, FolderArchive } from 'lucide-react';
 const adminData = {
   agreement: [
     { id: 1, name: 'Signed contract', type: 'PDF', lastUpdated: '2025-01-15', size: '1.2 MB', uploadedBy: 'Scalerrs', editable: false },
-    { id: 2, name: 'Client onboarding form', type: 'PDF', lastUpdated: '2025-01-20', size: '850 KB', uploadedBy: 'Scalerrs', editable: false },
   ],
   access: [
     { id: 1, service: 'Google Analytics', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-15', uploadedBy: 'Client', editable: true },
@@ -46,6 +46,14 @@ const adminData = {
   missingAccess: true
 };
 
+// Simple helper to map resource name to category, adjust as needed
+function determineCategory(name: string): string {
+  const lc = name.toLowerCase();
+  if (lc.includes('brand')) return 'Brand Assets';
+  if (lc.includes('guide') || lc.includes('tone') || lc.includes('example')) return 'Content Guides & Examples';
+  return 'Product Materials';
+}
+
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('agreement');
   const [data, setData] = useState(adminData);
@@ -56,14 +64,139 @@ export default function Admin() {
     message: string | null;
   }>({ type: null, message: null });
 
+  // Get currently selected client (set by ClientDataProvider / ClientSelector)
+  const { clientId } = useClientData();
+
+  // ------------------------------------------------------------
+  // Fetch Airtable data whenever the client changes
+  // ------------------------------------------------------------
+  useEffect(() => {
+    if (!clientId) return;
+
+    // ------- Agreements (only the signed contract) -------
+    (async () => {
+      try {
+        const res = await fetch(`/api/clients/${clientId}/agreement`);
+        const d = await res.json();
+
+        if (d?.url) {
+          setData(prev => ({
+            ...prev,
+            agreement: [
+              {
+                id: 1,
+                name: 'Signed contract',
+                type: 'PDF', // Airtable usually stores PDF for contracts
+                lastUpdated: new Date().toISOString().split('T')[0],
+                size: '',
+                uploadedBy: 'Scalerrs',
+                editable: false,
+                url: d.url, // keep on object for quick access when downloading
+              } as any,
+            ],
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to load agreement', err);
+      }
+    })();
+
+    // ------- Access & Logins -------
+    (async () => {
+      try {
+        const res = await fetch(`/api/clients/${clientId}/access-logins`);
+        const records: any[] = await res.json();
+
+        const DEFAULT_SERVICES = [
+          'Google Analytics',
+          'Google Search Console',
+          'WordPress Admin',
+          'Ahrefs',
+          'Frase',
+        ];
+
+        const mapped = DEFAULT_SERVICES.map((service, idx) => {
+          const rec = records.find(r => r.name === service);
+          return {
+            id: rec?.id || idx + 1,
+            service,
+            username: rec?.username || 'N/A',
+            password: '••••••••••', // never expose the real pwd
+            notes: rec?.notes || '',
+            lastUpdated: rec?.lastModified || 'N/A',
+            uploadedBy: rec ? 'Client' : 'Scalerrs',
+            editable: true,
+          } as any;
+        });
+
+        setData(prev => ({
+          ...prev,
+          access: mapped,
+        }));
+      } catch (err) {
+        console.error('Failed to load access-logins', err);
+      }
+    })();
+
+    // ------- Resources -------
+    (async () => {
+      try {
+        const res = await fetch(`/api/clients/${clientId}/resources`);
+        const rs: any[] = await res.json();
+
+        const mapped = rs.map(r => {
+          const fileType = r.url ? (r.url.split('.').pop() || '').split('?')[0].toUpperCase() : '';
+          return {
+            id: r.id,
+            name: r.name,
+            type: fileType,
+            lastUpdated: r.lastModified || '',
+            size: '',
+            uploadedBy: r.source === 'scalerrs' ? 'Scalerrs' : 'Client',
+            editable: true,
+            url: r.url,
+          } as any;
+        });
+
+        setData(prev => ({
+          ...prev,
+          resources: mapped,
+        }));
+      } catch (err) {
+        console.error('Failed to load resources', err);
+      }
+    })();
+  }, [clientId]);
+
   const handleChangePassword = (id: number) => {
     const accessItem = data.access.find(item => item.id === id);
     setSelectedAccess(accessItem || null);
     setPasswordModal({ isOpen: true, accessId: id });
   };
 
-  const handleSavePassword = (id: number, newPassword: string) => {
+  const handleSavePassword = async (id: number, newPassword: string, newUsername: string) => {
     try {
+      if (!clientId) throw new Error('Missing clientId');
+
+      if (String(id).startsWith('rec')) {
+        await fetch(`/api/clients/${clientId}/access-logins`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, password: newPassword, username: newUsername }),
+        });
+      } else {
+        // create new record for this tool
+        await fetch(`/api/clients/${clientId}/access-logins`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: selectedAccess?.service || '',
+            username: newUsername,
+            password: newPassword,
+          }),
+        });
+      }
+
       // Update the password in the data
       setData(prevData => ({
         ...prevData,
@@ -71,13 +204,11 @@ export default function Admin() {
           item.id === id ? {
             ...item,
             password: '••••••••••',
-            lastUpdated: new Date().toISOString().split('T')[0]
+            lastUpdated: new Date().toISOString().split('T')[0],
+            username: newUsername,
           } : item
         )
       }));
-
-      // In a real application, you would send this to an API
-      console.log(`Password updated for service ID ${id}`);
 
       // Show success notification
       setActionStatus({
@@ -102,7 +233,7 @@ export default function Admin() {
     }
   };
 
-  const handleAddAccess = (newAccess: any) => {
+  const handleAddAccess = async (newAccess: any) => {
     try {
       if (!newAccess.service.trim() || !newAccess.username.trim()) {
         setActionStatus({
@@ -110,6 +241,18 @@ export default function Admin() {
           message: 'Service name and username are required'
         });
         return;
+      }
+
+      if (clientId) {
+        await fetch(`/api/clients/${clientId}/access-logins`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newAccess.service,
+            username: newAccess.username,
+            notes: newAccess.notes || '',
+          }),
+        });
       }
 
       setData(prevData => ({
@@ -144,7 +287,16 @@ export default function Admin() {
     }
   };
 
-  const handleUploadResource = (newResource: any) => {
+  const fileToDataURI = (file: File): Promise<string> => {
+    return new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result as string);
+      reader.onerror = () => rej(reader.error);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleUploadResource = async (newResource: any) => {
     try {
       if (!newResource.name.trim() || !newResource.type) {
         setActionStatus({
@@ -152,6 +304,25 @@ export default function Admin() {
           message: 'Resource name and type are required'
         });
         return;
+      }
+
+      if (clientId) {
+        let attachments: any[] = [];
+        if (newResource.file) {
+          const dataUrl = await fileToDataURI(newResource.file);
+          attachments = [{ url: dataUrl }];
+        }
+
+        await fetch(`/api/clients/${clientId}/resources`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newResource.name,
+            source: 'client',
+            category: determineCategory(newResource.name),
+            attachments,
+          }),
+        });
       }
 
       setData(prevData => ({
@@ -251,7 +422,12 @@ export default function Admin() {
               agreements={data.agreement}
               settings={data.settings}
               onView={(id) => console.log(`View agreement ${id}`)}
-              onDownload={(id) => console.log(`Download agreement ${id}`)}
+              onDownload={(id) => {
+                const doc: any = data.agreement.find(a => a.id === id);
+                if (doc?.url) {
+                  window.open(doc.url, '_blank');
+                }
+              }}
             />
           )}
 

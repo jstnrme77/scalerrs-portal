@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ type ChangePasswordModalProps = {
   isOpen: boolean;
   accessItem: AccessItem | null;
   onClose: () => void;
-  onSave: (id: number, newPassword: string) => void;
+  onSave: (id: number, newPassword: string, newUsername: string) => void;
 };
 
 export default function ChangePasswordModal({
@@ -26,10 +26,17 @@ export default function ChangePasswordModal({
   onClose,
   onSave
 }: ChangePasswordModalProps) {
+  const [username, setUsername] = useState(accessItem?.username || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  
+  useEffect(() => {
+    if (accessItem) {
+      setUsername(accessItem.username);
+    }
+  }, [accessItem]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +52,8 @@ export default function ChangePasswordModal({
       return;
     }
     
-    // Save the new password
-    onSave(accessItem?.id || 0, newPassword);
+    // Save the new details
+    onSave(accessItem?.id || 0, newPassword, username);
     
     // Reset form
     setNewPassword('');
@@ -69,9 +76,9 @@ export default function ChangePasswordModal({
           <div className="space-y-2">
             <label className="block text-sm font-medium text-mediumGray">Username</label>
             <Input
-              value={accessItem.username}
-              disabled
-              className="w-full bg-gray-50"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full"
             />
           </div>
           

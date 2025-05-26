@@ -3598,3 +3598,138 @@ export async function updateCROTaskStatus(taskId: string, newStatus: string) {
     throw error;
   }
 }
+
+
+/**
+ * Gets Strategy / Ad-hoc tasks from Airtable (table: "Strategy Tasks")
+ * Mirrors getCROTasks but targets the Strategy board.
+ */
+export async function getStrategyTasks(
+  userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null
+) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock tasks data for Strategy – no Airtable credentials');
+
+    // Provide a small mocked subset tagged as Strategy
+    const mockStrategyTasks = mockTasks.slice(0, 5).map(task => ({
+      ...task,
+      Type : 'Strategy',
+      Title: `Strategy: ${task.Title || 'Task'}`,
+      Status: ['To Do', 'In Progress', 'Complete'][Math.floor(Math.random() * 3)]
+    }));
+
+    return mockStrategyTasks;
+  }
+
+  try {
+    console.log('Fetching Strategy tasks from Airtable ...');
+
+    // Build optional filter formula – identical approach to getCROTasks
+    let filterFormula = '';
+
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering Strategy tasks by client:', clientIds);
+      try {
+        const clientFilters = clientIds.map(id => "SEARCH('" + id + "', {Client Record ID})");
+        filterFormula = `OR(${clientFilters.join(',')})`;
+      } catch (err) {
+        console.warn('Error creating client filter for Strategy tasks:', err);
+      }
+    } else if (userId && userRole && userRole !== 'Admin') {
+      console.log(`Filtering Strategy tasks for user: ${userId}`);
+      try {
+        filterFormula = `SEARCH('${userId}', {Assignee})`;
+      } catch (err) {
+        console.warn('Error creating assignee filter for Strategy tasks:', err);
+      }
+    }
+
+    // Query the "Strategy Tasks" table
+    let query;
+    if (filterFormula) {
+      query = base('Strategy Tasks').select({ filterByFormula: filterFormula });
+    } else {
+      query = base('Strategy Tasks').select();
+    }
+
+    const records = await query.all();
+    console.log(`Fetched ${records.length} Strategy tasks from Airtable`);
+
+    return records.map(rec => {
+      const fields = rec.fields;
+
+      // Normalise Name/Title
+      if (fields.Title && !fields.Name) fields.Name = fields.Title as any;
+      else if (fields.Name && !fields.Title) fields.Title = fields.Name as any;
+
+      return {
+        id: rec.id,
+        ...fields,
+        Type: 'Strategy'
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching Strategy tasks from Airtable:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a new Strategy / Ad-hoc task in the "Strategy Tasks" table
+ */
+export async function createStrategyTask(taskData: {
+  Name: string;
+  Status: string;
+  Priority?: string;
+  Impact?: string;
+  Effort?: string;
+  Comments?: string;
+  Assignee?: string;
+  Clients?: string[];
+}) {
+  if (!hasAirtableCredentials) {
+    console.log('Using mock data for creating Strategy task:', taskData);
+
+    const newTask = {
+      id       : `strategy-task-${Date.now()}`,
+      Name     : taskData.Name,
+      Title    : taskData.Name,
+      Status   : taskData.Status,
+      Priority : taskData.Priority || 'Medium',
+      Impact   : taskData.Impact || '3',
+      Effort   : taskData.Effort || 'M',
+      AssignedTo: taskData.Assignee || 'Unassigned',
+      Notes    : taskData.Comments || '',
+      Created  : new Date().toISOString(),
+      Type     : 'Strategy',
+      Clients  : taskData.Clients || []
+    };
+    return newTask;
+  }
+
+  try {
+    console.log('Creating new Strategy task in Airtable:', taskData);
+
+    const created = await base('Strategy Tasks').create(taskData);
+
+    return {
+      id       : created.id,
+      ...created.fields,
+      Type     : 'Strategy'
+    };
+  } catch (err) {
+    console.error('Error creating Strategy task in Airtable:', err);
+    // graceful fallback
+    return {
+      id       : `strategy-task-${Date.now()}`,
+      Name     : taskData.Name,
+      Status   : taskData.Status,
+      Priority : taskData.Priority || 'Medium',
+      Impact   : taskData.Impact || '3',
+      Effort   : taskData.Effort || 'M',
+      Type     : 'Strategy'
+    };
+  }
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button as ShadButton } from '@/components/ui/button'; 
 import LinkButton from '@/components/ui/forms/LinkButton'; 
 import Button from '@/components/ui/forms/Button'; 
@@ -11,6 +11,7 @@ import { getLatestActivityLogs } from '../../lib/airtable';
 import { fetchApprovalItems } from '@/lib/client-api-utils'; 
 import { useClientData } from '@/context/ClientDataContext'; 
 import Link from 'next/link';
+import useMonthProgress from '@/lib/useMonthProgress';
 
 const formatDate = (isoString: string) => {
   if (!isoString) return 'Date N/A';
@@ -84,7 +85,9 @@ export default function Home() {
   const [totalClientActionItemCount, setTotalClientActionItemCount] = useState(0);
   const [isLoadingClientActions, setIsLoadingClientActions] = useState(true);
 
-  const { clientId, isLoading: isLoadingClientContext } = useClientData();
+  const { clientId: contextClientId, isLoading: isLoadingClientContext } = useClientData();
+  const clientId = contextClientId;
+  const { progress: monthProgress, monthName } = useMonthProgress();
 
   const handleChecklistItemToggle = (id: string, completed: boolean) => {
     setChecklist(prev => prev.map(item => item.id === id ? { ...item, completed } : item));
@@ -184,7 +187,8 @@ export default function Home() {
     };
 
     if (isLoadingClientContext) {
-        // Optionally set loading states true here if needed, though fetchClientActionData does it.
+        // Wait for client context to load
+        return;
     } else if (clientId || process.env.NEXT_PUBLIC_CLIENT_ID) {
         fetchActivities();
         fetchClientActionData();
@@ -234,13 +238,13 @@ export default function Home() {
                 <p className="text-base text-[#12131C]">Tasks Completed</p>
               </div>
               <div className="mt-auto pt-6">
-                <Button
+              <LinkButton 
+                  href="/get-started" 
                   variant="primary"
                   className="text-base get-started-btn w-full"
-                  onClick={() => setChecklistModalOpen(true)}
                 >
-                  View Checklist
-                </Button>
+                  Complete Onboarding Forms
+                  </LinkButton>
               </div>
             </div>
 
@@ -311,13 +315,18 @@ export default function Home() {
               </div>
             </div>
             <div className="mb-6">
-              <h3 className="text-xl font-semibold text-[#12131C] mb-3">{currentMonth} Campaign Progress</h3>
+              <h3 className="text-xl font-semibold text-[#12131C] mb-3">
+                {monthName ? `${monthName} Campaign Progress` : 'Loading...'}
+              </h3>
               <div className="flex justify-between mb-1">
                 <span className="text-base font-medium text-[#12131C]">Overall Status:</span>
-                <span className="text-sm font-medium text-[#12131C]">63% complete</span>
+                <span className="text-sm font-medium text-[#12131C]">
+                  {monthProgress !== null ? `${monthProgress}%` : '--'} complete
+                </span>
               </div>
               <div className="h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
-                <div className="h-2.5 rounded-full bg-[#9EA8FB]" style={{ width: '63%' }}></div>
+                <div className="h-2.5 rounded-full bg-[#9EA8FB] transition-all duration-300"
+                  style={{ width: monthProgress != null ? `${monthProgress}%` : '0%' }}></div>
               </div>
             </div>
             <div className="mt-auto pt-6">
