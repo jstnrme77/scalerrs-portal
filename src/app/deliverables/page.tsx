@@ -22,6 +22,7 @@ const getCurrentMonthYear = (): string => {
 export default function DeliverablePage() {
   const [mainTab, setMainTab] = useState<MainTab>('briefs');
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonthYear());
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const { 
     clientId,
     availableClients, 
@@ -251,6 +252,19 @@ export default function DeliverablePage() {
     
     return () => clearInterval(refreshInterval);
   }, [selectedMonth, clientId]);
+
+  // Listen for changes in sidebar state
+  useEffect(() => {
+    const handleSidebarChange = (e: CustomEvent) => {
+      setSidebarExpanded(e.detail.expanded);
+    };
+
+    window.addEventListener('sidebarToggle' as any, handleSidebarChange);
+
+    return () => {
+      window.removeEventListener('sidebarToggle' as any, handleSidebarChange);
+    };
+  }, []);
 
   // Helper function for sorting
   const sortItems = (items: any[], sort: { column: string; direction: 'asc' | 'desc' } | null) => {
@@ -536,92 +550,215 @@ export default function DeliverablePage() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-3 md:gap-8 md:p-1">
-      {/* Top-Level Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-full">
-        {/* Briefs Approved Card - Purple Border for Briefs */}
-        <div className="rounded-lg border-8 p-6 bg-purple-50 h-[104px] flex items-center shadow-sm border-purple-400">
-          <div className="flex flex-col items-center text-center w-full">
-            <span className="text-lg font-bold mb-1 notification-text">
-              {filteredBriefs.length > 0
-                ? Math.round((filteredBriefs.filter(brief => 
-                    String(brief.Status || '').toLowerCase() === 'brief approved' || 
-                    String(brief.Status || '').toLowerCase() === 'approved'
-                  ).length / filteredBriefs.length) * 100)
-                : 0}%
-            </span>
-            <span className="text-base font-medium">
-              Briefs Delivered
-            </span>
-            <span className="text-base text-mediumGray mt-1">
-              {filteredBriefs.filter(brief => 
-                String(brief.Status || '').toLowerCase() === 'brief approved' || 
-                String(brief.Status || '').toLowerCase() === 'approved'
-              ).length} of {filteredBriefs.length} briefs approved
-            </span>
+      {/* Fixed header container for summary cards and error messages */}
+      <div className="bg-white flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-1" style={{ position: 'fixed', top: '64px', left: sidebarExpanded ? '256px' : '80px', right: '16px', paddingTop: '48px', paddingBottom: '16px', paddingLeft: '48px', paddingRight: '16px' }}>
+        {/* Top-Level Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-full">
+          {/* Briefs Approved Card - Purple Border for Briefs */}
+          <div className="rounded-lg border-8 p-6 bg-purple-50 h-[104px] flex items-center shadow-sm border-purple-400">
+            <div className="flex flex-col items-center text-center w-full">
+              <span className="text-lg font-bold mb-1 notification-text">
+                {filteredBriefs.length > 0
+                  ? Math.round((filteredBriefs.filter(brief => 
+                      String(brief.Status || '').toLowerCase() === 'brief approved' || 
+                      String(brief.Status || '').toLowerCase() === 'approved'
+                    ).length / filteredBriefs.length) * 100)
+                  : 0}%
+              </span>
+              <span className="text-base font-medium">
+                Briefs Delivered
+              </span>
+              <span className="text-base text-mediumGray mt-1">
+                {filteredBriefs.filter(brief => 
+                  String(brief.Status || '').toLowerCase() === 'brief approved' || 
+                  String(brief.Status || '').toLowerCase() === 'approved'
+                ).length} of {filteredBriefs.length} briefs approved
+              </span>
+            </div>
+          </div>
+
+          {/* Articles Live Card - Yellow Border for Articles */}
+          <div className="rounded-lg border-8 p-6 bg-yellow-50 h-[104px] flex items-center shadow-sm border-yellow-400">
+            <div className="flex flex-col items-center text-center w-full">
+              <span className="text-lg font-bold mb-1 notification-text">
+                {filteredArticles.length > 0
+                  ? Math.round((filteredArticles.filter(article => 
+                      String(article.Status || '').toLowerCase() === 'live'
+                    ).length / filteredArticles.length) * 100)
+                  : 0}%
+              </span>
+              <span className="text-base font-medium">
+                Articles Live
+              </span>
+              <span className="text-base text-mediumGray mt-1">
+                {filteredArticles.filter(article => 
+                  String(article.Status || '').toLowerCase() === 'live'
+                ).length} of {filteredArticles.length} articles live
+              </span>
+            </div>
+          </div>
+
+          {/* Backlinks Live Card - Pink Border for Backlinks */}
+          <div className="rounded-lg border-8 p-6 bg-pink-50 h-[104px] flex items-center shadow-sm border-pink-400">
+            <div className="flex flex-col items-center text-center w-full">
+              <span className="text-lg font-bold mb-1 notification-text">
+                {filteredBacklinks.length > 0
+                  ? Math.round((filteredBacklinks.filter(backlink => 
+                      String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
+                    ).length / filteredBacklinks.length) * 100)
+                  : 0}%
+              </span>
+              <span className="text-base font-medium">
+                Backlinks Live
+              </span>
+              <span className="text-base text-mediumGray mt-1">
+                {filteredBacklinks.filter(backlink => 
+                  String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
+                ).length} of {filteredBacklinks.length} backlinks placed
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Articles Live Card - Yellow Border for Articles */}
-        <div className="rounded-lg border-8 p-6 bg-yellow-50 h-[104px] flex items-center shadow-sm border-yellow-400">
-          <div className="flex flex-col items-center text-center w-full">
-            <span className="text-lg font-bold mb-1 notification-text">
-              {filteredArticles.length > 0
-                ? Math.round((filteredArticles.filter(article => 
-                    String(article.Status || '').toLowerCase() === 'live'
-                  ).length / filteredArticles.length) * 100)
-                : 0}%
-            </span>
-            <span className="text-base font-medium">
-              Articles Live
-            </span>
-            <span className="text-base text-mediumGray mt-1">
-              {filteredArticles.filter(article => 
-                String(article.Status || '').toLowerCase() === 'live'
-              ).length} of {filteredArticles.length} articles live
-            </span>
+        {/* Error Messages */}
+        {Object.keys(error).length > 0 && (
+          <div className="w-full mb-4 max-w-7xl mx-auto">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative flex justify-between items-center">
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>{error.general || Object.values(error)[0] || 'An error occurred while fetching deliverables data.'}</span>
+              </div>
+              <button
+                onClick={() => setError({})}
+                className="text-red-700 hover:text-red-900"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Backlinks Live Card - Pink Border for Backlinks */}
-        <div className="rounded-lg border-8 p-6 bg-pink-50 h-[104px] flex items-center shadow-sm border-pink-400">
-          <div className="flex flex-col items-center text-center w-full">
-            <span className="text-lg font-bold mb-1 notification-text">
-              {filteredBacklinks.length > 0
-                ? Math.round((filteredBacklinks.filter(backlink => 
-                    String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
-                  ).length / filteredBacklinks.length) * 100)
-                : 0}%
-            </span>
-            <span className="text-base font-medium">
-              Backlinks Live
-            </span>
-            <span className="text-base text-mediumGray mt-1">
-              {filteredBacklinks.filter(backlink => 
-                String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
-              ).length} of {filteredBacklinks.length} backlinks placed
-            </span>
+        {/* Tab Navigation and Filters */}
+        <div className="border-b border-gray-200 bg-white flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-1">
+          <div className="flex justify-between items-center">
+            <div className="tab-navigation">
+              <div className="flex overflow-x-auto">
+                <TabNavigation
+                  tabs={[
+                    { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
+                    { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
+                    { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> }
+                  ]}
+                  activeTab={mainTab}
+                  onTabChange={(tab) => handleTabChange(tab as MainTab)}
+                  variant="primary"
+                />
+              </div>
+            </div>
+
+            {/* Status Filter - dynamically shows the appropriate filter based on active tab */}
+            <div className="ml-auto flex items-center gap-2">
+              {mainTab === 'briefs' && (
+                <>
+                  <select
+                    className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                    value={briefStatusFilter}
+                    onChange={(e) => setBriefStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="Brief Approved">Approved</option>
+                    <option value="Needs Input">Needs Input</option>
+                    <option value="Review Brief">Review Brief</option>
+                    <option value="In Progress">In Progress</option>
+                  </select>
+                  {briefStatusFilter !== 'all' && (
+                    <button
+                      onClick={() => setBriefStatusFilter('all')}
+                      className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
+              )}
+
+              {mainTab === 'articles' && (
+                <>
+                  <select
+                    className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                    value={articleStatusFilter}
+                    onChange={(e) => setArticleStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="Live">Live</option>
+                    <option value="Draft Approved">Draft Approved</option>
+                    <option value="Review Draft">Review Draft</option>
+                    <option value="In Production">In Production</option>
+                    <option value="To Be Published">To Be Published</option>
+                  </select>
+                  {articleStatusFilter !== 'all' && (
+                    <button
+                      onClick={() => setArticleStatusFilter('all')}
+                      className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
+              )}
+
+              {mainTab === 'backlinks' && (
+                <>
+                  <div className="flex gap-2">
+                    <select
+                      className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="live">Live</option>
+                      <option value="scheduled">Scheduled</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="pending">Pending</option>
+                    </select>
+                    <select
+                      className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                      value={drFilter}
+                      onChange={(e) => setDrFilter(e.target.value)}
+                    >
+                      <option value="all">All DR</option>
+                      <option value="30">DR 30+</option>
+                      <option value="40">DR 40+</option>
+                      <option value="50">DR 50+</option>
+                      <option value="60">DR 60+</option>
+                      <option value="70">DR 70+</option>
+                      <option value="80">DR 80+</option>
+                    </select>
+                  </div>
+                  {(statusFilter !== 'all' || drFilter !== 'all') && (
+                    <button
+                      onClick={() => {
+                        setStatusFilter('all');
+                        setDrFilter('all');
+                      }}
+                      className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {Object.keys(error).length > 0 && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center">
-          <div className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <span>{error.general || Object.values(error)[0] || 'An error occurred while fetching deliverables data.'}</span>
-          </div>
-          <button
-            onClick={() => setError({})}
-            className="text-red-700 hover:text-red-900"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-      )}
+      {/* Spacer to push content below fixed header */}
+      <div style={{ height: '200px' }}></div>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -629,635 +766,470 @@ export default function DeliverablePage() {
           <span className="ml-3 text-mediumGray">Loading deliverables data...</span>
         </div>
       ) : (
-        <div className="page-container mb-6">
-          <div className="page-container-tabs">
-            <div className="flex justify-between items-center">
-              <div className="tab-navigation">
-                <div className="flex overflow-x-auto">
-                  <TabNavigation
-                    tabs={[
-                      { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
-                      { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
-                      { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> }
-                    ]}
-                    activeTab={mainTab}
-                    onTabChange={(tab) => handleTabChange(tab as MainTab)}
-                    variant="primary"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter - dynamically shows the appropriate filter based on active tab */}
-              <div className="ml-auto flex items-center gap-2">
-                {mainTab === 'briefs' && (
-                  <>
-                    <select
-                      className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                      value={briefStatusFilter}
-                      onChange={(e) => setBriefStatusFilter(e.target.value)}
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="Brief Approved">Approved</option>
-                      <option value="Needs Input">Needs Input</option>
-                      <option value="Review Brief">Review Brief</option>
-                      <option value="In Progress">In Progress</option>
-                    </select>
-                    {briefStatusFilter !== 'all' && (
-                      <button
-                        onClick={() => setBriefStatusFilter('all')}
-                        className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </>
-                )}
-
-                {mainTab === 'articles' && (
-                  <>
-                    <select
-                      className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                      value={articleStatusFilter}
-                      onChange={(e) => setArticleStatusFilter(e.target.value)}
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="Live">Live</option>
-                      <option value="Draft Approved">Draft Approved</option>
-                      <option value="Review Draft">Review Draft</option>
-                      <option value="In Production">In Production</option>
-                      <option value="To Be Published">To Be Published</option>
-                    </select>
-                    {articleStatusFilter !== 'all' && (
-                      <button
-                        onClick={() => setArticleStatusFilter('all')}
-                        className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </>
-                )}
-
-                {mainTab === 'backlinks' && (
-                  <>
-                    <div className="flex gap-2">
-                      <select
-                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                      >
-                        <option value="all">All Statuses</option>
-                        <option value="live">Live</option>
-                        <option value="scheduled">Scheduled</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="pending">Pending</option>
-                      </select>
-                      <select
-                        className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
-                        value={drFilter}
-                        onChange={(e) => setDrFilter(e.target.value)}
-                      >
-                        <option value="all">All DR</option>
-                        <option value="30">DR 30+</option>
-                        <option value="40">DR 40+</option>
-                        <option value="50">DR 50+</option>
-                        <option value="60">DR 60+</option>
-                        <option value="70">DR 70+</option>
-                        <option value="80">DR 80+</option>
-                      </select>
-                    </div>
-                    {(statusFilter !== 'all' || drFilter !== 'all') && (
-                      <button
+        <div className="w-full overflow-x-auto">
+          {mainTab === 'briefs' && (
+            <div className="bg-white">
+              <Table className="min-w-full divide-y divide-gray-200 bg-white">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px]">
+                      <Button
+                        variant="ghost"
                         onClick={() => {
-                          setStatusFilter('all');
-                          setDrFilter('all');
+                          setBriefSort(prev => ({
+                            column: 'Title',
+                            direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
                         }}
-                        className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                        className="p-0 h-8 text-base font-medium flex items-center"
                       >
-                        Clear
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
+                        BRIEF TITLE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBriefSort(prev => ({
+                            column: 'SEOStrategist',
+                            direction: prev?.column === 'SEOStrategist' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        ASSIGNED SEO STRATEGIST
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBriefSort(prev => ({
+                            column: 'DueDate',
+                            direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        DUE DATE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBriefSort(prev => ({
+                            column: 'Status',
+                            direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        STATUS
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBriefSort(prev => ({
+                            column: 'Month',
+                            direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        MONTH
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px]">GDOC LINK</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-200">
+                  {filteredBriefs.length > 0 ? (
+                    filteredBriefs.map((brief) => (
+                      <TableRow key={brief.id} className="hover:bg-gray-50 cursor-pointer">
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(brief.Title || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(getUserName(brief.SEOStrategist || brief['SEO Strategist']))}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-mediumGray">
+                          {brief.DueDate ? new Date(brief.DueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
+                            ${brief.Status === 'Brief Approved' || brief.Status === 'Approved' ? 'bg-green-100 text-green-800' :
+                            brief.Status === 'Needs Input' ? 'bg-yellow-200 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'}`}>
+                            {String(brief.Status === 'Brief Approved' ? 'Approved' : brief.Status || 'Unknown')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {String(brief.Month || '-')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {brief.DocumentLink ? (
+                            <a
+                              href={ensureUrlProtocol(String(brief.DocumentLink))}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-base text-primary hover:underline flex items-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              View
+                            </a>
+                          ) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="px-4 py-4 text-center text-gray-500">
+                        No briefs available for {selectedMonth}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          </div>
-          <div>
-            {mainTab === 'briefs' && (
-              <div>
-                <div className="page-container-body">
-                  <div>
-                    {/* <div className="mb-4">
-                      <div className="flex justify-between items-center bg-purple-100 p-2 rounded-md mb-2">
-                        <div className="flex items-center">
-                          <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="#6B21A8">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                          </div>
-                          <p className="text-sm font-medium">
-                            {filteredBriefs.filter(brief => brief.Status === 'Review Brief').length} briefs need your review
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mb-2">
-                        <p className="text-sm text-gray-600 mb-1">
-                          {selectedMonth}: {filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length} of {filteredBriefs.length} briefs approved
-                          ({filteredBriefs.length > 0 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length / filteredBriefs.length) * 100) : 0}%)
-                        </p>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div
-                            className="bg-primary h-1.5 rounded-full"
-                            style={{ width: `${filteredBriefs.length > 0 ? Math.round((filteredBriefs.filter(brief => brief.Status === 'Brief Approved').length / filteredBriefs.length) * 100) : 0}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div> */}
-                    {/* Briefs Table */}
-                    <div className="bg-white">
+          )}
 
-                      <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBriefSort(prev => ({
-                                    column: 'Title',
-                                    direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                BRIEF TITLE
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBriefSort(prev => ({
-                                    column: 'SEOStrategist',
-                                    direction: prev?.column === 'SEOStrategist' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                ASSIGNED SEO STRATEGIST
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBriefSort(prev => ({
-                                    column: 'DueDate',
-                                    direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                DUE DATE
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBriefSort(prev => ({
-                                    column: 'Status',
-                                    direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                STATUS
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBriefSort(prev => ({
-                                    column: 'Month',
-                                    direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                MONTH
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">GDOC LINK</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-200">
-                          {filteredBriefs.length > 0 ? (
-                            filteredBriefs.map((brief) => (
-                              <TableRow key={brief.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[25%]">{String(brief.Title || '')}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[20%]">{String(getUserName(brief.SEOStrategist || brief['SEO Strategist']))}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-mediumGray w-[15%]">
-                                  {brief.DueDate ? new Date(brief.DueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}
-                                </TableCell>
-                                <TableCell className="px-4 py-4 w-[15%]">
-                                  <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
-                                    ${brief.Status === 'Brief Approved' || brief.Status === 'Approved' ? 'bg-green-100 text-green-800' :
-                                    brief.Status === 'Needs Input' ? 'bg-yellow-200 text-yellow-800' :
-                                    'bg-gray-100 text-gray-800'}`}>
-                                    {String(brief.Status === 'Brief Approved' ? 'Approved' : brief.Status || 'Unknown')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[15%]">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    {String(brief.Month || '-')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-4 w-[10%]">
-                                  {brief.DocumentLink ? (
-                                    <a
-                                      href={ensureUrlProtocol(String(brief.DocumentLink))}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-base text-primary hover:underline flex items-center"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                      </svg>
-                                      View
-                                    </a>
-                                  ) : '-'}
-                                </TableCell>
-                              </TableRow>
-                            ))
+          {mainTab === 'articles' && (
+            <div className="bg-white">
+              <Table className="min-w-full divide-y divide-gray-200 bg-white">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setArticleSort(prev => ({
+                            column: 'Title',
+                            direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        ARTICLE TITLE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setArticleSort(prev => ({
+                            column: 'Writer',
+                            direction: prev?.column === 'Writer' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        ASSIGNED WRITER
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setArticleSort(prev => ({
+                            column: 'WordCount',
+                            direction: prev?.column === 'WordCount' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        WORD COUNT
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setArticleSort(prev => ({
+                            column: 'DueDate',
+                            direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        DUE DATE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setArticleSort(prev => ({
+                            column: 'Status',
+                            direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        STATUS
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setArticleSort(prev => ({
+                            column: 'Month',
+                            direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        MONTH
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">GDOC LINK</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px]">ARTICLE URL</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-200">
+                  {filteredArticles.length > 0 ? (
+                    filteredArticles.map((article) => (
+                      <TableRow key={article.id} className="hover:bg-gray-50 cursor-pointer">
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(article.Title || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(getUserName(article.Writer || article['Content Writer']))}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(article.WordCount || article['Word Count'] || article['Final Word Count'] || '-')}</TableCell>
+                        <TableCell className="px-4 py-4">
+                          {article.DueDate || article['Due Date'] ?
+                            new Date(article.DueDate || article['Due Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
+                            ${article.Status === 'Live' ? 'bg-green-100 text-green-800' :
+                            article.Status === 'Draft Approved' ? 'bg-blue-200 text-blue-800' :
+                            article.Status === 'Review Draft' ? 'bg-yellow-200 text-yellow-800' :
+                            article.Status === 'In Production' ? 'bg-purple-200 text-purple-800' :
+                            'bg-gray-100 text-gray-800'}`}>
+                            {String(article.Status || 'Unknown')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {String(article.Month || '-')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {article.DocumentLink || article['Document Link'] ? (
+                            <a
+                              href={ensureUrlProtocol(String(article.DocumentLink || article['Document Link']))}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-base text-primary hover:underline flex items-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              View
+                            </a>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {article.ArticleURL || article['Article URL'] || article['Target Page URL'] ? (
+                            <a
+                              href={ensureUrlProtocol(String(article.ArticleURL || article['Article URL'] || article['Target Page URL']))}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-base text-primary hover:underline flex items-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              View
+                            </a>
+                          ) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-4 text-base text-gray-500">
+                        No articles available for {selectedMonth}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {mainTab === 'backlinks' && (
+            <div className="bg-white">
+              <Table className="min-w-full divide-y divide-gray-200 bg-white">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'Domain',
+                            direction: prev?.column === 'Domain' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        DOMAIN
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'LinkType',
+                            direction: prev?.column === 'LinkType' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        LINK TYPE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'DomainRating',
+                            direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 font-medium flex items-center justify-center"
+                      >
+                        DR
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">TRAFFIC</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">Target URL</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">RDs of Target URL</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">Traffic of Target URL</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">ANCHOR TEXT</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'Status',
+                            direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        STATUS
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'Month',
+                            direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        MONTH
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px]">NOTES</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-200">
+                  {filteredBacklinks.length > 0 ? (
+                    filteredBacklinks.map((backlink) => (
+                      <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(backlink['Source Domain'] || backlink.Domain || 'Unknown Domain')}</TableCell>
+                        <TableCell className="px-4 py-4">{String(backlink['Link Type'] || backlink.LinkType || 'Unknown Type')}</TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-full">
+                            {backlink['Domain Authority/Rating'] !== undefined ? String(backlink['Domain Authority/Rating']) : (backlink.DomainRating !== undefined ? String(backlink.DomainRating) : 'N/A')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <span className="px-2 py-1 text-sm font-medium bg-blue-100 rounded-full text-blue-800">
+                            {String(backlink['Domain Traffic ( API )'] || Math.floor(Math.random() * 50000) + 10000)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {backlink["Target URL"] || backlink.TargetPage ? (
+                            <a
+                              href={ensureUrlProtocol(String(backlink["Target URL"] || backlink.TargetPage))}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {String(backlink["Target URL"] || backlink.TargetPage)}
+                            </a>
                           ) : (
-                            <TableRow>
-                              <TableCell colSpan={6} className="px-4 py-4 text-center text-gray-500">
-                                No briefs available for {selectedMonth}
-                              </TableCell>
-                            </TableRow>
+                            <span className="text-gray-500">No URL</span>
                           )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {mainTab === 'articles' && (
-              <div>
-                <div className="page-container-body">
-                  <div>
-                    {/* Articles Table */}
-                    <div className="bg-white">
-
-                      <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-bl-[12px]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setArticleSort(prev => ({
-                                    column: 'Title',
-                                    direction: prev?.column === 'Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                ARTICLE TITLE
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setArticleSort(prev => ({
-                                    column: 'Writer',
-                                    direction: prev?.column === 'Writer' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                ASSIGNED WRITER
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setArticleSort(prev => ({
-                                    column: 'WordCount',
-                                    direction: prev?.column === 'WordCount' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                WORD COUNT
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setArticleSort(prev => ({
-                                    column: 'DueDate',
-                                    direction: prev?.column === 'DueDate' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                DUE DATE
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setArticleSort(prev => ({
-                                    column: 'Status',
-                                    direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                STATUS
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setArticleSort(prev => ({
-                                    column: 'Month',
-                                    direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                MONTH
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[14%]">GDOC LINK</TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[14%] rounded-br-[12px]">ARTICLE URL</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-200">
-                          {filteredArticles.length > 0 ? (
-                            filteredArticles.map((article) => (
-                              <TableRow key={article.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[20%]">{String(article.Title || '')}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[12%]">{String(getUserName(article.Writer || article['Content Writer']))}</TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{String(article.WordCount || article['Word Count'] || article['Final Word Count'] || '-')}</TableCell>
-                                <TableCell className="w-[10%]">
-                                  {article.DueDate || article['Due Date'] ?
-                                    new Date(article.DueDate || article['Due Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                    : '-'}
-                                </TableCell>
-                                <TableCell className="w-[10%]">
-                                  <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
-                                    ${article.Status === 'Live' ? 'bg-green-100 text-green-800' :
-                                    article.Status === 'Draft Approved' ? 'bg-blue-200 text-blue-800' :
-                                    article.Status === 'Review Draft' ? 'bg-yellow-200 text-yellow-800' :
-                                    article.Status === 'In Production' ? 'bg-purple-200 text-purple-800' :
-                                    'bg-gray-100 text-gray-800'}`}>
-                                    {String(article.Status || 'Unknown')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="w-[10%]">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    {String(article.Month || '-')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="w-[14%]">
-                                  {article.DocumentLink || article['Document Link'] ? (
-                                    <a
-                                      href={ensureUrlProtocol(String(article.DocumentLink || article['Document Link']))}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-base text-primary hover:underline flex items-center"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                      </svg>
-                                      View
-                                    </a>
-                                  ) : '-'}
-                                </TableCell>
-                                <TableCell className="w-[14%]">
-                                  {article.ArticleURL || article['Article URL'] || article['Target Page URL'] ? (
-                                    <a
-                                      href={ensureUrlProtocol(String(article.ArticleURL || article['Article URL'] || article['Target Page URL']))}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-base text-primary hover:underline flex items-center"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                      </svg>
-                                      View
-                                    </a>
-                                  ) : '-'}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={8} className="text-center py-4 text-base text-gray-500">
-                                No articles available for {selectedMonth}
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {mainTab === 'backlinks' && (
-              <div>
-                <div className="page-container-body">
-                  <div>
-                    {/* Backlinks Table */}
-                    <div className="bg-white">
-
-                      <Table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-bl-[12px]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'Domain',
-                                    direction: prev?.column === 'Domain' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                DOMAIN
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[8%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'LinkType',
-                                    direction: prev?.column === 'LinkType' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                LINK TYPE
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'DomainRating',
-                                    direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 font-medium flex items-center justify-center"
-                              >
-                                DR
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">TRAFFIC OF DR</TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">BACKLINK PAGE URL</TableHead>
-                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">RDS OF BACKLINK PAGE</TableHead>
-                            <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">TRAFFIC OF BACKLINK PAGE</TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">ANCHOR TEXT</TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[8%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'Status',
-                                    direction: prev?.column === 'Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                STATUS
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[8%]">
-                              <Button
-                                variant="ghost"
-                                onClick={() => {
-                                  setBacklinkSort(prev => ({
-                                    column: 'Month',
-                                    direction: prev?.column === 'Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                                  }));
-                                }}
-                                className="p-0 h-8 text-base font-medium flex items-center"
-                              >
-                                MONTH
-                                <ArrowUpDown className="ml-2 h-4 w-4" />
-                              </Button>
-                            </TableHead>
-                            <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%] rounded-br-[12px]">NOTES</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-200">
-                          {filteredBacklinks.length > 0 ? (
-                            filteredBacklinks.map((backlink) => (
-                              <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
-                                <TableCell className="px-4 py-4 text-base font-medium text-dark w-[10%]">{String(backlink['Source Domain'] || backlink.Domain || 'Unknown Domain')}</TableCell>
-                                <TableCell className="w-[8%]">{String(backlink['Link Type'] || backlink.LinkType || 'Unknown Type')}</TableCell>
-                                <TableCell className="w-[6%] text-center">
-                                  <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-full">
-                                    {backlink['Domain Authority/Rating'] !== undefined ? String(backlink['Domain Authority/Rating']) : (backlink.DomainRating !== undefined ? String(backlink.DomainRating) : 'N/A')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="w-[8%] text-center">
-                                  <span className="px-2 py-1 text-sm font-medium bg-blue-100 rounded-full text-blue-800">
-                                    {String(backlink['Domain Traffic ( API )'] || Math.floor(Math.random() * 50000) + 10000)}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="w-[12%]">
-                                  {backlink["Target URL"] || backlink.TargetPage ? (
-                                    <a
-                                      href={ensureUrlProtocol(String(backlink["Target URL"] || backlink.TargetPage))}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-primary hover:underline"
-                                    >
-                                      {String(backlink["Target URL"] || backlink.TargetPage)}
-                                    </a>
-                                  ) : (
-                                    <span className="text-gray-500">No URL</span>
-                                  )}
-                                </TableCell>
-                                <TableCell className="w-[6%] text-center">
-                                  <span className="px-2 py-1 text-sm font-medium bg-orange-100 rounded-full text-orange-800">
-                                    {String(backlink['N° RDs Of Referring Page ( API )'] || Math.floor(Math.random() * 500) + 50)}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="w-[8%] text-center">
-                                  <span className="px-2 py-1 text-sm font-medium bg-green-100 rounded-full text-green-800">
-                                    {String(backlink['Backlink URL Page Traffic ( API )'] || Math.floor(Math.random() * 25000) + 5000)}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="w-[10%]">
-                                  {String(backlink.AnchorText || backlink['Anchor Text'] || 'SEO best practices')}
-                                </TableCell>
-                                <TableCell className="w-[8%] pl-4">
-                                  <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
-                                    ${(String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live') ? 'bg-green-100 text-green-800' :
-                                    (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'scheduled') ? 'bg-yellow-200 text-yellow-800' :
-                                    (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'rejected') ? 'bg-red-200 text-red-800' :
-                                    'bg-gray-100 text-gray-800'}`}>
-                                    {String(backlink['Portal Status'] || backlink.Status || 'Unknown Status')}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[8%]">
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                    {String(backlink.Month || selectedMonth)}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-4 text-base text-dark w-[10%]">{String(backlink.Notes || '—')}</TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={11} className="text-center py-4 text-base text-gray-500">
-                                No backlinks available for {selectedMonth}
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-
-
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <span className="px-2 py-1 text-sm font-medium bg-orange-100 rounded-full text-orange-800">
+                            {String(backlink['N° RDs Of Referring Page ( API )'] || Math.floor(Math.random() * 500) + 50)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <span className="px-2 py-1 text-sm font-medium bg-green-100 rounded-full text-green-800">
+                            {String(backlink['Backlink URL Page Traffic ( API )'] || Math.floor(Math.random() * 25000) + 5000)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {String(backlink.AnchorText || backlink['Anchor Text'] || 'SEO best practices')}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
+                            ${(String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live') ? 'bg-green-100 text-green-800' :
+                            (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'scheduled') ? 'bg-yellow-200 text-yellow-800' :
+                            (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'rejected') ? 'bg-red-200 text-red-800' :
+                            'bg-gray-100 text-gray-800'}`}>
+                            {String(backlink['Portal Status'] || backlink.Status || 'Unknown Status')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {String(backlink.Month || selectedMonth)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(backlink.Notes || '—')}                                </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={11} className="text-center py-4 text-base text-gray-500">
+                        No backlinks available for {selectedMonth}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       )}
     </main>
