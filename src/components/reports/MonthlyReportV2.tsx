@@ -17,7 +17,6 @@ import KPIStrip from '@/components/reports/KPIStrip';
 import { CollapsibleSection } from '@/components/reports/CollapsibleSection';
 import { SectionRegistryProvider } from '@/components/reports/SectionRegistryContext';
 import { AirtableRecord, fetchFromAirtable } from '@/lib/airtable/helpers';
-import { useClientData } from '@/context/ClientDataContext';
 
 /* Placeholder constants removed – component now fully dynamic */
 const COLORS = ['#9ea8fb', '#fcdc94', '#eadcff', '#ff9d7d', '#e5e7eb'];
@@ -137,8 +136,6 @@ const fmt = (d: string) =>
   new Date(d).toLocaleString('default', { month: 'short', year: 'numeric' });
 
 export default function MonthlyReportV2({ monthRecord, recentRecords }: MonthlyReportProps) {
-  const { clientId } = useClientData();
-  
   /* ------------------------------------------------------------------ */
   /*  Derive KPI + month-level fields                                   */
   /* ------------------------------------------------------------------ */
@@ -194,9 +191,10 @@ export default function MonthlyReportV2({ monthRecord, recentRecords }: MonthlyR
   useEffect(() => {
     (async () => {
       try {
-        if (!clientId) return;
+        const clientRecordID = localStorage.getItem('clientRecordID');
+        if (!clientRecordID) return;
 
-        const formula = `AND({Client Record ID} = '${clientId}', {Target Page URL} != '')`;
+        const formula = `AND({Client Record ID} = '${clientRecordID}', {Target Page URL} != '')`;
         const kw = await fetchFromAirtable<any>('Keywords', formula);
 
         const top5 = kw
@@ -223,7 +221,7 @@ export default function MonthlyReportV2({ monthRecord, recentRecords }: MonthlyR
         console.error(err);
       }
     })();
-  }, [monthRecord, clientId]);
+  }, [monthRecord]);
 
   /* Fetch Competitor Insights */
   useEffect(() => {

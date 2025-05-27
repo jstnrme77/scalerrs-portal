@@ -32,7 +32,6 @@ import { CollapsibleSection, ExecutiveSummary } from '@/components/reports/Colla
 import { SectionRegistryProvider } from '@/components/reports/SectionRegistryContext';
 import KPIStrip from '@/components/reports/KPIStrip';
 import { AirtableRecord, fetchFromAirtable } from '@/lib/airtable/helpers';
-import { useClientData } from '@/context/ClientDataContext';
 
 /* -------------------------------------------------------------- */
 /*  Types                                                         */
@@ -66,8 +65,6 @@ const renderRichText = (txt?: string) => {
 };
 
 export default function QuarterlyReportV2({ quarterRecord, recentQuarterRecords, monthlyRecords }: QuarterlyReportProps) {
-  const { clientId } = useClientData();
-
   // Render nothing until the Airtable data for this quarter has loaded
   if (!quarterRecord || !quarterRecord.fields || Object.keys(quarterRecord.fields).length === 0) {
     return null;
@@ -248,9 +245,10 @@ export default function QuarterlyReportV2({ quarterRecord, recentQuarterRecords,
   useEffect(()=>{
     (async()=>{
       try {
-        if (!clientId) return;
+        const clientRecordID = localStorage.getItem('clientRecordID');
+        if (!clientRecordID) return;
 
-        const kw = await fetchFromAirtable<any>('Keywords', `{Client Record ID} = '${clientId}'`);
+        const kw = await fetchFromAirtable<any>('Keywords', `{Client Record ID} = '${clientRecordID}'`);
 
         const rows = kw
           .map(r=>({
@@ -268,7 +266,7 @@ export default function QuarterlyReportV2({ quarterRecord, recentQuarterRecords,
           conversionRate: p.conversionRateRaw >= 1 ? p.conversionRateRaw : p.conversionRateRaw * 100,
         })));
       }catch(err){console.error(err);} })();
-  },[fields, clientId]);
+  },[fields]);
 
   return (
     <SectionRegistryProvider>

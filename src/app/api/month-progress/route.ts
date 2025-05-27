@@ -10,6 +10,15 @@ const base = new Airtable({ apiKey: AIRTABLE_API_KEY! }).base(AIRTABLE_BASE_ID!)
 export async function GET(req: NextRequest) {
   const clientId = req.nextUrl.searchParams.get('clientId');
 
+  // Handle missing clientId parameter
+  if (!clientId) {
+    console.warn('[month-progress] Missing clientId parameter');
+    return NextResponse.json(
+      { error: 'Missing clientId parameter', monthProgress: null, monthStart: null },
+      { status: 400 }
+    );
+  }
+
   try {
     const records = await base(AIRTABLE_CLIENTS_BY_MONTH_TABLE_ID!)
       .select({
@@ -23,7 +32,7 @@ export async function GET(req: NextRequest) {
       .firstPage();
 
     if (!records.length)
-      return NextResponse.json({ error: 'No month progress found' }, { status: 404 });
+      return NextResponse.json({ error: 'No month progress found', monthProgress: null, monthStart: null }, { status: 404 });
 
     const rec = records[0];
     return NextResponse.json({
@@ -32,6 +41,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error('[month-progress] Airtable error', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error', monthProgress: null, monthStart: null }, { status: 500 });
   }
 } 

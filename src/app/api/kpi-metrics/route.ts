@@ -42,13 +42,28 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch KPI metrics with client filtering
-    const kpiMetrics = clientId 
-      ? await getKPIMetrics([clientId], month || null)  
-      : await getKPIMetrics(null, month || null);
+    let kpiMetrics;
+    
+    if (clientId) {
+      kpiMetrics = await getKPIMetrics([clientId], month || null);
+      console.log(`API route: Fetched KPI metrics for client ${clientId}`);
+    } else {
+      console.log('API route: No clientId provided, fetching metrics for all clients');
+      kpiMetrics = await getKPIMetrics(null, month || null);
+    }
 
     if (!kpiMetrics || kpiMetrics.length === 0) {
       console.log('API route: No KPI metrics found, using mock data');
-      return NextResponse.json({ kpiMetrics: mockKPIMetrics });
+      
+      // Add a warning if clientId was provided but no data found
+      if (clientId) {
+        console.warn(`API route: No KPI metrics found for client ${clientId}`);
+      }
+      
+      return NextResponse.json({ 
+        kpiMetrics: mockKPIMetrics,
+        warning: clientId ? `No metrics found for client ID ${clientId}` : 'No metrics found'
+      });
     }
 
     // Cache the results
@@ -62,6 +77,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching KPI metrics:', error);
     console.log('API route: Error fetching KPI metrics, using mock data');
-    return NextResponse.json({ kpiMetrics: mockKPIMetrics });
+    return NextResponse.json({ 
+      kpiMetrics: mockKPIMetrics,
+      error: 'Error fetching metrics from Airtable'
+    });
   }
 }

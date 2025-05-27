@@ -23,7 +23,7 @@ import {
   Video,
   Users,
   ThumbsUp,
-  LineChartIcon,
+  LineChart as LineChartIcon,
 } from "lucide-react";
 import {
   BarChart,
@@ -293,7 +293,6 @@ const reports = {
 };
 
 export default function Reports() {
-  const { clientId, isLoading: isClientLoading } = useClientData();
   const [activeTab, setActiveTab] = useState("weekly");
   const [selectedReport, setSelectedReport] = useState<number | null>(null);
   const [reportContent, setReportContent] = useState<React.ReactNode | null>(null);
@@ -303,6 +302,9 @@ export default function Reports() {
     quarterly: [] as any[],
   });
   const [isSlackModalOpen, setIsSlackModalOpen] = useState(false);
+
+  // Access the client data context
+  const { clientId, setClientId } = useClientData();
 
   // Reference for sticky header
   const headerRef = useRef<HTMLDivElement>(null);
@@ -316,12 +318,6 @@ export default function Reports() {
 
   /* Fetch all weeks for the current client once on mount */
   useEffect(() => {
-    // Don't fetch if client data isn't loaded yet
-    if (isClientLoading) {
-      console.log('Client data still loading, delaying fetch');
-      return;
-    }
-
     (async () => {
       try {
         const records = await fetchClientsByWeek();
@@ -351,18 +347,12 @@ export default function Reports() {
         console.error(err);
       }
     })();
-  }, [clientId, isClientLoading]);
+  }, []);
 
   /* ------------------------------------------------------------------ */
   /* Fetch Monthly + Quarterly reports                                   */
   /* ------------------------------------------------------------------ */
   useEffect(() => {
-    // Don't fetch if client data isn't loaded yet
-    if (isClientLoading) {
-      console.log('Client data still loading, delaying fetch');
-      return;
-    }
-
     (async () => {
       try {
         const records = await fetchClientsByMonth();
@@ -392,15 +382,9 @@ export default function Reports() {
         console.error(err);
       }
     })();
-  }, [clientId, isClientLoading]);
+  }, []);
 
   useEffect(() => {
-    // Don't fetch if client data isn't loaded yet
-    if (isClientLoading) {
-      console.log('Client data still loading, delaying fetch');
-      return;
-    }
-
     (async () => {
       try {
         const records = await fetchClientsByQuarter();
@@ -433,7 +417,7 @@ export default function Reports() {
         console.error(err);
       }
     })();
-  }, [clientId, isClientLoading]);
+  }, []);
 
   /* ------------------------------------------------------------------ */
   /* Sync filteredReports with fetched data & month filter               */
@@ -545,6 +529,14 @@ export default function Reports() {
       setSelectedReport(weeklyReports[0].id);
     }
   }, [weeklyReports, activeTab, selectedReport]);
+
+  // Ensure clientId is set in localStorage
+  useEffect(() => {
+    if (clientId && typeof window !== 'undefined' && clientId !== 'all') {
+      localStorage.setItem('clientRecordID', clientId);
+      console.log(`Reports: Set clientRecordID in localStorage to ${clientId}`);
+    }
+  }, [clientId]);
 
   return (
     <DashboardLayout>

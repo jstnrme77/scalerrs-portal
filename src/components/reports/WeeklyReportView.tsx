@@ -7,117 +7,33 @@ import {
   ArrowRight,
   BarChart2,
   ChevronDown,
-  MessageSquare,
 } from 'lucide-react';
 import { fetchActivityLogForWeek } from '@/lib/airtable/tables/activityLog';
-import { useClientData } from '@/context/ClientDataContext';
 
 interface WeeklyReportViewProps {
   /* The Airtable "fields" object coming from Clients By Week */
   weekRecord: any;
 }
 
-// Format date like 'May 15, 2023'
-const formatDate = (date: string | Date) => {
-  const d = new Date(date);
-  return d.toLocaleDateString('en-US', { 
-    month: 'long', 
-    day: 'numeric', 
-    year: 'numeric' 
-  });
-};
-
-// Format week label like '2023-W20'
-const formatWeekLabel = (date: Date): string => {
-  const year = date.getFullYear();
-  
-  // Get first day of the year
-  const firstDayOfYear = new Date(year, 0, 1);
-  
-  // Get days passed since first day of the year
-  const daysPassed = Math.floor((date.getTime() - firstDayOfYear.getTime()) / (24 * 60 * 60 * 1000));
-  
-  // Get week number
-  const weekNumber = Math.ceil((daysPassed + firstDayOfYear.getDay() + 1) / 7);
-  
-  // Pad week number with leading zero if needed
-  const paddedWeekNumber = weekNumber.toString().padStart(2, '0');
-  
-  return `${year}-W${paddedWeekNumber}`;
-};
-
-// Get week date range (Monday - Sunday)
-const getWeekDateRange = (weekLabel: string): { start: Date; end: Date } => {
-  const [year, week] = weekLabel.split('-W');
-  
-  // Calculate the first day of the year
-  const firstDayOfYear = new Date(parseInt(year), 0, 1);
-  
-  // Calculate the first day of the week (Monday)
-  const firstDayOfFirstWeek = new Date(firstDayOfYear);
-  const dayOffset = firstDayOfYear.getDay() || 7; // If Sunday (0), use 7
-  firstDayOfFirstWeek.setDate(firstDayOfYear.getDate() + (1 - dayOffset));
-  
-  // Calculate the first day of the target week
-  const weekStartDate = new Date(firstDayOfFirstWeek);
-  weekStartDate.setDate(firstDayOfFirstWeek.getDate() + (parseInt(week) - 1) * 7);
-  
-  // Calculate the last day of the target week (Sunday)
-  const weekEndDate = new Date(weekStartDate);
-  weekEndDate.setDate(weekStartDate.getDate() + 6);
-  
-  return { start: weekStartDate, end: weekEndDate };
-};
-
 export default function WeeklyReportView({ weekRecord }: WeeklyReportViewProps) {
-  const { clientId, isLoading: isClientLoading } = useClientData();
   const [activityRows, setActivityRows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [weekLabel, setWeekLabel] = useState(weekRecord['Week'] || formatWeekLabel(new Date()));
-  
-  // Calculate week date range
-  const { start: weekStart, end: weekEnd } = getWeekDateRange(weekLabel);
-  
+
   useEffect(() => {
-    // Wait for client data to be loaded
-    if (isClientLoading) {
-      setLoading(true);
-      return;
-    }
-    
-    if (!clientId) {
-      setError('No client selected. Please select a client to view reports.');
-      setLoading(false);
-      return;
-    }
-    
-    setLoading(true);
-    setError(null);
-    
-    async function fetchData() {
+    if (!weekRecord) return;
+
+    (async () => {
       try {
-        console.log(`Fetching activity log for week ${weekLabel} with client ${clientId}`);
-        const logs = await fetchActivityLogForWeek(weekLabel, clientId);
+        console.log('WeeklyReportView: Fetching activity logs for week:', weekRecord['Week']);
+        console.log('Current clientRecordID from localStorage:', localStorage.getItem('clientRecordID'));
         
-        if (!logs || logs.length === 0) {
-          console.log(`No activity logs found for week ${weekLabel}`);
-          setActivityRows([]);
-        } else {
-          console.log(`Found ${logs.length} activity logs for week ${weekLabel}`);
-          setActivityRows(logs.map((r: any) => r.fields));
-        }
+        const logs = await fetchActivityLogForWeek(weekRecord['Week']);
+        console.log(`Fetched ${logs.length} activity logs for week ${weekRecord['Week']}`);
+        setActivityRows(logs.map((r: any) => r.fields));
       } catch (err) {
-        console.error('Error fetching activity log:', err);
-        setError('Failed to load activity log. Please try again later.');
-        setActivityRows([]);
-      } finally {
-        setLoading(false);
+        console.error(err);
       }
-    }
-    
-    fetchData();
-  }, [weekLabel, clientId, isClientLoading]);
+    })();
+  }, [weekRecord]);
 
   /* -------------------------------------------------------------- */
   /* Parsing helper functions                                        */
@@ -291,142 +207,11 @@ export default function WeeklyReportView({ weekRecord }: WeeklyReportViewProps) 
     }, {} as Record<string, Row[]>);
   }, [activityRows]);
 
-  // Group activity log by day and category
-  const groupedActivities = activityRows.reduce((acc, item) => {
-    const timestamp = new Date(item['Timestamp'] as string);
-    const date = timestamp.toLocaleDateString('en-US');
-    const category = item['Category'] as string || 'Uncategorized';
-    
-    if (!acc[date]) acc[date] = {};
-    if (!acc[date][category]) acc[date][category] = [];
-    
-    acc[date][category].push(item);
-    return acc;
-  }, {} as Record<string, Record<string, any[]>>);
-  
-  // Sort dates in descending order
-  const sortedDates = Object.keys(groupedActivities).sort((a, b) => 
-    new Date(b).getTime() - new Date(a).getTime()
-  );
-  
-  // Navigation to previous/next week
-  const goToPreviousWeek = () => {
-    const [year, week] = weekLabel.split('-W');
-    const prevWeek = parseInt(week) - 1;
-    
-    if (prevWeek < 1) {
-      // Go to last week of previous year
-      const prevYear = parseInt(year) - 1;
-      // Assuming 52 weeks in a year (simplified)
-      setWeekLabel(`${prevYear}-W52`);
-    } else {
-      setWeekLabel(`${year}-W${prevWeek.toString().padStart(2, '0')}`);
-    }
-  };
-  
-  const goToNextWeek = () => {
-    const [year, week] = weekLabel.split('-W');
-    const nextWeek = parseInt(week) + 1;
-    
-    if (nextWeek > 52) {
-      // Go to first week of next year
-      const nextYear = parseInt(year) + 1;
-      setWeekLabel(`${nextYear}-W01`);
-    } else {
-      setWeekLabel(`${year}-W${nextWeek.toString().padStart(2, '0')}`);
-    }
-  };
-
   /* -------------------------------------------------------------- */
   /* Render                                                          */
   /* -------------------------------------------------------------- */
   return (
-    <div className="space-y-4">
-      {/* Week navigation */}
-      <div className="flex justify-between items-center">
-        <button 
-          onClick={goToPreviousWeek}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-        >
-          Previous Week
-        </button>
-        
-        <h2 className="text-lg font-medium">
-          {formatDate(weekStart)} - {formatDate(weekEnd)}
-        </h2>
-        
-        <button 
-          onClick={goToNextWeek}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-        >
-          Next Week
-        </button>
-      </div>
-      
-      {loading && <div className="text-center py-8">Loading activity log...</div>}
-      
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          <p className="font-medium">Error</p>
-          <p>{error}</p>
-        </div>
-      )}
-      
-      {!loading && !error && sortedDates.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
-          <p className="font-medium">No activity found</p>
-          <p>There is no activity logged for this week.</p>
-        </div>
-      )}
-      
-      {/* Activity Log */}
-      <div className="space-y-6">
-        {sortedDates.map(date => (
-          <div key={date} className="border rounded-lg overflow-hidden">
-            <div className="bg-gray-50 px-4 py-3 border-b">
-              <h3 className="font-medium">{formatDate(date)}</h3>
-            </div>
-            
-            <div className="divide-y">
-              {Object.entries(groupedActivities[date]).map(([category, items]) => (
-                <details key={category} className="group" open>
-                  <summary className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50">
-                    <div className="flex items-center">
-                      <MessageSquare className="h-5 w-5 text-blue-500 mr-2" />
-                      <span className="font-medium">{category}</span>
-                      <span className="ml-2 text-sm text-gray-500">({(items as any[]).length})</span>
-                    </div>
-                    <ChevronDown className="h-5 w-5 text-gray-400 transition-transform group-open:rotate-180" />
-                  </summary>
-                  
-                  <div className="px-4 py-2 space-y-2 bg-gray-50">
-                    {(items as any[]).map((item: any, idx: number) => (
-                      <div key={idx} className="bg-white p-3 rounded border">
-                        <div className="flex justify-between items-start">
-                          <div className="font-medium">{item['Deliverable'] || 'Activity'}</div>
-                          <div className="text-sm text-gray-500">
-                            {new Date(item['Timestamp'] as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
-                        <div className="mt-1">{item['Description']}</div>
-                        {item['From'] && item['To'] && (
-                          <div className="mt-2 text-sm">
-                            <span className="text-gray-500">Status changed from </span>
-                            <span className="font-medium">{item['From']}</span>
-                            <span className="text-gray-500"> to </span>
-                            <span className="font-medium">{item['To']}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
+    <div className="space-y-6">
       {/* What We Did */}
       <div className="card bg-white p-6 border-t-4 border-[#9EA8FB] rounded-lg shadow-sm">
         <h4 className="text-lg font-medium text-dark mb-4">

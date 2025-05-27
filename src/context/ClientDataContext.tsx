@@ -55,6 +55,12 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
     if (clientId) {
       console.log(`Client ID changed to ${clientId}, clearing cache`);
       clearClientDataCache();
+      
+      // Set the clientId in localStorage so other components can access it
+      if (typeof window !== 'undefined' && clientId !== 'all') {
+        localStorage.setItem('clientRecordID', clientId);
+        console.log(`Updated localStorage with clientRecordID: ${clientId}`);
+      }
     }
   }, [clientId]);
 
