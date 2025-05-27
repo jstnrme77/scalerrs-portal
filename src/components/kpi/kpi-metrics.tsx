@@ -2,15 +2,17 @@
 
 import { ArrowDownIcon, ArrowUpIcon, TrendingUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { fetchKPIMetrics } from "@/lib/client-api"
 import { KPIMetric } from "@/types"
+import { useClientData } from "@/context/ClientDataContext"
 
 interface KpiMetricsProps {
   metricsData?: any[]
 }
 
 export function KpiMetrics({ metricsData }: KpiMetricsProps) {
+  const { clientId, isLoading: isClientLoading } = useClientData();
   const [metrics, setMetrics] = useState([
     {
       title: "Organic Traffic",
@@ -51,6 +53,52 @@ export function KpiMetrics({ metricsData }: KpiMetricsProps) {
   ])
 
   const [loading, setLoading] = useState(!metricsData)
+  const [error, setError] = useState<string | null>(null)
+  const [lastFetchTime, setLastFetchTime] = useState(0)
+  const CACHE_TTL = 60 * 1000 // 1 minute cache TTL
+
+  const fetchData = useCallback(async (skipCache = false) => {
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+    
+    if (!clientId) {
+      console.log('No clientId available, skipping fetch');
+      setError('No client selected. Please select a client to view KPI metrics.');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true)
+      setError(null)
+      const now = Date.now();
+      
+      // Only fetch if cache is expired or skipCache is true
+      if (skipCache || now - lastFetchTime > CACHE_TTL) {
+        console.log(`Fetching fresh KPI metrics data for client: ${clientId}`);
+        const data = await fetchKPIMetrics(clientId)
+        
+        if (!data || data.length === 0) {
+          console.log('No KPI metrics data returned');
+          setError('No KPI metrics data available for this client.');
+        } else {
+          console.log(`Received ${data.length} KPI metrics`);
+          processMetricsData(data)
+        }
+        
+        setLastFetchTime(now)
+      } else {
+        console.log(`Using cached KPI metrics data for client: ${clientId}`);
+      }
+    } catch (error) {
+      console.error("Error fetching KPI metrics:", error)
+      setError('Failed to load KPI metrics. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }, [clientId, isClientLoading, lastFetchTime])
 
   useEffect(() => {
     // If metrics data is provided as props, use it
@@ -59,21 +107,19 @@ export function KpiMetrics({ metricsData }: KpiMetricsProps) {
       return
     }
 
-    // Otherwise fetch the data
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const data = await fetchKPIMetrics()
-        processMetricsData(data)
-      } catch (error) {
-        console.error("Error fetching KPI metrics:", error)
-      } finally {
-        setLoading(false)
-      }
+    // Wait for client data to load
+    if (isClientLoading) {
+      return;
     }
 
-    fetchData()
-  }, [metricsData])
+    // Otherwise fetch the data
+    if (clientId) {
+      fetchData()
+    } else {
+      setError('No client selected. Please select a client to view KPI metrics.');
+      setLoading(false);
+    }
+  }, [metricsData, clientId, isClientLoading, fetchData])
 
   const processMetricsData = (data: any[]) => {
     // Define mapping between Airtable metric names and our component titles
@@ -139,6 +185,27 @@ export function KpiMetrics({ metricsData }: KpiMetricsProps) {
     })
 
     setMetrics(updatedMetrics)
+  }
+
+  // Function to manually refresh data
+  const refreshData = () => {
+    fetchData(true)
+  }
+
+  // If there's an error, display it
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+        <p className="font-medium">Error</p>
+        <p>{error}</p>
+        <button 
+          onClick={refreshData}
+          className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 rounded text-sm"
+        >
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   return (

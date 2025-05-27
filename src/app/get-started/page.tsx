@@ -10,6 +10,7 @@ import {
   EnhancedRoadmapModal
 } from '@/components/ui/modals';
 import QuickAccessLinks from '@/components/ui/QuickAccessLinks';
+import { useClientData } from '@/context/ClientDataContext';
 
 import {
   FileText,
@@ -26,6 +27,8 @@ import {
 } from './data';
 
 export default function GetStartedPage() {
+  const { clientId, isLoading: isClientLoading } = useClientData();
+  
   // Modal states
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [formModalOpen, setFormModalOpen] = useState(false);
@@ -35,7 +38,6 @@ export default function GetStartedPage() {
   // Checklist state
   const [checklist, setChecklist] = useState(checklistItems);
 
-  const [localStorageClientId, setLocalStorageClientId] = useState<string | null>(null);
   const [clientLinks, setClientLinks] = useState<{ 
     slackUrl: string | null; 
     googleDriveUrl: string | null;
@@ -46,19 +48,21 @@ export default function GetStartedPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // This code runs only on the client-side
-    const clientIdFromStorage = localStorage.getItem('clientRecordID');
-    console.log("GetStartedPage: clientRecordID from localStorage:", clientIdFromStorage);
-    if (clientIdFromStorage && clientIdFromStorage !== 'all') {
-      setLocalStorageClientId(clientIdFromStorage);
-      
+    // Don't fetch if client data isn't loaded yet
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+
+    console.log("GetStartedPage: clientId from context:", clientId);
+    if (clientId && clientId !== 'all') {
       // Fetch client links
-      fetchClientLinks(clientIdFromStorage);
+      fetchClientLinks(clientId);
     } else {
-      console.warn("GetStartedPage: No valid clientId found in localStorage.");
+      console.warn("GetStartedPage: No valid clientId found in context.");
       setIsLoading(false);
     }
-  }, []);
+  }, [clientId, isClientLoading]);
 
   // Function to fetch client links
   const fetchClientLinks = async (clientId: string) => {
@@ -284,11 +288,11 @@ export default function GetStartedPage() {
             size="lg"
             className="mt-auto get-started-btn"
             onClick={() => {
-                if (localStorageClientId) {
+                if (clientId) {
                     setFormModalOpen(true);
                 } else {
                     alert('Client ID not found. Cannot open onboarding form.');
-                    console.error("GetStartedPage: Cannot open FormModal, localStorageClientId is not set.");
+                    console.error("GetStartedPage: Cannot open FormModal, clientId is not set.");
                 }
             }}
           >
@@ -309,7 +313,7 @@ export default function GetStartedPage() {
         isOpen={formModalOpen}
         onClose={() => setFormModalOpen(false)}
         filloutId="utTZkyHh2cus"
-        clientId={localStorageClientId}
+        clientId={clientId}
         title="Onboarding Forms"
       />
 

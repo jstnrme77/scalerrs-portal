@@ -23,7 +23,7 @@ import {
   Video,
   Users,
   ThumbsUp,
-  LineChart as LineChartIcon,
+  LineChartIcon,
 } from "lucide-react";
 import {
   BarChart,
@@ -84,6 +84,7 @@ import WeeklyReportView from "@/components/reports/WeeklyReportView";
 import KPIStrip from "@/components/reports/KPIStrip";
 import MonthlyReportV2 from "@/components/reports/MonthlyReportV2";
 import QuarterlyReportV2 from "@/components/reports/QuarterlyReportV2";
+import { useClientData } from "@/context/ClientDataContext";
 
 // Date filter options - removed as not needed
 
@@ -292,6 +293,7 @@ const reports = {
 };
 
 export default function Reports() {
+  const { clientId, isLoading: isClientLoading } = useClientData();
   const [activeTab, setActiveTab] = useState("weekly");
   const [selectedReport, setSelectedReport] = useState<number | null>(null);
   const [reportContent, setReportContent] = useState<React.ReactNode | null>(null);
@@ -314,6 +316,12 @@ export default function Reports() {
 
   /* Fetch all weeks for the current client once on mount */
   useEffect(() => {
+    // Don't fetch if client data isn't loaded yet
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+
     (async () => {
       try {
         const records = await fetchClientsByWeek();
@@ -343,12 +351,18 @@ export default function Reports() {
         console.error(err);
       }
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   /* ------------------------------------------------------------------ */
   /* Fetch Monthly + Quarterly reports                                   */
   /* ------------------------------------------------------------------ */
   useEffect(() => {
+    // Don't fetch if client data isn't loaded yet
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+
     (async () => {
       try {
         const records = await fetchClientsByMonth();
@@ -378,9 +392,15 @@ export default function Reports() {
         console.error(err);
       }
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   useEffect(() => {
+    // Don't fetch if client data isn't loaded yet
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+
     (async () => {
       try {
         const records = await fetchClientsByQuarter();
@@ -413,7 +433,7 @@ export default function Reports() {
         console.error(err);
       }
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   /* ------------------------------------------------------------------ */
   /* Sync filteredReports with fetched data & month filter               */

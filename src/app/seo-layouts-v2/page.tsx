@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
-import { getClientId } from '@/lib/airtable/getClientId';
 import { fetchFromAirtable, AirtableRecord } from '@/lib/airtable/helpers';
 import { Link2 } from 'lucide-react';
+import { useClientData } from '@/context/ClientDataContext';
 
 /**
  * Airtable → SEO Layouts table record type (partial)
@@ -20,8 +20,7 @@ interface SeoLayoutFields {
 
 type SeoLayoutRecord = AirtableRecord<SeoLayoutFields>;
 
-async function fetchSeoLayouts(): Promise<SeoLayoutRecord[]> {
-  const clientRecordID = getClientId();
+async function fetchSeoLayouts(clientRecordID: string | null): Promise<SeoLayoutRecord[]> {
   if (!clientRecordID) return [];
   const formula = `{Client Record ID} = '${clientRecordID}'`;
   return await fetchFromAirtable<SeoLayoutFields>('SEO Layouts', formula);
@@ -108,6 +107,7 @@ function renderRichText(raw?: string) {
 }
 
 export default function SEOLayoutsV2Page() {
+  const { clientId, isLoading: isClientLoading } = useClientData();
   const [layouts, setLayouts] = useState<SeoLayoutRecord[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,9 +127,15 @@ export default function SEOLayoutsV2Page() {
   }, []);
 
   useEffect(() => {
+    // Don't fetch if client data isn't loaded yet
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+
     (async () => {
       try {
-        const recs = await fetchSeoLayouts();
+        const recs = await fetchSeoLayouts(clientId);
         setLayouts(recs);
         if (recs.length) setActiveId(recs[0].id);
       } catch (err) {
@@ -138,7 +144,7 @@ export default function SEOLayoutsV2Page() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   /** Currently-selected record */
   const current = layouts.find((r) => r.id === activeId) ?? null;

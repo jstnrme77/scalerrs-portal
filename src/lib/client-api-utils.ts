@@ -13,6 +13,10 @@ const CRO_TASKS_CACHE_KEY = 'cro_tasks';
 const STRATEGY_TASKS_CACHE_KEY = 'strategy_tasks';
 const TASK_FIELD_OPTIONS_CACHE_KEY = 'task_field_options';
 
+// In-memory cache for API responses
+const apiCache: Record<string, { data: any; timestamp: number }> = {};
+const CACHE_TTL = 60 * 1000; // 1 minute cache TTL
+
 /**
  * Generic function to fetch data from the API
  * @param endpoint API endpoint
@@ -216,12 +220,182 @@ export async function fetchURLPerformance() {
 }
 
 /**
- * Fetch KPI metrics from the API
- * @returns Array of KPI metrics
+ * Fetch KPI metrics with caching
  */
-export async function fetchKPIMetrics() {
-  const response = await fetchFromApi<{ metrics: any[] }>('kpi-metrics', {}, { metrics: mockData.mockKPIMetrics });
-  return response.metrics;
+export async function fetchKPIMetricsWithCache(
+  clientId?: string | null,
+  month?: string | null,
+  useCache: boolean = true,
+  addTimestamp: boolean = true
+) {
+  // Build URL with query parameters
+  const params = new URLSearchParams();
+  
+  // Important: Always include clientId parameter if available
+  if (clientId) {
+    params.append('clientId', clientId);
+    console.log(`Including client filter: ${clientId}`);
+  } else {
+    console.log('No clientId provided for KPI metrics');
+  }
+  
+  if (month) {
+    params.append('month', month);
+    console.log(`Including month filter: ${month}`);
+  }
+  
+  if (!useCache) {
+    params.append('skipCache', 'true');
+  }
+  
+  // Always add a timestamp to avoid browser caching issues when requested
+  if (addTimestamp) {
+    params.append('_', Date.now().toString());
+  }
+  
+  try {
+    // Generate a cache key for this specific request
+    const cacheKey = `kpi_metrics_${clientId || 'all'}_${month || 'all'}`;
+    
+    // Check if we have a cached version
+    if (useCache && apiCache[cacheKey]) {
+      const cachedData = apiCache[cacheKey];
+      const now = Date.now();
+      
+      // Use cache if it's less than TTL old
+      if (now - cachedData.timestamp < CACHE_TTL) {
+        console.log(`Using cached data for ${cacheKey} (${Math.round((now - cachedData.timestamp) / 1000)}s old)`);
+        return cachedData.data;
+      } else {
+        console.log(`Cache expired for ${cacheKey}`);
+      }
+    }
+    
+    // Call the API endpoint with cache prevention headers
+    const response = await fetch(`/api/kpi-metrics?${params.toString()}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      // Use no-store to prevent the browser from using cached responses
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch KPI metrics: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Validate that the response contains the expected data structure
+    if (!data || !data.kpiMetrics) {
+      console.error('Invalid response format from API', data);
+      throw new Error('Invalid response format from API');
+    }
+    
+    // Store in cache
+    if (useCache) {
+      apiCache[cacheKey] = {
+        data: data.kpiMetrics,
+        timestamp: Date.now()
+      };
+      console.log(`Cached data for ${cacheKey}`);
+    }
+    
+    return data.kpiMetrics;
+  } catch (error) {
+    console.error(`Error fetching KPI metrics:`, error);
+    // Rethrow to allow the caller to handle the error
+    throw error;
+  }
+}
+
+/**
+ * Fetch KPI progress with caching
+ */
+export async function fetchKPIProgressWithCache(
+  clientId: string,
+  useCache: boolean = true,
+  addTimestamp: boolean = true
+) {
+  // Build URL with query parameters
+  const params = new URLSearchParams({
+    clientId
+  });
+  
+  if (!useCache) {
+    params.append('skipCache', 'true');
+  }
+  
+  // Always add a timestamp to avoid browser caching issues when requested
+  if (addTimestamp) {
+    params.append('_', Date.now().toString());
+  }
+  
+  try {
+    // Generate a cache key for this specific request
+    const cacheKey = `kpi_progress_${clientId}`;
+    
+    // Check if we have a cached version
+    if (useCache && apiCache[cacheKey]) {
+      const cachedData = apiCache[cacheKey];
+      const now = Date.now();
+      
+      // Use cache if it's less than TTL old
+      if (now - cachedData.timestamp < CACHE_TTL) {
+        console.log(`Using cached data for ${cacheKey} (${Math.round((now - cachedData.timestamp) / 1000)}s old)`);
+        return cachedData.data;
+      } else {
+        console.log(`Cache expired for ${cacheKey}`);
+      }
+    }
+    
+    // Call the API endpoint with cache prevention headers
+    const response = await fetch(`/api/kpi-progress?${params.toString()}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
+      // Use no-store to prevent the browser from using cached responses
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch KPI progress: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Store in cache
+    if (useCache) {
+      apiCache[cacheKey] = {
+        data,
+        timestamp: Date.now()
+      };
+      console.log(`Cached data for ${cacheKey}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error(`Error fetching KPI progress:`, error);
+    // Rethrow to allow the caller to handle the error
+    throw error;
+  }
+}
+
+/**
+ * Clear all cached KPI data
+ */
+export function clearKPICache() {
+  Object.keys(apiCache).forEach(key => {
+    if (key.startsWith('kpi_')) {
+      delete apiCache[key];
+    }
+  });
+  console.log('Cleared all KPI data cache');
+  return true;
 }
 
 /**

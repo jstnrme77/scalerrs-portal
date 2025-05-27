@@ -27,14 +27,14 @@ import {
   ExternalLink,
   BarChart4,
   LineChart,
-  PieChart as PieChartIcon,
+  PieChartIcon,
   CheckCircle,
-  Target as TargetIcon,
+  TargetIcon,
   BarChart3
 } from "lucide-react";
 import { fetchClientsByMonth } from '@/lib/airtable/tables/clientsByMonth';
 import { fetchFromAirtable } from '@/lib/airtable/helpers';
-import { getClientId } from '@/lib/airtable/getClientId';
+import { useClientData } from '@/context/ClientDataContext';
 import { ResponsiveContainer } from 'recharts';
 import { Cell } from 'recharts';
 import { Legend } from 'recharts';
@@ -352,6 +352,7 @@ const comparisonOptions = [
 ];
 
 function KpiDashboard() {
+  const { clientId, isLoading: isClientLoading } = useClientData();
   const [selectedDateView, setSelectedDateView] = useState(dateFilterOptions[0]);
   const [selectedComparison, setSelectedComparison] = useState(comparisonOptions[0]);
   const [activeTab, setActiveTab] = useState('summary');
@@ -389,6 +390,12 @@ function KpiDashboard() {
   }), [summaryData, pageData, yearlyBreakdown, pageTypeData]);
 
   useEffect(() => {
+    // Don't fetch if client data isn't loaded yet
+    if (isClientLoading) {
+      console.log('Client data still loading, delaying fetch');
+      return;
+    }
+
     (async () => {
       try {
         const records = await fetchClientsByMonth();
@@ -570,10 +577,10 @@ function KpiDashboard() {
 
         setQuarterRows(qArr);
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching KPI data:', err);
       }
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   // Add global styles for z-index fixes
   useEffect(() => {
@@ -671,7 +678,7 @@ function KpiDashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const clientRecordID = getClientId();
+        const clientRecordID = clientId;
         if (!clientRecordID) return;
 
         const formula = `{Client Record ID} = '${clientRecordID}'`;
@@ -772,7 +779,7 @@ function KpiDashboard() {
         console.error(err);
       }
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   // --- Standard Forecasting (current month) derived metrics ---
   const [forecastStd, setForecastStd] = useState<{
@@ -793,7 +800,7 @@ function KpiDashboard() {
       /*  Forecast Standard metrics for the current month               */
       /* -------------------------------------------------------------- */
       try {
-        const clientRecordID = getClientId();
+        const clientRecordID = clientId;
         if (!clientRecordID) return;
 
         const all = await fetchClientsByMonth();
@@ -859,7 +866,7 @@ function KpiDashboard() {
       }
       /* -------------------------------------------------------------- */
     })();
-  }, []);
+  }, [clientId, isClientLoading]);
 
   return (
     <DashboardLayout topNavBarProps={topNavBarProps}>

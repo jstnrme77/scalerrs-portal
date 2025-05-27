@@ -1085,7 +1085,13 @@ export async function updateBacklinkStatus(backlinkId: string, status: string) {
 }
 
 // KPI Metrics API
-export async function fetchKPIMetrics() {
+export async function fetchKPIMetrics(clientId?: string | null) {
+  if (!clientId) {
+    console.error('fetchKPIMetrics called without clientId');
+  } else {
+    console.log('fetchKPIMetrics called with clientId:', clientId);
+  }
+
   // Use mock data if explicitly enabled
   if (shouldUseMockData()) {
     console.log('Using mock KPI metrics data');
@@ -1105,10 +1111,13 @@ export async function fetchKPIMetrics() {
       console.log('Public Base ID exists:', !!publicBaseId);
 
       // Import the getKPIMetrics function directly
-      const { getKPIMetrics } = await import('@/lib/airtable');
+      const { getKPIMetrics } = await import('@/lib/airtable/tables/kpi');
 
       try {
-        const kpiMetrics = await getKPIMetrics();
+        console.log('Fetching KPI metrics with client ID:', clientId);
+        const kpiMetrics = clientId 
+          ? await getKPIMetrics([clientId], null)
+          : await getKPIMetrics(null);
         console.log('KPI metrics fetched successfully:', kpiMetrics);
         return kpiMetrics;
       } catch (airtableError: any) {
@@ -1136,17 +1145,23 @@ export async function fetchKPIMetrics() {
       ? '/.netlify/functions/get-kpi-metrics'
       : '/api/kpi-metrics';
 
-    console.log('Fetching KPI metrics from:', url);
+    // Add clientId as a query parameter if provided
+    const urlWithParams = clientId ? `${url}?clientId=${encodeURIComponent(clientId)}` : url;
+
+    console.log('Fetching KPI metrics from:', urlWithParams);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    const response = await fetch(url, {
+    const response = await fetch(urlWithParams, {
       signal: controller.signal,
       headers: {
         'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
+      cache: 'no-store'
     });
 
     clearTimeout(timeoutId);
@@ -1157,6 +1172,12 @@ export async function fetchKPIMetrics() {
 
     const data = await response.json();
     console.log('KPI metrics data received:', data);
+    
+    if (!data || !data.kpiMetrics) {
+      console.error('Invalid response format from API', data);
+      throw new Error('Invalid response format from API');
+    }
+    
     return data.kpiMetrics;
   } catch (error) {
     console.error('Error fetching KPI metrics:', error);

@@ -42,10 +42,10 @@ export default function ChangePasswordModal({
     e.preventDefault();
     
     // Validate passwords
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
+    // if (newPassword.length < 8) {
+    //   setError('Password must be at least 8 characters long');
+    //   return;
+    // }
     
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
