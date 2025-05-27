@@ -4,7 +4,7 @@ import { fetchBriefs, fetchArticles, fetchBacklinks } from '@/lib/client-api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ensureUrlProtocol } from '@/utils/field-utils';
+import { ensureUrlProtocol, formatDate } from '@/utils/field-utils';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import { useClientData } from '@/context/ClientDataContext';
 
@@ -212,9 +212,27 @@ export default function DeliverablePage() {
         setError({});
       }
 
+      // Apply client filtering here instead of in the useEffect
+      // This ensures we're always working with the most recent data
       setBriefs(briefsData || []);
       setArticles(articlesData || []);
       setBacklinks(backlinksData || []);
+
+      // Directly apply filtering here
+      if (briefsData.length > 0) {
+        const clientFiltered = filterDataByClient(briefsData);
+        setFilteredBriefs(applyBriefFilters(clientFiltered));
+      }
+
+      if (articlesData.length > 0) {
+        const clientFiltered = filterDataByClient(articlesData);
+        setFilteredArticles(applyArticleFilters(clientFiltered));
+      }
+
+      if (backlinksData.length > 0) {
+        const clientFiltered = filterDataByClient(backlinksData);
+        setFilteredBacklinks(applyBacklinkFilters(clientFiltered));
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       setError(prev => ({ ...prev, general: 'Failed to load data' }));
@@ -223,6 +241,171 @@ export default function DeliverablePage() {
       // Record the time of this refresh
       localStorage.setItem('deliverables-last-refresh', Date.now().toString());
     }
+  };
+
+  // Helper functions to apply filters to each data type
+  const applyBriefFilters = (data: any[]) => {
+    let filtered = data;
+
+    // Apply month filter
+    if (selectedMonth) {
+      filtered = filtered.filter(brief => {
+        try {
+          // Handle different month formats
+          let briefMonth = brief.Month;
+          
+          // Handle case where Month is an object with a name property
+          if (briefMonth && typeof briefMonth === 'object' && 'name' in briefMonth) {
+            briefMonth = briefMonth.name;
+          } else if (briefMonth && typeof briefMonth === 'object' && 'value' in briefMonth) {
+            briefMonth = briefMonth.value;
+          }
+          
+          // Convert to string for comparison
+          const briefMonthStr = String(briefMonth || '');
+          const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+          
+          return briefMonthStr === selectedMonth || 
+                briefMonthStr.startsWith(selectedMonthName);
+        } catch (e) {
+          console.error('Error filtering brief by month:', e, brief);
+          return false;
+        }
+      });
+    }
+
+    // Apply status filter if not 'all'
+    if (briefStatusFilter !== 'all') {
+      filtered = filtered.filter(brief => {
+        try {
+          const status = String(brief.Status || '').toLowerCase();
+          return status === briefStatusFilter.toLowerCase();
+        } catch (e) {
+          console.error('Error filtering brief by status:', e, brief);
+          return false;
+        }
+      });
+    }
+
+    // Apply sorting
+    filtered = sortItems(filtered, briefSort);
+    
+    return filtered;
+  };
+
+  const applyArticleFilters = (data: any[]) => {
+    let filtered = data;
+
+    // Apply month filter
+    if (selectedMonth) {
+      filtered = filtered.filter(article => {
+        try {
+          // Handle different month formats
+          let articleMonth = article.Month;
+          
+          // Handle case where Month is an object with a name property
+          if (articleMonth && typeof articleMonth === 'object' && 'name' in articleMonth) {
+            articleMonth = articleMonth.name;
+          } else if (articleMonth && typeof articleMonth === 'object' && 'value' in articleMonth) {
+            articleMonth = articleMonth.value;
+          }
+          
+          // Convert to string for comparison
+          const articleMonthStr = String(articleMonth || '');
+          const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+          
+          return articleMonthStr === selectedMonth || 
+                articleMonthStr.startsWith(selectedMonthName);
+        } catch (e) {
+          console.error('Error filtering article by month:', e, article);
+          return false;
+        }
+      });
+    }
+
+    // Apply status filter if not 'all'
+    if (articleStatusFilter !== 'all') {
+      filtered = filtered.filter(article => {
+        try {
+          const status = String(article.Status || '').toLowerCase();
+          return status === articleStatusFilter.toLowerCase();
+        } catch (e) {
+          console.error('Error filtering article by status:', e, article);
+          return false;
+        }
+      });
+    }
+
+    // Apply sorting
+    filtered = sortItems(filtered, articleSort);
+    
+    return filtered;
+  };
+
+  const applyBacklinkFilters = (data: any[]) => {
+    let filtered = data;
+
+    // Apply month filter
+    if (selectedMonth) {
+      filtered = filtered.filter(backlink => {
+        try {
+          // Handle different month formats
+          let backlinkMonth = backlink.Month;
+          
+          // Handle case where Month is an object with a name property
+          if (backlinkMonth && typeof backlinkMonth === 'object' && 'name' in backlinkMonth) {
+            backlinkMonth = backlinkMonth.name;
+          } else if (backlinkMonth && typeof backlinkMonth === 'object' && 'value' in backlinkMonth) {
+            backlinkMonth = backlinkMonth.value;
+          }
+          
+          // Convert to string for comparison
+          const backlinkMonthStr = String(backlinkMonth || '');
+          const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+          
+          return backlinkMonthStr === selectedMonth || 
+                backlinkMonthStr.startsWith(selectedMonthName);
+        } catch (e) {
+          console.error('Error filtering backlink by month:', e, backlink);
+          return false;
+        }
+      });
+    }
+
+    // Apply status filter if not 'all' - make it case insensitive
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(backlink => {
+        try {
+          const status = String(backlink['Portal Status'] || backlink.Status || '').toLowerCase();
+          return status === statusFilter.toLowerCase();
+        } catch (e) {
+          console.error('Error filtering backlink by status:', e, backlink);
+          return false;
+        }
+      });
+    }
+
+    // Apply DR filter if not 'all' - handle the "50+", "60+", "70+" format
+    if (drFilter !== 'all') {
+      const minRating = parseInt(drFilter, 10);
+      console.log(`Applying DR filter with minimum rating: ${minRating}`);
+      
+      filtered = filtered.filter(backlink => {
+        try {
+          const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
+          const passes = !isNaN(minRating) && dr >= minRating;
+          return passes;
+        } catch (e) {
+          console.error('Error filtering backlink by DR:', e, backlink);
+          return false;
+        }
+      });
+    }
+
+    // Apply sorting
+    filtered = sortItems(filtered, backlinkSort);
+    
+    return filtered;
   };
 
   // Handle tab change
@@ -353,196 +536,11 @@ export default function DeliverablePage() {
     console.log('Backlink status filter:', statusFilter);
     console.log('DR filter:', drFilter);
 
-    // Filter and sort briefs
-    if (briefs.length > 0) {
-      console.log('All briefs before filtering:', briefs.map(b => ({ id: b.id, Month: b.Month, Title: b.Title })));
-      
-      // First filter by client
-      const clientFiltered = filterDataByClient(briefs);
-      console.log('Client filtered briefs:', clientFiltered.length);
-      
-      // Then filter by month
-      let filtered = clientFiltered;
-      if (selectedMonth) {
-        filtered = filtered.filter(brief => {
-          try {
-            // Handle different month formats
-            let briefMonth = brief.Month;
-            
-            // Handle case where Month is an object with a name property
-            if (briefMonth && typeof briefMonth === 'object' && 'name' in briefMonth) {
-              briefMonth = briefMonth.name;
-            } else if (briefMonth && typeof briefMonth === 'object' && 'value' in briefMonth) {
-              briefMonth = briefMonth.value;
-            }
-            
-            // Convert to string for comparison
-            const briefMonthStr = String(briefMonth || '');
-            const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
-            
-            return briefMonthStr === selectedMonth || 
-                  briefMonthStr.startsWith(selectedMonthName);
-          } catch (e) {
-            console.error('Error filtering brief by month:', e, brief);
-            return false;
-          }
-        });
-      }
-      
-      console.log(`Filtering briefs for month: "${selectedMonth}"`, filtered.length);
-
-      // Apply status filter if not 'all'
-      if (briefStatusFilter !== 'all') {
-        filtered = filtered.filter(brief => {
-          try {
-            const status = String(brief.Status || '').toLowerCase();
-            return status === briefStatusFilter.toLowerCase();
-          } catch (e) {
-            console.error('Error filtering brief by status:', e, brief);
-            return false;
-          }
-        });
-      }
-
-      // Apply sorting
-      filtered = sortItems(filtered, briefSort);
-
-      setFilteredBriefs(filtered);
-    }
-
-    // Filter and sort articles
-    if (articles.length > 0) {
-      // First filter by client
-      const clientFiltered = filterDataByClient(articles);
-      console.log('Client filtered articles:', clientFiltered.length);
-      
-      // Then filter by month
-      let filtered = clientFiltered;
-      if (selectedMonth) {
-        filtered = filtered.filter(article => {
-          try {
-            // Handle different month formats
-            let articleMonth = article.Month;
-            
-            // Handle case where Month is an object with a name property
-            if (articleMonth && typeof articleMonth === 'object' && 'name' in articleMonth) {
-              articleMonth = articleMonth.name;
-            } else if (articleMonth && typeof articleMonth === 'object' && 'value' in articleMonth) {
-              articleMonth = articleMonth.value;
-            }
-            
-            // Convert to string for comparison
-            const articleMonthStr = String(articleMonth || '');
-            const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
-            
-            return articleMonthStr === selectedMonth || 
-                  articleMonthStr.startsWith(selectedMonthName);
-          } catch (e) {
-            console.error('Error filtering article by month:', e, article);
-            return false;
-          }
-        });
-      }
-
-      // Apply status filter if not 'all'
-      if (articleStatusFilter !== 'all') {
-        filtered = filtered.filter(article => {
-          try {
-            const status = String(article.Status || '').toLowerCase();
-            return status === articleStatusFilter.toLowerCase();
-          } catch (e) {
-            console.error('Error filtering article by status:', e, article);
-            return false;
-          }
-        });
-      }
-
-      // Apply sorting
-      filtered = sortItems(filtered, articleSort);
-
-      setFilteredArticles(filtered);
-    }
-
-    // Filter and sort backlinks
-    if (backlinks.length > 0) {
-      // First filter by client
-      const clientFiltered = filterDataByClient(backlinks);
-      console.log('Client filtered backlinks:', clientFiltered.length);
-      
-      // Then filter by month
-      let filtered = clientFiltered;
-      if (selectedMonth) {
-        filtered = filtered.filter(backlink => {
-          try {
-            // Handle different month formats
-            let backlinkMonth = backlink.Month;
-            
-            // Handle case where Month is an object with a name property
-            if (backlinkMonth && typeof backlinkMonth === 'object' && 'name' in backlinkMonth) {
-              backlinkMonth = backlinkMonth.name;
-            } else if (backlinkMonth && typeof backlinkMonth === 'object' && 'value' in backlinkMonth) {
-              backlinkMonth = backlinkMonth.value;
-            }
-            
-            // Convert to string for comparison
-            const backlinkMonthStr = String(backlinkMonth || '');
-            const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
-            
-            return backlinkMonthStr === selectedMonth || 
-                  backlinkMonthStr.startsWith(selectedMonthName);
-          } catch (e) {
-            console.error('Error filtering backlink by month:', e, backlink);
-            return false;
-          }
-        });
-      }
-
-      // Apply status filter if not 'all' - make it case insensitive
-      if (statusFilter !== 'all') {
-        filtered = filtered.filter(backlink => {
-          try {
-            const status = String(backlink['Portal Status'] || backlink.Status || '').toLowerCase();
-            return status === statusFilter.toLowerCase();
-          } catch (e) {
-            console.error('Error filtering backlink by status:', e, backlink);
-            return false;
-          }
-        });
-      }
-
-      // Apply DR filter if not 'all' - handle the "50+", "60+", "70+" format
-      if (drFilter !== 'all') {
-        const minRating = parseInt(drFilter, 10);
-        console.log(`Applying DR filter with minimum rating: ${minRating}`);
-        
-        // Log the first few backlinks with their DR values before filtering
-        if (filtered.length > 0) {
-          console.log('Sample backlinks with DR values before filtering:');
-          filtered.slice(0, 3).forEach((backlink, index) => {
-            const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
-            console.log(`Backlink ${index} - Domain: ${backlink.Domain || backlink['Domain URL']}, DR: ${dr}`);
-          });
-        }
-        
-        filtered = filtered.filter(backlink => {
-          try {
-            const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
-            const passes = !isNaN(minRating) && dr >= minRating;
-            return passes;
-          } catch (e) {
-            console.error('Error filtering backlink by DR:', e, backlink);
-            return false;
-          }
-        });
-        
-        console.log(`After DR filtering: ${filtered.length} backlinks remain`);
-      }
-
-      // Apply sorting
-      filtered = sortItems(filtered, backlinkSort);
-
-      setFilteredBacklinks(filtered);
-    }
+    // Apply filters to each data type
+    setFilteredBriefs(applyBriefFilters(filterDataByClient(briefs)));
+    setFilteredArticles(applyArticleFilters(filterDataByClient(articles)));
+    setFilteredBacklinks(applyBacklinkFilters(filterDataByClient(backlinks)));
+    
   }, [briefs, articles, backlinks, selectedMonth, briefStatusFilter, articleStatusFilter, statusFilter, drFilter, briefSort, articleSort, backlinkSort, clientId, filterDataByClient]);
 
   // Note: Status change handlers have been removed as we're using table views instead of kanban boards
@@ -762,7 +760,7 @@ export default function DeliverablePage() {
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-lg h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           <span className="ml-3 text-mediumGray">Loading deliverables data...</span>
         </div>
       ) : (
@@ -798,7 +796,7 @@ export default function DeliverablePage() {
                         }}
                         className="p-0 h-8 text-base font-medium flex items-center"
                       >
-                        ASSIGNED SEO STRATEGIST
+                        SEO STRATEGIST
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -868,7 +866,7 @@ export default function DeliverablePage() {
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-4 text-base text-dark">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-indigo-100 text-indigo-800">
                             {String(brief.Month || '-')}
                           </span>
                         </TableCell>
@@ -932,7 +930,7 @@ export default function DeliverablePage() {
                         }}
                         className="p-0 h-8 text-base font-medium flex items-center"
                       >
-                        ASSIGNED WRITER
+                        WRITER
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -1023,7 +1021,7 @@ export default function DeliverablePage() {
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-indigo-100 text-indigo-800">
                             {String(article.Month || '-')}
                           </span>
                         </TableCell>
@@ -1081,13 +1079,13 @@ export default function DeliverablePage() {
                         variant="ghost"
                         onClick={() => {
                           setBacklinkSort(prev => ({
-                            column: 'Domain',
-                            direction: prev?.column === 'Domain' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                            column: 'Name',
+                            direction: prev?.column === 'Name' && prev?.direction === 'asc' ? 'desc' : 'asc'
                           }));
                         }}
                         className="p-0 h-8 text-base font-medium flex items-center"
                       >
-                        DOMAIN
+                        NAME
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -1096,8 +1094,8 @@ export default function DeliverablePage() {
                         variant="ghost"
                         onClick={() => {
                           setBacklinkSort(prev => ({
-                            column: 'LinkType',
-                            direction: prev?.column === 'LinkType' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                            column: 'Link Type',
+                            direction: prev?.column === 'Link Type' && prev?.direction === 'asc' ? 'desc' : 'asc'
                           }));
                         }}
                         className="p-0 h-8 text-base font-medium flex items-center"
@@ -1106,26 +1104,6 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setBacklinkSort(prev => ({
-                            column: 'DomainRating',
-                            direction: prev?.column === 'DomainRating' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                          }));
-                        }}
-                        className="p-0 h-8 font-medium flex items-center justify-center"
-                      >
-                        DR
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">TRAFFIC</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">Target URL</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">RDs of Target URL</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">Traffic of Target URL</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">ANCHOR TEXT</TableHead>
                     <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
                       <Button
                         variant="ghost"
@@ -1138,6 +1116,72 @@ export default function DeliverablePage() {
                         className="p-0 h-8 text-base font-medium flex items-center"
                       >
                         STATUS
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'Went Live On',
+                            direction: prev?.column === 'Went Live On' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        WENT LIVE ON
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'Domain URL',
+                            direction: prev?.column === 'Domain URL' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        DOMAIN URL
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'DR ( API )',
+                            direction: prev?.column === 'DR ( API )' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 font-medium flex items-center justify-center"
+                      >
+                        DR
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">TRAFFIC</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">Target URL</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">Traffic of Target URL</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">RDs OF Target URL</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">ANCHOR TEXT</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">CLIENT TARGET URL</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setBacklinkSort(prev => ({
+                            column: 'Target Page Type',
+                            direction: prev?.column === 'Target Page Type' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        TARGET PAGE TYPE
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -1163,65 +1207,103 @@ export default function DeliverablePage() {
                   {filteredBacklinks.length > 0 ? (
                     filteredBacklinks.map((backlink) => (
                       <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(backlink['Source Domain'] || backlink.Domain || 'Unknown Domain')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(backlink.Name || '-')}</TableCell>
                         <TableCell className="px-4 py-4">{String(backlink['Link Type'] || backlink.LinkType || 'Unknown Type')}</TableCell>
-                        <TableCell className="px-4 py-4 text-center">
-                          <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-full">
-                            {backlink['Domain Authority/Rating'] !== undefined ? String(backlink['Domain Authority/Rating']) : (backlink.DomainRating !== undefined ? String(backlink.DomainRating) : 'N/A')}
-                          </span>
-                        </TableCell>
-                        <TableCell className="px-4 py-4 text-center">
-                          <span className="px-2 py-1 text-sm font-medium bg-blue-100 rounded-full text-blue-800">
-                            {String(backlink['Domain Traffic ( API )'] || Math.floor(Math.random() * 50000) + 10000)}
+                        <TableCell className="px-4 py-4">
+                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
+                            ${(String(backlink['Status'] || '').toLowerCase() === 'link live') ? 'bg-green-100 text-green-800' :
+                            (String(backlink['Status'] || '').toLowerCase() === 'scheduled') ? 'bg-yellow-200 text-yellow-800' :
+                            (String(backlink['Status'] || '').toLowerCase() === 'rejected') ? 'bg-red-200 text-red-800' :
+                            'bg-gray-100 text-gray-800'}`}>
+                            {String(backlink['Status'] || backlink['Portal Status'] || 'Unknown Status')}
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-4">
-                          {backlink["Target URL"] || backlink.TargetPage ? (
+                          {backlink['Went Live On'] ? (
+                            <span className="px-2 py-1 text-sm font-medium bg-purple-100 rounded-lg text-purple-800">
+                              {formatDate(backlink['Went Live On'])}
+                            </span>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">
+                          <a 
+                            href={ensureUrlProtocol(String(backlink['Domain URL'] || backlink.Domain || ''))} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-primary hover:underline"
+                          >
+                            {String(backlink['Domain URL'] || backlink.Domain || 'Unknown Domain')}
+                          </a>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <span className="px-2 py-1 text-sm font-medium bg-gray-100 rounded-lg">
+                            {backlink['DR ( API )'] !== undefined ? String(backlink['DR ( API )']) : 
+                             (backlink['Domain Authority/Rating'] !== undefined ? String(backlink['Domain Authority/Rating']) : 
+                             (backlink.DomainRating !== undefined ? String(backlink.DomainRating) : 'N/A'))}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <span className="px-2 py-1 text-sm font-medium bg-blue-100 rounded-lg text-blue-800">
+                            {String(backlink['Domain Traffic ( API )'] || '-')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {backlink["Backlink Page URL"] ? (
                             <a
-                              href={ensureUrlProtocol(String(backlink["Target URL"] || backlink.TargetPage))}
+                              href={ensureUrlProtocol(String(backlink["Backlink Page URL"]))}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary hover:underline"
                             >
-                              {String(backlink["Target URL"] || backlink.TargetPage)}
+                              {String(backlink["Backlink Page URL"])}
                             </a>
                           ) : (
                             <span className="text-gray-500">No URL</span>
                           )}
                         </TableCell>
                         <TableCell className="px-4 py-4 text-center">
-                          <span className="px-2 py-1 text-sm font-medium bg-orange-100 rounded-full text-orange-800">
-                            {String(backlink['N° RDs Of Referring Page ( API )'] || Math.floor(Math.random() * 500) + 50)}
+                          <span className="px-2 py-1 text-sm font-medium bg-green-100 rounded-lg text-green-800">
+                            {String(backlink['Backlink URL Page Traffic ( API )'] || '-')}
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-4 text-center">
-                          <span className="px-2 py-1 text-sm font-medium bg-green-100 rounded-full text-green-800">
-                            {String(backlink['Backlink URL Page Traffic ( API )'] || Math.floor(Math.random() * 25000) + 5000)}
+                          <span className="px-2 py-1 text-sm font-medium bg-orange-100 rounded-lg text-orange-800">
+                            {String(backlink['N° RDs Of Referring Page ( API )'] || '-')}
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-4">
-                          {String(backlink.AnchorText || backlink['Anchor Text'] || 'SEO best practices')}
+                          {String(backlink['Anchor Text'] || backlink.AnchorText || '-')}
                         </TableCell>
                         <TableCell className="px-4 py-4">
-                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
-                            ${(String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live') ? 'bg-green-100 text-green-800' :
-                            (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'scheduled') ? 'bg-yellow-200 text-yellow-800' :
-                            (String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'rejected') ? 'bg-red-200 text-red-800' :
-                            'bg-gray-100 text-gray-800'}`}>
-                            {String(backlink['Portal Status'] || backlink.Status || 'Unknown Status')}
+                          {backlink["Client Target Page URL"] ? (
+                            <a
+                              href={ensureUrlProtocol(String(backlink["Client Target Page URL"]))}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {String(backlink["Client Target Page URL"])}
+                            </a>
+                          ) : (
+                            <span className="text-gray-500">No URL</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className="px-2 py-1 text-sm font-medium bg-indigo-100 rounded-lg text-indigo-800">
+                            {String(backlink['Target Page Type'] || '-')}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        <TableCell className="px-4 py-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-indigo-100 text-indigo-800">
                             {String(backlink.Month || selectedMonth)}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(backlink.Notes || '—')}                                </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(backlink.Notes || '—')}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-4 text-base text-gray-500">
+                      <TableCell colSpan={16} className="text-center py-4 text-base text-gray-500">
                         No backlinks available for {selectedMonth}
                       </TableCell>
                     </TableRow>
@@ -1235,3 +1317,4 @@ export default function DeliverablePage() {
     </main>
   );
 }
+
