@@ -76,13 +76,24 @@ export async function GET(req: NextRequest) {
       console.warn('[task-field-options] unable to fetch users', e);
     }
 
-    return NextResponse.json({
+    // Build response object with common fields
+    const response: any = {
       assignedTo: userNames,
       priority:   pick("Priority"),
       impact:     pick("Impact"),
       effort:     pick("Effort"),
       status:     pick("Status"),
-    });
+    };
+
+    // Add board-specific fields
+    if (tableName === 'CRO') {
+      response.type = pick("Type");
+    } else if (tableName === 'WQA') {
+      response.actionType = pick("Action Type");
+      response.whoIsResponsible = pick("Who Is Responsible");
+    }
+
+    return NextResponse.json(response);
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

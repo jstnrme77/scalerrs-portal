@@ -354,6 +354,45 @@ function EffortBadge({ effort, originalEffort }: { effort?: TaskEffort, original
   );
 }
 
+// Type Badge Component (for CRO)
+function TypeBadge({ type }: { type?: string }) {
+  if (!type) {
+    return <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+  }
+  
+  return (
+    <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-purple-100 text-purple-800 whitespace-nowrap">
+      {type}
+    </span>
+  );
+}
+
+// Action Type Badge Component (for WQA)
+function ActionTypeBadge({ actionType }: { actionType?: string }) {
+  if (!actionType) {
+    return <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+  }
+  
+  return (
+    <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-indigo-100 text-indigo-800 whitespace-nowrap">
+      {actionType}
+    </span>
+  );
+}
+
+// Who Is Responsible Badge Component (for WQA)
+function WhoIsResponsibleBadge({ whoIsResponsible }: { whoIsResponsible?: string }) {
+  if (!whoIsResponsible) {
+    return <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-lightGray text-mediumGray">-</span>;
+  }
+  
+  return (
+    <span className="px-3 py-1 text-base font-medium rounded-lg inline-flex items-center justify-center bg-teal-100 text-teal-800 whitespace-nowrap">
+      {whoIsResponsible}
+    </span>
+  );
+}
+
 // Comment Component
 function CommentItem({ comment }: { comment: Comment }) {
   // Handle different comment formats
@@ -733,10 +772,12 @@ function TaskCard({
 // Task Table Component
 function TaskTable({
   tasks,
-  onStatusChange
+  onStatusChange,
+  boardType
 }: {
   tasks: Task[];
   onStatusChange: (id: number | string, status: TaskStatus) => void;
+  boardType: string;
 }) {
   const [expandedTaskId, setExpandedTaskId] = useState<number | string | null>(null);
   const [expandedTaskComments, setExpandedTaskComments] = useState<Record<string, Comment[]>>({});
@@ -878,21 +919,36 @@ function TaskTable({
         <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
           <thead>
             <tr className="bg-gray-100 border-b border-gray-200">
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[25%] rounded-bl-[12px]">Task</th>
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">Date Logged</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Status</th>
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[15%]">Assigned to</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[12%]">Priority</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Impact</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-bl-[12px]">Task</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">Date Logged</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Status</th>
+              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">Assigned to</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
+              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Impact</th>
               <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Effort</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%] rounded-br-[12px]">Comments</th>
+              {boardType === 'cro' && (
+                <>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Type</th>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Example</th>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Screenshot</th>
+                </>
+              )}
+              {boardType === 'technicalSEO' && (
+                <>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Action Type</th>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Who Is Responsible</th>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Notes</th>
+                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Explication</th>
+                </>
+              )}
+              <th className={`px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%] ${boardType === 'strategyAdHoc' ? 'rounded-br-[12px]' : ''}`}>Comments</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {sortedTasks.map((task) => (
               <React.Fragment key={task.id}>
                 <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
-                  <td className="px-4 py-4 w-[25%]">
+                  <td className="px-4 py-4 w-[20%]">
                     <div className="flex items-start">
                       <div>
                         <div className="text-base font-medium text-dark">{task.task}</div>
@@ -900,22 +956,75 @@ function TaskTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-base text-mediumGray w-[12%] whitespace-nowrap">
+                  <td className="px-4 py-4 text-base text-mediumGray w-[10%] whitespace-nowrap">
                     {task.dateLogged ? new Date(task.dateLogged).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : task.dateLogged}
                   </td>
-                  <td className="px-4 py-4 text-center w-[10%]">
+                  <td className="px-4 py-4 text-center w-[8%]">
                     <StatusBadge status={task.status} />
                   </td>
-                  <td className="px-4 py-4 text-base text-dark w-[15%]">{task.assignedTo}</td>
-                  <td className="px-4 py-4 text-center w-[12%]">
+                  <td className="px-4 py-4 text-base text-dark w-[12%]">{task.assignedTo}</td>
+                  <td className="px-4 py-4 text-center w-[10%]">
                     <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
                   </td>
-                  <td className="px-4 py-4 text-center w-[10%]">
+                  <td className="px-4 py-4 text-center w-[8%]">
                     <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
                   </td>
                   <td className="px-4 py-4 text-center w-[6%]">
                     <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
                   </td>
+                  {boardType === 'cro' && (
+                    <>
+                      <td className="px-4 py-4 text-center w-[6%]">
+                        <TypeBadge type={(task as any).type} />
+                      </td>
+                      <td className="px-4 py-4 text-center w-[6%]">
+                        {(task as any).example ? (
+                          <a href={(task as any).example} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                            View
+                          </a>
+                        ) : (
+                          <span className="text-mediumGray">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-center w-[6%]">
+                        {(task as any).exampleScreenshot ? (
+                          <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                            View
+                          </a>
+                        ) : (
+                          <span className="text-mediumGray">-</span>
+                        )}
+                      </td>
+                    </>
+                  )}
+                  {boardType === 'technicalSEO' && (
+                    <>
+                      <td className="px-4 py-4 text-center w-[8%]">
+                        <ActionTypeBadge actionType={(task as any).actionType} />
+                      </td>
+                      <td className="px-4 py-4 text-center w-[8%]">
+                        <WhoIsResponsibleBadge whoIsResponsible={(task as any).whoIsResponsible} />
+                      </td>
+                      <td className="px-4 py-4 text-center w-[6%]">
+                        {(task as any).notesByScalerrs ? (
+                          <span className="text-sm text-gray-700 truncate block max-w-[100px]" title={(task as any).notesByScalerrs}>
+                            {(task as any).notesByScalerrs.length > 20 ? (task as any).notesByScalerrs.substring(0, 20) + '...' : (task as any).notesByScalerrs}
+                          </span>
+                        ) : (
+                          <span className="text-mediumGray">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-center w-[8%]">
+                        {(task as any).explicationWhy ? (
+                          <span className="text-sm text-gray-700 truncate block max-w-[120px]" title={(task as any).explicationWhy}>
+                            {(task as any).explicationWhy.length > 25 ? (task as any).explicationWhy.substring(0, 25) + '...' : (task as any).explicationWhy}
+                          </span>
+                        ) : (
+                          <span className="text-mediumGray">-</span>
+                        )}
+                      </td>
+                    </>
+                  )}
                   <td className="px-4 py-4 text-center w-[5%]">
                     <div className="flex justify-center">
                       <div className="bg-gray-200 text-gray-700 text-base font-medium px-2 py-1 rounded-lg flex items-center">
@@ -929,14 +1038,44 @@ function TaskTable({
                 </tr>
                 {expandedTaskId === task.id && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-4 bg-white border-t border-gray-200">
+                    <td colSpan={boardType === 'cro' ? 11 : boardType === 'technicalSEO' ? 12 : 8} className="px-4 py-4 bg-white border-t border-gray-200">
                       <div className="grid grid-cols-2 gap-4">
-                        {task.notes && (
-                          <div>
-                            <h4 className="text-base font-medium text-dark mb-1">Notes</h4>
-                            <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{task.notes}</p>
-                          </div>
-                        )}
+                        {/* First column - Notes and WQA-specific fields */}
+                        <div className="space-y-4">
+                          {task.notes && (
+                            <div>
+                              <h4 className="text-base font-medium text-dark mb-1">{boardType === 'cro' ? 'Description' : 'Notes'}</h4>
+                              <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{task.notes}</p>
+                            </div>
+                          )}
+                          
+                          {boardType === 'technicalSEO' && (task as any).notesByScalerrs && (
+                            <div>
+                              <h4 className="text-base font-medium text-dark mb-1">Notes By Scalerrs During Audit</h4>
+                              <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{(task as any).notesByScalerrs}</p>
+                            </div>
+                          )}
+                          
+                          {boardType === 'technicalSEO' && (task as any).explicationWhy && (
+                            <div>
+                              <h4 className="text-base font-medium text-dark mb-1">Explication: Why?</h4>
+                              <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{(task as any).explicationWhy}</p>
+                            </div>
+                          )}
+                          
+                          {boardType === 'cro' && (task as any).exampleScreenshot && (
+                            <div>
+                              <h4 className="text-base font-medium text-dark mb-1">Example Screenshot</h4>
+                              <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
+                                <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                  View Screenshot
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Second column - Comments */}
                         <div>
                           <h4 className="text-base font-medium text-dark mb-1">Comments</h4>
                           <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
@@ -994,7 +1133,7 @@ function TaskTable({
 
             {sortedTasks.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-base text-mediumGray">
+                <td colSpan={boardType === 'cro' ? 11 : boardType === 'technicalSEO' ? 12 : 8} className="px-4 py-8 text-center text-base text-mediumGray">
                   No tasks found in this section
                 </td>
               </tr>
@@ -1107,7 +1246,16 @@ export default function TaskBoards() {
             Notes: notes,
             'Completed Date': completedDate,
             Client: client,
-            'Client Record ID': clientRecordId
+            'Client Record ID': clientRecordId,
+            // CRO-specific fields
+            Type: type,
+            Example: example,
+            'Example Screenshot': exampleScreenshot,
+            // WQA-specific fields
+            'Action Type': actionType,
+            'Who Is Responsible': whoIsResponsible,
+            'Notes By Scalerrs During Audit': notesByScalerrs,
+            'Explication: Why?': explicationWhy
           } = task;
           
           // Process comments if they exist
@@ -1209,7 +1357,21 @@ export default function TaskBoards() {
             // since the ClientDataContext checks both fields
             Client: client || task.Client || task.Clients || task.client,
             Clients: client || task.Client || task.Clients || task.client,
-            'Client Record ID': clientRecordId
+            'Client Record ID': clientRecordId,
+            
+            // Add new CRO-specific fields
+            type: type || undefined,
+            example: example || undefined,
+            exampleScreenshot: exampleScreenshot ? 
+              (Array.isArray(exampleScreenshot) && exampleScreenshot.length > 0 ? 
+                exampleScreenshot[0].url || exampleScreenshot[0] : 
+                (typeof exampleScreenshot === 'string' ? exampleScreenshot : undefined)) : undefined,
+            
+            // Add new WQA-specific fields
+            actionType: actionType || undefined,
+            whoIsResponsible: whoIsResponsible || undefined,
+            notesByScalerrs: notesByScalerrs || undefined,
+            explicationWhy: explicationWhy || undefined
           };
           
           // Add completedDate if Status is Done
@@ -1494,6 +1656,10 @@ export default function TaskBoards() {
           effort: originalFormData?.effort || task.effort || 'Mid Effort ❗❗',
           notes: task.notes,
           clients: clientsForApi, // Ensure this is passed for CRO tasks
+          // Add new CRO-specific fields
+          type: (task as any).type,
+          exampleUrl: (task as any).exampleUrl,
+          exampleScreenshot: (task as any).exampleScreenshot,
         });
         console.log('Created new CRO task result:', newTask);
       } else if (activeBoard === 'strategyAdHoc') {
@@ -1848,6 +2014,7 @@ export default function TaskBoards() {
               <TaskTable
                 tasks={currentTasks}
                 onStatusChange={handleStatusChange}
+                boardType={activeBoard}
               />
             </div>
           )}

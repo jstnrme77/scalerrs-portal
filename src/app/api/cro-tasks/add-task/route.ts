@@ -82,6 +82,19 @@ export async function POST(request: NextRequest) {
       airtableTaskData['Comments'] = taskData.notes;
     }
     
+    // Add new CRO-specific fields
+    if (taskData.type) {
+      airtableTaskData['Type'] = taskData.type;
+    }
+    
+    if (taskData.exampleUrl) {
+      airtableTaskData['Example'] = taskData.exampleUrl;
+    }
+    
+    if (taskData.exampleScreenshot) {
+      airtableTaskData['Example Screenshot'] = taskData.exampleScreenshot;
+    }
+    
     if (taskData.assignedTo && taskData.assignedTo !== 'Unassigned') {
       const uid = await lookupUserId(taskData.assignedTo);
       if (uid) {

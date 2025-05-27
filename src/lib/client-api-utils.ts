@@ -1022,6 +1022,10 @@ export async function createCROTask(taskData: {
   effort: string;
   notes?: string;
   clients?: string[];
+  // New CRO-specific fields
+  type?: string;
+  exampleUrl?: string;
+  exampleScreenshot?: string;
 }) {
   // Clear the CRO tasks cache to ensure we get fresh data
   clearCROTasksCache();

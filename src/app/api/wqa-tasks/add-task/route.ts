@@ -53,8 +53,24 @@ export async function POST(request: NextRequest) {
       airtableTaskData['Effort'] = taskData.effort;
     }
     
-    if (taskData.notes) {
+    // Add new WQA-specific fields
+    if (taskData.actionType) {
+      airtableTaskData['Action Type'] = taskData.actionType;
+    }
+    
+    if (taskData.whoIsResponsible) {
+      airtableTaskData['Who Is Responsible'] = taskData.whoIsResponsible;
+    }
+    
+    // Prioritize the new specific field over the generic notes field
+    if (taskData.notesByScalerrs) {
+      airtableTaskData['Notes By Scalerrs During Audit'] = taskData.notesByScalerrs;
+    } else if (taskData.notes) {
       airtableTaskData['Notes By Scalerrs During Audit'] = taskData.notes;
+    }
+    
+    if (taskData.explicationWhy) {
+      airtableTaskData['Explication: Why?'] = taskData.explicationWhy;
     }
 
     // Add the Clients field if present in the incoming taskData

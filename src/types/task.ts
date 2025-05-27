@@ -26,6 +26,17 @@ export interface BaseTask {
   originalPriority?: string;
   originalImpact?: string;
   originalEffort?: string;
+  
+  // CRO-specific fields
+  type?: string;
+  example?: string;
+  exampleScreenshot?: string;
+  
+  // WQA-specific fields
+  actionType?: string;
+  whoIsResponsible?: string;
+  notesByScalerrs?: string;
+  explicationWhy?: string;
 }
 
 // Task Comment interface

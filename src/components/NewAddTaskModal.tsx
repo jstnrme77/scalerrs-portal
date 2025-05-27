@@ -1,29 +1,75 @@
 import React, { useEffect, useState } from 'react';
-import { Task, TaskStatus, TaskPriority, TaskEffort } from '@/types/task'; // Assuming these types are okay
-import { getTaskFieldOptions } from "@/lib/client-api-utils"; // We'll use the same util
+import { TaskStatus, TaskPriority, TaskEffort } from '@/types/task';
+import { getTaskFieldOptions } from "@/lib/client-api-utils";
+
+interface TaskData {
+  task: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  impact: string;
+  effort: TaskEffort;
+  notes: string;
+  referenceLinks: string[];
+  assignedTo?: string;
+  type?: string;
+  exampleUrl?: string;
+  exampleScreenshot?: string;
+  actionType?: string;
+  whoIsResponsible?: string;
+  notesByScalerrs?: string;
+  explicationWhy?: string;
+}
+
+interface OriginalFields {
+  priority: string;
+  impact: string;
+  effort: string;
+}
 
 interface NewAddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTask: (taskData: any, originalFields: any) => void; // Simplify the callback for now
-  boardType: string; // e.g., "technicalSEO", "cro", "strategyAdHoc" - will be used for getTaskFieldOptions
+  onAddTask: (taskData: TaskData, originalFields: OriginalFields) => void;
+  boardType: string;
 }
 
 const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAddTask, boardType }) => {
   console.log(`NewAddTaskModal RENDERING. isOpen: ${isOpen}, boardType: ${boardType}`);
 
-  const [options, setOptions] = useState<any>({
-    priority: [], impact: [], effort: [], status: []
+  interface FieldOptions {
+    priority: string[];
+    impact: string[];
+    effort: string[];
+    status: string[];
+    assignedTo: string[];
+    type: string[];
+    actionType: string[];
+    whoIsResponsible: string[];
+  }
+
+  const [options, setOptions] = useState<FieldOptions>({
+    priority: [], impact: [], effort: [], status: [], assignedTo: [], type: [], actionType: [], whoIsResponsible: []
   });
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
   const [taskName, setTaskName] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
   const [selectedImpact, setSelectedImpact] = useState('');
   const [selectedEffort, setSelectedEffort] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedAssignedTo, setSelectedAssignedTo] = useState('');
   const [notes, setNotes] = useState('');
   const [referenceLinks, setReferenceLinks] = useState(''); // Added for original UI
+  
+  // New fields for CRO table
+  const [selectedType, setSelectedType] = useState('');
+  const [exampleUrl, setExampleUrl] = useState('');
+  const [exampleScreenshot, setExampleScreenshot] = useState('');
+  
+  // New fields for WQA table
+  const [selectedActionType, setSelectedActionType] = useState('');
+  const [selectedWhoIsResponsible, setSelectedWhoIsResponsible] = useState('');
+  const [notesByScalerrs, setNotesByScalerrs] = useState('');
+  const [explicationWhy, setExplicationWhy] = useState('');
 
   // Effect to fetch options
   useEffect(() => {
@@ -34,30 +80,42 @@ const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAd
     }
 
     console.log(`NewAddTaskModal options-useEffect: Fetching options for boardType: ${boardType}`);
-    setIsLoadingOptions(true);
     getTaskFieldOptions(boardType)
       .then(opts => {
         console.log("NewAddTaskModal options-useEffect: Received options:", opts);
-        setOptions(opts || { priority: [], impact: [], effort: [], status: [] });
+        setOptions(opts || { priority: [], impact: [], effort: [], status: [], assignedTo: [], type: [], actionType: [], whoIsResponsible: [] });
         setSelectedPriority(opts?.priority?.[0] || '');
         setSelectedImpact(opts?.impact?.[0] || '');
         setSelectedEffort(opts?.effort?.[0] || '');
         setSelectedStatus(opts?.status?.[0] || '');
+        setSelectedAssignedTo(opts?.assignedTo?.[0] || '');
+        setSelectedType(opts?.type?.[0] || '');
+        setSelectedActionType(opts?.actionType?.[0] || '');
+        setSelectedWhoIsResponsible(opts?.whoIsResponsible?.[0] || '');
         setTaskName(''); 
         setNotes('');    
         setReferenceLinks(''); // Reset ref links
+        setExampleUrl('');
+        setExampleScreenshot('');
+        setNotesByScalerrs('');
+        setExplicationWhy('');
       })
       .catch(error => {
         console.error("NewAddTaskModal options-useEffect: Error fetching options:", error);
-        setOptions({ priority: [], impact: [], effort: [], status: [] });
+        setOptions({ priority: [], impact: [], effort: [], status: [], assignedTo: [], type: [], actionType: [], whoIsResponsible: [] });
         setSelectedPriority('');
         setSelectedImpact('');
         setSelectedEffort('');
         setSelectedStatus('');
+        setSelectedAssignedTo('');
+        setSelectedType('');
+        setSelectedActionType('');
+        setSelectedWhoIsResponsible('');
         setReferenceLinks('');
-      })
-      .finally(() => {
-        setIsLoadingOptions(false);
+        setExampleUrl('');
+        setExampleScreenshot('');
+        setNotesByScalerrs('');
+        setExplicationWhy('');
       });
   }, [isOpen, boardType]);
 
@@ -71,7 +129,7 @@ const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAd
 
     const links = referenceLinks.trim() ? referenceLinks.split('\n').filter(link => link.trim() !== '') : [];
 
-    const taskSubmission = {
+    const taskSubmission: TaskData = {
       task: taskName,
       status: selectedStatus as TaskStatus, // Cast to specific type if confident
       priority: selectedPriority as TaskPriority,
@@ -79,7 +137,23 @@ const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAd
       effort: selectedEffort as TaskEffort,
       notes: notes,
       referenceLinks: links, // Added
+      assignedTo: selectedAssignedTo,
     };
+
+    // Add CRO-specific fields
+    if (boardType === 'cro') {
+      if (selectedType) taskSubmission.type = selectedType;
+      if (exampleUrl) taskSubmission.exampleUrl = exampleUrl;
+      if (exampleScreenshot) taskSubmission.exampleScreenshot = exampleScreenshot;
+    }
+
+    // Add WQA-specific fields
+    if (boardType === 'technicalSEO') {
+      if (selectedActionType) taskSubmission.actionType = selectedActionType;
+      if (selectedWhoIsResponsible) taskSubmission.whoIsResponsible = selectedWhoIsResponsible;
+      if (notesByScalerrs) taskSubmission.notesByScalerrs = notesByScalerrs;
+      if (explicationWhy) taskSubmission.explicationWhy = explicationWhy;
+    }
     
     const originalFieldsForBackend = {
         priority: selectedPriority, 
@@ -97,8 +171,8 @@ const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAd
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-      <div className="bg-white p-8 rounded-[12px] border-2 border-gray-200 shadow-lg max-w-xl w-full pointer-events-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-[9999] pointer-events-none">
+      <div className="bg-white p-8 rounded-[12px] border-2 border-gray-200 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto mx-4">
         <div className="bg-gray-100 p-6 border-b border-gray-200 -mx-8 -mt-8 mb-8 flex justify-between items-center rounded-t-[12px]">
           <h3 className="text-lg font-bold text-black px-2">Add New Task to {boardType} Board</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
@@ -175,12 +249,25 @@ const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAd
               </select>
             </div>
 
+            <div>
+              <label htmlFor="new-assignedTo" className="block text-sm font-medium text-mediumGray mb-2">Assigned To</label>
+              <select
+                id="new-assignedTo"
+                className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                value={selectedAssignedTo}
+                onChange={(e) => setSelectedAssignedTo(e.target.value)}
+              >
+                <option value="">Select Assignee</option>
+                {options.assignedTo?.map((opt: string) => <option key={`assignedTo-${opt}`} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+
             <div className="md:col-span-2">
-              <label htmlFor="new-notes" className="block text-sm font-medium text-mediumGray mb-2">Notes</label>
+              <label htmlFor="new-notes" className="block text-sm font-medium text-mediumGray mb-2">{boardType === 'cro' ? 'Description' : 'Notes'}</label>
               <textarea
                 id="new-notes"
                 className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[80px]"
-                placeholder="Add any additional notes or context"
+                placeholder={boardType === 'cro' ? 'Add task description' : 'Add any additional notes or context'}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -196,6 +283,101 @@ const NewAddTaskModal: React.FC<NewAddTaskModalProps> = ({ isOpen, onClose, onAd
                 onChange={(e) => setReferenceLinks(e.target.value)}
               />
             </div>
+
+            {/* CRO-specific fields */}
+            {boardType === 'cro' && (
+              <>
+                <div>
+                  <label htmlFor="new-type" className="block text-sm font-medium text-mediumGray mb-2">Type</label>
+                  <select
+                    id="new-type"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                  >
+                    <option value="">Select Type</option>
+                    {options.type?.map((opt: string) => <option key={`type-${opt}`} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="new-exampleUrl" className="block text-sm font-medium text-mediumGray mb-2">Example URL</label>
+                  <input
+                    id="new-exampleUrl"
+                    type="url"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                    placeholder="https://example.com"
+                    value={exampleUrl}
+                    onChange={(e) => setExampleUrl(e.target.value)}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label htmlFor="new-exampleScreenshot" className="block text-sm font-medium text-mediumGray mb-2">Example Screenshot URL</label>
+                  <input
+                    id="new-exampleScreenshot"
+                    type="url"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                    placeholder="https://example.com/screenshot.png"
+                    value={exampleScreenshot}
+                    onChange={(e) => setExampleScreenshot(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* WQA-specific fields */}
+            {boardType === 'technicalSEO' && (
+              <>
+                <div>
+                  <label htmlFor="new-actionType" className="block text-sm font-medium text-mediumGray mb-2">Action Type</label>
+                  <select
+                    id="new-actionType"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                    value={selectedActionType}
+                    onChange={(e) => setSelectedActionType(e.target.value)}
+                  >
+                    <option value="">Select Action Type</option>
+                    {options.actionType?.map((opt: string) => <option key={`actionType-${opt}`} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="new-whoIsResponsible" className="block text-sm font-medium text-mediumGray mb-2">Who Is Responsible</label>
+                  <select
+                    id="new-whoIsResponsible"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000]"
+                    value={selectedWhoIsResponsible}
+                    onChange={(e) => setSelectedWhoIsResponsible(e.target.value)}
+                  >
+                    <option value="">Select Who Is Responsible</option>
+                    {options.whoIsResponsible?.map((opt: string) => <option key={`whoIsResponsible-${opt}`} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label htmlFor="new-notesByScalerrs" className="block text-sm font-medium text-mediumGray mb-2">Notes By Scalerrs During Audit</label>
+                  <textarea
+                    id="new-notesByScalerrs"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[80px]"
+                    placeholder="Add notes from Scalerrs audit"
+                    value={notesByScalerrs}
+                    onChange={(e) => setNotesByScalerrs(e.target.value)}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label htmlFor="new-explicationWhy" className="block text-sm font-medium text-mediumGray mb-2">Explication: Why?</label>
+                  <textarea
+                    id="new-explicationWhy"
+                    className="w-full border border-gray-200 rounded-[12px] p-3 focus:outline-none focus:ring-2 focus:ring-[#000000] min-h-[80px]"
+                    placeholder="Explain why this action is needed"
+                    value={explicationWhy}
+                    onChange={(e) => setExplicationWhy(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="flex justify-end space-x-4">

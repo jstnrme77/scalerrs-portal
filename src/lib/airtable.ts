@@ -3335,6 +3335,9 @@ export async function createWQATask(taskData: {
   'Impact'?: string;
   'Effort'?: string;
   'Notes By Scalerrs During Audit'?: string;
+  'Action Type'?: string;
+  'Who Is Responsible'?: string;
+  'Explication: Why?'?: string;
   Clients?: string[];
   // 'Assigned To' has been removed as it requires special handling
 }) {
@@ -3471,6 +3474,7 @@ export async function getCROTasks(userId?: string | null, userRole?: string | nu
         Priority: fields['Portal Priority'] || '-', // Provide a default value
         Impact: fields['Portal Impact'] || '-', // Provide a default value
         Effort: fields['Portal Effort'] || '-', // Provide a default value
+        CROType: fields['Type'] || '-', // CRO-specific Type field
         AssignedTo: fields['Assignee'] || 'Unassigned',
         Notes: fields['Description'] || '',
         Comments: fields['Comments'] || '',
@@ -3499,6 +3503,9 @@ export async function createCROTask(taskData: {
   Comments?: string;
   Assignee?: string;
   Clients?: string[];
+  Type?: string;
+  Example?: string;
+  'Example Screenshot'?: string;
 }) {
   if (!hasAirtableCredentials) {
     console.log('Using mock data for creating CRO task:', taskData);
@@ -3657,7 +3664,7 @@ export async function getStrategyTasks(
     const records = await query.all();
     console.log(`Fetched ${records.length} Strategy tasks from Airtable`);
 
-    return records.map(rec => {
+    return records.map((rec: any) => {
       const fields = rec.fields;
 
       // Normalise Name/Title
