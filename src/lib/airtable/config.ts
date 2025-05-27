@@ -97,6 +97,7 @@ export const TABLES = {
   ARTICLES: 'Articles',
   BACKLINKS: 'Backlinks',
   CLUSTERS: 'Clusters',
+  QUICK_WINS: 'Quick Wins',
 
   // Task Management
   TASKS: 'Tasks',

@@ -8,6 +8,7 @@ export const TABLES = {
   BRIEFS: 'Keywords', // Now using Keywords table for briefs
   ARTICLES: 'Keywords', // Now using Keywords table for articles
   BACKLINKS: 'Backlinks',
+  QUICK_WINS: 'Quick Wins',
   KPI_METRICS: 'KPI Metrics',
   KEYWORD_PERFORMANCE: 'Keyword Performance',
   MONTHLY_PROJECTIONS: 'Monthly Projections',
@@ -25,6 +26,7 @@ export const ALT_TABLES = {
   BRIEFS: ['keywords', 'keyword', 'Keyword', 'KEYWORDS'], // Same as KEYWORDS
   ARTICLES: ['keywords', 'keyword', 'Keyword', 'KEYWORDS'], // Same as KEYWORDS
   BACKLINKS: ['backlinks', 'backlink', 'Backlink', 'BACKLINKS'],
+  QUICK_WINS: ['quick_wins', 'quickwins', 'quick wins', 'QuickWins', 'QUICK_WINS'],
   KPI_METRICS: ['kpi_metrics', 'kpimetrics', 'kpi metrics', 'KPIMetrics'],
   KEYWORD_PERFORMANCE: ['keyword_performance', 'keywordperformance', 'keyword performance', 'KeywordPerformance'],
   MONTHLY_PROJECTIONS: ['monthly_projections', 'monthlyprojections', 'monthly projections', 'MonthlyProjections'],

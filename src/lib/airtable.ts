@@ -2065,7 +2065,7 @@ function mapStatusString(statusString: string): string {
 }
 
 // Function to update approval status in Airtable
-export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles' | 'backlinks', itemId: string, status: string, reason?: string) {
+export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins', itemId: string, status: string, reason?: string) {
   if (!hasAirtableCredentials) {
     console.log(`Using mock data for updating ${type} approval status:`, itemId, status);
     return { id: itemId, status };
@@ -2091,6 +2091,9 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
         break;
       case 'backlinks':
         targetFieldName = 'Backlink Approvals';
+        break;
+      case 'quickwins':
+        targetFieldName = 'Status';
         break;
       default:
         console.error(`Invalid type "${type}" specified for target field name determination.`);

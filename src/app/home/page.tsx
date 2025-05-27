@@ -124,7 +124,7 @@ export default function Home() {
       
       try {
         // Define the approval item types to fetch
-        const approvalTypes = ['keywords', 'briefs', 'articles', 'backlinks'];
+        const approvalTypes = ['keywords', 'briefs', 'articles', 'backlinks', 'quickwins'];
         
         // Fetch all items for each category regardless of status to match approvals page counts
         const promises = approvalTypes.map(async (type) => {
@@ -152,15 +152,15 @@ export default function Home() {
             return { 
               type, 
               count: pendingItems.length,
-              // Convert type to proper category name (capitalize first letter)
-              category: type.charAt(0).toUpperCase() + type.slice(1)
+              // Convert type to proper category name (capitalize first letter, handle special cases)
+              category: type === 'quickwins' ? 'Quick Wins' : type.charAt(0).toUpperCase() + type.slice(1)
             };
           } catch (error) {
             console.error(`Error fetching approval items for ${type}:`, error);
             return { 
               type, 
               count: 0,
-              category: type.charAt(0).toUpperCase() + type.slice(1)
+              category: type === 'quickwins' ? 'Quick Wins' : type.charAt(0).toUpperCase() + type.slice(1)
             }; 
           }
         });
@@ -284,7 +284,7 @@ export default function Home() {
                     </div>
                     
                     {Object.keys(clientActionsByCategory).length > 0 && (
-                      <ul className="text-sm text-gray-700 list-none p-0 max-h-40 overflow-y-auto text-left divide-y divide-gray-200">
+                      <ul className="text-sm text-gray-700 list-none p-0 text-left divide-y divide-gray-200">
                         {Object.entries(clientActionsByCategory).map(([category, count]) => (
                           <li key={category} className="py-1.5 flex justify-between items-center">
                             <span className="capitalize">{category.replace(/s$/, '')}:</span>

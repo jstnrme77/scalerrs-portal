@@ -1,0 +1,11 @@
+﻿Step No.,Stage,Action Owner,Assignee,Action Item,Page Limit,Status,Notes,Clients,Created,Last Modified
+1,Kick-off,Project Manager,Team,Conduct onboarding and kickoff call,N/A,Needs Revisions,Foundation before Quick Wins,Default,5/27/2025,5/27/2025 9:06pm
+2,Initial Review,Writer,Team,"Open client website and Ahrefs, perform surface-level analysis",N/A,Resubmitted,Identify potential Quick Wins,Default,5/27/2025,5/27/2025 9:06pm
+3,Quick Win Identification,Writer,Team,"List actionable items (content refresh, new content, internal links, title tag updates, etc)",Up to 10,Approved,Limit to 6–10 pages or items,Default,5/27/2025,5/27/2025 9:06pm
+4,Internal Review,Writer,Team,Send Quick Win list to Head of SEO,N/A,Approved,For review and feedback,Default,5/27/2025,5/27/2025 9:06pm
+5,Internal Approval,SEO,Team,Review and approve or request revisions,N/A,Approved,Feedback loop until approved,Default,5/27/2025,5/27/2025 9:06pm
+6,Client Approval,Writer,Team,Send approved Quick Wins to client via templated Slack message,N/A,Approved,Wait for client confirmation,,5/27/2025,5/27/2025 9:07pm
+7,Implementation,Writer,Team,"Begin implementation (content briefs, internal links, title tag updates, small tech fixes)",Up to 10,Approved,Work based on approved list,,5/27/2025,5/27/2025 9:07pm
+8,Handoff to Content Team,Writer,Team,"If content briefs are included, send them to content team",N/A,Approved,Considered 'in action' once sent,,5/27/2025,5/27/2025 9:07pm
+9,Direct Fix Completion,Writer,Team,Directly fix technical issues or meta tags if applicable,N/A,Approved,These items are executed immediately by the Senior SEO,,5/27/2025,5/27/2025 9:07pm
+10,Quick Win Status Update,Writer,Team,Mark completed items and update internal tracking,N/A,Approved,Tracks implementation progress,,5/27/2025,5/27/2025 9:07pm

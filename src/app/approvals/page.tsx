@@ -1974,7 +1974,7 @@ export default function Approvals() {
       clearApprovalsCache(); // Clear all types to be safe
       
       // Call the API to update Airtable
-      const result = await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', id, airtableStatus);
+      const result = await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins', id, airtableStatus);
       console.log('Update approval result:', result);
 
       // Update local state
@@ -2086,7 +2086,7 @@ export default function Approvals() {
         console.log(`Approving item ${id} in ${activeTab}`);
         
         const result = await updateApprovalStatus(
-          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks', 
+          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins', 
           id, 
           airtableStatus
         );
@@ -2148,7 +2148,7 @@ export default function Approvals() {
         try {
           // Always use 'Needs Revision' as the status value
           const result = await updateApprovalStatus(
-            activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks',
+            activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins',
             id, 
             'Needs Revision', 
             reason
@@ -2246,8 +2246,7 @@ export default function Approvals() {
                   { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
                   { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
                   { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
-                  // Quick Wins tab is optional per requirements
-                  ...(items.quickwins.length > 0 ? [{ id: 'quickwins', label: 'Quick Wins', icon: <Zap size={18} /> }] : [])
+                  { id: 'quickwins', label: 'Quick Wins', icon: <Zap size={18} /> }
                 ]}
                 activeTab={activeTab}
                 onTabChange={handleTabChange}

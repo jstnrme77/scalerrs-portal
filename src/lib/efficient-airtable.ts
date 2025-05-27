@@ -268,6 +268,31 @@ function formatBacklinkItem(record: any): ApprovalItem {
   };
 }
 
+// Function to format a quick win item from an Airtable record
+function formatQuickWinItem(record: any): ApprovalItem {
+  const fields = record.fields;
+  
+  return {
+    id: record.id,
+    item: fields["Action Item"] || "Untitled Quick Win",
+    status: normalizeStatus(fields["Status"] || "not_started"),
+    lastUpdated: formatDate(fields["Last Modified"], 'N/A'),
+    clients: fields["Clients"] || [],
+    clientRecordId: fields["Client Record ID"] || "",
+    strategist: fields["Action Owner"] || "Unassigned",
+    writer: fields["Assignee"] || "Unassigned",
+    stage: fields["Stage"] || "Not Specified",
+    pageLimit: fields["Page Limit"] || "N/A",
+    notes: fields["Notes"] || "",
+    stepNo: fields["Step No."] || 0,
+    count: 1, // Default to 1 item
+    type: fields["Stage"] || "Quick Win", // Use Stage as type
+    dateSubmitted: formatDate(fields["Created"], 'N/A'),
+    dateApproved: formatDate(fields["Last Modified"], ''), // No specific approval date field
+    revisionReason: fields["Notes"] || "" // Use Notes as revision reason if needed
+  };
+}
+
 // Function to get data from cache or fetch from Airtable
 export async function getApprovalItems(
   type: string = 'briefs',
@@ -371,11 +396,15 @@ export async function getApprovalItems(
         console.log(`Using Briefs table for briefs`);
         break;
       case 'backlinks':
-      tableName = TABLES.BACKLINKS;
-      console.log(`Using Backlinks table for backlinks`);
+        tableName = TABLES.BACKLINKS;
+        console.log(`Using Backlinks table for backlinks`);
+        break;
+      case 'quickwins':
+        tableName = TABLES.QUICK_WINS;
+        console.log(`Using Quick Wins table for quickwins`);
         break;
       default:
-      tableName = TABLES.KEYWORDS;
+        tableName = TABLES.KEYWORDS;
         console.log(`No specific table for ${type}, using Keywords table`);
     }
 
@@ -405,6 +434,10 @@ export async function getApprovalItems(
           // Only show records with a value in the "Backlink Approvals" field
           filterFormula = `NOT({Backlink Approvals} = '')`;
           console.log('Filtering backlinks by Backlink Approvals field');
+        } else if (type === 'quickwins') {
+          // Only show records with a value in the "Status" field for Quick Wins
+          filterFormula = `NOT({Status} = '')`;
+          console.log('Filtering quickwins by Status field');
         }
         
       // Apply client filtering if a specific client is selected (not 'all')
@@ -431,7 +464,9 @@ export async function getApprovalItems(
         console.log(`Adding status filter for status: ${status}`);
         const statusField = type === 'briefs' ? 'Brief Approvals' : 
                            type === 'articles' ? 'Article Approvals' : 
-                           type === 'keywords' ? 'Keyword Approvals' : 'Backlink Approvals';
+                           type === 'keywords' ? 'Keyword Approvals' : 
+                           type === 'quickwins' ? 'Status' :
+                           'Backlink Approvals';
         
         const statusFilter = `{${statusField}} = "${status}"`;
         
@@ -482,6 +517,7 @@ export async function getApprovalItems(
           const basicFilter = type === 'briefs' ? `NOT({Brief Approvals} = '')` : 
                             type === 'articles' ? `NOT({Article Approvals} = '')` : 
                             type === 'keywords' ? `NOT({Keyword Approvals} = '')` : 
+                            type === 'quickwins' ? `NOT({Status} = '')` :
                             `NOT({Backlink Approvals} = '')`;
           
           // Retry the fetch with the basic filter
@@ -655,6 +691,11 @@ export async function getApprovalItems(
         case 'backlinks':
           records.filter(record => record.get('Backlink Approvals')).forEach(record => {
             items.push(formatBacklinkItem(record));
+          });
+          break;
+        case 'quickwins':
+          records.filter(record => record.get('Status')).forEach(record => {
+            items.push(formatQuickWinItem(record));
           });
           break;
       }

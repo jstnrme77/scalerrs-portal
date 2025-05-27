@@ -587,14 +587,14 @@ export function clearApprovalsCache(type?: string) {
 
 /**
  * Update approval status via the API
- * @param type Type of approval item (keywords, briefs, articles, backlinks)
+ * @param type Type of approval item (keywords, briefs, articles, backlinks, quickwins)
  * @param itemId Item ID
  * @param status New status
  * @param revisionReason Optional reason for revision
  * @returns Updated item
  */
 export async function updateApprovalStatus(
-  type: 'keywords' | 'briefs' | 'articles' | 'backlinks',
+  type: 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins',
   itemId: string,
   status: string,
   revisionReason?: string
