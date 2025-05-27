@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
-import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, BarChart2, TrendingUp } from 'lucide-react';
+import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, BarChart2, TrendingUp, Clock, User } from 'lucide-react';
 import { updateApprovalStatus, clearApprovalsCache } from '@/lib/client-api-utils';
 import Pagination from '@/components/ui/Pagination';
 import { useClientData } from '@/context/ClientDataContext';
@@ -653,347 +653,321 @@ function ApprovalCard({
 
   const documentLink = getDocumentLink();
 
+  // Special layout for backlinks
+  if (activeTab === 'backlinks') {
+    return (
+      <div className={`bg-white border border-gray-200 rounded-lg p-4 transition-all ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
+        <div className="flex items-start gap-4">
+          {/* Checkbox */}
+          <div className="flex items-center justify-center mt-3">
+            {showInteractiveCheckbox ? (
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+                checked={isSelected}
+                onChange={() => onToggleItemSelection(item.id)}
+              />
+            ) : (
+              <div className="h-4 w-4"></div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* First Row: URL and Status */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-gray-400" />
+                <span className="text-lg font-semibold text-gray-900">{item.item}</span>
+              </div>
+              <StatusBadge status={item.status} />
+            </div>
+
+            {/* Second Row: Link Type */}
+            <div className="mb-6">
+              {item.linkType && (
+                <span className="text-sm text-gray-600">Link Type: <span className="font-semibold">{item.linkType}</span></span>
+              )}
+            </div>
+
+            {/* Metrics Grid - First Row */}
+            <div className="grid grid-cols-4 gap-8 mb-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {item.domainRating || 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  DOMAIN RATING
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {item.trafficDomain ? item.trafficDomain.toLocaleString() : 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  DOMAIN TRAFFIC
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {item.pageTraffic || 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  PAGE TRAFFIC
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {item.pageRD || 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  REFERRING DOMAINS
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics Grid - Second Row */}
+            <div className="grid grid-cols-4 gap-8 mb-6">
+              <div className="text-center">
+                <div className="text-lg font-bold text-gray-900 mb-1">
+                  {item.pageType || 'Template'}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  PAGE TYPE
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-gray-900 mb-1">
+                  {item.upliftPotential || 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  KEYWORD UPLIFT POTENTIAL
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-gray-900 mb-1">
+                  {item.currentPosition || 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  CURRENT POSITION
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-gray-900 mb-1">
+                  {item.keywordScore || 0}
+                </div>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  KEYWORD SCORE
+                </div>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-200 mb-4"></div>
+
+            {/* Target URL and Actions */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Target:</span>
+                <a 
+                  href={ensureUrlProtocol(String(item.targetPage || ''))} 
+                  className="text-sm text-blue-600 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {String(item.targetPage || 'https://qwilr.com/templates/social-media-propos...')}
+                </a>
+                <ExternalLink className="h-3 w-3 text-gray-400" />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
+                  <>
+                    <button
+                      onClick={() => onRequestChanges(item.id)}
+                      className="px-6 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      onClick={() => onApprove(item.id)}
+                      className="px-6 py-2 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Revision Reason */}
+            {item.revisionReason && (
+              <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-3 rounded border">
+                <span className="font-medium">Revision: </span>{item.revisionReason}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default layout for all other tabs
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
+    <div className={`bg-white border border-gray-200 rounded-lg p-4 transition-all ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
       <div className="flex items-start gap-4">
         {/* Checkbox */}
-        <div className="flex items-center justify-center mt-1">
+        <div className="flex items-center justify-center mt-3">
           {showInteractiveCheckbox ? (
             <input
               type="checkbox"
-              className="h-5 w-5 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+              className="h-4 w-4 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
               checked={isSelected}
               onChange={() => onToggleItemSelection(item.id)}
             />
           ) : (
-            <div className="h-5 w-5"></div>
+            <div className="h-4 w-4"></div>
           )}
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 space-y-4">
-          {/* Header with URL and Status */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-blue-600" />
-                {documentLink ? (
-                  <a
-                    href={ensureUrlProtocol(documentLink)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-lg font-medium text-blue-600 hover:underline"
-                  >
-                    {item.item}
-                  </a>
-                ) : (
-                  <span className="text-lg font-medium text-gray-900">{item.item}</span>
-                )}
-              </div>
-              {activeTab === 'backlinks' && item.linkType && (
-                <p className="text-sm text-gray-600">Link Type: {item.linkType}</p>
-              )}
-              {activeTab === 'articles' && (
-                <div className="space-y-1">
-                  {item.wordCount && <p className="text-sm text-gray-600">{item.wordCount} words</p>}
-                  {item.type && <p className="text-sm text-gray-600">Type: {item.type}</p>}
-                </div>
-              )}
-              {activeTab === 'briefs' && (
-                <div className="space-y-1">
-                  {item.pages && <p className="text-sm text-gray-600">{item.pages} pages</p>}
-                  {item.type && <p className="text-sm text-gray-600">Type: {item.type}</p>}
-                  {item.volume && <p className="text-sm text-gray-600">Volume: {item.volume}</p>}
-                </div>
-              )}
-              {activeTab === 'keywords' && (
-                <div className="space-y-1">
-                  {item.volume && <p className="text-sm text-gray-600">Volume: {item.volume}</p>}
-                  {item.difficulty && <p className="text-sm text-gray-600">Difficulty: {item.difficulty}</p>}
-                </div>
-              )}
-              {activeTab === 'quickwins' && (
-                <div className="space-y-1">
-                  {item.count && <p className="text-sm text-gray-600">{item.count} links</p>}
-                  {item.type && <p className="text-sm text-gray-600">Type: {item.type}</p>}
-                </div>
+        <div className="flex-1">
+          {/* First Row: Item Name and Actions */}
+          <div className="flex items-center justify-between mb-1">
+            {/* Item Name with Icon */}
+            <div className="flex items-center gap-2">
+              <ExternalLink className="h-4 w-4 text-gray-400" />
+              {documentLink ? (
+                <a
+                  href={ensureUrlProtocol(documentLink)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base font-semibold text-gray-900 hover:underline"
+                >
+                  {item.item}
+                </a>
+              ) : (
+                <span className="text-base font-semibold text-gray-900">{item.item}</span>
               )}
             </div>
-            <div className="text-right text-sm text-gray-500">
-              <StatusBadge status={item.status} />
-              <p className="mt-1">Last Updated: {item.lastUpdated}</p>
-              {activeTab === 'articles' ? (
-                <p>Writer: {
-                  (() => {
-                    if (!item.writer && !item.strategist) return 'Unassigned';
-                    if (typeof item.writer === 'string') return item.writer;
-                    
-                    if (item.writer) {
-                      if (Array.isArray(item.writer)) {
-                        return item.writer.map(w => w.name).join(', ') || 'Unknown Writer';
-                      }
-                      return item.writer.name || 'Unknown Writer';
-                    }
-                    
-                    if (typeof item.strategist === 'string') return item.strategist;
-                    if (Array.isArray(item.strategist)) {
-                      return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
-                    }
-                    return item.strategist?.name || 'Unknown Strategist';
-                  })()
-                }</p>
-              ) : (
-                <p>Assigned to: {
-                  (() => {
-                    if (!item.strategist) return 'Unassigned';
-                    if (typeof item.strategist === 'string') return item.strategist;
-                    if (Array.isArray(item.strategist)) {
-                      return item.strategist.map(s => s.name).join(', ') || 'Unknown Strategist';
-                    }
-                    return item.strategist.name || 'Unknown Strategist';
-                  })()
-                }</p>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
+                <>
+                  <button
+                    onClick={() => onRequestChanges(item.id)}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                  >
+                    Request Changes
+                  </button>
+                  <button
+                    onClick={() => onApprove(item.id)}
+                    className="px-3 py-1.5 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
+                  >
+                    Approve
+                  </button>
+                </>
               )}
             </div>
           </div>
 
-          {/* Metrics Grid for different tabs */}
-          {activeTab === 'backlinks' && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-t border-gray-100">
-              {item.domainRating !== undefined && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.domainRating}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Domain Rating</div>
-                </div>
-              )}
-              {item.trafficDomain && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.trafficDomain.toLocaleString()}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Domain Traffic</div>
-                </div>
-              )}
-              {item.pageTraffic && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.pageTraffic}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Page Traffic</div>
-                </div>
-              )}
-              {item.pageRD && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.pageRD}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Referring Domains</div>
-                </div>
-              )}
-              {item.pageType && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {item.pageType}
-                  </div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">
-                    Page Type
-                  </div>
-                </div>
-              )}
-              {item.upliftPotential && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {item.upliftPotential}
-                  </div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">
-                    Keyword Uplift Potential
-                  </div>
-                </div>
-              )}
-              {item.currentPosition && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {item.currentPosition}
-                  </div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">
-                    Current Position
-                  </div>
-                </div>
-              )}
-              {item.keywordScore && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {item.keywordScore}
-                  </div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">
-                    Keyword Score
-                  </div>
-                </div>
+          {/* Second Row: Metrics */}
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+            {activeTab === 'keywords' && (
+              <>
+                {item.volume && <span>Volume: <span className="font-semibold">{item.volume}</span></span>}
+                {item.difficulty && <span>Difficulty: <span className="font-semibold">{item.difficulty}</span></span>}
+              </>
+            )}
+            {activeTab === 'briefs' && (
+              <>
+                {item.pages && <span>Pages: <span className="font-semibold">{item.pages}</span></span>}
+                {item.type && <span>Type: <span className="font-semibold">{item.type}</span></span>}
+                {item.volume && <span>Volume: <span className="font-semibold">{item.volume}</span></span>}
+              </>
+            )}
+            {activeTab === 'articles' && (
+              <>
+                {item.wordCount && <span>Words: <span className="font-semibold">{item.wordCount}</span></span>}
+                {item.type && <span>Type: <span className="font-semibold">{item.type}</span></span>}
+              </>
+            )}
+            {activeTab === 'quickwins' && (
+              <>
+                {item.count && <span>Links: <span className="font-semibold">{item.count}</span></span>}
+                {item.type && <span>Type: <span className="font-semibold">{item.type}</span></span>}
+              </>
+            )}
+          </div>
+
+          {/* Third Row: Status, Last Updated and Assignment Info with Icons */}
+          <div className="flex items-center gap-4 text-sm">
+            <StatusBadge status={item.status} />
+            <div className="flex items-center gap-1 text-gray-500">
+              <Clock className="h-3 w-3" />
+              <span>Last Updated: <span className="font-semibold">{item.lastUpdated || 'N/A'}</span></span>
+            </div>
+            <div className="flex items-center gap-1 text-gray-500">
+              {activeTab === 'articles' ? (
+                <>
+                  <User className="h-3 w-3" />
+                  <span>Assigned to: <span className="font-semibold">{
+                    (() => {
+                      if (!item.writer && !item.strategist) return 'Team';
+                      if (typeof item.writer === 'string') return item.writer;
+                      
+                      if (item.writer) {
+                        if (Array.isArray(item.writer)) {
+                          return item.writer.map(w => w.name).join(', ') || 'Team';
+                        }
+                        return item.writer.name || 'Team';
+                      }
+                      
+                      if (typeof item.strategist === 'string') return item.strategist;
+                      if (Array.isArray(item.strategist)) {
+                        return item.strategist.map(s => s.name).join(', ') || 'Team';
+                      }
+                      return item.strategist?.name || 'Team';
+                    })()
+                  }</span></span>
+                </>
+              ) : (
+                <>
+                  <User className="h-3 w-3" />
+                  <span>Assigned to: <span className="font-semibold">{
+                    (() => {
+                      if (!item.strategist) return 'Team';
+                      if (typeof item.strategist === 'string') return item.strategist;
+                      if (Array.isArray(item.strategist)) {
+                        return item.strategist.map(s => s.name).join(', ') || 'Team';
+                      }
+                      return item.strategist.name || 'Team';
+                    })()
+                  }</span></span>
+                </>
               )}
             </div>
-          )}
+          </div>
 
-          {/* Metrics Grid for Keywords */}
-          {/* {activeTab === 'keywords' && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
-              {item.volume && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.volume.toLocaleString()}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Search Volume</div>
-                </div>
-              )}
-              {item.difficulty && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.difficulty}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Difficulty</div>
-                </div>
-              )}
-              {item.type && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Type</div>
-                </div>
-              )}
-            </div>
-          )} */}
-
-          {/* Metrics Grid for Articles */}
-          {/* {activeTab === 'articles' && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
-              {item.wordCount && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.wordCount.toLocaleString()}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Word Count</div>
-                </div>
-              )}
-              {item.type && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Content Type</div>
-                </div>
-              )}
-              {item.dateSubmitted && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{formatDate(item.dateSubmitted)}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Date Submitted</div>
-                </div>
-              )}
-            </div>
-          )} */}
-
-          {/* Metrics Grid for Briefs */}
-          {/* {activeTab === 'briefs' && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
-              {item.pages && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.pages}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Pages</div>
-                </div>
-              )}
-              {item.type && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Brief Type</div>
-                </div>
-              )}
-              {item.dateSubmitted && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{formatDate(item.dateSubmitted)}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Date Submitted</div>
-                </div>
-              )}
-            </div>
-          )} */}
-
-          {/* Metrics Grid for Quick Wins */}
-          {activeTab === 'quickwins' && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4 border-t border-gray-100">
-              {item.count && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.count}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Link Count</div>
-                </div>
-              )}
-              {item.type && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{item.type}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Type</div>
-                </div>
-              )}
-              {item.dateSubmitted && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{formatDate(item.dateSubmitted)}</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">Date Submitted</div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Target URL section for backlinks */}
-          {activeTab === 'backlinks' && item.targetPage && (
-            <div className="border-t border-gray-100 pt-3">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500">Target:</span>
-                <a 
-                  href={ensureUrlProtocol(String(item.targetPage))} 
-                  className="text-blue-600 hover:underline truncate max-w-md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {String(item.targetPage)}
-                </a>
-                <ExternalLink className="h-3 w-3 text-gray-400" />
-              </div>
-            </div>
-          )}
-
-          {/* Quick Wins resource links */}
-          {activeTab === 'quickwins' && item.resourceLink && (
-            <div className="text-sm text-mediumGray">
-              <a
-                href={ensureUrlProtocol(item.resourceLink)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline flex items-center"
-              >
-                View Resource
-                <ExternalLink size={14} className="ml-1 inline-block" />
-              </a>
-            </div>
-          )}
-
-
-
-          {item.revisionReason && (
-            <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded border border-gray-200">
-              <span className="font-medium">Revision: </span>{item.revisionReason}
-            </div>
-          )}
-
-          {/* Comments section - only show for Keywords and Briefs tabs */}
+          {/* Fourth Row: View Conversation History Link - only for Keywords and Briefs */}
           {(activeTab === 'keywords' || activeTab === 'briefs') && (
-            <div>
+            <div className="mt-2">
               <button
                 onClick={() => openConversationModal(item.id, item.item)}
-                className="flex items-center text-sm text-primary hover:underline"
+                className="flex items-center text-sm text-blue-600 hover:underline"
               >
                 <MessageCircle size={14} className="mr-1" />
                 View Conversation History
               </button>
             </div>
           )}
-        </div>
 
-        {/* Actions Column */}
-        <div className="flex flex-col gap-2 min-w-[200px]">
-          {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => onApprove(item.id)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
-              >
-                Approve
-              </button>
-              <button
-                onClick={() => onRequestChanges(item.id)}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
-              >
-                Request Changes
-              </button>
+          {/* Revision Reason */}
+          {item.revisionReason && (
+            <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-2 rounded border">
+              <span className="font-medium">Revision: </span>{item.revisionReason}
             </div>
           )}
         </div>
