@@ -1716,7 +1716,7 @@ function KpiDashboard() {
                                 })}
                               </div>
                             </div>
-                            <div className="flex justify-between text-xs text-gray-500 mt-2">
+                            <div className="flex justify-end text-xs text-gray-500 mt-2 gap-4">
                               <div className="flex items-center">
                                 <span className="inline-block w-3 h-3 bg-[#9EA8FB]/60 border border-[#9EA8FB] mr-1"></span>
                                 <span>Actual</span>
