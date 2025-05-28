@@ -1862,9 +1862,9 @@ function KpiDashboard() {
                   {/* High & Low Performers Section */}
                   <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">High & Low Performers</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* Traffic Section */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 w-full">
                         <h5 className="text-sm font-medium mb-3 flex items-center">
                           <span className="w-2 h-2 rounded-full bg-[#9EA8FB] mr-2"></span>
                           Traffic
@@ -1912,7 +1912,7 @@ function KpiDashboard() {
                       </div>
 
                       {/* Clicks Section */}
-                      <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <div className="bg-white p-4 rounded-lg border border-gray-200 w-full">
                         <h5 className="text-sm font-medium mb-3 flex items-center">
                           <span className="w-2 h-2 rounded-full bg-[#FFE4A6] mr-2"></span>
                           Clicks
@@ -1962,7 +1962,7 @@ function KpiDashboard() {
                   </div>
 
                   {/* Bottleneck Insight Callout Box */}
-                  <div className="mt-6">
+                  {/* <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Bottleneck Insights</h4>
                     <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
                       <div className="flex items-start space-x-4">
@@ -1984,9 +1984,9 @@ function KpiDashboard() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="mt-6">
+                  {/* <div className="mt-6">
                     <h4 className="text-sm font-medium mb-4">Page Type Optimization Opportunities</h4>
                     <div className="space-y-4">
                       {(kpiData.pageTypeBreakdown.opportunities ?? []).map((item: any, index: number) => (
@@ -2023,7 +2023,7 @@ function KpiDashboard() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
             </div>
