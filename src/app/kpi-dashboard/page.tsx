@@ -413,26 +413,16 @@ function KpiDashboard() {
         const pct = (cur: number, prv: number) => (prv ? Math.round(((cur - prv) / prv) * 100) : 0);
 
         /* -------------------------------------------------------------- */
-        /*  Compute average MoM traffic growth – actual & projected       */
+        /*  Compute simple MoM traffic growth for current vs previous month */
         /* -------------------------------------------------------------- */
-        const asc = [...sorted].reverse(); // oldest → newest
-        let actSum = 0, actCnt = 0;
-        let projSum = 0, projCnt = 0;
-        for (let i = 1; i < asc.length; i++) {
-          const curF  = asc[i].fields  as any;
-          const prevF = asc[i-1].fields as any;
-
-          const curActual  = Number(curF ['Clicks (Actual)']   ?? curF ['Organic Traffic (Actual)']   ?? 0);
-          const prevActual = Number(prevF['Clicks (Actual)']   ?? prevF['Organic Traffic (Actual)']  ?? 0);
-          if (prevActual) { actSum  += (curActual - prevActual) / prevActual * 100; actCnt++; }
-
-          const curProj  = Number(curF ['Clicks (Projected)']  ?? curF ['Organic Traffic (Projected)']  ?? 0);
-          const prevProj = Number(prevF['Clicks (Projected)']  ?? prevF['Organic Traffic (Projected)'] ?? 0);
-          if (prevProj)  { projSum += (curProj - prevProj) / prevProj * 100;  projCnt++; }
-        }
-
-        const avgActualGrowth = actCnt  ? parseFloat((actSum  / actCnt).toFixed(1)) : 0;
-        const avgProjGrowth   = projCnt ? parseFloat((projSum / projCnt).toFixed(1)) : 0;
+        const currentTraffic = Number(latest['Organic Traffic (Actual)'] ?? latest['Clicks (Actual)'] ?? 0);
+        const previousTraffic = Number(prev['Organic Traffic (Actual)'] ?? prev['Clicks (Actual)'] ?? 0);
+        const trafficGrowthPercent = previousTraffic ? +((currentTraffic - previousTraffic) / previousTraffic * 100).toFixed(1) : 0;
+        
+        // For projected traffic growth target, use projected fields or default to current growth
+        const currentProjectedTraffic = Number(latest['Organic Traffic (Projected)'] ?? latest['Clicks (Projected)'] ?? 0);
+        const previousProjectedTraffic = Number(prev['Organic Traffic (Projected)'] ?? prev['Clicks (Projected)'] ?? 0);
+        const projectedTrafficGrowthPercent = previousProjectedTraffic ? +((currentProjectedTraffic - previousProjectedTraffic) / previousProjectedTraffic * 100).toFixed(1) : trafficGrowthPercent;
 
         const summary = {
           revenueImpact: {
@@ -458,8 +448,8 @@ function KpiDashboard() {
             goal:    Number(latest['SQL Projected'] ?? latest['SQLs Projected'] ?? 0),
           },
           trafficGrowth: {
-            current: avgActualGrowth,
-            goal:    avgProjGrowth,
+            current: trafficGrowthPercent,
+            goal: projectedTrafficGrowthPercent,
           },
           keywordRankings: {
             top3: {
@@ -483,6 +473,7 @@ function KpiDashboard() {
         /* -------------------------------------------------------------- */
         /*  Build Month-over-Month rows for MoM Growth table              */
         /* -------------------------------------------------------------- */
+        const asc = [...sorted].reverse(); // oldest → newest for MoM calculations
         const momRowsArray = asc
           .map((rec, idx) => {
             const f = rec.fields as any;
@@ -794,6 +785,21 @@ function KpiDashboard() {
     deliverables: { category: string; count: number }[];
   } | null>(null);
 
+  // --- Trajectory Comparison (past 4 months) derived metrics ---
+  const [trajectoryData, setTrajectoryData] = useState<{
+    monthlyData: Array<{
+      month: string;
+      actual: number;
+      projected: number;
+      actualPct: number;
+      projectedPct: number;
+    }>;
+    actualAvg: number;
+    projectedAvg: number;
+    actualPct: number;
+    projectedPct: number;
+  } | null>(null);
+
   useEffect(() => {
     (async () => {
       /* -------------------------------------------------------------- */
@@ -864,7 +870,105 @@ function KpiDashboard() {
       } catch (err) {
         console.error(err);
       }
+
       /* -------------------------------------------------------------- */
+      /*  Trajectory Comparison - aggregate past 4 months              */
+      /* -------------------------------------------------------------- */
+      try {
+        if (isClientLoading || !clientId) return;
+
+        const all = await fetchClientsByMonth();
+        if (!all.length) return;
+
+        // Sort records by date (newest first)
+        const sortedRecords = [...all].sort((a: any, b: any) => {
+          const dateA = new Date(a.fields['Month Start'] || a.fields['Month'] || a.id).getTime();
+          const dateB = new Date(b.fields['Month Start'] || b.fields['Month'] || b.id).getTime();
+          return dateB - dateA;
+        });
+
+        // Get the past 4 months (including current month if available)
+        const past4Months = sortedRecords.slice(0, 4);
+        
+        // Find the maximum value across all months for proper scaling
+        const maxValue = Math.max(...past4Months.map(r => {
+          const f = r.fields as any;
+          return Math.max(
+            Number(f['Organic Traffic (Actual)'] ?? f['Clicks (Actual)'] ?? 0),
+            Number(f['Organic Traffic (Projected)'] ?? f['Clicks (Projected)'] ?? 0)
+          );
+        }));
+        
+        let totalActual = 0;
+        let totalProjected = 0;
+        let actualCount = 0;
+        let projectedCount = 0;
+
+        past4Months.forEach((record: any) => {
+          const fields = record.fields as any;
+          const actual = Number(fields['Organic Traffic (Actual)'] ?? fields['Clicks (Actual)'] ?? 0);
+          const projected = Number(fields['Organic Traffic (Projected)'] ?? fields['Clicks (Projected)'] ?? 0);
+          
+          if (actual > 0) {
+            totalActual += actual;
+            actualCount++;
+          }
+          if (projected > 0) {
+            totalProjected += projected;
+            projectedCount++;
+          }
+        });
+
+        const actualAvg = actualCount > 0 ? totalActual / actualCount : 0;
+        const projectedAvg = projectedCount > 0 ? totalProjected / projectedCount : 0;
+        
+        // Debug logging
+        console.log('Trajectory Data Debug:', {
+          past4Months: past4Months.length,
+          actualCount,
+          projectedCount,
+          totalActual,
+          totalProjected,
+          actualAvg,
+          projectedAvg,
+          maxValue
+        });
+        
+        // Scale actual and projected relative to projected being the target
+        const actualPct = projectedAvg > 0 ? Math.max(15, Math.min(95, (actualAvg / projectedAvg) * 75)) : 15;
+        const projectedPct = projectedAvg > 0 ? 75 : 15; // Projected shows as 75% of target
+        // Target bar is always 100% (full height)
+
+        // Calculate monthly percentages
+        const monthlyData = past4Months.map(record => {
+          const fields = record.fields as any;
+          const month = new Date(fields['Month Start'] || fields['Month'] || record.id).toLocaleString('default', { month: 'short', year: 'numeric' });
+          const actual = Number(fields['Organic Traffic (Actual)'] ?? fields['Clicks (Actual)'] ?? 0);
+          const projected = Number(fields['Organic Traffic (Projected)'] ?? fields['Clicks (Projected)'] ?? 0);
+          
+          // Scale heights based on actual values compared to max value
+          const monthActualPct = Math.max(15, actual > 0 ? (actual / maxValue) * 90 : 0);
+          const monthProjectedPct = Math.max(15, projected > 0 ? (projected / maxValue) * 90 : 0);
+          
+          return {
+            month,
+            actual,
+            projected,
+            actualPct: monthActualPct,
+            projectedPct: monthProjectedPct
+          };
+        });
+
+        setTrajectoryData({
+          monthlyData,
+          actualAvg,
+          projectedAvg,
+          actualPct,
+          projectedPct,
+        });
+      } catch (err) {
+        console.error('Error calculating trajectory data:', err);
+      }
     })();
   }, [clientId, isClientLoading]);
 
@@ -1087,9 +1191,13 @@ function KpiDashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-sm font-medium text-gray-600">Traffic Growth</CardTitle>
-                      <div className="hidden items-center text-green-600 text-sm font-medium">
-                        <ArrowUp className="h-4 w-4 mr-1" />
-                        <span>5.2%</span>
+                      <div className={`flex items-center text-sm font-medium ${kpiData ? (kpiData.summary.trafficGrowth.current >= 0 ? 'text-green-600' : 'text-red-600') : 'hidden'}`}>
+                        {kpiData && kpiData.summary.trafficGrowth.current >= 0 ? (
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                        ) : (
+                          <ArrowDown className="h-4 w-4 mr-1" />
+                        )}
+                        <span>{kpiData ? `${kpiData.summary.trafficGrowth.current >= 0 ? '+' : ''}${kpiData.summary.trafficGrowth.current}%` : ''}</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -1103,13 +1211,29 @@ function KpiDashboard() {
                       {/* Micro-visual: Sparkline */}
                       <div className="mt-4 h-8">
                         <div className="flex items-end space-x-1 h-full">
-                          {[5, 7, 9, 8, 10, 12, 14, 15, 16.8].map((value, i) => (
-                            <div
-                              key={i}
-                              className="w-full bg-[#9EA8FB]/50 rounded-sm"
-                              style={{ height: `${(value/20)*100}%` }}
-                            ></div>
-                          ))}
+                          {kpiData && momRows.length >= 5 ? (
+                            // Use actual growth data from the last few months for sparkline
+                            momRows.slice(-9).map((monthData, i) => {
+                              const growth = monthData.growth ?? 0;
+                              const normalizedHeight = Math.max(5, Math.min(95, (growth + 20) / 40 * 100)); // Normalize between 5-95%
+                              return (
+                                <div
+                                  key={i}
+                                  className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                                  style={{ height: `${normalizedHeight}%` }}
+                                ></div>
+                              );
+                            })
+                          ) : (
+                            // Fallback static sparkline
+                            [5, 7, 9, 8, 10, 12, 14, 15, 16.8].map((value, i) => (
+                              <div
+                                key={i}
+                                className="w-full bg-[#9EA8FB]/50 rounded-sm"
+                                style={{ height: `${(value/20)*100}%` }}
+                              ></div>
+                            ))
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1536,41 +1660,82 @@ function KpiDashboard() {
                           <BarChart4 className="h-4 w-4 mr-1 text-gray-500" />
                           Trajectory Comparison
                         </h3>
-                        {forecastStd ? (
+                        {trajectoryData ? (
                           <>
-                            <div className="h-[150px] w-full bg-gray-50 rounded-lg border border-gray-200 p-2">
-                              <div className="flex items-end h-full w-full">
-                                {/* Current actual progress */}
-                                <div className="flex-1 flex flex-col items-center">
-                                  <div
-                                    className="w-4 rounded-t-sm bg-[#9EA8FB]"
-                                    style={{ height: `${forecastStd.pctGoalAchieved}%` }}
-                                  />
-                                  <div className="text-xs text-gray-500 mt-1">Current</div>
-                                </div>
-                                {/* Projected */}
-                                <div className="flex-1 flex flex-col items-center">
-                                  <div
-                                    className="w-4 rounded-t-sm bg-amber-400"
-                                    style={{ height: `${Math.min(forecastStd.projectedPct,100)}%` }}
-                                  />
-                                  <div className="text-xs text-gray-500 mt-1">Projected</div>
-                                </div>
-                                {/* Target */}
-                                <div className="flex-1 flex flex-col items-center">
-                                  <div className="w-4 h-full bg-green-500 rounded-t-sm"></div>
-                                  <div className="text-xs text-gray-500 mt-1">Target</div>
-                                </div>
+                            <div className="h-[200px] w-full bg-gray-50 rounded-lg border border-gray-200 p-2">
+                              <div className="flex items-end h-full w-full justify-around">
+                                {trajectoryData.monthlyData.map((month, index) => {
+                                  // Calculate max value across all data for proper scaling
+                                  const maxValue = Math.max(
+                                    ...trajectoryData.monthlyData.map(m => Math.max(m.actual, m.projected))
+                                  );
+                                  
+                                  // Use a smaller scaling factor (70) and add Math.min to cap the height
+                                  const actualHeight = Math.max(20, Math.min(100, (month.actual / maxValue) * 70));
+                                  const projectedHeight = Math.max(20, Math.min(100, (month.projected / maxValue) * 70));
+                                  
+                                  // Calculate difference percentage
+                                  const diffPercentage = month.projected > 0 
+                                    ? Math.round((month.actual / month.projected - 1) * 100)
+                                    : 0;
+                                  
+                                  return (
+                                    <div key={index} className="flex flex-col items-center">
+                                      <div className="flex items-end h-[130px] gap-1">
+                                        {/* Actual bar */}
+                                        <div className="flex flex-col items-center">
+                                          <div
+                                            className="w-6 rounded-t-sm bg-[#9EA8FB]/60 border border-[#9EA8FB]"
+                                            style={{ 
+                                              height: `${actualHeight}px`,
+                                              minHeight: '20px'
+                                            }}
+                                          />
+                                          <span className="text-[9px] text-gray-600 mt-1">{month.actual.toLocaleString()}</span>
+                                        </div>
+                                        {/* Projected bar */}
+                                        <div className="flex flex-col items-center">
+                                          <div
+                                            className="w-6 rounded-t-sm bg-[#FFE4A6]/60 border border-[#FFE4A6]"
+                                            style={{ 
+                                              height: `${projectedHeight}px`,
+                                              minHeight: '20px'
+                                            }}
+                                          />
+                                          <span className="text-[9px] text-gray-600 mt-1">{month.projected.toLocaleString()}</span>
+                                        </div>
+                                      </div>
+                                      <div className="text-xs text-gray-500 mt-4 text-center">{month.month}</div>
+                                      {month.actual > 0 && month.projected > 0 && (
+                                        <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${diffPercentage >= 0 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} mt-1`}>
+                                          {diffPercentage >= 0 ? `+${diffPercentage}%` : `${diffPercentage}%`}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
-                            <div className="flex justify-between text-xs text-gray-500">
-                              <span>Current: {forecastStd.trafficActual.toLocaleString()}</span>
-                              <span>Projected: {Math.round(forecastStd.projectedPct)}%</span>
-                              <span>Target: 100%</span>
+                            <div className="flex justify-between text-xs text-gray-500 mt-2">
+                              <div className="flex items-center">
+                                <span className="inline-block w-3 h-3 bg-[#9EA8FB]/60 border border-[#9EA8FB] mr-1"></span>
+                                <span>Actual</span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="inline-block w-3 h-3 bg-[#FFE4A6]/60 border border-[#FFE4A6] mr-1"></span>
+                                <span>Projected</span>
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-600 mt-2">
+                              Monthly actual vs projected organic traffic for the past 4 months
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              <span className="text-green-700 font-medium">Green</span> percentages indicate actual traffic exceeding projected targets,
+                              <span className="text-amber-700 font-medium ml-1">amber</span> shows where targets were not met
                             </div>
                           </>
                         ) : (
-                          <p className="text-xs text-mediumGray">Loading…</p>
+                          <p className="text-xs text-mediumGray">Loading trajectory data…</p>
                         )}
                       </div>
                     </CardContent>
