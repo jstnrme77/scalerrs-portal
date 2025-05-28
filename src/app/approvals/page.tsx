@@ -2278,32 +2278,12 @@ export default function Approvals() {
                 {isLoading || isClientLoading ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9EA8FB] mb-4"></div>
-                    <p className="text-gray-600 text-base font-medium mb-2">
-                      {isClientLoading 
-                        ? 'Loading client data...' 
-                        : clientId && clientId !== 'all'
-                        ? `Loading ${activeTab} for selected client...`
-                        : `Loading ${activeTab}...`}
-                    </p>
-                    <p className="text-gray-500 text-sm max-w-md text-center">
-                      {isClientLoading 
-                        ? 'Preparing your client-specific view...'
-                        : 'Fetching all records to provide accurate pagination. This may take a moment for large datasets.'}
-                    </p>
-                    <div className="mt-4 flex flex-col items-center">
-                      <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div className="h-full bg-[#9EA8FB] animate-pulse"></div>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {isClientLoading ? 'Please wait while we load your client settings...' : 'Please wait while we load all records...'}
-                      </p>
-                    </div>
+                    <p className="text-gray-600 text-base font-medium">Loading...</p>
                   </div>
                 ) : !initialLoadComplete ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#9EA8FB] mb-4"></div>
-                    <p className="text-gray-600 text-base font-medium mb-2">Loading data...</p>
-                    <p className="text-gray-500 text-sm">Preparing your {clientId && clientId !== 'all' ? 'client-specific' : ''} view</p>
+                    <p className="text-gray-600 text-base font-medium">Loading...</p>
                   </div>
                 ) : Object.values(groupedItems).some(items => items.length > 0) ? (
                   <>
