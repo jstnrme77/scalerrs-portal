@@ -644,15 +644,15 @@ function KpiDashboard() {
   };
 
   // Get appropriate projected outcome text
-//   const getProjectedOutcomeText = () => {
-//     if (selectedDateView.value === 'monthly') {
-//       return `At this pace you're projected to reach the monthly traffic & leads goal by the end of the month`;
-//     } else if (selectedDateView.value === 'quarterly') {
-//       const currentQuarter = Math.floor((new Date().getMonth() / 3) + 1);
-//       return `At this pace you're projected to reach the quarterly traffic & leads goal by the end of Q${currentQuarter}`;
-//     }
-//     return `At this pace you're projected to reach the yearly traffic & leads goal by December 2024`;
-//   };
+  const getProjectedOutcomeText = () => {
+    if (selectedDateView.value === 'monthly') {
+      return `At this pace you're projected to reach the monthly traffic & leads goal by the end of the month`;
+    } else if (selectedDateView.value === 'quarterly') {
+      const currentQuarter = Math.floor((new Date().getMonth() / 3) + 1);
+      return `At this pace you're projected to reach the quarterly traffic & leads goal by the end of Q${currentQuarter}`;
+    }
+    return `At this pace you're projected to reach the yearly traffic & leads goal by December 2024`;
+  };
 
   // Custom TopNavBar props
   const topNavBarProps = {
