@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation, { TabContent } from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Wrench, LightbulbIcon } from 'lucide-react';
 import { 
   fetchWQATasks, 
@@ -915,231 +916,233 @@ function TaskTable({
   return (
     <div className="mb-6" style={{ color: '#353233' }}>
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 table-fixed bg-white">
-          <thead>
-            <tr className="bg-gray-100 border-b border-gray-200">
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[20%] rounded-bl-[12px]">Task</th>
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[10%]">Date Logged</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Status</th>
-              <th className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider w-[12%]">Assigned to</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[10%]">Priority</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Impact</th>
-              <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Effort</th>
-              {boardType === 'cro' && (
-                <>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Type</th>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Example</th>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Screenshot</th>
-                </>
-              )}
-              {boardType === 'technicalSEO' && (
-                <>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Action Type</th>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Who Is Responsible</th>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[6%]">Notes</th>
-                  <th className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[8%]">Explication</th>
-                </>
-              )}
-              <th className={`px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider w-[5%] ${boardType === 'strategyAdHoc' ? 'rounded-br-[12px]' : ''}`}>Comments</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {sortedTasks.map((task) => (
-              <React.Fragment key={task.id}>
-                <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
-                  <td className="px-4 py-4 w-[20%]">
-                    <div className="flex items-start">
-                      <div>
-                        <div className="text-base font-medium text-dark">{task.task}</div>
-                        {task.notes && <div className="text-base text-mediumGray mt-1">{task.notes.substring(0, 60)}{task.notes.length > 60 ? '...' : ''}</div>}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-base text-mediumGray w-[10%] whitespace-nowrap">
-                    {task.dateLogged ? new Date(task.dateLogged).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : task.dateLogged}
-                  </td>
-                  <td className="px-4 py-4 text-center w-[8%]">
-                    <StatusBadge status={task.status} />
-                  </td>
-                  <td className="px-4 py-4 text-base text-dark w-[12%]">{task.assignedTo}</td>
-                  <td className="px-4 py-4 text-center w-[10%]">
-                    <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
-                  </td>
-                  <td className="px-4 py-4 text-center w-[8%]">
-                    <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
-                  </td>
-                  <td className="px-4 py-4 text-center w-[6%]">
-                    <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
-                  </td>
-                  {boardType === 'cro' && (
-                    <>
-                      <td className="px-4 py-4 text-center w-[6%]">
-                        <TypeBadge type={(task as any).type} />
-                      </td>
-                      <td className="px-4 py-4 text-center w-[6%]">
-                        {(task as any).example ? (
-                          <a href={(task as any).example} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
-                            View
-                          </a>
-                        ) : (
-                          <span className="text-mediumGray">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-center w-[6%]">
-                        {(task as any).exampleScreenshot ? (
-                          <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
-                            View
-                          </a>
-                        ) : (
-                          <span className="text-mediumGray">-</span>
-                        )}
-                      </td>
-                    </>
-                  )}
-                  {boardType === 'technicalSEO' && (
-                    <>
-                      <td className="px-4 py-4 text-center w-[8%]">
-                        <ActionTypeBadge actionType={(task as any).actionType} />
-                      </td>
-                      <td className="px-4 py-4 text-center w-[8%]">
-                        <WhoIsResponsibleBadge whoIsResponsible={(task as any).whoIsResponsible} />
-                      </td>
-                      <td className="px-4 py-4 text-center w-[6%]">
-                        {(task as any).notesByScalerrs ? (
-                          <span className="text-sm text-gray-700 truncate block max-w-[100px]" title={(task as any).notesByScalerrs}>
-                            {(task as any).notesByScalerrs.length > 20 ? (task as any).notesByScalerrs.substring(0, 20) + '...' : (task as any).notesByScalerrs}
-                          </span>
-                        ) : (
-                          <span className="text-mediumGray">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-center w-[8%]">
-                        {(task as any).explicationWhy ? (
-                          <span className="text-sm text-gray-700 truncate block max-w-[120px]" title={(task as any).explicationWhy}>
-                            {(task as any).explicationWhy.length > 25 ? (task as any).explicationWhy.substring(0, 25) + '...' : (task as any).explicationWhy}
-                          </span>
-                        ) : (
-                          <span className="text-mediumGray">-</span>
-                        )}
-                      </td>
-                    </>
-                  )}
-                  <td className="px-4 py-4 text-center w-[5%]">
-                    <div className="flex justify-center">
-                      <div className="bg-gray-200 text-gray-700 text-base font-medium px-2 py-1 rounded-lg flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                        </svg>
-                        {task.commentCount !== undefined ? task.commentCount : task.comments.length}
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-                {expandedTaskId === task.id && (
-                  <tr>
-                    <td colSpan={boardType === 'cro' ? 11 : boardType === 'technicalSEO' ? 12 : 8} className="px-4 py-4 bg-white border-t border-gray-200">
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* First column - Notes and WQA-specific fields */}
-                        <div className="space-y-4">
-                          {task.notes && (
-                            <div>
-                              <h4 className="text-base font-medium text-dark mb-1">{boardType === 'cro' ? 'Description' : 'Notes'}</h4>
-                              <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{task.notes}</p>
-                            </div>
-                          )}
-                          
-                          {boardType === 'technicalSEO' && (task as any).notesByScalerrs && (
-                            <div>
-                              <h4 className="text-base font-medium text-dark mb-1">Notes By Scalerrs During Audit</h4>
-                              <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{(task as any).notesByScalerrs}</p>
-                            </div>
-                          )}
-                          
-                          {boardType === 'technicalSEO' && (task as any).explicationWhy && (
-                            <div>
-                              <h4 className="text-base font-medium text-dark mb-1">Explication: Why?</h4>
-                              <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">{(task as any).explicationWhy}</p>
-                            </div>
-                          )}
-                          
-                          {boardType === 'cro' && (task as any).exampleScreenshot && (
-                            <div>
-                              <h4 className="text-base font-medium text-dark mb-1">Example Screenshot</h4>
-                              <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
-                                <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
-                                  View Screenshot
-                                </a>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Second column - Comments */}
+      <div className="w-full overflow-x-auto">
+        <div className="bg-white">
+          <Table className="min-w-full divide-y divide-gray-200 bg-white table-auto">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[250px]">Task</TableHead>
+                <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Date Logged</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Status</TableHead>
+                <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Assigned to</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Priority</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Impact</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Effort</TableHead>
+                {boardType === 'cro' && (
+                  <>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Type</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Example</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Screenshot</TableHead>
+                  </>
+                )}
+                {boardType === 'technicalSEO' && (
+                  <>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Action Type</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Who Is Responsible</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Notes</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Explication</TableHead>
+                  </>
+                )}
+                <TableHead className={`px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] ${boardType === 'strategyAdHoc' ? 'rounded-br-[12px]' : ''}`}>Comments</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-200">
+              {sortedTasks.map((task) => (
+                <React.Fragment key={task.id}>
+                  <TableRow className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
+                    <TableCell className="px-4 py-4 text-base font-medium text-dark break-words">
+                      <div className="flex items-start">
                         <div>
-                          <h4 className="text-base font-medium text-dark mb-1">Comments</h4>
-                          <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
-                            {expandedTaskComments[task.id.toString()] ? 
-                              (expandedTaskComments[task.id.toString()].length > 0 ? (
-                                expandedTaskComments[task.id.toString()].map((comment) => (
-                                  <CommentItem key={comment.id} comment={comment} />
-                                ))
-                              ) : (
-                                <p className="text-base text-mediumGray">No comments yet</p>
-                              )) : (
-                                task.comments.length > 0 ? (
-                                  task.comments.map((comment) => (
+                          <div className="text-base font-medium text-dark">{task.task}</div>
+                          {task.notes && <div className="text-base text-mediumGray mt-1 line-clamp-2">{task.notes}</div>}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-base text-mediumGray">
+                      {task.dateLogged ? new Date(task.dateLogged).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : task.dateLogged}
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-center">
+                      <StatusBadge status={task.status} />
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-base text-dark break-words">{task.assignedTo}</TableCell>
+                    <TableCell className="px-4 py-4 text-center">
+                      <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-center">
+                      <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-center">
+                      <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
+                    </TableCell>
+                    {boardType === 'cro' && (
+                      <>
+                        <TableCell className="px-4 py-4 text-center">
+                          <TypeBadge type={(task as any).type} />
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          {(task as any).example ? (
+                            <a href={(task as any).example} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                              View
+                            </a>
+                          ) : (
+                            <span className="text-mediumGray">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          {(task as any).exampleScreenshot ? (
+                            <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                              View
+                            </a>
+                          ) : (
+                            <span className="text-mediumGray">-</span>
+                          )}
+                        </TableCell>
+                      </>
+                    )}
+                    {boardType === 'technicalSEO' && (
+                      <>
+                        <TableCell className="px-4 py-4 text-center">
+                          <ActionTypeBadge actionType={(task as any).actionType} />
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          <WhoIsResponsibleBadge whoIsResponsible={(task as any).whoIsResponsible} />
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          {(task as any).notesByScalerrs ? (
+                            <span className="text-sm text-gray-700 break-words" title={(task as any).notesByScalerrs}>
+                              {(task as any).notesByScalerrs.length > 20 ? (task as any).notesByScalerrs.substring(0, 20) + '...' : (task as any).notesByScalerrs}
+                            </span>
+                          ) : (
+                            <span className="text-mediumGray">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-center">
+                          {(task as any).explicationWhy ? (
+                            <span className="text-sm text-gray-700 break-words" title={(task as any).explicationWhy}>
+                              {(task as any).explicationWhy.length > 25 ? (task as any).explicationWhy.substring(0, 25) + '...' : (task as any).explicationWhy}
+                            </span>
+                          ) : (
+                            <span className="text-mediumGray">-</span>
+                          )}
+                        </TableCell>
+                      </>
+                    )}
+                    <TableCell className="px-4 py-4 text-center">
+                      <div className="flex justify-center">
+                        <div className="bg-gray-200 text-gray-700 text-base font-medium px-2 py-1 rounded-lg flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                          </svg>
+                          {task.commentCount !== undefined ? task.commentCount : task.comments.length}
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  {expandedTaskId === task.id && (
+                    <TableRow>
+                      <TableCell colSpan={boardType === 'cro' ? 11 : boardType === 'technicalSEO' ? 12 : 8} className="px-4 py-4 bg-white border-t border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* First column - Notes and WQA-specific fields */}
+                          <div className="space-y-4">
+                            {task.notes && (
+                              <div>
+                                <h4 className="text-base font-medium text-dark mb-1">{boardType === 'cro' ? 'Description' : 'Notes'}</h4>
+                                <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200 break-words">{task.notes}</p>
+                              </div>
+                            )}
+                            
+                            {boardType === 'technicalSEO' && (task as any).notesByScalerrs && (
+                              <div>
+                                <h4 className="text-base font-medium text-dark mb-1">Notes By Scalerrs During Audit</h4>
+                                <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200 break-words">{(task as any).notesByScalerrs}</p>
+                              </div>
+                            )}
+                            
+                            {boardType === 'technicalSEO' && (task as any).explicationWhy && (
+                              <div>
+                                <h4 className="text-base font-medium text-dark mb-1">Explication: Why?</h4>
+                                <p className="text-base text-dark bg-gray-100/50 p-4 rounded-[12px] border border-gray-200 break-words">{(task as any).explicationWhy}</p>
+                              </div>
+                            )}
+                            
+                            {boardType === 'cro' && (task as any).exampleScreenshot && (
+                              <div>
+                                <h4 className="text-base font-medium text-dark mb-1">Example Screenshot</h4>
+                                <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
+                                  <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
+                                    View Screenshot
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Second column - Comments */}
+                          <div>
+                            <h4 className="text-base font-medium text-dark mb-1">Comments</h4>
+                            <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
+                              {expandedTaskComments[task.id.toString()] ? 
+                                (expandedTaskComments[task.id.toString()].length > 0 ? (
+                                  expandedTaskComments[task.id.toString()].map((comment) => (
                                     <CommentItem key={comment.id} comment={comment} />
                                   ))
                                 ) : (
                                   <p className="text-base text-mediumGray">No comments yet</p>
+                                )) : (
+                                  task.comments.length > 0 ? (
+                                    task.comments.map((comment) => (
+                                      <CommentItem key={comment.id} comment={comment} />
+                                    ))
+                                  ) : (
+                                    <p className="text-base text-mediumGray">No comments yet</p>
+                                  )
                                 )
-                              )
-                            }
+                              }
 
-                            <div className="mt-2 pt-2 border-t border-gray-200">
-                              <form 
-                                className="flex" 
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                  handlePostComment(task.id);
-                                }}
-                              >
-                                <input
-                                  type="text"
-                                  placeholder="Add a comment..."
-                                  className="flex-1 border border-gray-200 rounded-lg p-2 text-base focus:outline-none focus:ring-1 focus:ring-gray-400"
-                                  value={commentInputs[task.id.toString()] || ''}
-                                  onChange={(e) => handleCommentInputChange(task.id, e.target.value)}
-                                  disabled={isPosting[task.id.toString()]}
-                                />
-                                <button
-                                  type="submit"
-                                  className="bg-[#000000] text-white px-4 py-2 rounded-lg text-base font-medium ml-2 disabled:opacity-50"
-                                  disabled={!commentInputs[task.id.toString()]?.trim() || isPosting[task.id.toString()]}
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <form 
+                                  className="flex" 
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handlePostComment(task.id);
+                                  }}
                                 >
-                                  {isPosting[task.id.toString()] ? 'Posting...' : 'Post'}
-                                </button>
-                              </form>
+                                  <input
+                                    type="text"
+                                    placeholder="Add a comment..."
+                                    className="flex-1 border border-gray-200 rounded-lg p-2 text-base focus:outline-none focus:ring-1 focus:ring-gray-400"
+                                    value={commentInputs[task.id.toString()] || ''}
+                                    onChange={(e) => handleCommentInputChange(task.id, e.target.value)}
+                                    disabled={isPosting[task.id.toString()]}
+                                  />
+                                  <button
+                                    type="submit"
+                                    className="bg-[#000000] text-white px-4 py-2 rounded-lg text-base font-medium ml-2 disabled:opacity-50"
+                                    disabled={!commentInputs[task.id.toString()]?.trim() || isPosting[task.id.toString()]}
+                                  >
+                                    {isPosting[task.id.toString()] ? 'Posting...' : 'Post'}
+                                  </button>
+                                </form>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))}
 
-            {sortedTasks.length === 0 && (
-              <tr>
-                <td colSpan={boardType === 'cro' ? 11 : boardType === 'technicalSEO' ? 12 : 8} className="px-4 py-8 text-center text-base text-mediumGray">
-                  No tasks found in this section
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              {sortedTasks.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={boardType === 'cro' ? 11 : boardType === 'technicalSEO' ? 12 : 8} className="px-4 py-8 text-center text-base text-mediumGray">
+                    No tasks found in this section
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
@@ -1151,11 +1154,28 @@ export default function TaskBoards() {
   const [addTaskModal, setAddTaskModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
   
   const { clientId, filterDataByClient } = useClientData();
   const [rawBoards, setRawBoards] = useState<Record<string, Task[]>>(taskBoards);
 
+  // Get current tasks based on active board
+  const currentTasks = boards[activeBoard as keyof typeof boards] || [];
+
   console.log(`TaskBoards component render: addTaskModal state is currently: ${addTaskModal}`);
+
+  // Listen for changes in sidebar state
+  useEffect(() => {
+    const handleSidebarChange = (e: CustomEvent) => {
+      setSidebarExpanded(e.detail.expanded);
+    };
+
+    window.addEventListener('sidebarToggle' as any, handleSidebarChange);
+
+    return () => {
+      window.removeEventListener('sidebarToggle' as any, handleSidebarChange);
+    };
+  }, []);
 
   // Fetch tasks from API
   useEffect(() => {
@@ -1584,43 +1604,23 @@ export default function TaskBoards() {
           tasksForBoard.technicalSEO.push(mappedTask);
         } else if (task.Type === 'CRO') {
           tasksForBoard.cro.push(mappedTask);
-        } else {
+        } else if (task.Type === 'Strategy' || task.Type === 'Ad Hoc') {
           tasksForBoard.strategyAdHoc.push(mappedTask);
+        } else {
+          // If type is not specified, add to the current active board
+          tasksForBoard[activeBoard as keyof typeof tasksForBoard].push(mappedTask);
         }
       });
       
-      setRawBoards(prev => ({
-        ...prev,
-        ...tasksForBoard
-      }));
+      // Update raw boards with all tasks
+      setRawBoards(tasksForBoard);
       
-      // Since we're now filtering on the server side, we can just use the tasks as-is
-      // But we'll still apply client filtering on the client side as a backup
-      if (clientId && clientId !== 'all') {
-        // Filter tasks by client using our custom filter function
-        const currentBoardTasks = tasksForBoard[activeBoard as keyof typeof tasksForBoard] || [];
-        filterTasks(currentBoardTasks);
-      } else {
-        setBoards(prev => ({
-          ...prev,
-          ...tasksForBoard
-        }));
-      }
-      
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching tasks:', err);
-      setError('Failed to fetch tasks. Please try again.');
-      
-      // Set empty arrays instead of falling back to sample data
-      const emptyBoards = {
-        technicalSEO: [] as Task[],
-        cro: [] as Task[],
-        strategyAdHoc: [] as Task[]
-      };
-      
-      setRawBoards(emptyBoards);
-      setBoards(emptyBoards);
+      // Apply client filtering to the tasks
+      filterTasks(tasksForBoard[activeBoard as keyof typeof tasksForBoard]);
+    } catch (err: any) {
+      console.error('Error refreshing tasks:', err);
+      setError(`An error occurred while refreshing tasks: ${err.message}`);
+    } finally {
       setLoading(false);
     }
   };
@@ -1783,9 +1783,6 @@ export default function TaskBoards() {
       setAddTaskModal(false);
     }
   };
-
-  // Get the current board's tasks
-  const currentTasks = boards[activeBoard as keyof typeof boards] || [];
 
   const handleStatusChange = async (id: number | string, newStatus: TaskStatus) => {
     try {
@@ -1984,21 +1981,29 @@ export default function TaskBoards() {
         }
       }}
     >
+      <div className="bg-white flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-1" style={{ position: 'fixed', top: '64px', left: sidebarExpanded ? '256px' : '80px', right: '16px', paddingTop: '48px', paddingBottom: '16px', paddingLeft: '48px', paddingRight: '16px' }}>
+        <div className="bg-white flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-1">
+          <PageContainerTabs>
+            <TabNavigation
+              tabs={[
+                { id: 'cro', label: 'CRO', icon: <BarChart size={18} /> },
+                { id: 'technicalSEO', label: 'Technical SEO', icon: <Wrench size={18} /> },
+                { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', icon: <LightbulbIcon size={18} /> }
+              ]}
+              activeTab={activeBoard}
+              onTabChange={setActiveBoard}
+              variant="primary"
+              tabClassName="bg-gray-100 border-gray-200"
+              activeTabClassName="bg-[#000000] text-white"
+            />
+          </PageContainerTabs>
+        </div>
+      </div>
+
+      {/* Spacer to push content below fixed header */}
+      <div style={{ height: '60px' }}></div>
+
       <PageContainer>
-        <PageContainerTabs>
-          <TabNavigation
-            tabs={[
-              { id: 'cro', label: 'CRO', icon: <BarChart size={18} /> },
-              { id: 'technicalSEO', label: 'Technical SEO', icon: <Wrench size={18} /> },
-              { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', icon: <LightbulbIcon size={18} /> }
-            ]}
-            activeTab={activeBoard}
-            onTabChange={setActiveBoard}
-            variant="primary"
-            tabClassName="bg-gray-100 border-gray-200"
-            activeTabClassName="bg-[#000000] text-white"
-          />
-        </PageContainerTabs>
         <PageContainerBody>
           {loading ? (
             <div className="flex justify-center items-center h-64">
