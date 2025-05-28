@@ -255,9 +255,9 @@ export default function Sidebar() {
         </div>
       </div>
       {/* Debug indicator - only visible in development */}
-      <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-700">
+      {/* <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-700">
         Current path: {pathname || 'unknown'}
-      </div>
+      </div> */}
     </div>
   );
 }
