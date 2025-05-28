@@ -1325,10 +1325,10 @@ function KpiDashboard() {
                     <CardTitle>Top Pages Performance</CardTitle>
                     <CardDescription>Pages with highest organic traffic</CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" className="ml-auto hidden">
+                  {/* <Button variant="outline" size="sm" className="ml-auto hidden">
                     <Download className="h-4 w-4 mr-1" />
                     Export
-                  </Button>
+                  </Button> */}
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -1434,10 +1434,10 @@ function KpiDashboard() {
                     Yearly
                   </Button>
                 </div>
-                <Button variant="outline" size="sm" className="ml-auto">
+                {/* <Button variant="outline" size="sm" className="ml-auto">
                   <Download className="h-4 w-4 mr-1" />
                   Export
-                </Button>
+                </Button> */}
               </div>
 
               {/* Standard Forecast View */}
@@ -1557,11 +1557,11 @@ function KpiDashboard() {
                               </div>
 
                               {/* Dynamic pacing message */}
-                              <p className="text-xs text-gray-600 mt-2">
+                              {/* <p className="text-xs text-gray-600 mt-2">
                                 {pct >= 100
                                   ? 'Goal already achieved for this month!'
                                   : `At this pace you're projected to reach ~${Math.round(pct)}% of the monthly traffic & leads goal by the end of the month`}
-                              </p>
+                              </p> */}
 
                               {/* Context call-out when At Risk */}
                               <div className={status === 'atRisk' ? 'bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2' : 'hidden'}>
@@ -1579,12 +1579,12 @@ function KpiDashboard() {
                       </div>
 
                       {/* 4. Timeline Estimate */}
-                      <div className="pt-2">
+                      {/* <div className="pt-2">
                         <p className="text-sm text-gray-700 flex items-center">
                           <Calendar className="h-4 w-4 mr-1 text-gray-500" />
                           {getProjectedOutcomeText()}
                         </p>
-                      </div>
+                      </div> */}
                     </CardContent>
                   </Card>
 
