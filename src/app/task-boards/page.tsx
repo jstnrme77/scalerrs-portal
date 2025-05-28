@@ -922,64 +922,64 @@ function TaskTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[250px]">Task</TableHead>
-                <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Date Logged</TableHead>
-                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Status</TableHead>
+                <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px] whitespace-nowrap">Date Logged</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px] whitespace-nowrap">Status</TableHead>
                 <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Assigned to</TableHead>
-                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Priority</TableHead>
-                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Impact</TableHead>
-                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Effort</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px] whitespace-nowrap">Priority</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] whitespace-nowrap">Impact</TableHead>
+                <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] whitespace-nowrap">Effort</TableHead>
                 {boardType === 'cro' && (
                   <>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Type</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Example</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">Screenshot</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px] whitespace-nowrap">Type</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] whitespace-nowrap">Example</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] whitespace-nowrap">Screenshot</TableHead>
                   </>
                 )}
                 {boardType === 'technicalSEO' && (
                   <>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Action Type</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Who Is Responsible</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px]">Notes</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px]">Explication</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px] whitespace-nowrap">Action Type</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px] whitespace-nowrap">Who Is Responsible</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[120px] whitespace-nowrap">Notes</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[150px] whitespace-nowrap">Explication</TableHead>
                   </>
                 )}
-                <TableHead className={`px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] ${boardType === 'strategyAdHoc' ? 'rounded-br-[12px]' : ''}`}>Comments</TableHead>
+                <TableHead className={`px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px] whitespace-nowrap ${boardType === 'strategyAdHoc' ? 'rounded-br-[12px]' : ''}`}>Comments</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-200">
               {sortedTasks.map((task) => (
                 <React.Fragment key={task.id}>
                   <TableRow className="hover:bg-gray-50 cursor-pointer" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
-                    <TableCell className="px-4 py-4 text-base font-medium text-dark break-words">
+                    <TableCell className="px-4 py-4 text-base font-medium text-dark">
                       <div className="flex items-start">
                         <div>
                           <div className="text-base font-medium text-dark">{task.task}</div>
-                          {task.notes && <div className="text-base text-mediumGray mt-1 line-clamp-2">{task.notes}</div>}
+                          {task.notes && <div className="text-base text-gray-500 font-normal mt-1 line-clamp-2">{task.notes}</div>}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-base text-mediumGray">
+                    <TableCell className="px-4 py-4 text-base text-mediumGray whitespace-nowrap">
                       {task.dateLogged ? new Date(task.dateLogged).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : task.dateLogged}
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-center">
+                    <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                       <StatusBadge status={task.status} />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-base text-dark break-words">{task.assignedTo}</TableCell>
-                    <TableCell className="px-4 py-4 text-center">
+                    <TableCell className="px-4 py-4 text-base text-dark">{task.assignedTo}</TableCell>
+                    <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                       <PriorityBadge priority={task.priority} originalPriority={task.originalPriority} />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-center">
+                    <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                       <ImpactBadge impact={task.impact} originalImpact={task.originalImpact} />
                     </TableCell>
-                    <TableCell className="px-4 py-4 text-center">
+                    <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                       <EffortBadge effort={task.effort} originalEffort={task.originalEffort} />
                     </TableCell>
                     {boardType === 'cro' && (
                       <>
-                        <TableCell className="px-4 py-4 text-center">
+                        <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                           <TypeBadge type={(task as any).type} />
                         </TableCell>
-                        <TableCell className="px-4 py-4 text-center">
+                        <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                           {(task as any).example ? (
                             <a href={(task as any).example} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
                               View
@@ -988,7 +988,7 @@ function TaskTable({
                             <span className="text-mediumGray">-</span>
                           )}
                         </TableCell>
-                        <TableCell className="px-4 py-4 text-center">
+                        <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                           {(task as any).exampleScreenshot ? (
                             <a href={(task as any).exampleScreenshot} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">
                               View
@@ -1001,15 +1001,15 @@ function TaskTable({
                     )}
                     {boardType === 'technicalSEO' && (
                       <>
-                        <TableCell className="px-4 py-4 text-center">
+                        <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                           <ActionTypeBadge actionType={(task as any).actionType} />
                         </TableCell>
-                        <TableCell className="px-4 py-4 text-center">
+                        <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                           <WhoIsResponsibleBadge whoIsResponsible={(task as any).whoIsResponsible} />
                         </TableCell>
                         <TableCell className="px-4 py-4 text-center">
                           {(task as any).notesByScalerrs ? (
-                            <span className="text-sm text-gray-700 break-words" title={(task as any).notesByScalerrs}>
+                            <span className="text-sm text-gray-700 truncate block max-w-[100px]" title={(task as any).notesByScalerrs}>
                               {(task as any).notesByScalerrs.length > 20 ? (task as any).notesByScalerrs.substring(0, 20) + '...' : (task as any).notesByScalerrs}
                             </span>
                           ) : (
@@ -1018,7 +1018,7 @@ function TaskTable({
                         </TableCell>
                         <TableCell className="px-4 py-4 text-center">
                           {(task as any).explicationWhy ? (
-                            <span className="text-sm text-gray-700 break-words" title={(task as any).explicationWhy}>
+                            <span className="text-sm text-gray-700 truncate block max-w-[120px]" title={(task as any).explicationWhy}>
                               {(task as any).explicationWhy.length > 25 ? (task as any).explicationWhy.substring(0, 25) + '...' : (task as any).explicationWhy}
                             </span>
                           ) : (
@@ -1027,7 +1027,7 @@ function TaskTable({
                         </TableCell>
                       </>
                     )}
-                    <TableCell className="px-4 py-4 text-center">
+                    <TableCell className="px-4 py-4 text-center whitespace-nowrap">
                       <div className="flex justify-center">
                         <div className="bg-gray-200 text-gray-700 text-base font-medium px-2 py-1 rounded-lg flex items-center">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -1083,7 +1083,7 @@ function TaskTable({
                             <div className="bg-gray-100/50 p-4 rounded-[12px] border border-gray-200">
                               {expandedTaskComments[task.id.toString()] ? 
                                 (expandedTaskComments[task.id.toString()].length > 0 ? (
-                                  expandedTaskComments[task.id.toString()].map((comment) => (
+                                  expandedTaskComments[task.id.toString()].map ((comment) => (
                                     <CommentItem key={comment.id} comment={comment} />
                                   ))
                                 ) : (
@@ -1257,6 +1257,7 @@ export default function TaskBoards() {
             Status,
             'Assigned To': AssignedTo,
             Date: dateLogged,
+            Created, // Add Created field
             Priority: priority,
             Impact: impact,
             Effort: effort,
@@ -1347,6 +1348,9 @@ export default function TaskBoards() {
             }
           }
           
+          // Use Created field for dateLogged if available, otherwise fallback to Date or current date
+          const createdDate = Created || dateLogged || new Date().toISOString();
+          
           // Map to our Task type
           let mappedTask: any = {
             id,
@@ -1358,7 +1362,7 @@ export default function TaskBoards() {
                 (AssignedTo.name || `${AssignedTo.email || 'User'}`) : 
                 String(AssignedTo)
               ) : 'Not Assigned',
-            dateLogged: dateLogged || new Date().toISOString(),
+            dateLogged: createdDate,
             // Store the original Airtable values for display with emojis
             originalPriority: priority || undefined,
             originalImpact: impact || undefined,
@@ -1586,6 +1590,7 @@ export default function TaskBoards() {
           'Created At': task['Created At'],
           'Due Date': task['Due Date'],
           'Completed Date': task['Completed Date'],
+          Created: task.Created, // Add Created field
           Notes: task.Notes,
           // Ensure Client/Clients fields are preserved for client filtering
           Client: task.Client || task['Client Record ID'],

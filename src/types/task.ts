@@ -79,6 +79,7 @@ export interface AirtableTask {
   'Due Date'?: string;
   'Completed Date'?: string;
   Notes?: string;
+  Created?: string;
   [key: string]: any; // Allow for additional fields from Airtable
 }
 
@@ -154,10 +155,12 @@ export function mapAirtableTaskToTask(airtableTask: AirtableTask): Task {
     ? airtableTask.AssignedTo[0]
     : (airtableTask.Assignee || 'Unassigned');
 
-  // Get date logged
-  const dateLogged = airtableTask['Created At']
-    ? new Date(airtableTask['Created At']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    : 'Unknown';
+  // Get date logged - prefer Created field, then Created At, then fallback
+  const dateLogged = airtableTask.Created
+    ? new Date(airtableTask.Created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : airtableTask['Created At']
+      ? new Date(airtableTask['Created At']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : 'Unknown';
 
   // Create the base task
   const baseTask: BaseTask = {
