@@ -22,6 +22,7 @@ const adminData = {
     { id: 3, service: 'WordPress Admin', username: 'admin', password: '••••••••••', notes: 'Production site', lastUpdated: '2025-01-17', uploadedBy: 'Client', editable: true },
     { id: 4, service: 'Ahrefs', username: 'client_account', password: '••••••••••', notes: '', lastUpdated: '2025-01-18', uploadedBy: 'Scalerrs', editable: true },
     { id: 5, service: 'Frase', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-19', uploadedBy: 'Scalerrs', editable: true },
+    { id: 6, service: 'YouTube Manager Account Access', username: 'youtube@example.com', password: '••••••••••', notes: 'Brand channel access', lastUpdated: '2025-01-20', uploadedBy: 'Client', editable: true },
   ],
   resources: [
     { id: 1, name: 'Brand guidelines', type: 'PDF', lastUpdated: '2025-03-20', size: '2.4 MB', uploadedBy: 'Client', editable: true },
@@ -113,6 +114,7 @@ export default function Admin() {
           'WordPress Admin',
           'Ahrefs',
           'Frase',
+          'YouTube Manager Account Access',
         ];
 
         const mapped = DEFAULT_SERVICES.map((service, idx) => {
