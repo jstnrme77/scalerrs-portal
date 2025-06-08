@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBriefs, updateBriefStatus } from '@/lib/airtable';
-import { mockBriefs } from '@/lib/mock-data';
 
 // Configure for Netlify deployment
 export const dynamic = 'force-dynamic';
@@ -42,54 +41,6 @@ export async function GET(request: NextRequest) {
     // Fetch briefs with user filtering and month filtering
     const briefs = await getBriefs(userId, userRole, clientIds, month);
 
-    if (!briefs || briefs.length === 0) {
-      console.log('API route: No briefs found, using mock data');
-
-      // Filter mock data based on user role and ID
-      let filteredMockBriefs = [...mockBriefs];
-
-      if (userId && userRole) {
-        // For client users, filter by client IDs
-        if (userRole === 'Client' && clientIds.length > 0) {
-          filteredMockBriefs = mockBriefs.filter(brief => {
-            // Check if brief has Clients or Client field that matches any of the user's clients
-            if (brief.Clients) {
-              if (Array.isArray(brief.Clients)) {
-                return brief.Clients.some((client: string) => clientIds.includes(client));
-              } else {
-                return clientIds.includes(brief.Clients);
-              }
-            }
-            // Fallback to Client field for backward compatibility
-            else if (brief.Client) {
-              if (Array.isArray(brief.Client)) {
-                return brief.Client.some((client: string) => clientIds.includes(client));
-              } else {
-                return clientIds.includes(brief.Client);
-              }
-            }
-            return false;
-          });
-        }
-        // For non-admin users who aren't clients, only show briefs assigned to them
-        else if (userRole !== 'Admin') {
-          filteredMockBriefs = mockBriefs.filter(brief => {
-            // Check if the brief is assigned to this user
-            return (
-              (brief.SEOStrategist && brief.SEOStrategist === userId) ||
-              (brief.ContentWriter && brief.ContentWriter === userId) ||
-              (brief.ContentEditor && brief.ContentEditor === userId)
-            );
-          });
-        }
-      }
-
-      const response = NextResponse.json({ briefs: filteredMockBriefs });
-      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-      response.headers.set('Pragma', 'no-cache');
-      return response;
-    }
-
     console.log(`API route: Found ${briefs.length} briefs`);
 
     // Create response with cache control headers
@@ -102,8 +53,10 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Error fetching briefs:', error);
-    console.log('API route: Error fetching briefs, using mock data');
-    const response = NextResponse.json({ briefs: mockBriefs });
+    const response = NextResponse.json({ 
+      briefs: [], 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     response.headers.set('Pragma', 'no-cache');
     return response;

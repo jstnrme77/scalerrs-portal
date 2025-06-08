@@ -127,6 +127,98 @@ export const mockArticles: any[] = [];
 // Mock backlinks
 export const mockBacklinks: any[] = [];
 
+// Mock YouTube data
+export const mockYouTube = [
+  {
+    id: 'youtube1',
+    'Keyword Topic': 'How to improve SEO rankings',
+    'Video Title': 'Top 10 SEO Tips for 2025',
+    'Competitor video URL': 'https://youtube.com/competitor-video-1',
+    'YouTube Status': 'Idea Proposed',
+    'Target Month': 'June 2025',
+    'Video Type': 'Educational',
+    'Script (G-Doc URL)': 'https://docs.google.com/document/d/script1',
+    'Notes': 'Focus on practical tips for beginners',
+    'Clients': ['client1'],
+    'YouTube Strategist': 'Sarah Wilson',
+    'YouTube Host': 'Mike Johnson'
+  },
+  {
+    id: 'youtube2',
+    'Keyword Topic': 'Content marketing strategies',
+    'Video Title': 'Content Marketing Guide for Small Business',
+    'Competitor video URL': 'https://youtube.com/competitor-video-2',
+    'YouTube Status': 'Script Creation Needed',
+    'Target Month': 'July 2025',
+    'Video Type': 'Tutorial',
+    'Script (G-Doc URL)': '',
+    'Notes': 'Include case studies and examples',
+    'Clients': ['client2'],
+    'YouTube Strategist': 'Alex Chen',
+    'YouTube Host': 'Emma Davis'
+  },
+  {
+    id: 'youtube3',
+    'Keyword Topic': 'Local SEO optimization',
+    'Video Title': 'Local SEO: Complete Guide for 2025',
+    'Competitor video URL': 'https://youtube.com/competitor-video-3',
+    'YouTube Status': 'Video In Editing',
+    'Target Month': 'August 2025',
+    'Video Type': 'Comprehensive Guide',
+    'Script (G-Doc URL)': 'https://docs.google.com/document/d/script3',
+    'Notes': 'Include Google Business Profile optimization',
+    'Clients': ['client1'],
+    'YouTube Strategist': 'Sarah Wilson',
+    'YouTube Host': 'Mike Johnson'
+  }
+];
+
+// Mock Reddit data
+export const mockReddit = [
+  {
+    id: 'reddit1',
+    'Keyword': 'SEO tools',
+    'Reddit Thread URL': 'https://reddit.com/r/seo/post1',
+    'Reddit Thread Status (General)': 'Thread Proposed',
+    'Thread SEO Traffic': 1250,
+    'Thread SEO Traffic Value': 320,
+    'Month': 'June 2025',
+    'Thread Type': 'Discussion',
+    'Notes': 'Engage with community about favorite SEO tools',
+    'Clients': ['client1'],
+    'Reddit Assignee': 'Tom Parker',
+    'SEO Assignee': 'Sarah Wilson'
+  },
+  {
+    id: 'reddit2',
+    'Keyword': 'content marketing',
+    'Reddit Thread URL': 'https://reddit.com/r/marketing/post2',
+    'Reddit Thread Status (General)': 'Thread In Progress',
+    'Thread SEO Traffic': 890,
+    'Thread SEO Traffic Value': 245,
+    'Month': 'July 2025',
+    'Thread Type': 'Question',
+    'Notes': 'Ask for advice on content distribution strategies',
+    'Clients': ['client2'],
+    'Reddit Assignee': 'Lisa Chen',
+    'SEO Assignee': 'Alex Chen'
+  },
+  {
+    id: 'reddit3',
+    'Keyword': 'local business marketing',
+    'Reddit Thread URL': 'https://reddit.com/r/smallbusiness/post3',
+    'Reddit Thread Status (General)': 'Thread Published',
+    'Thread SEO Traffic': 2100,
+    'Thread SEO Traffic Value': 580,
+    'Month': 'August 2025',
+    'Thread Type': 'Case Study',
+    'Notes': 'Share success story of local business growth',
+    'Clients': ['client1'],
+    'Reddit Assignee': 'Tom Parker',
+    'SEO Assignee': 'Sarah Wilson'
+  }
+];
+
 // Mock KPI metrics
 export const mockKPIMetrics = [
   {

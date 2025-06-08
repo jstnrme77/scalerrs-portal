@@ -1,6 +1,6 @@
 // Define types for our data
 export type Month = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December';
-export type ContentTab = 'briefs' | 'articles';
+export type ContentTab = 'briefs' | 'articles' | 'youtube' | 'reddit';
 export type MainTab = 'content' | 'backlinks';
 
 // Brief statuses
@@ -183,6 +183,49 @@ export interface Article {
   [key: string]: any; // Allow for additional fields from Airtable
 }
 
+// YouTube type
+export interface YouTube {
+  id: string;
+  'Keyword Topic': string;
+  'Video Title'?: string;
+  'Competitor video URL'?: string;
+  'YouTube Status': YouTubeStatus;
+  'Thumbnail Status'?: string;
+  'Target Month'?: string;
+  'Video Type'?: string;
+  'Related blog embeds'?: string;
+  'Script (G-Doc URL)'?: string;
+  'Notes'?: string;
+  'Clients'?: string | string[];
+  'YouTube Strategist'?: string;
+  'YouTube Host'?: string;
+  'Thumbnail Editor'?: string;
+  'Video Editor'?: string;
+  'YouTube Scripter'?: string;
+  'Script Title'?: string;
+  [key: string]: any; // Allow for additional fields from Airtable
+}
+
+// Reddit type
+export interface Reddit {
+  id: string;
+  'Keyword': string;
+  'Reddit Thread URL'?: string;
+  'Clients'?: string | string[];
+  'Thread Success Pulse'?: string;
+  'Reddit Thread Status (General)': RedditStatus;
+  'Reddit Assignee'?: string;
+  'SEO Assignee'?: string;
+  'Thread Type'?: string;
+  'Notes'?: string;
+  'Related SEO Keyword'?: string;
+  'Reddit Comments'?: string;
+  'Thread SEO Traffic'?: string;
+  'Thread SEO Traffic Value'?: string;
+  'Month'?: string;
+  [key: string]: any; // Allow for additional fields from Airtable
+}
+
 // Backlink type
 export interface Backlink {
   id: string;
@@ -262,3 +305,31 @@ export interface MonthlyProjection {
   Client?: string[];
   [key: string]: any; // Allow for additional fields from Airtable
 }
+
+// YouTube statuses (predefined workflow stages)
+export type YouTubeStatus =
+  'Idea Proposed' |
+  'Idea Awaiting Client Approval' |
+  'Idea Approved' |
+  'Idea To Do Next' |
+  'Script Creation Needed' |
+  'Script Under Internal Review' |
+  'Script Awaiting Client Depth' |
+  'Script Needs Revision' |
+  'Script Approved' |
+  'Video In Recording' |
+  'Video In Editing' |
+  'Video Ready' |
+  'Thumbnail In Creation' |
+  'Thumbnail Done' |
+  'Ready To Upload';
+
+// Reddit Thread statuses (based on the provided images)
+export type RedditStatus =
+  'Thread Proposed' |
+  'Thread Awaiting Internal Approval (Scalerrs)' |
+  'Thread Awaiting Client Approval (Client)' |
+  'Thread Approved' |
+  'Thread To Do Next (External)' |
+  'Thread In Process (External)' |
+  'Thread Done';

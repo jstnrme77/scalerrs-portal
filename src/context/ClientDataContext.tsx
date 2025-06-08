@@ -90,9 +90,32 @@ export function ClientDataProvider({ children }: { children: React.ReactNode }) 
       const value = item[field];
       if (value !== undefined) {
         if (Array.isArray(value)) {
-          return value.includes(clientIdToMatch);
+          // Handle array of strings/IDs (including linked field IDs)
+          const hasMatch = value.some(v => {
+            // Handle both string values and object values
+            if (typeof v === 'object' && v.id) {
+              return v.id === clientIdToMatch || v.name === clientIdToMatch;
+            }
+            return v === clientIdToMatch;
+          });
+          if (hasMatch) {
+            console.log(`Client match found: ${item.id || 'unknown'} matches client ${clientIdToMatch} via field '${field}'`);
+            return true;
+          }
+        } else if (typeof value === 'object' && value.id) {
+          // Handle single linked record object
+          const matches = value.id === clientIdToMatch || value.name === clientIdToMatch;
+          if (matches) {
+            console.log(`Client match found: ${item.id || 'unknown'} matches client ${clientIdToMatch} via field '${field}'`);
+            return true;
+          }
         } else {
-          return value === clientIdToMatch;
+          // Handle string value
+          const matches = value === clientIdToMatch;
+          if (matches) {
+            console.log(`Client match found: ${item.id || 'unknown'} matches client ${clientIdToMatch} via field '${field}'`);
+            return true;
+          }
         }
       }
     }

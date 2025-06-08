@@ -109,6 +109,10 @@ export const TABLES = {
   KPI_METRICS: 'KPI Metrics',
   MONTHLY_PROJECTIONS: 'Monthly Projections',
 
+  // Content Workflow
+  YOUTUBE_MANAGEMENT: 'Youtube Management',
+  REDDIT_THREADS: 'Reddit Threads',
+
   // System Tables
   INTEGRATIONS: 'Integrations',
   NOTIFICATIONS: 'Notifications',

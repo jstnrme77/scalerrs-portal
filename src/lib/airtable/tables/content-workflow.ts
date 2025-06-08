@@ -1,7 +1,7 @@
 import { base } from '../config';
 import { hasAirtableCredentials, TABLES } from '../config';
-import { mockBriefs, mockArticles, mockBacklinks } from '../../mock-data';
 import { Brief, Article, Backlink } from '../types';
+import { YouTube, Reddit } from '../../../types';
 import {
   handleAirtableError,
   createClientFilter,
@@ -25,8 +25,8 @@ export async function getBriefs(
   month?: string | null
 ): Promise<Brief[]> {
   if (!hasAirtableCredentials) {
-    console.log('Using mock briefs data');
-    return mockBriefs;
+    console.log('No Airtable credentials available');
+    return [];
   }
 
   try {
@@ -44,25 +44,25 @@ export async function getBriefs(
         console.log('Sample Keywords record structure:', checkRecord[0].fields);
         console.log('Available fields in Keywords:', Object.keys(checkRecord[0].fields));
       } else {
-        console.log('Keywords table is empty. Using mock data...');
-        return mockBriefs;
+        console.log('Keywords table is empty. Returning empty array...');
+        return [];
       }
     } catch (checkError: any) {
       console.error('Error checking Keywords table:', checkError.message);
 
       if (checkError.message && checkError.message.includes('Table not found')) {
         console.error('The Keywords table does not exist in this base');
-        return mockBriefs;
+        return [];
       }
 
       if (checkError.message && checkError.message.includes('authorized')) {
         console.error('Authorization error. Your token may not have the correct permissions.');
         console.error('Make sure your token has the following scopes: data.records:read, data.records:write, schema.bases:read');
-        return mockBriefs;
+        return [];
       }
 
-      // For other errors, fall back to mock data
-      return mockBriefs;
+      // For other errors, return empty array
+      return [];
     }
 
     // Build the query with appropriate filters
@@ -232,7 +232,7 @@ export async function getBriefs(
       };
     });
   } catch (error) {
-    return handleAirtableError(error, mockBriefs, 'getBriefs');
+    return handleAirtableError(error, [], 'getBriefs');
   }
 }
 
@@ -244,12 +244,8 @@ export async function getBriefs(
  */
 export async function updateBriefStatus(briefId: string, status: string): Promise<Brief> {
   if (!hasAirtableCredentials) {
-    console.log('Using mock data for updating brief status (no credentials):', briefId, status);
-    const updatedBrief = mockBriefs.find(brief => brief.id === briefId);
-    if (updatedBrief) {
-      updatedBrief.Status = status;
-    }
-    return updatedBrief || { id: briefId, Status: status };
+    console.log('No Airtable credentials available for updating brief status:', briefId, status);
+    throw new Error('No Airtable credentials available');
   }
 
   try {
@@ -283,10 +279,378 @@ export async function updateBriefStatus(briefId: string, status: string): Promis
       ...updatedRecord.fields,
     };
   } catch (error) {
-    const updatedBrief = mockBriefs.find(brief => brief.id === briefId);
-    if (updatedBrief) {
-      updatedBrief.Status = status;
+    throw new Error(`Failed to update brief status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Get YouTube data from Airtable, filtered by user role, client, and month
+ * @param userId Optional user ID to filter data
+ * @param userRole Optional user role to filter data
+ * @param clientIds Optional client IDs to filter data
+ * @param month Optional month to filter data
+ * @returns Array of YouTube objects
+ */
+export async function getYouTubeData(
+  userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null,
+  month?: string | null
+): Promise<YouTube[]> {
+  if (!hasAirtableCredentials) {
+    console.log('No Airtable credentials available for YouTube data');
+    return [];
+  }
+
+  try {
+    console.log('Fetching YouTube data from Airtable...');
+    console.log('Using table name:', TABLES.YOUTUBE_MANAGEMENT);
+    console.log('Month parameter for YouTube data:', month);
+    console.log('Client IDs for filtering YouTube data:', clientIds);
+
+    // Check if the YouTube table exists and we can access it
+    try {
+      const checkRecord = await base(TABLES.YOUTUBE_MANAGEMENT).select({ maxRecords: 1 }).firstPage();
+      console.log('YouTube table check:', checkRecord.length > 0 ? 'Table exists and has records' : 'Table exists but is empty');
+
+      if (checkRecord.length > 0) {
+        console.log('Sample YouTube record structure:', checkRecord[0].fields);
+        console.log('Available fields in YouTube:', Object.keys(checkRecord[0].fields));
+        
+        // Debug client field structure
+        if (checkRecord[0].fields['Clients']) {
+          const clientField = checkRecord[0].fields['Clients'];
+          console.log('Client field found in YouTube record:');
+          console.log('- Type:', typeof clientField);
+          console.log('- Is array:', Array.isArray(clientField));
+          if (Array.isArray(clientField)) {
+            console.log('- Array length:', clientField.length);
+            console.log('- First item type:', clientField.length > 0 ? typeof clientField[0] : 'N/A');
+            console.log('- First item sample:', clientField.length > 0 ? JSON.stringify(clientField[0]) : 'N/A');
+          }
+          console.log('- Raw value:', JSON.stringify(clientField));
+        } else {
+          console.log('No Client field found in the sample YouTube record');
+        }
+      } else {
+        console.log('YouTube table is empty. Returning empty array...');
+        return [];
+      }
+    } catch (checkError: any) {
+      console.error('Error checking YouTube table:', checkError.message);
+      if (checkError.message && checkError.message.includes('Table not found')) {
+        console.error('The YouTube Management table does not exist in this base');
+        return [];
+      }
+      return [];
     }
-    return handleAirtableError(error, updatedBrief || { id: briefId, Status: status }, 'updateBriefStatus');
+
+    // Retrieve a few records without filters to inspect client structure
+    try {
+      console.log('Retrieving sample YouTube records to inspect client structure...');
+      const sampleRecords = await base(TABLES.YOUTUBE_MANAGEMENT).select({ maxRecords: 5 }).firstPage();
+      console.log(`Retrieved ${sampleRecords.length} sample records for inspection`);
+      
+      // Log client field structure for each record
+      sampleRecords.forEach((record: any, index: number) => {
+        console.log(`Sample record ${index+1} (ID: ${record.id}):`);
+        console.log(`- Has Clients field: ${!!record.fields['Clients']}`);
+        console.log(`- Target Month: ${record.fields['Target Month']}`);
+        console.log(`- Keyword Topic: ${record.fields['Keyword Topic']}`);
+        
+        if (record.fields['Clients']) {
+          const clients = record.fields['Clients'];
+          console.log(`- Clients field type: ${typeof clients}`);
+          console.log(`- Clients is array: ${Array.isArray(clients)}`);
+          console.log(`- Clients raw value: ${JSON.stringify(clients)}`);
+          
+          // If the client IDs are provided, check if this record matches
+          if (clientIds && clientIds.length > 0) {
+            const matchesClient = Array.isArray(clients) 
+              ? clients.some(client => {
+                  const clientId = typeof client === 'object' && client.id 
+                    ? client.id 
+                    : client;
+                  const matches = clientIds.includes(clientId);
+                  console.log(`  - Client "${clientId}" matches filter "${clientIds.join(',')}"? ${matches}`);
+                  return matches;
+                })
+              : clientIds.includes(clients);
+            
+            console.log(`- Record matches client filter: ${matchesClient}`);
+          }
+        }
+      });
+    } catch (err) {
+      console.error('Error inspecting sample records:', err);
+    }
+
+    // Build the query with appropriate filters
+    const filterParts: string[] = [];
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering YouTube by client:', clientIds);
+      
+      // Create a more robust client filter that handles different field structures
+      const clientFilters = clientIds.map(clientId => [
+        // Standard client field (array of strings)
+        `SEARCH("${clientId}", ARRAYJOIN({Clients}, ',')) > 0`,
+        // Client field might be a direct string
+        `{Clients} = "${clientId}"`,
+        // Client field might be a linked record with different field name
+        `SEARCH("${clientId}", ARRAYJOIN({Client}, ',')) > 0`,
+        `{Client} = "${clientId}"`
+      ]).flat();
+      
+      const clientFilter = `OR(${clientFilters.join(',')})`;
+      filterParts.push(clientFilter);
+      console.log('Using more robust client filter:', clientFilter);
+    }
+
+    // If month is specified, add month filter using the 'Target Month' field
+    if (month) {
+      console.log('Filtering YouTube by month:', month);
+      
+      try {
+        // Extract just the month name (e.g., "June" from "June 2025")
+        const monthOnly = month.split(' ')[0]; 
+        
+        // Use FIND() with ARRAYJOIN() like in articles filtering
+        const monthFilters = [
+          `FIND('${month}', ARRAYJOIN({Target Month}, ',')) > 0`
+        ];
+        
+        // If we extracted a month name, also check for that
+        if (monthOnly && monthOnly !== month) {
+          monthFilters.push(`FIND('${monthOnly}', ARRAYJOIN({Target Month}, ',')) > 0`);
+        }
+        
+        // Add month filter to filter parts
+        const monthFilter = `OR(${monthFilters.join(',')})`;
+        console.log('Month filter created:', monthFilter);
+        filterParts.push(monthFilter);
+      } catch (error) {
+        console.error('Error creating month filter for YouTube:', error);
+        // Continue without month filter if there's an error
+      }
+    }
+
+    // Combine all filter parts
+    const filterFormula = combineFilters(filterParts);
+    console.log('Final YouTube filter formula:', filterFormula);
+
+    // Apply the filter if one was created
+    let query;
+    if (filterFormula) {
+      console.log('Using filter formula:', filterFormula);
+      query = base(TABLES.YOUTUBE_MANAGEMENT).select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      query = base(TABLES.YOUTUBE_MANAGEMENT).select();
+    }
+
+    // Fetch the records
+    const records = await query.all();
+    console.log(`Successfully fetched ${records.length} YouTube records from Airtable`);
+
+    // Log sample record structure for debugging
+    if (records.length > 0) {
+      console.log('Sample YouTube record structure:');
+      console.log('- Record ID:', records[0].id);
+      console.log('- Target Month:', records[0].fields['Target Month']);
+      console.log('- Clients field:', records[0].fields['Clients']);
+      console.log('- YouTube Status:', records[0].fields['YouTube Status']);
+      console.log('- Keyword Topic:', records[0].fields['Keyword Topic']);
+    }
+
+    // Map the records to our expected format
+    return records.map((record: any) => {
+      const fields = record.fields;
+
+      // Handle linked Clients field - extract IDs from linked field objects
+      let clientsValue = fields['Clients'];
+      if (Array.isArray(clientsValue) && clientsValue.length > 0) {
+        // If it's an array of objects (linked records), extract the IDs
+        if (typeof clientsValue[0] === 'object' && clientsValue[0].id) {
+          clientsValue = clientsValue.map((client: any) => client.id);
+          console.log(`YouTube record ${record.id} clients (extracted IDs):`, clientsValue);
+        } else {
+          console.log(`YouTube record ${record.id} clients (direct array):`, clientsValue);
+        }
+      } else {
+        console.log(`YouTube record ${record.id} clients (no clients or empty):`, clientsValue);
+      }
+
+      // Return an object with our expected structure
+      return {
+        id: record.id,
+        'Keyword Topic': fields['Keyword Topic'] || '',
+        'Video Title': fields['Video Title'],
+        'Competitor video URL': fields['Competitor video URL'],
+        'YouTube Status': fields['YouTube Status'] || 'Idea Proposed',
+        'Thumbnail Status': fields['Thumbnail Status'],
+        'Target Month': fields['Target Month'],
+        'Video Type': fields['Video Type'],
+        'Related blog embeds': fields['Related blog embeds'],
+        'Script (G-Doc URL)': fields['Script (G-Doc URL)'],
+        'Notes': fields['Notes'],
+        'Clients': clientsValue,
+        'YouTube Strategist': fields['YouTube Strategist'],
+        'YouTube Host': fields['YouTube Host'],
+        'Thumbnail Editor': fields['Thumbnail Editor'],
+        'Video Editor': fields['Video Editor'],
+        'YouTube Scripter': fields['YouTube Scripter'],
+        'Script Title': fields['Script Title'],
+        // Include all original fields as well
+        ...fields
+      };
+    });
+  } catch (error) {
+    return handleAirtableError(error, [], 'getYouTubeData');
+  }
+}
+
+/**
+ * Get Reddit data from Airtable, filtered by user role, client, and month
+ * @param userId Optional user ID to filter data
+ * @param userRole Optional user role to filter data
+ * @param clientIds Optional client IDs to filter data
+ * @param month Optional month to filter data
+ * @returns Array of Reddit objects
+ */
+export async function getRedditData(
+  userId?: string | null,
+  userRole?: string | null,
+  clientIds?: string[] | null,
+  month?: string | null
+): Promise<Reddit[]> {
+  if (!hasAirtableCredentials) {
+    console.log('No Airtable credentials available for Reddit data');
+    return [];
+  }
+
+  try {
+    console.log('Fetching Reddit data from Airtable...');
+    console.log('Using table name:', TABLES.REDDIT_THREADS);
+
+    // Check if the Reddit table exists and we can access it
+    try {
+      const checkRecord = await base(TABLES.REDDIT_THREADS).select({ maxRecords: 1 }).firstPage();
+      console.log('Reddit table check:', checkRecord.length > 0 ? 'Table exists and has records' : 'Table exists but is empty');
+
+      if (checkRecord.length > 0) {
+        console.log('Sample Reddit record structure:', checkRecord[0].fields);
+        console.log('Available fields in Reddit:', Object.keys(checkRecord[0].fields));
+      } else {
+        console.log('Reddit table is empty. Returning empty array...');
+        return [];
+      }
+    } catch (checkError: any) {
+      console.error('Error checking Reddit table:', checkError.message);
+      if (checkError.message && checkError.message.includes('Table not found')) {
+        console.error('The Reddit Threads table does not exist in this base');
+        return [];
+      }
+      return [];
+    }
+
+    // Build the query with appropriate filters
+    const filterParts: string[] = [];
+
+    // If user is a client, filter by client
+    if (userRole === 'Client' && clientIds && clientIds.length > 0) {
+      console.log('Filtering Reddit by client:', clientIds);
+      filterParts.push(createClientFilter(clientIds));
+    }
+
+    // If month is specified, add month filter
+    if (month) {
+      console.log('Filtering Reddit by month:', month);
+      
+      try {
+        // Extract just the month name (e.g., "June" from "June 2025")
+        const monthOnly = month.split(' ')[0]; 
+        
+        // Use FIND() with ARRAYJOIN() like in articles filtering
+        const monthFilters = [
+          `FIND('${month}', ARRAYJOIN({Month}, ',')) > 0`
+        ];
+        
+        // If we extracted a month name, also check for that
+        if (monthOnly && monthOnly !== month) {
+          monthFilters.push(`FIND('${monthOnly}', ARRAYJOIN({Month}, ',')) > 0`);
+        }
+        
+        // Add month filter to filter parts
+        const monthFilter = `OR(${monthFilters.join(',')})`;
+        console.log('Month filter created for Reddit:', monthFilter);
+        filterParts.push(monthFilter);
+      } catch (error) {
+        console.error('Error creating month filter for Reddit:', error);
+        // Continue without month filter if there's an error
+      }
+    }
+
+    // Combine all filter parts
+    const filterFormula = combineFilters(filterParts);
+
+    // Apply the filter if one was created
+    let query;
+    if (filterFormula) {
+      console.log('Using filter formula:', filterFormula);
+      query = base(TABLES.REDDIT_THREADS).select({
+        filterByFormula: filterFormula
+      });
+    } else {
+      query = base(TABLES.REDDIT_THREADS).select();
+    }
+
+    // Fetch the records
+    const records = await query.all();
+    console.log(`Successfully fetched ${records.length} Reddit records from Airtable`);
+
+    // Map the records to our expected format
+    return records.map((record: any) => {
+      const fields = record.fields;
+
+      // Handle linked Clients field - extract IDs from linked field objects
+      let clientsValue = fields['Clients'];
+      if (Array.isArray(clientsValue) && clientsValue.length > 0) {
+        // If it's an array of objects (linked records), extract the IDs
+        if (typeof clientsValue[0] === 'object' && clientsValue[0].id) {
+          clientsValue = clientsValue.map((client: any) => client.id);
+          console.log('Reddit record clients (extracted IDs):', clientsValue);
+        } else {
+          console.log('Reddit record clients (direct array):', clientsValue);
+        }
+      } else {
+        console.log('Reddit record clients (no clients or empty):', clientsValue);
+      }
+
+      // Return an object with our expected structure
+      return {
+        id: record.id,
+        'Keyword': fields['Keyword'] || '',
+        'Reddit Thread URL': fields['Reddit Thread URL'],
+        'Clients': clientsValue,
+        'Thread Success Pulse': fields['Thread Success Pulse'],
+        'Reddit Thread Status (General)': fields['Reddit Thread Status (General)'] || 'Thread Proposed',
+        'Reddit Assignee': fields['Reddit Assignee'],
+        'SEO Assignee': fields['SEO Assignee'],
+        'Thread Type': fields['Thread Type'],
+        'Notes': fields['Notes'],
+        'Related SEO Keyword': fields['Related SEO Keyword'],
+        'Reddit Comments': fields['Reddit Comments'],
+        'Thread SEO Traffic': fields['Thread SEO Traffic'],
+        'Thread SEO Traffic Value': fields['Thread SEO Traffic Value'],
+        'Month': fields['Month'],
+        // Include all original fields as well
+        ...fields
+      };
+    });
+  } catch (error) {
+    return handleAirtableError(error, [], 'getRedditData');
   }
 }

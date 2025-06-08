@@ -71,10 +71,13 @@ export function createClientFilter(clientIds: string[]): string {
     return 'OR(1=0)'; // This will always be false, returning no records
   }
 
-  // Create a filter formula for client IDs
-  const clientFilters = clientIds.map(clientId =>
-    `SEARCH('${clientId}', ARRAYJOIN(Clients, ',')) > 0`
-  );
+  // Create a filter formula for client IDs that handles linked fields
+  // For linked fields, we need to use SEARCH with the record ID
+  const clientFilters = clientIds.map(clientId => {
+    // For linked fields, Airtable stores arrays of record IDs like ["recXXXX", "recYYYY"]
+    // We use SEARCH to find the client ID within the concatenated field
+    return `SEARCH('${clientId}', CONCATENATE(Clients & "")) > 0`;
+  });
 
   return `OR(${clientFilters.join(',')})`;
 }
@@ -99,19 +102,38 @@ export function createMonthFilter(month: string, fieldName: string = 'Month'): s
   }
 
   try {
-    // Check for both exact match and month-only match
-    // For example, if month is "January 2025", we should match both "January 2025" and "January"
-    const monthOnly = month.split(' ')[0]; // Extract just the month name
-
+    // Convert month to lowercase for case-insensitive comparison
+    const monthLower = month.toLowerCase();
+    
+    // Extract just the month name (e.g., "June" from "June 2025")
+    const monthOnly = month.split(' ')[0];
+    const monthOnlyLower = monthOnly.toLowerCase();
+    
+    // For 'Target Month' field specifically (often used in YouTube data)
+    const isTargetMonth = fieldName === 'Target Month';
+    
+    // Create an array of possible filter conditions for different month formats
     const monthFilters = [
-      `{${fieldName}} = '${month}'`
+      // Exact match
+      `LOWER({${fieldName}}) = '${monthLower}'`,
+      
+      // Month name only match (e.g., "June" matches "June 2025")
+      `OR(LOWER({${fieldName}}) = '${monthOnlyLower}', FIND('${monthOnlyLower}', LOWER({${fieldName}})) > 0)`,
+      
+      // Array field matching (for multiple select fields)
+      `FIND('${monthLower}', LOWER(ARRAYJOIN({${fieldName}}, ','))) > 0`
     ];
-
-    // If we extracted a month name, also check for that
-    if (monthOnly && monthOnly !== month) {
-      monthFilters.push(`{${fieldName}} = '${monthOnly}'`);
+    
+    // For Target Month, add some additional checks that might help
+    if (isTargetMonth) {
+      // Sometimes the year might be first, e.g., "2025 June" instead of "June 2025"
+      const yearPart = month.split(' ')[1];
+      if (yearPart && /^\d{4}$/.test(yearPart)) {
+        monthFilters.push(`FIND('${yearPart}', {${fieldName}}) > 0 AND FIND('${monthOnly}', {${fieldName}}) > 0`);
+      }
     }
 
+    // Combine all filter options with OR
     return `OR(${monthFilters.join(',')})`;
   } catch (error) {
     console.error('Error creating month filter:', error);

@@ -115,11 +115,11 @@ export default function BriefColumn({
   return (
     <div
       ref={drop as any}
-      className={`w-full rounded-lg ${isOver ? 'ring-2 ring-primary' : ''} border ${statusColor}`}
+      className={`w-[500px] rounded-lg ${isOver ? 'ring-2 ring-primary' : ''} border ${statusColor}`}
     >
       <div className="flex flex-col">
         <div className={`${headerBgColor} rounded-t-lg kanban-column-header`}>
-          <h3>
+          <h3 className="truncate">
             {title}
           </h3>
           <span className="count-badge">
