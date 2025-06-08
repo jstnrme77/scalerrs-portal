@@ -2069,7 +2069,7 @@ function mapStatusString(statusString: string): string {
 }
 
 // Function to update approval status in Airtable
-export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins', itemId: string, status: string, reason?: string) {
+export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads', itemId: string, status: string, reason?: string) {
   if (!hasAirtableCredentials) {
     console.log(`Using mock data for updating ${type} approval status:`, itemId, status);
     return { id: itemId, status };
@@ -2098,6 +2098,15 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
         break;
       case 'quickwins':
         targetFieldName = 'Status';
+        break;
+      case 'youtubetopics':
+        targetFieldName = 'YouTube Status Approval';
+        break;
+      case 'youtubethumbnails':
+        targetFieldName = 'Thumbnail Approval';
+        break;
+      case 'redditthreads':
+        targetFieldName = 'Reddit Thread Status Approval';
         break;
       default:
         console.error(`Invalid type "${type}" specified for target field name determination.`);
@@ -2154,6 +2163,16 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
       case 'backlinks':
         tableName = TABLES.BACKLINKS;
         break;
+      case 'quickwins':
+        tableName = 'Quick Wins'; // Direct string instead of using TABLES.QUICK_WINS
+        break;
+      case 'youtubetopics':
+      case 'youtubethumbnails':
+        tableName = TABLES.YOUTUBE_MANAGEMENT;
+        break;
+      case 'redditthreads':
+        tableName = TABLES.REDDIT_THREADS;
+        break;
       default:
         console.error(`Invalid type "${type}" specified for Airtable table name selection.`);
         throw new Error(`Invalid type for table name: ${type}`);
@@ -2168,6 +2187,14 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
     if (type === 'backlinks') {
       // If backlinks use a direct field (e.g., 'Backlinks Approval') and not 'Keyword/Content Status'
       statusFieldToCheckInAirtable = 'Backlinks Approval';
+    } else if (type === 'youtubetopics') {
+      statusFieldToCheckInAirtable = 'YouTube Status Approval';
+    } else if (type === 'youtubethumbnails') {
+      statusFieldToCheckInAirtable = 'Thumbnail Approval';
+    } else if (type === 'redditthreads') {
+      statusFieldToCheckInAirtable = 'Reddit Thread Status Approval';
+    } else if (type === 'quickwins') {
+      statusFieldToCheckInAirtable = 'Status';
     }
 
     const returnedAirtableStatusValue = updatedRecord.fields[statusFieldToCheckInAirtable] || updatedRecord.fields['Approval Status'] || '';

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
-import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, BarChart2, TrendingUp, Clock, User } from 'lucide-react';
+import { FileText, BookOpen, Link2, MessageCircle, ExternalLink, Award, Zap, BarChart2, TrendingUp, Clock, User, DollarSign, Calendar } from 'lucide-react';
 import { updateApprovalStatus, clearApprovalsCache } from '@/lib/client-api-utils';
 import Pagination from '@/components/ui/Pagination';
 import { useClientData } from '@/context/ClientDataContext';
@@ -600,9 +600,27 @@ function SidebarSummaryPanel({
               <span className="font-medium text-dark">{counts.backlinks}</span>
             </div>
             {counts.quickwins > 0 && (
-              <div className="flex justify-between py-2">
+              <div className="flex justify-between py-2 border-b border-black">
                 <span className="text-dark">Quick Wins</span>
                 <span className="font-medium text-dark">{counts.quickwins}</span>
+              </div>
+            )}
+            {counts.youtubetopics > 0 && (
+              <div className="flex justify-between py-2 border-b border-black">
+                <span className="text-dark">YouTube Topics</span>
+                <span className="font-medium text-dark">{counts.youtubetopics}</span>
+              </div>
+            )}
+            {counts.youtubethumbnails > 0 && (
+              <div className="flex justify-between py-2 border-b border-black">
+                <span className="text-dark">YouTube Thumbnails</span>
+                <span className="font-medium text-dark">{counts.youtubethumbnails}</span>
+              </div>
+            )}
+            {counts.redditthreads > 0 && (
+              <div className="flex justify-between py-2">
+                <span className="text-dark">Reddit Threads</span>
+                <span className="font-medium text-dark">{counts.redditthreads}</span>
               </div>
             )}
           </>
@@ -804,6 +822,410 @@ function ApprovalCard({
             {/* Revision Reason */}
             {item.revisionReason && (
               <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-3 rounded border">
+                <span className="font-medium">Revision: </span>{item.revisionReason}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Special layout for YouTube Topics
+  if (activeTab === 'youtubetopics') {
+    return (
+      <div className={`bg-white border border-gray-200 rounded-lg p-4 transition-all ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
+        <div className="flex items-start gap-4">
+          {/* Checkbox */}
+          <div className="flex items-center justify-center mt-3">
+            {showInteractiveCheckbox ? (
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+                checked={isSelected}
+                onChange={() => onToggleItemSelection(item.id)}
+              />
+            ) : (
+              <div className="h-4 w-4"></div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* First Row: Item Name and Actions */}
+            <div className="flex items-center justify-between mb-1">
+              {/* Item Name with Icon */}
+              <div className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 text-gray-400" />
+                <span className="text-base font-semibold text-gray-900">{item.item}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
+                  <>
+                    <button
+                      onClick={() => onRequestChanges(item.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      onClick={() => onApprove(item.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Second Row: Metrics */}
+            <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+              {item.videoType && <span>Video Type: <span className="font-semibold">{item.videoType}</span></span>}
+              {item.targetMonth && <span>Target Month: <span className="font-semibold">{item.targetMonth}</span></span>}
+              {item.competitorUrl && (
+                <span>
+                  <a 
+                    href={ensureUrlProtocol(item.competitorUrl)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    View Competitor
+                  </a>
+                </span>
+              )}
+            </div>
+
+            {/* Third Row: Status, Last Updated and Assignment Info with Icons */}
+            <div className="flex items-center gap-4 text-sm">
+              <StatusBadge status={item.status} />
+              <div className="flex items-center gap-1 text-gray-500">
+                <Clock className="h-3 w-3" />
+                <span>Last Updated: <span className="font-semibold">{item.lastUpdated || 'N/A'}</span></span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-500">
+                <User className="h-3 w-3" />
+                <span>Assigned to: <span className="font-semibold">{
+                  (() => {
+                    if (!item.strategist) return 'Team';
+                    if (typeof item.strategist === 'string') return item.strategist;
+                    if (Array.isArray(item.strategist)) {
+                      return item.strategist.map(s => s.name).join(', ') || 'Team';
+                    }
+                    return item.strategist.name || 'Team';
+                  })()
+                }</span></span>
+              </div>
+            </div>
+
+            {/* Fourth Row: View Conversation History Link */}
+            <div className="mt-2">
+              <button
+                onClick={() => openConversationModal(item.id, item.item)}
+                className="flex items-center text-sm text-blue-600 hover:underline"
+              >
+                <MessageCircle size={14} className="mr-1" />
+                View Conversation History
+              </button>
+            </div>
+
+            {/* Revision Reason */}
+            {item.revisionReason && (
+              <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded border">
+                <span className="font-medium">Revision: </span>{item.revisionReason}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Special layout for YouTube Thumbnails
+  if (activeTab === 'youtubethumbnails') {
+    return (
+      <div className={`bg-white border border-gray-200 rounded-lg p-4 transition-all ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
+        <div className="flex items-start gap-4">
+          {/* Checkbox */}
+          <div className="flex items-center justify-center mt-3">
+            {showInteractiveCheckbox ? (
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+                checked={isSelected}
+                onChange={() => onToggleItemSelection(item.id)}
+              />
+            ) : (
+              <div className="h-4 w-4"></div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* First Row: Item Name and Actions */}
+            <div className="flex items-center justify-between mb-1">
+              {/* Item Name with Icon */}
+              <div className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 text-gray-400" />
+                <span className="text-base font-semibold text-gray-900">{item.item}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
+                  <>
+                    <button
+                      onClick={() => onRequestChanges(item.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      onClick={() => onApprove(item.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Third Row: Status, Last Updated and Assignment Info with Icons */}
+            <div className="flex items-center gap-4 text-sm mb-2">
+              <StatusBadge status={item.status} />
+              <div className="flex items-center gap-1 text-gray-500">
+                <Clock className="h-3 w-3" />
+                <span>Last Updated: <span className="font-semibold">{item.lastUpdated || 'N/A'}</span></span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-500">
+                <User className="h-3 w-3" />
+                <span>Editor: <span className="font-semibold">{
+                  (() => {
+                    if (!item.thumbnailEditor) return 'Unassigned';
+                    if (typeof item.thumbnailEditor === 'string') return item.thumbnailEditor;
+                    if (Array.isArray(item.thumbnailEditor)) {
+                      return item.thumbnailEditor.map((s: any) => s.name).join(', ');
+                    }
+                    return item.thumbnailEditor.name || 'Unassigned';
+                  })()
+                }</span></span>
+              </div>
+            </div>
+
+            {/* Thumbnails Gallery - More compact */}
+            <div className="my-3">
+              <div className="grid grid-cols-3 gap-2">
+                {item.thumbnail1 ? (
+                  <div className="border border-gray-200 rounded overflow-hidden relative">
+                    <div className="pb-[56.25%]"></div> {/* 16:9 aspect ratio */}
+                    <img 
+                      src={Array.isArray(item.thumbnail1) && item.thumbnail1[0]?.url ? item.thumbnail1[0].url : item.thumbnail1} 
+                      alt="Thumbnail 1" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded relative bg-gray-50">
+                    <div className="pb-[56.25%]"></div> {/* 16:9 aspect ratio */}
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+                      No Thumbnail #1
+                    </div>
+                  </div>
+                )}
+                
+                {item.thumbnail2 ? (
+                  <div className="border border-gray-200 rounded overflow-hidden relative">
+                    <div className="pb-[56.25%]"></div> {/* 16:9 aspect ratio */}
+                    <img 
+                      src={Array.isArray(item.thumbnail2) && item.thumbnail2[0]?.url ? item.thumbnail2[0].url : item.thumbnail2} 
+                      alt="Thumbnail 2" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded relative bg-gray-50">
+                    <div className="pb-[56.25%]"></div> {/* 16:9 aspect ratio */}
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+                      No Thumbnail #2
+                    </div>
+                  </div>
+                )}
+                
+                {item.thumbnail3 ? (
+                  <div className="border border-gray-200 rounded overflow-hidden relative">
+                    <div className="pb-[56.25%]"></div> {/* 16:9 aspect ratio */}
+                    <img 
+                      src={Array.isArray(item.thumbnail3) && item.thumbnail3[0]?.url ? item.thumbnail3[0].url : item.thumbnail3} 
+                      alt="Thumbnail 3" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 rounded relative bg-gray-50">
+                    <div className="pb-[56.25%]"></div> {/* 16:9 aspect ratio */}
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+                      No Thumbnail #3
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Notes - More compact */}
+            {item.notes && (
+              <div className="mb-2 text-xs text-gray-700">
+                <span className="font-medium">Notes: </span>{item.notes}
+              </div>
+            )}
+
+            {/* Fourth Row: View Conversation History Link */}
+            <div className="mt-1">
+              <button
+                onClick={() => openConversationModal(item.id, item.item)}
+                className="flex items-center text-sm text-blue-600 hover:underline"
+              >
+                <MessageCircle size={14} className="mr-1" />
+                View Conversation History
+              </button>
+            </div>
+
+            {/* Revision Reason */}
+            {item.revisionReason && (
+              <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded border">
+                <span className="font-medium">Revision: </span>{item.revisionReason}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Special layout for Reddit Threads
+  if (activeTab === 'redditthreads') {
+    return (
+      <div className={`bg-white border border-gray-200 rounded-lg p-4 transition-all ${isSelected ? 'bg-gray-50 border-blue-200' : ''}`}>
+        <div className="flex items-start gap-4">
+          {/* Checkbox */}
+          <div className="flex items-center justify-center mt-3">
+            {showInteractiveCheckbox ? (
+              <input
+                type="checkbox"
+                className="h-4 w-4 text-gray-600 focus:ring-gray-500 border border-gray-300 rounded cursor-pointer"
+                checked={isSelected}
+                onChange={() => onToggleItemSelection(item.id)}
+              />
+            ) : (
+              <div className="h-4 w-4"></div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* First Row: Item Name and Actions */}
+            <div className="flex items-center justify-between mb-1">
+              {/* Item Name with Icon */}
+              <div className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4 text-gray-400" />
+                <span className="text-base font-semibold text-gray-900">{item.item}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                {(['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)) && (
+                  <>
+                    <button
+                      onClick={() => onRequestChanges(item.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      onClick={() => onApprove(item.id)}
+                      className="px-3 py-1.5 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 transition-colors"
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Second Row: Thread URL */}
+            {item.threadUrl && (
+              <div className="mb-2">
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Thread URL: </span>
+                  <a 
+                    href={ensureUrlProtocol(item.threadUrl)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {item.threadUrl}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Third Row: Metrics */}
+            <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+              <div className="flex items-center gap-1">
+                <TrendingUp className="h-3 w-3 text-gray-400" />
+                <span>Traffic: <span className="font-semibold">{item.threadTraffic || 0}</span></span>
+              </div>
+              <div className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3 text-gray-400" />
+                <span>Value: <span className="font-semibold">{item.threadValue || '$0'}</span></span>
+              </div>
+              {item.targetMonth && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3 text-gray-400" />
+                  <span>Month: <span className="font-semibold">{item.targetMonth}</span></span>
+                </div>
+              )}
+            </div>
+
+            {/* Fourth Row: Status, Last Updated and Assignment Info with Icons */}
+            <div className="flex items-center gap-4 text-sm">
+              <StatusBadge status={item.status} />
+              <div className="flex items-center gap-1 text-gray-500">
+                <Clock className="h-3 w-3" />
+                <span>Last Updated: <span className="font-semibold">{item.lastUpdated || 'N/A'}</span></span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-500">
+                <User className="h-3 w-3" />
+                <span>Assignee: <span className="font-semibold">{
+                  (() => {
+                    if (!item.redditAssignee) return 'Unassigned';
+                    if (typeof item.redditAssignee === 'string') return item.redditAssignee;
+                    if (Array.isArray(item.redditAssignee)) {
+                      return item.redditAssignee.map((s: any) => s.name).join(', ');
+                    }
+                    return item.redditAssignee.name || 'Unassigned';
+                  })()
+                }</span></span>
+              </div>
+            </div>
+
+            {/* Fifth Row: View Conversation History Link */}
+            <div className="mt-2">
+              <button
+                onClick={() => openConversationModal(item.id, item.item)}
+                className="flex items-center text-sm text-blue-600 hover:underline"
+              >
+                <MessageCircle size={14} className="mr-1" />
+                View Conversation History
+              </button>
+            </div>
+
+            {/* Revision Reason */}
+            {item.revisionReason && (
+              <div className="mt-2 text-sm text-gray-700 bg-gray-50 p-3 rounded border">
                 <span className="font-medium">Revision: </span>{item.revisionReason}
               </div>
             )}
@@ -1018,8 +1440,8 @@ function ApprovalTable({
 
   // Function to open conversation modal - with safety check for allowed content types
   const openConversationModal = (itemId: string, itemTitle: string) => {
-    // Only allow opening the modal for Keywords and Briefs tabs
-    if (activeTab === 'keywords' || activeTab === 'briefs') {
+    // Only allow opening the modal for specific tabs
+    if (activeTab === 'keywords' || activeTab === 'briefs' || activeTab === 'youtubetopics' || activeTab === 'youtubethumbnails' || activeTab === 'redditthreads') {
       setConversationModal({
         isOpen: true,
         itemId,
@@ -1228,14 +1650,14 @@ function ApprovalTable({
     <div>
       {statusOrder.map(status => renderStatusTable(status as keyof GroupedItems))}
 
-      {/* Conversation History Modal - only render for Keywords and Briefs tabs */}
-      {(activeTab === 'keywords' || activeTab === 'briefs') && (
+      {/* Conversation History Modal - only render for allowed content types */}
+      {(activeTab === 'keywords' || activeTab === 'briefs' || activeTab === 'youtubetopics' || activeTab === 'youtubethumbnails' || activeTab === 'redditthreads') && (
         <ConversationHistoryModal
           isOpen={conversationModal.isOpen}
           onClose={() => setConversationModal({ isOpen: false, itemId: '', itemTitle: '' })}
           itemId={conversationModal.itemId}
           itemTitle={conversationModal.itemTitle}
-          contentType={activeTab as 'keywords' | 'briefs'}
+          contentType={activeTab as 'keywords' | 'briefs' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads'}
           enableAirtableComments={true}
         />
       )}
@@ -1300,6 +1722,9 @@ interface ApprovalItems {
   articles: ApprovalItem[];
   backlinks: ApprovalItem[];
   quickwins: ApprovalItem[];
+  youtubetopics: ApprovalItem[];
+  youtubethumbnails: ApprovalItem[];
+  redditthreads: ApprovalItem[];
 }
 
 // Define the type for grouped items by status
@@ -1327,7 +1752,10 @@ export default function Approvals() {
     briefs: [],
     articles: [],
     backlinks: [],
-    quickwins: []
+    quickwins: [],
+    youtubetopics: [],
+    youtubethumbnails: [],
+    redditthreads: []
   });
   const [rejectionModal, setRejectionModal] = useState({ isOpen: false, itemId: '' });
   const [selectedItems, setSelectedItems] = useState<{[key: string]: string[]}>({
@@ -1335,7 +1763,10 @@ export default function Approvals() {
     briefs: [],
     articles: [],
     backlinks: [],
-    quickwins: []
+    quickwins: [],
+    youtubetopics: [],
+    youtubethumbnails: [],
+    redditthreads: []
   });
   
   // Define pagination type
@@ -1577,7 +2008,7 @@ export default function Approvals() {
       const timestamp = Date.now();
       
       // The tabs to fetch data for
-      const tabsToFetch = ['keywords', 'briefs', 'articles', 'backlinks', 'quickwins'];
+      const tabsToFetch = ['keywords', 'briefs', 'articles', 'backlinks', 'quickwins', 'youtubetopics', 'youtubethumbnails'];
       
       // Create an object to store the fetched data
       const allTabsData: ApprovalItems = {
@@ -1585,7 +2016,10 @@ export default function Approvals() {
         briefs: [],
         articles: [],
         backlinks: [],
-        quickwins: []
+        quickwins: [],
+        youtubetopics: [],
+        youtubethumbnails: [],
+        redditthreads: []
       };
       
       // Fetch data for each tab in parallel
@@ -1656,6 +2090,21 @@ export default function Approvals() {
           total: allTabsData.quickwins.length,
           approved: allTabsData.quickwins.filter(item => item.status === 'approved').length,
           pending: allTabsData.quickwins.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        youtubetopics: { 
+          total: allTabsData.youtubetopics.length,
+          approved: allTabsData.youtubetopics.filter(item => item.status === 'approved').length,
+          pending: allTabsData.youtubetopics.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        youtubethumbnails: { 
+          total: allTabsData.youtubethumbnails.length,
+          approved: allTabsData.youtubethumbnails.filter(item => item.status === 'approved').length,
+          pending: allTabsData.youtubethumbnails.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
+        },
+        redditthreads: { 
+          total: allTabsData.redditthreads.length,
+          approved: allTabsData.redditthreads.filter(item => item.status === 'approved').length,
+          pending: allTabsData.redditthreads.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length
         }
       };
       
@@ -1713,7 +2162,10 @@ export default function Approvals() {
       briefs: [],
       articles: [],
       backlinks: [],
-      quickwins: []
+      quickwins: [],
+      youtubetopics: [],
+      youtubethumbnails: [],
+      redditthreads: []
     });
     
     // Reset pagination
@@ -1893,6 +2345,9 @@ export default function Approvals() {
     articles: items.articles.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length,
     backlinks: items.backlinks.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length,
     quickwins: items.quickwins.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    youtubetopics: items.youtubetopics.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    youtubethumbnails: items.youtubethumbnails.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length,
+    redditthreads: items.redditthreads.filter(item => ['not_started', 'in_progress', 'ready_for_review', 'awaiting_approval', 'revisions_needed', 'resubmitted', 'needs_revision'].includes(item.status)).length,
   };
 
   // Calculate total approved and pending items
@@ -1909,6 +2364,9 @@ export default function Approvals() {
     articles: { pending: pendingCounts.articles, approved: items.articles.filter(item => item.status === 'approved').length, total: items.articles.length },
     backlinks: { pending: pendingCounts.backlinks, approved: items.backlinks.filter(item => item.status === 'approved').length, total: items.backlinks.length },
     quickwins: { pending: pendingCounts.quickwins, approved: items.quickwins.filter(item => item.status === 'approved').length, total: items.quickwins.length },
+    youtubetopics: { pending: pendingCounts.youtubetopics, approved: items.youtubetopics.filter(item => item.status === 'approved').length, total: items.youtubetopics.length },
+    youtubethumbnails: { pending: pendingCounts.youtubethumbnails, approved: items.youtubethumbnails.filter(item => item.status === 'approved').length, total: items.youtubethumbnails.length },
+    redditthreads: { pending: pendingCounts.redditthreads, approved: items.redditthreads.filter(item => item.status === 'approved').length, total: items.redditthreads.length },
     totalApproved,
     totalPending,
     totalItems: totalApproved + totalPending
@@ -1948,7 +2406,7 @@ export default function Approvals() {
       clearApprovalsCache(); // Clear all types to be safe
       
       // Call the API to update Airtable
-      const result = await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins', id, airtableStatus);
+      const result = await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails', id, airtableStatus);
       console.log('Update approval result:', result);
 
       // Update local state
@@ -2060,7 +2518,7 @@ export default function Approvals() {
         console.log(`Approving item ${id} in ${activeTab}`);
         
         const result = await updateApprovalStatus(
-          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins', 
+          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails', 
           id, 
           airtableStatus
         );
@@ -2122,7 +2580,7 @@ export default function Approvals() {
         try {
           // Always use 'Needs Revision' as the status value
           const result = await updateApprovalStatus(
-            activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins',
+            activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails',
             id, 
             'Needs Revision', 
             reason
@@ -2220,7 +2678,10 @@ export default function Approvals() {
                   { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
                   { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
                   { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
-                  { id: 'quickwins', label: 'Quick Wins', icon: <Zap size={18} /> }
+                  { id: 'quickwins', label: 'Quick Wins', icon: <Zap size={18} /> },
+                  { id: 'youtubetopics', label: 'YouTube Topics', icon: <Award size={18} /> },
+                  { id: 'youtubethumbnails', label: 'YouTube Thumbnails', icon: <BarChart2 size={18} /> },
+                  { id: 'redditthreads', label: 'Reddit Threads', icon: <ExternalLink size={18} /> }
                 ]}
                 activeTab={activeTab}
                 onTabChange={handleTabChange}

@@ -17,7 +17,9 @@ export const TABLES = {
   NOTIFICATIONS: 'Notifications',
   REPORTS: 'Reports',
   ACTIVITY_LOG: 'Activity Log',
-  CLIENTS: 'Clients'
+  CLIENTS: 'Clients',
+  YOUTUBE_MANAGEMENT: 'Youtube Management',
+  REDDIT_THREADS: 'Reddit Threads'
 };
 
 // Alternative table names (in case the casing is different)
@@ -32,5 +34,7 @@ export const ALT_TABLES = {
   MONTHLY_PROJECTIONS: ['monthly_projections', 'monthlyprojections', 'monthly projections', 'MonthlyProjections'],
   CLUSTERS: ['clusters', 'cluster', 'Cluster', 'CLUSTERS'],
   CLIENTS: ['clients', 'client', 'Client', 'CLIENTS'],
-  USERS: ['users', 'user', 'User', 'USERS']
+  USERS: ['users', 'user', 'User', 'USERS'],
+  YOUTUBE_MANAGEMENT: ['youtube_management', 'youtube management', 'Youtube Management', 'YoutubeManagement', 'YOUTUBE_MANAGEMENT'],
+  REDDIT_THREADS: ['reddit_threads', 'reddit threads', 'redditthreads', 'Reddit Threads', 'Reddit_Threads', 'RedditThreads']
 };

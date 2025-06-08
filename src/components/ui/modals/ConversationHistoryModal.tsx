@@ -21,7 +21,7 @@ type ConversationHistoryModalProps = {
   onClose: () => void;
   itemId: string;
   itemTitle: string;
-  contentType: 'keywords' | 'briefs'; // Only allow Keywords and Briefs content types
+  contentType: 'keywords' | 'briefs' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads';
   enableAirtableComments?: boolean; // New prop to toggle comment systems
 };
 
@@ -104,7 +104,7 @@ export default function ConversationHistoryModal({
         if (result) {
           // Add the new comment to the legacy comments list
           setLegacyComments(prev => [...prev, {
-            id: result.id || `temp-${Date.now()}`,
+            id: `temp-${Date.now()}`, // Use a temporary ID
             text: newComment,
             author: 'You', // This would be the current user in a real app
             timestamp: new Date().toLocaleDateString()
@@ -143,11 +143,29 @@ export default function ConversationHistoryModal({
   const currentError = useAirtable ? airtableError : error;
   const currentComments = useAirtable ? airtableComments : legacyComments;
 
+  // Get title based on content type
+  const getTitle = () => {
+    switch (contentType) {
+      case 'keywords':
+        return 'Keyword Approval Conversation';
+      case 'briefs':
+        return 'Brief Approval Conversation';
+      case 'youtubetopics':
+        return 'YouTube Topic Approval Conversation';
+      case 'youtubethumbnails':
+        return 'YouTube Thumbnail Approval Conversation';
+      case 'redditthreads':
+        return 'Reddit Thread Approval Conversation';
+      default:
+        return 'Approval Conversation';
+    }
+  };
+
   return (
     <EnhancedModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Conversation History - ${itemTitle}`}
+      title={`Conversation History - ${getTitle()}`}
       size="md"
     >
       <div className="flex flex-col h-[60vh]">

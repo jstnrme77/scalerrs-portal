@@ -587,50 +587,44 @@ export function clearApprovalsCache(type?: string) {
 
 /**
  * Update approval status via the API
- * @param type Type of approval item (keywords, briefs, articles, backlinks, quickwins)
+ * @param type Content type
  * @param itemId Item ID
  * @param status New status
- * @param revisionReason Optional reason for revision
- * @returns Updated item
+ * @param revisionReason Optional revision reason
+ * @returns Success status
  */
 export async function updateApprovalStatus(
-  type: 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins',
+  type: 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads',
   itemId: string,
   status: string,
   revisionReason?: string
 ) {
-  // Prepare the request body
-  const body = {
-    type,
-    itemId,
-    status,
-    revisionReason
-  };
+  // Clear cache for this type when status is updated
+  clearApprovalsCache(type);
 
-  // Use fetchFromApi to handle the request
   return fetchFromApi(
-    'update-approval',
+    'api/update-approval',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ type, itemId, status, revisionReason }),
     },
-    { success: true, id: itemId, status }
+    { success: true }
   );
 }
 
 /**
  * Fetch conversation history for an approval item
- * @param contentType Type of content (keywords, briefs, articles, backlinks, quickwins)
+ * @param contentType Content type
  * @param itemId Item ID
- * @returns Array of comments
+ * @returns Conversation history
  */
 export async function fetchConversationHistory(
-  contentType: 'keywords' | 'briefs', // Only allow Keywords and Briefs content types
+  contentType: 'keywords' | 'briefs' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads',
   itemId: string
 ) {
-  // Create mock comments for testing
-  const mockComments = [
+  // Create mock conversation history for testing
+  const mockConversationHistory = [
     {
       id: `comment-${Date.now()}-1`,
       text: `This is a sample comment for ${contentType} item ${itemId}`,
@@ -648,35 +642,30 @@ export async function fetchConversationHistory(
   return fetchFromApi(
     `conversation-history?contentType=${contentType}&itemId=${itemId}`,
     {},
-    mockComments
+    mockConversationHistory
   );
 }
 
 /**
  * Add a comment to an approval item
- * @param contentType Type of content (keywords, briefs, articles, backlinks, quickwins)
+ * @param contentType Content type
  * @param itemId Item ID
  * @param text Comment text
  * @returns Added comment
  */
 export async function addApprovalComment(
-  contentType: 'keywords' | 'briefs', // Only allow Keywords and Briefs content types
+  contentType: 'keywords' | 'briefs' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads',
   itemId: string,
   text: string
 ) {
   return fetchFromApi(
-    'add-comment',
+    'api/add-comment',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contentType, itemId, text })
+      body: JSON.stringify({ contentType, itemId, text }),
     },
-    {
-      id: `comment-${Date.now()}`,
-      text,
-      author: 'You',
-      timestamp: new Date().toLocaleDateString()
-    }
+    { id: `comment-${Date.now()}`, text, author: 'You', timestamp: new Date().toLocaleDateString() }
   );
 }
 

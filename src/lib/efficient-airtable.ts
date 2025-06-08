@@ -293,6 +293,75 @@ function formatQuickWinItem(record: any): ApprovalItem {
   };
 }
 
+// Function to format a YouTube Topic item from an Airtable record
+function formatYouTubeTopicItem(record: any): ApprovalItem {
+  const fields = record.fields;
+  
+  return {
+    id: record.id,
+    item: fields["Keyword Topic"] || "Untitled YouTube Topic",
+    status: normalizeStatus(fields["YouTube Status Approval"] || "not_started"),
+    lastUpdated: formatDate(fields["Last Modified"] || fields["Created Time"], 'N/A'),
+    clients: fields["Clients"] || [],
+    clientRecordId: fields["Client Record ID"] || "",
+    strategist: fields["YouTube Strategist"] || "Unassigned",
+    targetMonth: fields["Target Month"] || "",
+    videoType: fields["Video Type"] || "",
+    competitorUrl: fields["Competitor video URL"] || "",
+    comments: [],
+    airtableCommentCount: 0,
+    documentLink: fields["Script (G-Doc URL)"] || "",
+    // Include original fields for potential future use
+    ...fields
+  };
+}
+
+// Function to format a YouTube Thumbnail item from an Airtable record
+function formatYouTubeThumbnailItem(record: any): ApprovalItem {
+  const fields = record.fields;
+  
+  return {
+    id: record.id,
+    item: fields["Keyword Topic"] || "Untitled YouTube Thumbnail",
+    status: normalizeStatus(fields["Thumbnail Approval"] || "not_started"),
+    lastUpdated: formatDate(fields["Last Modified"] || fields["Created Time"], 'N/A'),
+    clients: fields["Clients"] || [],
+    clientRecordId: fields["Client Record ID"] || "",
+    thumbnailEditor: fields["Thumbnail Editor"] || "Unassigned",
+    thumbnail1: fields["Thumbnail #1"] || null,
+    thumbnail2: fields["Thumbnail #2"] || null,
+    thumbnail3: fields["Thumbnail #3"] || null,
+    notes: fields["Notes"] || "",
+    comments: [],
+    airtableCommentCount: 0,
+    // Include original fields for potential future use
+    ...fields
+  };
+}
+
+// Function to format a Reddit Thread item from an Airtable record
+function formatRedditThreadItem(record: any): ApprovalItem {
+  const fields = record.fields;
+  
+  return {
+    id: record.id,
+    item: fields["Keyword"] || "Untitled Reddit Thread",
+    status: normalizeStatus(fields["Reddit Thread Status Approval"] || "not_started"),
+    lastUpdated: formatDate(fields["Last Modified"] || fields["Created Time"], 'N/A'),
+    clients: fields["Clients"] || [],
+    clientRecordId: fields["Client Record ID"] || "",
+    redditAssignee: fields["Reddit Assignee"] || "Unassigned",
+    threadUrl: fields["Reddit Thread URL"] || "",
+    threadTraffic: fields["Thread SEO Traffic"] || 0,
+    threadValue: fields["Thread SEO Traffic Value"] || "$0",
+    targetMonth: fields["Month"] || "",
+    comments: [],
+    airtableCommentCount: 0,
+    // Include original fields for potential future use
+    ...fields
+  };
+}
+
 // Function to get data from cache or fetch from Airtable
 export async function getApprovalItems(
   type: string = 'briefs',
@@ -403,47 +472,71 @@ export async function getApprovalItems(
         tableName = TABLES.QUICK_WINS;
         console.log(`Using Quick Wins table for quickwins`);
         break;
+      case 'youtubetopics':
+        tableName = TABLES.YOUTUBE_MANAGEMENT;
+        console.log(`Using YouTube Management table for youtubetopics`);
+        break;
+      case 'youtubethumbnails':
+        tableName = TABLES.YOUTUBE_MANAGEMENT;
+        console.log(`Using YouTube Management table for youtubethumbnails`);
+        break;
+      case 'redditthreads':
+        tableName = TABLES.REDDIT_THREADS;
+        console.log(`Using Reddit Threads table for redditthreads`);
+        break;
       default:
-        tableName = TABLES.KEYWORDS;
-        console.log(`No specific table for ${type}, using Keywords table`);
+        console.error(`Unknown content type: ${type}`);
+        return [];
     }
 
     // Log the selected table for debugging
     console.log(`Selected table for ${type}: ${tableName}`);
 
     // Initialize filter formula based on type
-      let filterFormula = '';
+    let filterFormula = '';
     
     // Define the needed client filtering
     const needsClientFiltering = clientId && clientId !== 'all';
       
-      try {
-        if (type === 'briefs') {
-          // Only show records with a value in the "Brief Approvals" field
-          filterFormula = `NOT({Brief Approvals} = '')`;
-          console.log('Filtering briefs by Brief Approvals field');
-        } else if (type === 'articles') {
-          // Only show records with a value in the "Article Approvals" field
-          filterFormula = `NOT({Article Approvals} = '')`;
-          console.log('Filtering articles by Article Approvals field');
-        } else if (type === 'keywords') {
-          // Only show records with a value in the "Keyword Approvals" field
-          filterFormula = `NOT({Keyword Approvals} = '')`;
-          console.log('Filtering keywords by Keyword Approvals field');
-        } else if (type === 'backlinks') {
-          // Only show records with a value in the "Backlink Approvals" field
-          filterFormula = `NOT({Backlink Approvals} = '')`;
-          console.log('Filtering backlinks by Backlink Approvals field');
-        } else if (type === 'quickwins') {
-          // Only show records with a value in the "Status" field for Quick Wins
-          filterFormula = `NOT({Status} = '')`;
-          console.log('Filtering quickwins by Status field');
-        }
-        
+    try {
+      if (type === 'briefs') {
+        // Only show records with a value in the "Brief Approvals" field
+        filterFormula = `NOT({Brief Approvals} = '')`;
+        console.log('Filtering briefs by Brief Approvals field');
+      } else if (type === 'articles') {
+        // Only show records with a value in the "Article Approvals" field
+        filterFormula = `NOT({Article Approvals} = '')`;
+        console.log('Filtering articles by Article Approvals field');
+      } else if (type === 'keywords') {
+        // Only show records with a value in the "Keyword Approvals" field
+        filterFormula = `NOT({Keyword Approvals} = '')`;
+        console.log('Filtering keywords by Keyword Approvals field');
+      } else if (type === 'backlinks') {
+        // Only show records with a value in the "Backlink Approvals" field
+        filterFormula = `NOT({Backlink Approvals} = '')`;
+        console.log('Filtering backlinks by Backlink Approvals field');
+      } else if (type === 'quickwins') {
+        // Only show records with a value in the "Status" field for Quick Wins
+        filterFormula = `NOT({Status} = '')`;
+        console.log('Filtering quickwins by Status field');
+      } else if (type === 'youtubetopics') {
+        // Only show records with a value in the "YouTube Status Approval" field
+        filterFormula = `NOT({YouTube Status Approval} = '')`;
+        console.log('Filtering YouTube topics by YouTube Status Approval field');
+      } else if (type === 'youtubethumbnails') {
+        // Only show records with a value in the "Thumbnail Approval" field
+        filterFormula = `NOT({Thumbnail Approval} = '')`;
+        console.log('Filtering YouTube thumbnails by Thumbnail Approval field');
+      } else if (type === 'redditthreads') {
+        // Only show records with a value in the "Reddit Thread Status Approval" field
+        filterFormula = `NOT({Reddit Thread Status Approval} = '')`;
+        console.log('Filtering Reddit threads by Reddit Thread Status Approval field');
+      }
+      
       // Apply client filtering if a specific client is selected (not 'all')
       if (needsClientFiltering) {
-          console.log(`Adding client filter for client ID: ${clientId}`);
-          
+        console.log(`Adding client filter for client ID: ${clientId}`);
+        
         // Use OR with multiple ways to match the client ID for better compatibility
         const clientFilter = `OR(
           SEARCH("${clientId}", ARRAYJOIN({Clients}, ",")) > 0,
@@ -452,9 +545,9 @@ export async function getApprovalItems(
         )`;
         
         // Combine with existing filter formula
-          if (filterFormula) {
+        if (filterFormula) {
           filterFormula = `AND(${filterFormula}, ${clientFilter})`;
-          } else {
+        } else {
           filterFormula = clientFilter;
         }
       }
@@ -518,6 +611,9 @@ export async function getApprovalItems(
                             type === 'articles' ? `NOT({Article Approvals} = '')` : 
                             type === 'keywords' ? `NOT({Keyword Approvals} = '')` : 
                             type === 'quickwins' ? `NOT({Status} = '')` :
+                            type === 'youtubetopics' ? `NOT({YouTube Status Approval} = '')` :
+                            type === 'youtubethumbnails' ? `NOT({Thumbnail Approval} = '')` :
+                            type === 'redditthreads' ? `NOT({Reddit Thread Status Approval} = '')` :
                             `NOT({Backlink Approvals} = '')`;
           
           // Retry the fetch with the basic filter
@@ -568,8 +664,8 @@ export async function getApprovalItems(
                 totalItems: 0
               }
             };
-      }
-    } else {
+          }
+        } else {
           // For other errors, return empty data
           console.error(`Unknown error fetching data:`, error);
           return {
@@ -698,6 +794,21 @@ export async function getApprovalItems(
             items.push(formatQuickWinItem(record));
           });
           break;
+        case 'youtubetopics':
+          records.filter(record => record.get('YouTube Status Approval')).forEach(record => {
+            items.push(formatYouTubeTopicItem(record));
+          });
+          break;
+        case 'youtubethumbnails':
+          records.filter(record => record.get('Thumbnail Approval')).forEach(record => {
+            items.push(formatYouTubeThumbnailItem(record));
+          });
+          break;
+        case 'redditthreads':
+          records.filter(record => record.get('Reddit Thread Status Approval')).forEach(record => {
+            items.push(formatRedditThreadItem(record));
+          });
+          break;
       }
       
       console.log(`After filtering by content type and approval fields, found ${items.length} items for type ${type}`);
@@ -721,8 +832,8 @@ export async function getApprovalItems(
             return true;
           }
           
-                return false;
-              });
+          return false;
+        });
         console.log(`After client-side filtering: ${filteredItems.length} items remaining out of ${items.length}`);
         
         // Verify a few items to ensure client filtering worked correctly

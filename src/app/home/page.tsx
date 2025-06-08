@@ -98,6 +98,17 @@ export default function Home() {
   const progressPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const currentMonth = new Date().toLocaleString('default', { month: 'long' });
 
+  // Helper function to get display name for approval categories
+  const getCategoryDisplayName = (type: string) => {
+    switch (type) {
+      case 'quickwins': return 'Quick Wins';
+      case 'youtubetopics': return 'YouTube Topics';
+      case 'youtubethumbnails': return 'YouTube Thumbnails';
+      case 'redditthreads': return 'Reddit Threads';
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  };
+
   useEffect(() => {
     async function fetchActivities() {
       setIsLoadingLogs(true);
@@ -124,7 +135,7 @@ export default function Home() {
       
       try {
         // Define the approval item types to fetch
-        const approvalTypes = ['keywords', 'briefs', 'articles', 'backlinks', 'quickwins'];
+        const approvalTypes = ['keywords', 'briefs', 'articles', 'backlinks', 'quickwins', 'youtubetopics', 'youtubethumbnails', 'redditthreads'];
         
         // Fetch all items for each category regardless of status to match approvals page counts
         const promises = approvalTypes.map(async (type) => {
@@ -152,15 +163,14 @@ export default function Home() {
             return { 
               type, 
               count: pendingItems.length,
-              // Convert type to proper category name (capitalize first letter, handle special cases)
-              category: type === 'quickwins' ? 'Quick Wins' : type.charAt(0).toUpperCase() + type.slice(1)
+              category: getCategoryDisplayName(type)
             };
           } catch (error) {
             console.error(`Error fetching approval items for ${type}:`, error);
             return { 
               type, 
               count: 0,
-              category: type === 'quickwins' ? 'Quick Wins' : type.charAt(0).toUpperCase() + type.slice(1)
+              category: getCategoryDisplayName(type)
             }; 
           }
         });
