@@ -23,7 +23,7 @@ type AccessItem = {
 
 type AdminAccessProps = {
   accessItems: AccessItem[];
-  onAddAccess: (newAccess: Omit<AccessItem, 'id' | 'password' | 'lastUpdated' | 'uploadedBy' | 'editable'>) => void;
+  onAddAccess: (newAccess: { service: string; username: string; password: string; notes: string }) => void;
   onChangePassword: (id: number) => void;
   onCopyLogin?: (id: number) => void;
   onGoToService?: (id: number) => void;
@@ -52,6 +52,10 @@ export default function AdminAccess({
   };
 
   const togglePasswordVisibility = (id: number) => {
+    // Debug: Log the access item to see if it has a real password
+    const accessItem = accessItems.find(item => item.id === id);
+    console.log('Toggle password visibility for:', accessItem);
+    
     setVisiblePasswords(prev => ({
       ...prev,
       [id]: !prev[id]
@@ -100,7 +104,12 @@ export default function AdminAccess({
                 </TableCell>
                 <TableCell>
                   <div className="text-base text-mediumGray flex items-center space-x-2">
-                    <span>{visiblePasswords[access.id] ? "password123" : access.password}</span>
+                    <span>{visiblePasswords[access.id] 
+                        ? (access.password && access.password !== '••••••••••' 
+                            ? access.password 
+                            : 'Password hidden for security')
+                        : '••••••••••'}
+                    </span>
                     <button 
                       type="button"
                       onClick={() => togglePasswordVisibility(access.id)}

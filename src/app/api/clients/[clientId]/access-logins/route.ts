@@ -20,6 +20,7 @@ export async function GET(
       id: r.id,
       name: r.get('Name') as string | undefined,
       username: r.get('Username') as string | null | undefined,
+      password: r.get('Password') as string | null | undefined,
       notes: r.get('Notes') as string | null | undefined,
       lastModified: r.get('Last Modified') as string | undefined,
     }))

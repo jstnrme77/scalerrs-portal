@@ -10,41 +10,46 @@ import ChangePasswordModal from './ChangePasswordModal';
 import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import PageContainer, { PageContainerHeader, PageContainerBody, PageContainerTabs } from '@/components/ui/layout/PageContainer';
 import { FileText, KeyRound, FolderArchive } from 'lucide-react';
+import { Document } from '@/components/ui/cards';
 
-// Sample admin data
-const adminData = {
-  agreement: [
-    { id: 1, name: 'Signed contract', type: 'PDF', lastUpdated: '2025-01-15', size: '1.2 MB', uploadedBy: 'Scalerrs', editable: false },
-  ],
-  access: [
-    { id: 1, service: 'Google Analytics', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-15', uploadedBy: 'Client', editable: true },
-    { id: 2, service: 'Google Search Console', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-16', uploadedBy: 'Client', editable: true },
-    { id: 3, service: 'WordPress Admin', username: 'admin', password: '••••••••••', notes: 'Production site', lastUpdated: '2025-01-17', uploadedBy: 'Client', editable: true },
-    { id: 4, service: 'Ahrefs', username: 'client_account', password: '••••••••••', notes: '', lastUpdated: '2025-01-18', uploadedBy: 'Scalerrs', editable: true },
-    { id: 5, service: 'Frase', username: 'client@example.com', password: '••••••••••', notes: '', lastUpdated: '2025-01-19', uploadedBy: 'Scalerrs', editable: true },
-    { id: 6, service: 'YouTube Manager Account Access', username: 'youtube@example.com', password: '••••••••••', notes: 'Brand channel access', lastUpdated: '2025-01-20', uploadedBy: 'Client', editable: true },
-  ],
-  resources: [
-    { id: 1, name: 'Brand guidelines', type: 'PDF', lastUpdated: '2025-03-20', size: '2.4 MB', uploadedBy: 'Client', editable: true },
-    { id: 2, name: 'Tone of voice guide', type: 'DOCX', lastUpdated: '2025-02-15', size: '450 KB', uploadedBy: 'Client', editable: true },
-    { id: 3, name: 'Example blog post', type: 'PDF', lastUpdated: '2025-03-05', size: '1.8 MB', uploadedBy: 'Scalerrs', editable: true },
-    { id: 4, name: 'Product screenshots', type: 'ZIP', lastUpdated: '2025-03-12', size: '680 KB', uploadedBy: 'Client', editable: true },
-    { id: 5, name: 'Visual brand assets',  lastUpdated: '2025-01-30',  uploadedBy: 'Client', editable: true },
-  ],
+// Import or redefine types to match component expectations
+type AccessItem = {
+  id: number;
+  service: string;
+  username: string;
+  password: string;
+  notes: string;
+  lastUpdated: string;
+  uploadedBy: string;
+  editable: boolean;
+};
+
+// Define ResourceDocument to match the one in AdminResources.tsx
+interface ResourceDocument extends Document {
+  uploadedBy?: string;
+  editable?: boolean;
+  url?: string;
+  file?: File; // Add this to support file uploads
+}
+
+type AdminData = {
+  agreement: (Document & { uploadedBy: string; editable: boolean; url?: string })[];
+  access: AccessItem[];
+  resources: ResourceDocument[];
   settings: {
-    companyName: 'Acme Corp',
-    industry: 'Technology',
-    website: 'https://www.acmecorp.com',
-    primaryContact: 'John Smith',
-    contactEmail: 'john.smith@acmecorp.com',
-    contactPhone: '(555) 123-4567',
-    startDate: '2025-01-01',
-    packageType: 'Enterprise SEO',
-    renewalDate: '2026-01-01',
-    planName: 'Enterprise',
-    showUpgradePrompt: true
-  },
-  missingAccess: true
+    companyName: string;
+    industry: string;
+    website: string;
+    primaryContact: string;
+    contactEmail: string;
+    contactPhone: string;
+    startDate: string;
+    packageType: string;
+    renewalDate: string;
+    planName: string;
+    showUpgradePrompt: boolean;
+  };
+  missingAccess: boolean;
 };
 
 // Simple helper to map resource name to category, adjust as needed
@@ -57,9 +62,27 @@ function determineCategory(name: string): string {
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('agreement');
-  const [data, setData] = useState(adminData);
+  const [data, setData] = useState<AdminData>({
+    agreement: [],
+    access: [],
+    resources: [],
+    settings: {
+      companyName: '',
+      industry: '',
+      website: '',
+      primaryContact: '',
+      contactEmail: '',
+      contactPhone: '',
+      startDate: '',
+      packageType: '',
+      renewalDate: '',
+      planName: '',
+      showUpgradePrompt: false
+    },
+    missingAccess: false
+  });
   const [passwordModal, setPasswordModal] = useState({ isOpen: false, accessId: null as number | null });
-  const [selectedAccess, setSelectedAccess] = useState<any | null>(null);
+  const [selectedAccess, setSelectedAccess] = useState<AccessItem | null>(null);
   const [actionStatus, setActionStatus] = useState<{
     type: 'success' | 'error' | 'info' | null;
     message: string | null;
@@ -93,7 +116,7 @@ export default function Admin() {
                 uploadedBy: 'Scalerrs',
                 editable: false,
                 url: d.url, // keep on object for quick access when downloading
-              } as any,
+              },
             ],
           }));
         }
@@ -107,6 +130,9 @@ export default function Admin() {
       try {
         const res = await fetch(`/api/clients/${clientId}/access-logins`);
         const records: any[] = await res.json();
+        
+        // Debug: Log the records to see if passwords are included
+        console.log('Access logins from API:', records);
 
         const DEFAULT_SERVICES = [
           'Google Analytics',
@@ -123,12 +149,12 @@ export default function Admin() {
             id: rec?.id || idx + 1,
             service,
             username: rec?.username || 'N/A',
-            password: '••••••••••', // never expose the real pwd
+            password: rec?.password || '••••••••••', // Use actual password if available
             notes: rec?.notes || '',
             lastUpdated: rec?.lastModified || 'N/A',
             uploadedBy: rec ? 'Client' : 'Scalerrs',
             editable: true,
-          } as any;
+          } as AccessItem;
         });
 
         setData(prev => ({
@@ -157,7 +183,7 @@ export default function Admin() {
             uploadedBy: r.source === 'scalerrs' ? 'Scalerrs' : 'Client',
             editable: true,
             url: r.url,
-          } as any;
+          } as ResourceDocument;
         });
 
         setData(prev => ({
@@ -180,7 +206,9 @@ export default function Admin() {
     try {
       if (!clientId) throw new Error('Missing clientId');
 
-      if (String(id).startsWith('rec')) {
+      // Check if id is a string and starts with 'rec'
+      const idAsString = String(id);
+      if (idAsString.startsWith('rec')) {
         await fetch(`/api/clients/${clientId}/access-logins`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -205,7 +233,7 @@ export default function Admin() {
         access: prevData.access.map(item =>
           item.id === id ? {
             ...item,
-            password: '••••••••••',
+            password: newPassword,
             lastUpdated: new Date().toISOString().split('T')[0],
             username: newUsername,
           } : item
@@ -252,22 +280,29 @@ export default function Admin() {
           body: JSON.stringify({
             name: newAccess.service,
             username: newAccess.username,
+            password: newAccess.password || '',
             notes: newAccess.notes || '',
           }),
         });
       }
 
-      setData(prevData => ({
-        ...prevData,
-        access: [...prevData.access, {
-          ...newAccess,
-          id: Math.max(...prevData.access.map(item => item.id)) + 1,
-          password: '••••••••••',
-          lastUpdated: new Date().toISOString().split('T')[0],
-          uploadedBy: 'Client',
-          editable: true
-        }]
-      }));
+      setData(prevData => {
+        const newId = prevData.access.length > 0 
+          ? Math.max(...prevData.access.map(item => item.id)) + 1 
+          : 1;
+          
+        return {
+          ...prevData,
+          access: [...prevData.access, {
+            ...newAccess,
+            id: newId,
+            password: newAccess.password || '••••••••••',
+            lastUpdated: new Date().toISOString().split('T')[0],
+            uploadedBy: 'Client',
+            editable: true
+          }]
+        };
+      });
 
       setActionStatus({
         type: 'success',
@@ -298,7 +333,22 @@ export default function Admin() {
     });
   };
 
-  const handleUploadResource = async (newResource: any) => {
+  // Create a wrapper function to make the types compatible
+  const handleUploadResourceWrapper = async (newResource: any) => {
+    // Convert to the expected type
+    const resource: Omit<ResourceDocument, 'id'> = {
+      name: newResource.name,
+      type: newResource.type || '',
+      size: newResource.size || '',
+      lastUpdated: newResource.lastUpdated,
+      file: newResource.file,
+    };
+    
+    await handleUploadResourceImpl(resource);
+  };
+
+  // Implementation with correct typing
+  const handleUploadResourceImpl = async (newResource: Omit<ResourceDocument, 'id'>) => {
     try {
       if (!newResource.name.trim() || !newResource.type) {
         setActionStatus({
@@ -310,7 +360,7 @@ export default function Admin() {
 
       if (clientId) {
         let attachments: any[] = [];
-        if (newResource.file) {
+        if (newResource.file instanceof File) {
           const dataUrl = await fileToDataURI(newResource.file);
           attachments = [{ url: dataUrl }];
         }
@@ -327,16 +377,22 @@ export default function Admin() {
         });
       }
 
-      setData(prevData => ({
-        ...prevData,
-        resources: [...prevData.resources, {
-          ...newResource,
-          id: Math.max(...prevData.resources.map(item => item.id)) + 1,
-          lastUpdated: new Date().toISOString().split('T')[0],
-          uploadedBy: 'Client',
-          editable: true
-        }]
-      }));
+      setData(prevData => {
+        const newId = prevData.resources.length > 0 
+          ? Math.max(...prevData.resources.map(item => typeof item.id === 'number' ? item.id : 0)) + 1 
+          : 1;
+          
+        return {
+          ...prevData,
+          resources: [...prevData.resources, {
+            ...newResource,
+            id: newId,
+            lastUpdated: new Date().toISOString().split('T')[0],
+            uploadedBy: 'Client',
+            editable: true
+          } as ResourceDocument]
+        };
+      });
 
       setActionStatus({
         type: 'success',
@@ -426,7 +482,7 @@ export default function Admin() {
               settings={data.settings}
               onView={(id) => console.log(`View agreement ${id}`)}
               onDownload={(id) => {
-                const doc: any = data.agreement.find(a => a.id === id);
+                const doc = data.agreement.find(a => a.id === id);
                 if (doc?.url) {
                   window.open(doc.url, '_blank');
                 }
@@ -456,7 +512,7 @@ export default function Admin() {
           {activeTab === 'resources' && (
             <AdminResources
               resources={data.resources}
-              onUpload={handleUploadResource}
+              onUpload={handleUploadResourceWrapper}
               onView={(id) => console.log(`View resource ${id}`)}
               onDownload={(id) => console.log(`Download resource ${id}`)}
             />

@@ -532,7 +532,7 @@ function GlobalSummaryBanner({
   const clientText = clientId && clientId !== 'all' ? 'for the selected client' : '';
 
   return (
-    <div className="p-6 rounded-lg mb-6 border-8 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm">
+    <div className="p-6 rounded-lg mb-6 border-8 border-[#9EA8FB] bg-[#9EA8FB]/10 shadow-sm relative z-10">
       <div className="flex justify-between items-start">
         <div>
           <p className="font-bold text-dark text-lg mb-1 notification-text">
@@ -580,7 +580,7 @@ function SidebarSummaryPanel({
   const title = isLoading ? 'Loading...' : `Pending Approvals`;
 
   return (
-    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm relative z-10">
       <h3 className="font-medium text-dark mb-3 text-center text-base">{title}</h3>
 
       {isLoading ? (
@@ -2724,7 +2724,7 @@ export default function Approvals() {
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-grow">
           {/* Tab Navigation */}
-          <PageContainer>
+          <PageContainer className="relative z-10">
             <PageContainerTabs className="w-full border-b border-gray-200">
               <div className="w-full">
                 <TabNavigation
