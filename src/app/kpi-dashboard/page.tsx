@@ -988,13 +988,14 @@ function KpiDashboard() {
         <PageContainerTabs>
           <TabNavigation
             tabs={[
-              { id: 'summary', label: 'KPI Summary', icon: <BarChart4 size={18} /> },
-              { id: 'forecasting', label: 'Forecasting Model', icon: <LineChart size={18} /> },
-              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type', icon: <PieChartIcon size={18} /> },
+              { id: 'summary', label: 'KPI Summary', icon: <BarChart4 size={16} /> },
+              { id: 'forecasting', label: 'Forecasting Model', icon: <LineChart size={16} /> },
+              { id: 'pageTypeBreakdown', label: 'Breakdown by Page Type', icon: <PieChartIcon size={16} /> },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
             variant="primary"
+            containerClassName="flex flex-wrap w-full"
           />
         </PageContainerTabs>
 

@@ -13,6 +13,57 @@ import { ConversationHistoryModal } from '@/components/ui/modals';
 // Import the URL utility function
 import { ensureUrlProtocol, formatDate } from '@/utils/field-utils';
 
+// Add custom styles for compact tabs
+const tabStyles = `
+  .tab-item {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+    font-size: 0.875rem !important;
+    height: auto !important;
+    margin-right: 0.25rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 12px !important;
+  }
+  
+  .tab-navigation .flex {
+    flex-wrap: wrap !important;
+    gap: 0.25rem !important;
+    display: flex !important;
+    width: 100% !important;
+  }
+  
+  .page-container-tabs {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .tab-navigation {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    display: flex !important;
+  }
+  
+  /* Force all tab navigation icons to be 16px */
+  .tab-item svg,
+  button svg,
+  .tab-navigation svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  
+  /* Add specific styles for active and inactive tabs */
+  .tab-item-active,
+  .tab-item-inactive {
+    border-radius: 12px !important;
+  }
+`;
+
 // Direct API fetch function
 async function directFetchApprovalItems(
   type: string,
@@ -497,7 +548,7 @@ function GlobalSummaryBanner({
             </div>
           ) : (
             <p className="text-base text-mediumGray">
-              You have {totalCount} items awaiting your review {clientText} across {categoriesCount} categories
+              You have {totalCount} items awaiting your review across {categoriesCount} categories
             </p>
           )}
         </div>
@@ -526,7 +577,7 @@ function SidebarSummaryPanel({
 
   // Get client-specific title
   const clientText = clientId && clientId !== 'all' ? 'Client' : 'All Clients';
-  const title = isLoading ? 'Loading...' : `Pending Approvals (${clientText})`;
+  const title = isLoading ? 'Loading...' : `Pending Approvals`;
 
   return (
     <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -584,7 +635,7 @@ function SidebarSummaryPanel({
         ) : (
           <>
             <div className="flex justify-between py-2 border-b border-black">
-              <span className="text-dark">Keyword</span>
+              <span className="text-dark">Keywords</span>
               <span className="font-medium text-dark">{counts.keywords}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-black">
@@ -607,13 +658,13 @@ function SidebarSummaryPanel({
             )}
             {counts.youtubetopics > 0 && (
               <div className="flex justify-between py-2 border-b border-black">
-                <span className="text-dark">YouTube Topics</span>
+                <span className="text-dark">YT Topics</span>
                 <span className="font-medium text-dark">{counts.youtubetopics}</span>
               </div>
             )}
             {counts.youtubethumbnails > 0 && (
               <div className="flex justify-between py-2 border-b border-black">
-                <span className="text-dark">YouTube Thumbnails</span>
+                <span className="text-dark">YT Thumbnails</span>
                 <span className="font-medium text-dark">{counts.youtubethumbnails}</span>
               </div>
             )}
@@ -1746,7 +1797,7 @@ export default function Approvals() {
   // Use the client data context for client filtering
   const { clientId, isLoading: isClientLoading } = useClientData();
 
-  const [activeTab, setActiveTab] = useState<string>('briefs');
+  const [activeTab, setActiveTab] = useState<string>('keywords');
   const [items, setItems] = useState<ApprovalItems>({
     keywords: [],
     briefs: [],
@@ -2660,6 +2711,9 @@ export default function Approvals() {
 
   return (
     <DashboardLayout>
+      {/* Add custom styles */}
+      <style jsx global>{tabStyles}</style>
+      
       {/* Global Summary Banner */}
       <GlobalSummaryBanner
         counts={pendingCounts}
@@ -2671,23 +2725,25 @@ export default function Approvals() {
         <div className="flex-grow">
           {/* Tab Navigation */}
           <PageContainer>
-            <PageContainerTabs>
-              <TabNavigation
-                tabs={[
-                  { id: 'keywords', label: 'Keyword', icon: <TrendingUp size={18} /> },
-                  { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
-                  { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
-                  { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
-                  { id: 'quickwins', label: 'Quick Wins', icon: <Zap size={18} /> },
-                  { id: 'youtubetopics', label: 'YouTube Topics', icon: <Award size={18} /> },
-                  { id: 'youtubethumbnails', label: 'YouTube Thumbnails', icon: <BarChart2 size={18} /> },
-                  { id: 'redditthreads', label: 'Reddit Threads', icon: <ExternalLink size={18} /> }
-                ]}
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                variant="primary"
-                containerClassName="overflow-x-auto"
-              />
+            <PageContainerTabs className="w-full border-b border-gray-200">
+              <div className="w-full">
+                <TabNavigation
+                  tabs={[
+                    { id: 'keywords', label: 'Keywords', icon: <TrendingUp size={16} /> },
+                    { id: 'briefs', label: 'Briefs', icon: <FileText size={16} /> },
+                    { id: 'articles', label: 'Articles', icon: <BookOpen size={16} /> },
+                    { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={16} /> },
+                    { id: 'quickwins', label: 'Quick Wins', icon: <Zap size={16} /> },
+                    { id: 'youtubetopics', label: 'YT Topics', icon: <Award size={16} /> },
+                    { id: 'youtubethumbnails', label: 'YT Thumbnails', icon: <BarChart2 size={16} /> },
+                    { id: 'redditthreads', label: 'Reddit Threads', icon: <ExternalLink size={16} /> }
+                  ]}
+                  activeTab={activeTab}
+                  onTabChange={handleTabChange}
+                  variant="primary"
+                  containerClassName="flex flex-wrap w-full"
+                />
+              </div>
             </PageContainerTabs>
             <PageContainerBody>
               {/* Bulk action buttons */}

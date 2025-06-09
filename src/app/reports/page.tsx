@@ -548,13 +548,14 @@ export default function Reports() {
                 <div className="flex overflow-x-auto">
                   <TabNavigation
                     tabs={[
-                      { id: "weekly", label: "Weekly", icon: <Calendar size={18} /> },
-                      { id: "monthly", label: "Monthly", icon: <Calendar size={18} /> },
-                      { id: "quarterly", label: "Quarterly", icon: <Calendar size={18} /> },
+                      { id: "weekly", label: "Weekly", icon: <Calendar size={16} /> },
+                      { id: "monthly", label: "Monthly", icon: <Calendar size={16} /> },
+                      { id: "quarterly", label: "Quarterly", icon: <Calendar size={16} /> },
                     ]}
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
                     variant="primary"
+                    containerClassName="flex flex-wrap w-full"
                   />
                 </div>
               </div>

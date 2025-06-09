@@ -47,7 +47,7 @@ export default function TabNavigation({
         containerClassName
       )}
     >
-      <div className="flex overflow-x-auto">
+      <div className="flex overflow-x-auto flex-wrap">
         {tabs.map((tab) => (
           <button
             key={tab.id}

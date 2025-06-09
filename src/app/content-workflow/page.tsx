@@ -988,29 +988,34 @@ export default function ContentWorkflowPage() {
               ref={stickyTabRef}
               className="page-container-tabs border-b border-gray-200 dark:border-gray-700"
             >
-              <div className="flex justify-between items-center w-full">
-                <TabNavigation
-                  tabs={[
-                    { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
-                    { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
-                    { id: 'youtube', label: 'YouTube', icon: <Video size={18} /> },
-                    { id: 'reddit', label: 'Reddit Threads', icon: <MessageSquare size={18} /> },
-                  ]}
-                  activeTab={mainTab}
-                  onTabChange={(tab) => setMainTab(tab as MainTab)}
-                  variant="primary"
-                  containerClassName="overflow-x-auto"
-                />
-                <RoundedMonthSelector
-                  selectedMonth={selectedMonth}
-                  onChange={setSelectedMonth}
-                />
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-2">
+                <div className="w-full md:w-auto">
+                  <TabNavigation
+                    tabs={[
+                      { id: 'briefs', label: 'Briefs', icon: <FileText size={16} /> },
+                      { id: 'articles', label: 'Articles', icon: <BookOpen size={16} /> },
+                      { id: 'youtube', label: 'YT', icon: <Video size={16} /> },
+                      { id: 'reddit', label: 'Reddit Threads', icon: <MessageSquare size={16} /> },
+                    ]}
+                    activeTab={mainTab}
+                    onTabChange={(tab) => setMainTab(tab as MainTab)}
+                    variant="primary"
+                    containerClassName="flex flex-wrap w-full"
+                  />
+                </div>
+                <div className="w-full md:w-auto">
+                  <RoundedMonthSelector
+                    selectedMonth={selectedMonth}
+                    onChange={setSelectedMonth}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Spacer to push content below fixed header */}
-          <div style={{ height: '86px' }}></div>
+          <div style={{ height: '120px' }} className="md:hidden"></div>
+          <div style={{ height: '86px' }} className="hidden md:block"></div>
 
           {/* Scrollable content area */}
           <div className="page-container mb-6">

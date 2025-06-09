@@ -405,13 +405,14 @@ export default function Admin() {
               <div className="flex overflow-x-auto">
                 <TabNavigation
                   tabs={[
-                    { id: 'agreement', label: 'Agreement', icon: <FileText size={18} /> },
-                    { id: 'access', label: 'Access & Logins', icon: <KeyRound size={18} /> },
-                    { id: 'resources', label: 'Resources', icon: <FolderArchive size={18} /> }
+                    { id: 'agreement', label: 'Agreement', icon: <FileText size={16} /> },
+                    { id: 'access', label: 'Access & Logins', icon: <KeyRound size={16} /> },
+                    { id: 'resources', label: 'Resources', icon: <FolderArchive size={16} /> }
                   ]}
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   variant="primary"
+                  containerClassName="flex flex-wrap w-full"
                 />
               </div>
             </div>

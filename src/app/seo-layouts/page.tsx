@@ -676,19 +676,20 @@ export default function SEOLayoutsPage() {
           <PageContainerTabs>
             <TabNavigation
               tabs={[
-                { id: 'uplift', label: 'Uplift Potential', icon: <ClipboardCheck size={18} /> },
-                { id: 'internal-link', label: 'Internal Link Map', icon: <PenTool size={18} /> },
-                { id: 'link-building', label: 'Link Building Targets', icon: <Link2 size={18} /> },
+                { id: 'uplift', label: 'Uplift Potential', icon: <ClipboardCheck size={16} /> },
+                { id: 'internal-link', label: 'Internal Link Map', icon: <PenTool size={16} /> },
+                { id: 'link-building', label: 'Link Building Targets', icon: <Link2 size={16} /> },
                 // Add custom ad-hoc views
                 ...customViews.map(view => ({
                   id: view.id,
                   label: view.label,
-                  icon: view.id === 'product-prune' ? <Scissors size={18} /> : undefined
+                  icon: view.id === 'product-prune' ? <Scissors size={16} /> : undefined
                 }))
               ]}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               variant="primary"
+              containerClassName="flex flex-wrap w-full"
             />
           </PageContainerTabs>
 

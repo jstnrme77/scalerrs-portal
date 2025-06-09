@@ -1386,15 +1386,16 @@ export default function DeliverablePage() {
               <div className="flex overflow-x-auto">
                 <TabNavigation
                   tabs={[
-                    { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
-                    { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
-                    { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
-                    { id: 'youtubescripts', label: 'Youtube Scripts', icon: <Video size={18} /> },
-                    { id: 'redditcomments', label: 'Reddit Comments', icon: <MessageCircle size={18} /> }
+                    { id: 'briefs', label: 'Briefs', icon: <FileText size={16} /> },
+                    { id: 'articles', label: 'Articles', icon: <BookOpen size={16} /> },
+                    { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={16} /> },
+                    { id: 'youtubescripts', label: 'YT Scripts', icon: <Video size={16} /> },
+                    { id: 'redditcomments', label: 'Reddit Comments', icon: <MessageCircle size={16} /> }
                   ]}
                   activeTab={mainTab}
                   onTabChange={(tab) => handleTabChange(tab as MainTab)}
                   variant="primary"
+                  containerClassName="flex flex-wrap w-full"
                 />
               </div>
             </div>

@@ -1991,15 +1991,16 @@ export default function TaskBoards() {
           <PageContainerTabs>
             <TabNavigation
               tabs={[
-                { id: 'cro', label: 'CRO', icon: <BarChart size={18} /> },
-                { id: 'technicalSEO', label: 'Technical SEO', icon: <Wrench size={18} /> },
-                { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', icon: <LightbulbIcon size={18} /> }
+                { id: 'cro', label: 'CRO', icon: <BarChart size={16} /> },
+                { id: 'technicalSEO', label: 'Technical SEO', icon: <Wrench size={16} /> },
+                { id: 'strategyAdHoc', label: 'Strategy / Ad Hoc', icon: <LightbulbIcon size={16} /> }
               ]}
               activeTab={activeBoard}
               onTabChange={setActiveBoard}
               variant="primary"
               tabClassName="bg-gray-100 border-gray-200"
               activeTabClassName="bg-[#000000] text-white"
+              containerClassName="flex flex-wrap w-full"
             />
           </PageContainerTabs>
         </div>

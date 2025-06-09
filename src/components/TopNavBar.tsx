@@ -79,7 +79,7 @@ export default function TopNavBar({
     const pathTitles: {[key: string]: string} = {
       '/get-started': 'Get Started',
       '/content-workflow': 'Content Workflow',
-      '/approvals': 'Approvals',
+      '/approvals': 'Keywords',
       '/task-boards': 'Task Boards',
       '/deliverables': 'Deliverables',
       '/reports': 'Reports',
