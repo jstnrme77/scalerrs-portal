@@ -136,7 +136,7 @@ export const mockYouTube = [
     'Script Title': 'Complete SEO Guide for Beginners',
     'Competitor video URL': 'https://youtube.com/competitor-video-1',
     'YouTube Status': 'Idea Proposed',
-    'Script Status for Deliverables': 'Script Creation Needed',
+    'Script Status': 'Script Creation Needed',
     'Target Month': 'June 2025',
     'Video Type': 'Educational',
     'Script (G-Doc URL)': 'https://docs.google.com/document/d/script1',
@@ -144,7 +144,12 @@ export const mockYouTube = [
     'Clients': ['client1'],
     'YouTube Strategist': { id: 'usr1', name: 'Sarah Wilson', email: 'sarah@example.com' },
     'YouTube Host': { id: 'usr2', name: 'Mike Johnson', email: 'mike@example.com' },
-    'YouTube Scripter': { id: 'usr3', name: 'Jessica Adams', email: 'jessica@example.com' }
+    'YouTube Scripter': { id: 'usr3', name: 'Jessica Adams', email: 'jessica@example.com' },
+    'Script Content': 'Introduction to SEO basics and ranking factors...',
+    'Script Approved Date': '',
+    'Script Revision Count': 0,
+    'Script Keywords': ['SEO', 'rankings', 'beginners', 'optimization'],
+    'Script Length': 1200
   },
   {
     id: 'youtube2',
@@ -153,7 +158,7 @@ export const mockYouTube = [
     'Script Title': 'Small Business Content Marketing Blueprint',
     'Competitor video URL': 'https://youtube.com/competitor-video-2',
     'YouTube Status': 'Script Creation Needed',
-    'Script Status for Deliverables': 'Script Under Internal Review',
+    'Script Status': 'Script Under Internal Review',
     'Target Month': 'July 2025',
     'Video Type': 'Tutorial',
     'Script (G-Doc URL)': 'https://docs.google.com/document/d/script2',
@@ -161,7 +166,12 @@ export const mockYouTube = [
     'Clients': ['client2'],
     'YouTube Strategist': { id: 'usr4', name: 'Alex Chen', email: 'alex@example.com' },
     'YouTube Host': { id: 'usr5', name: 'Emma Davis', email: 'emma@example.com' },
-    'YouTube Scripter': { id: 'usr6', name: 'David Wilson', email: 'david@example.com' }
+    'YouTube Scripter': { id: 'usr6', name: 'David Wilson', email: 'david@example.com' },
+    'Script Content': 'Content marketing strategies for small businesses...',
+    'Script Approved Date': '',
+    'Script Revision Count': 1,
+    'Script Keywords': ['content marketing', 'small business', 'strategy'],
+    'Script Length': 1500
   },
   {
     id: 'youtube3',
@@ -170,7 +180,7 @@ export const mockYouTube = [
     'Script Title': 'Local Business SEO Masterclass',
     'Competitor video URL': 'https://youtube.com/competitor-video-3',
     'YouTube Status': 'Video In Editing',
-    'Script Status for Deliverables': 'Script Approved',
+    'Script Status': 'Script Approved',
     'Target Month': 'August 2025',
     'Video Type': 'Comprehensive Guide',
     'Script (G-Doc URL)': 'https://docs.google.com/document/d/script3',
@@ -178,7 +188,12 @@ export const mockYouTube = [
     'Clients': ['client1'],
     'YouTube Strategist': { id: 'usr1', name: 'Sarah Wilson', email: 'sarah@example.com' },
     'YouTube Host': { id: 'usr2', name: 'Mike Johnson', email: 'mike@example.com' },
-    'YouTube Scripter': { id: 'usr3', name: 'Jessica Adams', email: 'jessica@example.com' }
+    'YouTube Scripter': { id: 'usr3', name: 'Jessica Adams', email: 'jessica@example.com' },
+    'Script Content': 'Comprehensive guide to local SEO optimization...',
+    'Script Approved Date': '2025-07-15',
+    'Script Revision Count': 2,
+    'Script Keywords': ['local SEO', 'Google Business Profile', 'local search'],
+    'Script Length': 2200
   },
   {
     id: 'youtube4',
@@ -187,7 +202,7 @@ export const mockYouTube = [
     'Script Title': 'E-commerce SEO Ultimate Guide',
     'Competitor video URL': 'https://youtube.com/competitor-video-4',
     'YouTube Status': 'Script Approved',
-    'Script Status for Deliverables': 'Script Awaiting Client Depth',
+    'Script Status': 'Script Awaiting Client Depth',
     'Target Month': 'September 2025',
     'Video Type': 'Case Study',
     'Script (G-Doc URL)': 'https://docs.google.com/document/d/script4',
@@ -195,7 +210,12 @@ export const mockYouTube = [
     'Clients': ['client2'],
     'YouTube Strategist': { id: 'usr4', name: 'Alex Chen', email: 'alex@example.com' },
     'YouTube Host': { id: 'usr5', name: 'Emma Davis', email: 'emma@example.com' },
-    'YouTube Scripter': { id: 'usr7', name: 'Michael Smith', email: 'michael@example.com' }
+    'YouTube Scripter': { id: 'usr7', name: 'Michael Smith', email: 'michael@example.com' },
+    'Script Content': 'E-commerce SEO techniques for better conversions...',
+    'Script Approved Date': '',
+    'Script Revision Count': 1,
+    'Script Keywords': ['e-commerce SEO', 'product optimization', 'conversion'],
+    'Script Length': 1800
   },
   {
     id: 'youtube5',
@@ -204,7 +224,7 @@ export const mockYouTube = [
     'Script Title': 'Complete Technical SEO Audit Walkthrough',
     'Competitor video URL': 'https://youtube.com/competitor-video-5',
     'YouTube Status': 'Idea Approved',
-    'Script Status for Deliverables': 'Script Needs Revision',
+    'Script Status': 'Script Needs Revision',
     'Target Month': 'October 2025',
     'Video Type': 'Tutorial',
     'Script (G-Doc URL)': 'https://docs.google.com/document/d/script5',
@@ -212,7 +232,12 @@ export const mockYouTube = [
     'Clients': ['client1'],
     'YouTube Strategist': { id: 'usr1', name: 'Sarah Wilson', email: 'sarah@example.com' },
     'YouTube Host': { id: 'usr2', name: 'Mike Johnson', email: 'mike@example.com' },
-    'YouTube Scripter': { id: 'usr6', name: 'David Wilson', email: 'david@example.com' }
+    'YouTube Scripter': { id: 'usr6', name: 'David Wilson', email: 'david@example.com' },
+    'Script Content': 'Technical SEO audit process and implementation...',
+    'Script Approved Date': '',
+    'Script Revision Count': 3,
+    'Script Keywords': ['technical SEO', 'audit', 'site optimization'],
+    'Script Length': 2500
   }
 ];
 

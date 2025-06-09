@@ -190,4 +190,174 @@ export async function fetchYoutubeScripts(month?: string) {
     console.log('Falling back to mock YouTube data');
     return mockYouTube;
   }
+}
+
+// YouTube Scripts specific API - for tracking scripts like articles
+export async function fetchYoutubeScriptsOnly() {
+  // Use mock data if explicitly enabled
+  if (shouldUseMockData()) {
+    console.log('Using mock YouTube scripts data');
+    // Filter only script-related fields from mock data
+    return mockYouTube.map(item => ({
+      id: item.id,
+      'Keyword Topic': item['Keyword Topic'] || '',
+      'Script Title': item['Script Title'] || '',
+      'Script (G-Doc URL)': item['Script (G-Doc URL)'] || '',
+      'Script Status': item['Script Status'] || item['YouTube Status'] || '',
+      'Script Status for Deliverables': item['Script Status'] || item['YouTube Status'] || '',
+      'Target Month': item['Target Month'] || '',
+      'Month': item['Target Month'] || '',  // Add Month field as alias
+      'YouTube Scripter': item['YouTube Scripter'] || '',
+      'Video Title': item['Video Title'] || '',
+      'Clients': item['Clients'] || [],
+      'Notes': item['Notes'] || ''
+    }));
+  }
+
+  try {
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for YouTube scripts');
+      
+      // Import Airtable directly
+      const Airtable = await import('airtable');
+      
+      try {
+        // Get Airtable credentials from environment variables
+        const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+        const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+        
+        if (!apiKey || !baseId) {
+          console.error('Missing Airtable credentials');
+          return mockYouTube;
+        }
+        
+        // Initialize Airtable
+        const airtable = new Airtable.default({ apiKey });
+        const base = airtable.base(baseId);
+        
+        console.log('Fetching YouTube scripts from Airtable...');
+        const tableName = 'Youtube Management';
+        
+        // First check if we can access the table
+        try {
+          const testRecord = await base(tableName).select({ maxRecords: 1 }).firstPage();
+          console.log(`YouTube scripts table check: ${testRecord.length > 0 ? 'Table has records' : 'Table exists but empty'}`);
+          
+          if (testRecord.length > 0) {
+            console.log('Available fields:', Object.keys(testRecord[0].fields));
+          }
+        } catch (checkError) {
+          console.error('Error checking YouTube scripts table:', checkError);
+        }
+        
+        const records = await base(tableName).select().all();
+        console.log(`Successfully fetched ${records.length} YouTube scripts from Airtable`);
+        
+        // Log all records with June 2025
+        const juneRecords = records.filter((record: any) => {
+          const targetMonth = record.fields['Target Month'];
+          return targetMonth && String(targetMonth).toLowerCase().includes('june 2025');
+        });
+        
+        console.log(`Found ${juneRecords.length} records with 'June 2025' in Target Month`);
+        if (juneRecords.length > 0) {
+          console.log('June 2025 records:', juneRecords.map((record: any) => ({
+            id: record.id,
+            keyword: record.fields['Keyword Topic'],
+            targetMonth: record.fields['Target Month'],
+            scriptStatus: record.fields['Script Status']
+          })));
+        }
+        
+        // Map the records to our expected format focusing on script fields
+        const scripts = records.map((record: any) => {
+          const fields = record.fields;
+          
+          // Process client field - ensure it's an array
+          let clientsValue: string[] = [];
+          if (fields['Clients']) {
+            if (Array.isArray(fields['Clients'])) {
+              clientsValue = fields['Clients'];
+            } else if (typeof fields['Clients'] === 'string') {
+              clientsValue = [fields['Clients']];
+            }
+          }
+          
+          return {
+            id: record.id,
+            'Keyword Topic': fields['Keyword Topic'] || '',
+            'Script Title': fields['Script Title'] || '',
+            'Script (G-Doc URL)': fields['Script (G-Doc URL)'] || '',
+            'Script Status': fields['Script Status'] || fields['YouTube Status'] || '',
+            'Script Status for Deliverables': fields['Script Status'] || fields['YouTube Status'] || '',
+            'Target Month': fields['Target Month'] || '',
+            'Month': fields['Target Month'] || '',  // Add Month field as alias
+            'YouTube Scripter': fields['YouTube Scripter'] || '',
+            'Video Title': fields['Video Title'] || '',
+            'Clients': clientsValue,
+            'Notes': fields['Notes'] || '',
+            // Include all original fields as well
+            ...fields
+          };
+        });
+        
+        return scripts;
+      } catch (error) {
+        console.error('Error fetching YouTube scripts from Airtable:', error);
+        return mockYouTube.map(item => ({
+          id: item.id,
+          'Keyword Topic': item['Keyword Topic'] || '',
+          'Script Title': item['Script Title'] || '',
+          'Script (G-Doc URL)': item['Script (G-Doc URL)'] || '',
+          'Script Status': item['Script Status'] || item['YouTube Status'] || '',
+          'Script Status for Deliverables': item['Script Status'] || item['YouTube Status'] || '',
+          'Target Month': item['Target Month'] || '',
+          'Month': item['Target Month'] || '',  // Add Month field as alias
+          'YouTube Scripter': item['YouTube Scripter'] || '',
+          'Video Title': item['Video Title'] || '',
+          'Clients': item['Clients'] || [],
+          'Notes': item['Notes'] || ''
+        }));
+      }
+    }
+
+    // In production, use API routes
+    const url = '/api/youtube/scripts';
+    console.log('Fetching YouTube scripts from:', url);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('YouTube scripts data received:', data);
+    
+    return data.scripts || [];
+  } catch (error) {
+    console.error('Error fetching YouTube scripts:', error);
+    return mockYouTube.map(item => ({
+      id: item.id,
+      'Keyword Topic': item['Keyword Topic'] || '',
+      'Script Title': item['Script Title'] || '',
+      'Script (G-Doc URL)': item['Script (G-Doc URL)'] || '',
+      'Script Status': item['Script Status'] || item['YouTube Status'] || '',
+      'Script Status for Deliverables': item['Script Status'] || item['YouTube Status'] || '',
+      'Target Month': item['Target Month'] || '',
+      'Month': item['Target Month'] || '',  // Add Month field as alias
+      'YouTube Scripter': item['YouTube Scripter'] || '',
+      'Video Title': item['Video Title'] || '',
+      'Clients': item['Clients'] || [],
+      'Notes': item['Notes'] || ''
+    }));
+  }
 } 

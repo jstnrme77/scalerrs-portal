@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { fetchBriefs, fetchArticles, fetchBacklinks, fetchRedditThreads, fetchRedditComments } from '@/lib/client-api';
+import { fetchBriefs, fetchArticles, fetchBacklinks, fetchRedditThreads, fetchRedditComments, fetchYoutubeScriptsOnly } from '@/lib/client-api';
 import { fetchYoutubeScripts } from '@/lib/youtube-api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -99,6 +99,39 @@ const getLinkedRecordValue = (
   
   // Default fallback
   return { id: '', value: '' };
+};
+
+// Helper function to normalize month names for comparison
+const normalizeMonthName = (monthName: string): string => {
+  const months: Record<string, string> = {
+    'january': 'january',
+    'jan': 'january',
+    'february': 'february',
+    'feb': 'february',
+    'march': 'march',
+    'mar': 'march',
+    'april': 'april',
+    'apr': 'april',
+    'may': 'may',
+    'june': 'june',
+    'jun': 'june',
+    'july': 'july',
+    'jul': 'july',
+    'august': 'august',
+    'aug': 'august',
+    'september': 'september',
+    'sept': 'september',
+    'sep': 'september',
+    'october': 'october',
+    'oct': 'october',
+    'november': 'november',
+    'nov': 'november',
+    'december': 'december',
+    'dec': 'december'
+  };
+  
+  const lowercaseMonth = monthName.toLowerCase().trim();
+  return months[lowercaseMonth] || lowercaseMonth;
 };
 
 export default function DeliverablePage() {
@@ -300,8 +333,69 @@ export default function DeliverablePage() {
 
       try {
         console.log('Fetching YouTube scripts...');
-        youtubeScriptsData = await fetchYoutubeScripts(selectedMonth);
-        console.log(`Fetched ${youtubeScriptsData.length} YouTube scripts`);
+        // Fetch both regular YouTube data and YouTube scripts
+        const [regularYoutubeData, youtubeScriptsOnlyData] = await Promise.all([
+          fetchYoutubeScripts(selectedMonth),
+          fetchYoutubeScriptsOnly()
+        ]);
+        
+        console.log(`Fetched regular YouTube data: ${regularYoutubeData?.length || 0} items`);
+        console.log(`Fetched YouTube scripts only data: ${youtubeScriptsOnlyData?.length || 0} items`);
+        
+        // Ensure we have arrays for both data types
+        const regularData = Array.isArray(regularYoutubeData) ? regularYoutubeData : [];
+        const scriptsData = Array.isArray(youtubeScriptsOnlyData) ? youtubeScriptsOnlyData : [];
+        
+        // Combine both data sources - use a Map to avoid duplicates
+        const combinedMap = new Map();
+        
+        // First add all regular YouTube data
+        regularData.forEach(video => {
+          combinedMap.set(video.id, video);
+        });
+        
+        // Then add or merge script-specific data
+        scriptsData.forEach(script => {
+          if (combinedMap.has(script.id)) {
+            // Merge with existing record
+            combinedMap.set(script.id, {
+              ...combinedMap.get(script.id),
+              ...script
+            });
+          } else {
+            // Add new record
+            combinedMap.set(script.id, script);
+          }
+        });
+        
+        // Convert map back to array
+        youtubeScriptsData = Array.from(combinedMap.values());
+        
+        console.log(`Combined ${youtubeScriptsData.length} YouTube scripts after merging`);
+        
+        // Log data for debugging
+        if (youtubeScriptsData.length > 0) {
+          console.log('Sample YouTube script data after merging:', youtubeScriptsData[0]);
+          console.log('All Target Month values:', youtubeScriptsData.map(item => item['Target Month']));
+          console.log('All Script Status values:', youtubeScriptsData.map(item => item['Script Status']));
+          
+          // Check for June 2025 records
+          const juneRecords = youtubeScriptsData.filter(item => {
+            const month = item['Target Month'];
+            return month && String(month).toLowerCase().includes('june 2025');
+          });
+          
+          console.log(`Found ${juneRecords.length} records with June 2025 in Target Month`);
+          if (juneRecords.length > 0) {
+            console.log('June 2025 records:', juneRecords.map(item => ({
+              id: item.id,
+              keyword: item['Keyword Topic'],
+              month: item['Target Month'],
+              status: item['Script Status'] || item['Script Status for Deliverables']
+            })));
+          }
+        }
+        
         logData(youtubeScriptsData, 'YouTube Scripts');
       } catch (youtubeScriptsError) {
         console.error('Error fetching YouTube scripts:', youtubeScriptsError);
@@ -800,8 +894,17 @@ export default function DeliverablePage() {
     let filtered = data;
     
     console.log('YouTube Scripts data before filtering:', data);
-    console.log('YouTube Scripts status values:', data.map(script => script['Script Status for Deliverables']));
-    console.log('YouTube Scripts month values:', data.map(script => script['Target Month']));
+    console.log('YouTube Scripts count:', data.length);
+    console.log('YouTube Scripts status values:', data.map(script => ({
+      'Script Status': script['Script Status'],
+      'Script Status for Deliverables': script['Script Status for Deliverables'],
+      'YouTube Status': script['YouTube Status']
+    })));
+    console.log('YouTube Scripts month values:', data.map(script => ({
+      'Target Month': script['Target Month'],
+      'Month': script['Month'],
+      'keyword': script['Keyword Topic']
+    })));
     console.log('Current YouTube Scripts status filter:', youtubeScriptStatusFilter);
     console.log('Current month filter:', selectedMonth);
     
@@ -809,7 +912,7 @@ export default function DeliverablePage() {
     if (selectedMonth && data.length > 0) {
       // Parse the selected month to get standardized parts
       const selectedMonthParts = selectedMonth.toLowerCase().split(' ');
-      const selectedMonthName = selectedMonthParts[0];
+      const selectedMonthName = normalizeMonthName(selectedMonthParts[0]);
       const selectedYear = selectedMonthParts.length > 1 ? selectedMonthParts[1] : new Date().getFullYear().toString();
       
       console.log('Filtering YouTube scripts with month parts:', { selectedMonthName, selectedYear, selectedMonth });
@@ -842,13 +945,11 @@ export default function DeliverablePage() {
           
           // 2. Parse the script month to extract month name and year
           const scriptMonthParts = scriptMonthStr.split(' ');
-          const scriptMonthName = scriptMonthParts[0];
+          const scriptMonthName = normalizeMonthName(scriptMonthParts[0]);
           const scriptYear = scriptMonthParts.length > 1 ? scriptMonthParts[1] : '';
           
-          // 3. Match both month name and year - enforce year matching
-          const monthNameMatches = scriptMonthName === selectedMonthName || 
-                                  scriptMonthName.includes(selectedMonthName) || 
-                                  selectedMonthName.includes(scriptMonthName);
+          // 3. Match both month name AND year for strict filtering
+          const monthNameMatches = scriptMonthName === selectedMonthName;
           const yearMatches = scriptYear === selectedYear;
           
           // Log for debugging
@@ -864,7 +965,7 @@ export default function DeliverablePage() {
             passes: monthNameMatches && yearMatches
           });
           
-          // Only return true if both month name AND year match
+          // Return true if BOTH month name AND year match for strict filtering
           return monthNameMatches && yearMatches;
         } catch (e) {
           console.error('Error filtering YouTube script by month:', e, script);
@@ -879,20 +980,26 @@ export default function DeliverablePage() {
     if (youtubeScriptStatusFilter !== 'all') {
       filtered = filtered.filter(script => {
         try {
-          // Get the status field value - use only Script Status for Deliverables
-          const status = String(script['Script Status for Deliverables'] || '').toLowerCase();
+          // Get the status field value - check both possible field names
+          const status = String(script['Script Status'] || script['Script Status for Deliverables'] || '').toLowerCase();
           const filterStatus = youtubeScriptStatusFilter.toLowerCase();
           
           // Check for exact match or if the status contains the filter value
           const passes = status === filterStatus || 
                          status.includes(filterStatus) || 
-                         (filterStatus === 'idea' && status.includes('idea')) ||
-                         (filterStatus === 'review' && status.includes('review')) ||
-                         (filterStatus === 'draft' && status.includes('draft'));
+                         // Handle specific status mappings
+                         (filterStatus === 'idea' && (status.includes('idea') || status.includes('proposed'))) ||
+                         (filterStatus === 'review' && (status.includes('review') || status.includes('internal review'))) ||
+                         (filterStatus === 'draft' && (status.includes('draft') || status.includes('creation'))) ||
+                         (filterStatus === 'revision' && (status.includes('revision') || status.includes('needs revision'))) ||
+                         (filterStatus === 'awaiting client' && (status.includes('awaiting client') || status.includes('client depth'))) ||
+                         (filterStatus === 'approved' && (status.includes('approved'))) ||
+                         (filterStatus === 'production' && (status.includes('recording') || status.includes('editing') || status.includes('video')));
           
           console.log('Script status check:', { 
             id: script.id,
             keyword: script['Keyword Topic'],
+            scriptTitle: script['Script Title'],
             actual: status, 
             filter: filterStatus, 
             passes 
@@ -1393,11 +1500,14 @@ export default function DeliverablePage() {
                     onChange={(e) => setYoutubeScriptStatusFilter(e.target.value)}
                   >
                     <option value="all">All Statuses</option>
-                    <option value="idea">Idea</option>
+                    <option value="idea">Idea Phase</option>
                     <option value="script creation">Script Creation</option>
+                    <option value="draft">Draft</option>
                     <option value="review">In Review</option>
                     <option value="awaiting client">Awaiting Client</option>
+                    <option value="revision">Needs Revision</option>
                     <option value="approved">Approved</option>
+                    <option value="production">In Production</option>
                   </select>
                   {youtubeScriptStatusFilter !== 'all' && (
                     <button
@@ -2005,6 +2115,21 @@ export default function DeliverablePage() {
                         variant="ghost"
                         onClick={() => {
                           setYoutubeScriptSort(prev => ({
+                            column: 'Script Title',
+                            direction: prev?.column === 'Script Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        SCRIPT TITLE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
                             column: 'Keyword Topic',
                             direction: prev?.column === 'Keyword Topic' && prev?.direction === 'asc' ? 'desc' : 'asc'
                           }));
@@ -2030,21 +2155,6 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setYoutubeScriptSort(prev => ({
-                            column: 'Script Title',
-                            direction: prev?.column === 'Script Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
-                          }));
-                        }}
-                        className="p-0 h-8 text-base font-medium flex items-center"
-                      >
-                        SCRIPT TITLE
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
                     <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
@@ -2065,8 +2175,8 @@ export default function DeliverablePage() {
                         variant="ghost"
                         onClick={() => {
                           setYoutubeScriptSort(prev => ({
-                            column: 'Script Status for Deliverables',
-                            direction: prev?.column === 'Script Status for Deliverables' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                            column: 'Script Status',
+                            direction: prev?.column === 'Script Status' && prev?.direction === 'asc' ? 'desc' : 'asc'
                           }));
                         }}
                         className="p-0 h-8 text-base font-medium flex items-center"
@@ -2090,6 +2200,21 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'Script Approved Date',
+                            direction: prev?.column === 'Script Approved Date' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        APPROVED DATE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
                     <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px] min-w-[120px]">SCRIPT LINK</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -2097,24 +2222,29 @@ export default function DeliverablePage() {
                   {filteredYoutubeScripts.length > 0 ? (
                     filteredYoutubeScripts.map((script) => (
                       <TableRow key={script.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(script['Keyword Topic'] || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(script['Script Title'] || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(script['Keyword Topic'] || '')}</TableCell>
                         <TableCell className="px-4 py-4 text-base text-dark">{String(script['Video Title'] || '')}</TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(script['Script Title'] || '')}</TableCell>
                         <TableCell className="px-4 py-4 text-base text-dark">{String(getUserName(script['YouTube Scripter']))}</TableCell>
                         <TableCell className="px-4 py-4">
-                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
-                            ${String(script['Script Status for Deliverables'] || '').toLowerCase().includes('approved') ? 'bg-green-100 text-green-800' :
-                            String(script['Script Status for Deliverables'] || '').toLowerCase().includes('review') ? 'bg-blue-200 text-blue-800' :
-                            String(script['Script Status for Deliverables'] || '').toLowerCase().includes('awaiting') ? 'bg-yellow-200 text-yellow-800' :
-                            String(script['Script Status for Deliverables'] || '').toLowerCase().includes('idea') ? 'bg-purple-200 text-purple-800' :
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
+                            ${String(script['Script Status'] || '').toLowerCase().includes('approved') ? 'bg-green-100 text-green-800' :
+                            String(script['Script Status'] || '').toLowerCase().includes('review') ? 'bg-blue-200 text-blue-800' :
+                            String(script['Script Status'] || '').toLowerCase().includes('awaiting') ? 'bg-yellow-200 text-yellow-800' :
+                            String(script['Script Status'] || '').toLowerCase().includes('idea') ? 'bg-purple-200 text-purple-800' :
                             'bg-gray-100 text-gray-800'}`}>
-                            {String(script['Script Status for Deliverables'] || 'Unknown')}
+                            {String(script['Script Status'] || 'Unknown')}
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-4">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-indigo-100 text-indigo-800">
                             {String(script['Target Month'] || '-')}
                           </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">
+                          {script['Script Approved Date'] ? 
+                            new Date(script['Script Approved Date']).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : '-'}
                         </TableCell>
                         <TableCell className="px-4 py-4">
                           {script['Script (G-Doc URL)'] ? (
@@ -2135,7 +2265,7 @@ export default function DeliverablePage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="px-4 py-4 text-center text-gray-500">
+                      <TableCell colSpan={8} className="px-4 py-4 text-center text-gray-500">
                         No YouTube scripts available for {selectedMonth}
                       </TableCell>
                     </TableRow>

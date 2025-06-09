@@ -16,7 +16,7 @@ import {
 } from '@/lib/mock-data';
 
 // Export the fetchYoutubeScripts function from youtube-api.ts
-export { fetchYoutubeScripts } from './youtube-api';
+export { fetchYoutubeScripts, fetchYoutubeScriptsOnly } from './youtube-api';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';

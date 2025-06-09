@@ -203,6 +203,34 @@ export interface YouTube {
   'Video Editor'?: string;
   'YouTube Scripter'?: string;
   'Script Title'?: string;
+  'Script Status'?: string;
+  'Script Status for Deliverables'?: string;
+  'Script Content'?: string;
+  'Script Approved Date'?: string;
+  'Script Revision Count'?: number;
+  'Script Keywords'?: string[];
+  'Script Length'?: number;
+  [key: string]: any; // Allow for additional fields from Airtable
+}
+
+// YouTube Script type (for tracking scripts like articles)
+export interface YouTubeScript {
+  id: string;
+  'Keyword Topic': string;
+  'Script Title'?: string;
+  'Script (G-Doc URL)'?: string;
+  'Script Status'?: string;
+  'Script Status for Deliverables'?: string;
+  'Script Content'?: string;
+  'Target Month'?: string;
+  'YouTube Scripter'?: string;
+  'Script Approved Date'?: string;
+  'Script Revision Count'?: number;
+  'Script Keywords'?: string[];
+  'Script Length'?: number;
+  'Video Title'?: string;
+  'Clients'?: string | string[];
+  'Notes'?: string;
   [key: string]: any; // Allow for additional fields from Airtable
 }
 
