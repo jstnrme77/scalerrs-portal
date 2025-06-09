@@ -1262,7 +1262,7 @@ export default function DeliverablePage() {
       {/* Fixed header container for summary cards and error messages */}
       <div className="bg-white flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-1" style={{ position: 'fixed', top: '64px', left: sidebarExpanded ? '256px' : '80px', right: '16px', paddingTop: '48px', paddingBottom: '16px', paddingLeft: '48px', paddingRight: '16px' }}>
         {/* Top-Level Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 max-w-full">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 max-w-full">
           {/* Briefs Approved Card - Purple Border for Briefs */}
           <div className="rounded-lg border-8 p-6 bg-purple-50 h-[104px] flex items-center shadow-sm border-purple-400">
             <div className="flex flex-col items-center text-center w-full">
@@ -1277,7 +1277,7 @@ export default function DeliverablePage() {
               <span className="text-base font-medium">
                 Briefs Delivered
               </span>
-              <span className="text-base text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1">
                 {filteredBriefs.filter(brief => 
                   String(brief.Status || '').toLowerCase() === 'brief approved' || 
                   String(brief.Status || '').toLowerCase() === 'approved'
@@ -1299,7 +1299,7 @@ export default function DeliverablePage() {
               <span className="text-base font-medium">
                 Articles Live
               </span>
-              <span className="text-base text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1">
                 {filteredArticles.filter(article => 
                   String(article.Status || '').toLowerCase() === 'live'
                 ).length} of {filteredArticles.length} articles live
@@ -1320,7 +1320,7 @@ export default function DeliverablePage() {
               <span className="text-base font-medium">
                 Backlinks Live
               </span>
-              <span className="text-base text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1">
                 {filteredBacklinks.filter(backlink => 
                   String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
                 ).length} of {filteredBacklinks.length} backlinks placed
@@ -1338,21 +1338,35 @@ export default function DeliverablePage() {
                     ).length / filteredYoutubeScripts.length) * 100)
                   : 0}%
               </span>
-              <span className="text-sm text-darkGray">Scripts Approved</span>
+              <span className="text-base font-medium">
+                Scripts Approved
+              </span>
+              <span className="text-xs text-mediumGray mt-1">
+                {filteredYoutubeScripts.filter(script => 
+                  String(script['Script Status for Deliverables'] || '').toLowerCase().includes('approved')
+                ).length} of {filteredYoutubeScripts.length} scripts approved
+              </span>
             </div>
           </div>
 
-          {/* Reddit Comments Card - Purple/Pink Border for Reddit Comments */}
-          <div className="rounded-lg border-8 p-6 bg-pink-50 h-[104px] flex items-center shadow-sm border-pink-400">
+          {/* Reddit Comments Card - Unique color for Reddit Comments */}
+          <div className="rounded-lg border-8 p-6 bg-indigo-50 h-[104px] flex items-center shadow-sm border-indigo-400">
             <div className="flex flex-col items-center text-center w-full">
               <span className="text-lg font-bold mb-1 notification-text">
                 {Object.values(filteredRedditComments).flat().length > 0
                   ? Math.round((Object.values(filteredRedditComments).flat().filter(comment => 
                       String(comment.Status || '').toLowerCase() === 'posted'
-                    ).length / Object.values(filteredRedditComments).flat().length) * 100) + '%'
-                  : '0%'}
+                    ).length / Object.values(filteredRedditComments).flat().length) * 100)
+                  : 0}%
               </span>
-              <span className="text-sm text-gray-500">Reddit Comments Posted</span>
+              <span className="text-base font-medium">
+                Reddit Comments Posted
+              </span>
+              <span className="text-xs text-mediumGray mt-1">
+                {Object.values(filteredRedditComments).flat().filter(comment => 
+                  String(comment.Status || '').toLowerCase() === 'posted'
+                ).length} of {Object.values(filteredRedditComments).flat().length} comments posted
+              </span>
             </div>
           </div>
         </div>
@@ -1549,7 +1563,7 @@ export default function DeliverablePage() {
       </div>
 
       {/* Spacer to push content below fixed header */}
-      <div style={{ height: '350px' }}></div>
+      <div style={{ height: '200px' }}></div>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
