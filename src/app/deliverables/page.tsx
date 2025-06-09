@@ -1,15 +1,41 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { fetchBriefs, fetchArticles, fetchBacklinks } from '@/lib/client-api';
+import { fetchBriefs, fetchArticles, fetchBacklinks, fetchRedditThreads, fetchRedditComments } from '@/lib/client-api';
+import { fetchYoutubeScripts } from '@/lib/youtube-api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpDown, FileText, BookOpen, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import TabNavigation from "@/components/ui/navigation/TabNavigation";
+import { ArrowUpDown, BookOpen, CheckCheck, FileText, Link2, MessageCircle, Video } from "lucide-react";
 import { ensureUrlProtocol, formatDate } from '@/utils/field-utils';
-import TabNavigation from '@/components/ui/navigation/TabNavigation';
 import { useClientData } from '@/context/ClientDataContext';
+import React from 'react';
 
 // Define types for tabs
-type MainTab = 'briefs' | 'articles' | 'backlinks';
+type MainTab = 'briefs' | 'articles' | 'backlinks' | 'youtubescripts' | 'redditcomments';
+
+// Define types for the data
+interface RedditComment {
+  id: string;
+  Comment?: string;
+  Status?: string;
+  'Comment Text Proposition (Internal)': string;
+  'Comment Text Proposition (External)': string;
+  'Author Name (team pseudonym)': string;
+  Votes?: string | number;
+  'Current N° Of Upvotes'?: string | number;
+  'Date Posted'?: string;
+  'Publication Date'?: string;
+  'Reddit Thread (Relation)': string[];
+  'Reddit Thread Name'?: string;
+  threadId?: string;
+  threadTitle?: string;
+  threadUrl?: string;
+  isFirstInThread?: boolean;
+  [key: string]: any;
+}
+
+// Define type for grouped Reddit comments
+type GroupedRedditComments = Record<string, RedditComment[]>;
 
 // Helper function to get the current month and year in the format "Month YYYY"
 const getCurrentMonthYear = (): string => {
@@ -17,6 +43,62 @@ const getCurrentMonthYear = (): string => {
   const month = now.toLocaleString('default', { month: 'long' });
   const year = now.getFullYear();
   return `${month} ${year}`;
+};
+
+// Helper function to extract linked record data following Airtable best practices
+const getLinkedRecordValue = (
+  linkedRecordField: any, 
+  threadMap?: Map<string, any>, 
+  targetProperty: string = 'name'
+): { id: string, value: string } => {
+  // If the field is null or undefined
+  if (!linkedRecordField) {
+    return { id: '', value: '' };
+  }
+  
+  // If it's an array (standard Airtable linked record format)
+  if (Array.isArray(linkedRecordField) && linkedRecordField.length > 0) {
+    const firstRecord = linkedRecordField[0];
+    
+    // If it's a direct ID string (this is what we're getting in our case)
+    if (typeof firstRecord === 'string') {
+      const id = firstRecord;
+      let value = '';
+      
+      // If a thread map is provided, try to get the title from there
+      if (threadMap && threadMap.has(id)) {
+        const thread = threadMap.get(id) || {};
+        // Look for common title fields in the thread record
+        value = (thread as any).Title || (thread as any).Name || (thread as any).Keyword || 
+                (typeof (thread as any)['Reddit Thread URL'] === 'string' ? 
+                 (thread as any)['Reddit Thread URL'].split('/').pop() : '');
+      }
+      
+      return { id, value };
+    }
+    
+    // If it's an object with id and name properties (standard Airtable linked record)
+    if (typeof firstRecord === 'object' && firstRecord !== null) {
+      const id = 'id' in firstRecord ? firstRecord.id : '';
+      const value = targetProperty in firstRecord ? firstRecord[targetProperty] : '';
+      return { id, value };
+    }
+  }
+  
+  // If it's a direct string value
+  if (typeof linkedRecordField === 'string') {
+    return { id: linkedRecordField, value: '' };
+  }
+  
+  // If it's a direct object
+  if (typeof linkedRecordField === 'object' && linkedRecordField !== null && !Array.isArray(linkedRecordField)) {
+    const id = 'id' in linkedRecordField ? linkedRecordField.id : '';
+    const value = targetProperty in linkedRecordField ? linkedRecordField[targetProperty] : '';
+    return { id, value };
+  }
+  
+  // Default fallback
+  return { id: '', value: '' };
 };
 
 export default function DeliverablePage() {
@@ -36,20 +118,29 @@ export default function DeliverablePage() {
   const [briefs, setBriefs] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
   const [backlinks, setBacklinks] = useState<any[]>([]);
+  const [youtubeScripts, setYoutubeScripts] = useState<any[]>([]);
+  const [redditComments, setRedditComments] = useState<RedditComment[]>([]);
+  const [redditThreads, setRedditThreads] = useState<any[]>([]);
   const [urlPerformance, setUrlPerformance] = useState<any[]>([]);
   const [filteredBriefs, setFilteredBriefs] = useState<any[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
   const [filteredBacklinks, setFilteredBacklinks] = useState<any[]>([]);
+  const [filteredYoutubeScripts, setFilteredYoutubeScripts] = useState<any[]>([]);
+  const [filteredRedditComments, setFilteredRedditComments] = useState<GroupedRedditComments>({});
 
   // Sorting states
   const [briefSort, setBriefSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
   const [articleSort, setArticleSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
   const [backlinkSort, setBacklinkSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+  const [youtubeScriptSort, setYoutubeScriptSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
+  const [redditCommentSort, setRedditCommentSort] = useState<{ column: string; direction: 'asc' | 'desc' } | null>(null);
 
   // Filter states
   const [briefStatusFilter, setBriefStatusFilter] = useState<string>('all');
   const [articleStatusFilter, setArticleStatusFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [youtubeScriptStatusFilter, setYoutubeScriptStatusFilter] = useState<string>('all');
+  const [redditCommentStatusFilter, setRedditCommentStatusFilter] = useState<string>('all');
   const [drFilter, setDrFilter] = useState<string>('all');
 
   // Create a mapping of URL Performance record IDs to URL paths
@@ -166,9 +257,12 @@ export default function DeliverablePage() {
         `${currentUser.Name} (${currentUser.Role})` : 'Not logged in');
 
       // Fetch each data type separately to better handle errors
-      let briefsData = [];
-      let articlesData = [];
-      let backlinksData = [];
+      let briefsData: any[] = [];
+      let articlesData: any[] = [];
+      let backlinksData: any[] = [];
+      let youtubeScriptsData: any[] = [];
+      let redditCommentsData: any[] = [];
+      let redditThreadsData: any[] = [];
       let hasError = false;
 
       try {
@@ -204,8 +298,158 @@ export default function DeliverablePage() {
         hasError = true;
       }
 
-      // Only set general error if all three data types failed
-      if (hasError && briefsData.length === 0 && articlesData.length === 0 && backlinksData.length === 0) {
+      try {
+        console.log('Fetching YouTube scripts...');
+        youtubeScriptsData = await fetchYoutubeScripts(selectedMonth);
+        console.log(`Fetched ${youtubeScriptsData.length} YouTube scripts`);
+        logData(youtubeScriptsData, 'YouTube Scripts');
+      } catch (youtubeScriptsError) {
+        console.error('Error fetching YouTube scripts:', youtubeScriptsError);
+        setError(prev => ({ ...prev, youtubescripts: 'Failed to load YouTube scripts data' }));
+        hasError = true;
+      }
+
+      try {
+        console.log('Fetching Reddit comments and threads...');
+        redditThreadsData = await fetchRedditThreads(selectedMonth);
+        redditCommentsData = await fetchRedditComments();
+        
+        console.log(`Fetched ${redditCommentsData?.length || 0} Reddit comments`);
+        console.log(`Fetched ${redditThreadsData?.length || 0} Reddit threads`);
+        
+        // Ensure we have arrays for both data types
+        if (!Array.isArray(redditThreadsData)) {
+          console.warn('Reddit threads data is not an array, initializing as empty array');
+          redditThreadsData = [];
+        }
+        
+        if (!Array.isArray(redditCommentsData)) {
+          console.warn('Reddit comments data is not an array, initializing as empty array');
+          redditCommentsData = [];
+        }
+        
+        // Process Reddit comments to add threadId
+        if (redditCommentsData.length > 0) {
+          // Create a map of thread IDs to thread records
+          const threadMap = new Map(redditThreadsData.map(thread => [thread.id, thread]));
+          
+          // Log sample data for debugging
+          console.log('Sample thread map entries:', Array.from(threadMap.entries()).slice(0, 2));
+          if (redditCommentsData.length > 0) {
+            console.log('Sample comment fields:', redditCommentsData.slice(0, 2).map(comment => ({
+              id: comment.id,
+              threadRelation: comment['Reddit Thread (Relation)'] || null,
+              threadField: comment['Reddit Thread'] || null,
+              threadName: comment['Reddit Thread Name'] || null
+            })));
+          }
+          
+          // Check for actual thread relation format in first comment (if available)
+          if (redditCommentsData.length > 0 && redditCommentsData[0]['Reddit Thread (Relation)']) {
+            const sampleRelation = redditCommentsData[0]['Reddit Thread (Relation)'];
+            console.log('Detailed sample thread relation analysis:', {
+              isArray: Array.isArray(sampleRelation),
+              length: Array.isArray(sampleRelation) ? sampleRelation.length : 'not an array',
+              firstItem: Array.isArray(sampleRelation) && sampleRelation.length > 0 ? sampleRelation[0] : 'no items',
+              firstItemType: Array.isArray(sampleRelation) && sampleRelation.length > 0 ? typeof sampleRelation[0] : 'N/A',
+              firstItemKeys: Array.isArray(sampleRelation) && sampleRelation.length > 0 && 
+                            typeof sampleRelation[0] === 'object' && sampleRelation[0] !== null ? 
+                            Object.keys(sampleRelation[0]) : 'N/A'
+            });
+          }
+          
+          // Assign threadId and threadTitle to each comment based on Reddit Thread relation
+          redditCommentsData = redditCommentsData.map(comment => {
+            try {
+              // Check for both field name variations - both can contain the linked record data
+              const threadRelation = comment && (comment['Reddit Thread (Relation)'] || comment['Reddit Thread'] || []);
+              
+              // Use our helper function to extract the linked record information
+              const { id: threadId, value: threadName } = getLinkedRecordValue(threadRelation, threadMap);
+              
+              // Check for dedicated thread name field first
+              let threadTitle = comment && comment['Reddit Thread Name'] ? comment['Reddit Thread Name'] : threadName || '(Empty)';
+              let threadUrl = '';
+              
+              console.log(`Comment ${comment?.id || 'unknown'} thread relation processed:`, {
+                originalRelation: threadRelation,
+                extractedId: threadId, 
+                extractedName: threadName,
+                dedicatedThreadName: comment?.['Reddit Thread Name'] || null
+              });
+              
+              // If we didn't get a thread name, try to get it from the thread map
+              if (!threadTitle || threadTitle === '(Empty)') {
+                const thread = threadMap.get(threadId);
+                if (thread) {
+                  // Try different possible title fields in the thread record
+                  threadTitle = thread.Title || thread.Name || thread.Keyword || 
+                              (typeof thread['Reddit Thread URL'] === 'string' ? 
+                               thread['Reddit Thread URL'].split('/').pop() : 'Thread #' + threadId.substring(0, 5));
+                               
+                  // Get the thread URL
+                  threadUrl = thread['Reddit Thread URL'] || '';
+                  
+                  console.log(`Found thread for comment ${comment?.id || 'unknown'}:`, {
+                    threadId,
+                    threadTitle,
+                    threadUrl
+                  });
+                } else {
+                  console.log(`No thread found for comment ${comment?.id || 'unknown'} with threadId ${threadId}`);
+                  // If the thread doesn't exist in our thread data, try to extract a name from the ID
+                  if (threadTitle === '(Empty)') {
+                    // Try to find a more descriptive title from the comment fields
+                    const topic = comment?.['Topic'] || comment?.['Keyword'] || '';
+                    if (topic && typeof topic === 'string' && topic.trim().length > 0) {
+                      threadTitle = topic;
+                    } else {
+                      // Last resort - create a generic title without showing the ID
+                      threadTitle = 'Reddit Discussion Thread';
+                    }
+                  }
+                }
+              }
+              
+              return {
+                ...comment,
+                threadId: threadId || 'unknown',
+                threadTitle,
+                threadUrl
+              };
+            } catch (commentError) {
+              console.error(`Error processing comment ${comment?.id || 'unknown'}:`, commentError);
+              // Return the comment with default thread values
+              return {
+                ...comment,
+                threadId: 'unknown',
+                threadTitle: 'Error Processing Thread',
+                threadUrl: ''
+              };
+            }
+          });
+          
+          // Create a grouping of comments by thread to check our mapping
+          const groupCheck = redditCommentsData.reduce((acc: Record<string, number>, comment) => {
+            const threadId = comment.threadId || 'unknown';
+            acc[threadId] = (acc[threadId] || 0) + 1;
+            return acc;
+          }, {});
+          
+          console.log('Comments grouped by thread after processing:', groupCheck);
+        }
+        
+        logData(redditCommentsData, 'Reddit Comments');
+        logData(redditThreadsData, 'Reddit Threads');
+      } catch (redditError) {
+        console.error('Error fetching Reddit data:', redditError);
+        setError(prev => ({ ...prev, redditcomments: 'Failed to load Reddit data' }));
+        hasError = true;
+      }
+
+      // Only set general error if all data types failed
+      if (hasError && briefsData.length === 0 && articlesData.length === 0 && backlinksData.length === 0 && 
+          youtubeScriptsData.length === 0 && redditCommentsData.length === 0) {
         setError(prev => ({ ...prev, general: 'Failed to load deliverables data' }));
       } else if (!hasError) {
         // Clear any existing errors if the fetch was successful
@@ -217,6 +461,9 @@ export default function DeliverablePage() {
       setBriefs(briefsData || []);
       setArticles(articlesData || []);
       setBacklinks(backlinksData || []);
+      setYoutubeScripts(youtubeScriptsData || []);
+      setRedditComments(redditCommentsData || []);
+      setRedditThreads(redditThreadsData || []);
 
       // Directly apply filtering here
       if (briefsData.length > 0) {
@@ -233,14 +480,44 @@ export default function DeliverablePage() {
         const clientFiltered = filterDataByClient(backlinksData);
         setFilteredBacklinks(applyBacklinkFilters(clientFiltered));
       }
+
+      if (youtubeScriptsData.length > 0) {
+        const clientFiltered = filterDataByClient(youtubeScriptsData);
+        setFilteredYoutubeScripts(applyYoutubeScriptFilters(clientFiltered));
+      }
+      
+      if (redditCommentsData.length > 0) {
+        const clientFiltered = filterDataByClient(redditCommentsData);
+        setFilteredRedditComments(applyRedditCommentFilters(clientFiltered));
+      }
+
+      // Set flag in localStorage to track last refresh time
+      localStorage.setItem('deliverables-last-refresh', Date.now().toString());
     } catch (error) {
-      console.error('Error fetching data:', error);
-      setError(prev => ({ ...prev, general: 'Failed to load data' }));
+      console.error('Error in fetchData:', error);
+      setError(prev => ({ ...prev, general: 'Failed to load deliverables data' }));
     } finally {
       setLoading(false);
-      // Record the time of this refresh
-      localStorage.setItem('deliverables-last-refresh', Date.now().toString());
     }
+  };
+
+  // Helper function to parse CSV data
+  const parseCSV = (csvText: string): any[] => {
+    const lines = csvText.split('\n');
+    const headers = lines[0].split(',').map(header => header.trim());
+    
+    return lines.slice(1).map(line => {
+      if (!line.trim()) return null; // Skip empty lines
+      
+      const values = line.split(',').map(value => value.trim());
+      const record: { [key: string]: string } = {};
+      
+      headers.forEach((header, index) => {
+        record[header] = values[index] || '';
+      });
+      
+      return record;
+    }).filter((record): record is { [key: string]: string } => record !== null);
   };
 
   // Helper functions to apply filters to each data type
@@ -248,7 +525,14 @@ export default function DeliverablePage() {
     let filtered = data;
 
     // Apply month filter
-    if (selectedMonth) {
+    if (selectedMonth && data.length > 0) {
+      // Parse the selected month to get standardized parts
+      const selectedMonthParts = selectedMonth.toLowerCase().split(' ');
+      const selectedMonthName = selectedMonthParts[0];
+      const selectedYear = selectedMonthParts.length > 1 ? selectedMonthParts[1] : new Date().getFullYear().toString();
+      
+      console.log('Filtering briefs with month parts:', { selectedMonthName, selectedYear, selectedMonth });
+      
       filtered = filtered.filter(brief => {
         try {
           // Handle different month formats
@@ -261,12 +545,46 @@ export default function DeliverablePage() {
             briefMonth = briefMonth.value;
           }
           
-          // Convert to string for comparison
-          const briefMonthStr = String(briefMonth || '');
-          const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+          // Handle null or undefined month
+          if (!briefMonth) {
+            return false;
+          }
           
-          return briefMonthStr === selectedMonth || 
-                briefMonthStr.startsWith(selectedMonthName);
+          // Convert to string for comparison and make case-insensitive
+          const briefMonthStr = String(briefMonth).toLowerCase();
+          
+          // 1. Exact match - this would be ideal
+          if (briefMonthStr === selectedMonth.toLowerCase()) {
+            console.log(`Exact match for brief "${brief.Title}": ${briefMonthStr} = ${selectedMonth.toLowerCase()}`);
+            return true;
+          }
+          
+          // 2. Parse the brief month to extract month name and year
+          const briefMonthParts = briefMonthStr.split(' ');
+          const briefMonthName = briefMonthParts[0];
+          const briefYear = briefMonthParts.length > 1 ? briefMonthParts[1] : '';
+          
+          // 3. Match both month name and year - enforce year matching
+          const monthNameMatches = briefMonthName === selectedMonthName || 
+                                  briefMonthName.includes(selectedMonthName) || 
+                                  selectedMonthName.includes(briefMonthName);
+          const yearMatches = briefYear === selectedYear;
+          
+          // Log for debugging
+          console.log('Brief month check:', { 
+            title: brief.Title,
+            briefMonth: briefMonthStr,
+            briefMonthName,
+            briefYear,
+            selectedMonthName,
+            selectedYear,
+            monthNameMatches,
+            yearMatches,
+            passes: monthNameMatches && yearMatches
+          });
+          
+          // Only return true if both month name AND year match
+          return monthNameMatches && yearMatches;
         } catch (e) {
           console.error('Error filtering brief by month:', e, brief);
           return false;
@@ -297,7 +615,14 @@ export default function DeliverablePage() {
     let filtered = data;
 
     // Apply month filter
-    if (selectedMonth) {
+    if (selectedMonth && data.length > 0) {
+      // Parse the selected month to get standardized parts
+      const selectedMonthParts = selectedMonth.toLowerCase().split(' ');
+      const selectedMonthName = selectedMonthParts[0];
+      const selectedYear = selectedMonthParts.length > 1 ? selectedMonthParts[1] : new Date().getFullYear().toString();
+      
+      console.log('Filtering articles with month parts:', { selectedMonthName, selectedYear, selectedMonth });
+      
       filtered = filtered.filter(article => {
         try {
           // Handle different month formats
@@ -306,16 +631,50 @@ export default function DeliverablePage() {
           // Handle case where Month is an object with a name property
           if (articleMonth && typeof articleMonth === 'object' && 'name' in articleMonth) {
             articleMonth = articleMonth.name;
-          } else if (articleMonth && typeof articleMonth === 'object' && 'value' in articleMonth) {
-            articleMonth = articleMonth.value;
+                      } else if (articleMonth && typeof articleMonth === 'object' && 'value' in articleMonth) {
+              articleMonth = articleMonth.value;
+            }
+          
+          // Handle null or undefined month
+          if (!articleMonth) {
+            return false;
           }
           
-          // Convert to string for comparison
-          const articleMonthStr = String(articleMonth || '');
-          const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+          // Convert to string for comparison and make case-insensitive
+          const articleMonthStr = String(articleMonth).toLowerCase();
           
-          return articleMonthStr === selectedMonth || 
-                articleMonthStr.startsWith(selectedMonthName);
+          // 1. Exact match - this would be ideal
+          if (articleMonthStr === selectedMonth.toLowerCase()) {
+            console.log(`Exact match for article "${article.Title}": ${articleMonthStr} = ${selectedMonth.toLowerCase()}`);
+            return true;
+          }
+          
+          // 2. Parse the article month to extract month name and year
+          const articleMonthParts = articleMonthStr.split(' ');
+          const articleMonthName = articleMonthParts[0];
+          const articleYear = articleMonthParts.length > 1 ? articleMonthParts[1] : '';
+          
+          // 3. Match both month name and year - enforce year matching
+          const monthNameMatches = articleMonthName === selectedMonthName || 
+                                  articleMonthName.includes(selectedMonthName) || 
+                                  selectedMonthName.includes(articleMonthName);
+          const yearMatches = articleYear === selectedYear;
+          
+          // Log for debugging
+          console.log('Article month check:', { 
+            title: article.Title,
+            articleMonth: articleMonthStr,
+            articleMonthName,
+            articleYear,
+            selectedMonthName,
+            selectedYear,
+            monthNameMatches,
+            yearMatches,
+            passes: monthNameMatches && yearMatches
+          });
+          
+          // Only return true if both month name AND year match
+          return monthNameMatches && yearMatches;
         } catch (e) {
           console.error('Error filtering article by month:', e, article);
           return false;
@@ -344,9 +703,16 @@ export default function DeliverablePage() {
 
   const applyBacklinkFilters = (data: any[]) => {
     let filtered = data;
-
+    
     // Apply month filter
-    if (selectedMonth) {
+    if (selectedMonth && data.length > 0) {
+      // Parse the selected month to get standardized parts
+      const selectedMonthParts = selectedMonth.toLowerCase().split(' ');
+      const selectedMonthName = selectedMonthParts[0];
+      const selectedYear = selectedMonthParts.length > 1 ? selectedMonthParts[1] : new Date().getFullYear().toString();
+      
+      console.log('Filtering backlinks with month parts:', { selectedMonthName, selectedYear, selectedMonth });
+      
       filtered = filtered.filter(backlink => {
         try {
           // Handle different month formats
@@ -355,16 +721,50 @@ export default function DeliverablePage() {
           // Handle case where Month is an object with a name property
           if (backlinkMonth && typeof backlinkMonth === 'object' && 'name' in backlinkMonth) {
             backlinkMonth = backlinkMonth.name;
-          } else if (backlinkMonth && typeof backlinkMonth === 'object' && 'value' in backlinkMonth) {
-            backlinkMonth = backlinkMonth.value;
+                      } else if (backlinkMonth && typeof backlinkMonth === 'object' && 'value' in backlinkMonth) {
+              backlinkMonth = backlinkMonth.value;
+            }
+          
+          // Handle null or undefined month
+          if (!backlinkMonth) {
+            return false;
           }
           
-          // Convert to string for comparison
-          const backlinkMonthStr = String(backlinkMonth || '');
-          const selectedMonthName = selectedMonth.split(' ')[0]; // Get just the month name
+          // Convert to string for comparison and make case-insensitive
+          const backlinkMonthStr = String(backlinkMonth).toLowerCase();
           
-          return backlinkMonthStr === selectedMonth || 
-                backlinkMonthStr.startsWith(selectedMonthName);
+          // 1. Exact match - this would be ideal
+          if (backlinkMonthStr === selectedMonth.toLowerCase()) {
+            console.log(`Exact match for backlink "${backlink.Name}": ${backlinkMonthStr} = ${selectedMonth.toLowerCase()}`);
+            return true;
+          }
+          
+          // 2. Parse the backlink month to extract month name and year
+          const backlinkMonthParts = backlinkMonthStr.split(' ');
+          const backlinkMonthName = backlinkMonthParts[0];
+          const backlinkYear = backlinkMonthParts.length > 1 ? backlinkMonthParts[1] : '';
+          
+          // 3. Match both month name and year - enforce year matching
+          const monthNameMatches = backlinkMonthName === selectedMonthName || 
+                                  backlinkMonthName.includes(selectedMonthName) || 
+                                  selectedMonthName.includes(backlinkMonthName);
+          const yearMatches = backlinkYear === selectedYear;
+          
+          // Log for debugging
+          console.log('Backlink month check:', { 
+            name: backlink.Name,
+            backlinkMonth: backlinkMonthStr,
+            backlinkMonthName,
+            backlinkYear,
+            selectedMonthName,
+            selectedYear,
+            monthNameMatches,
+            yearMatches,
+            passes: monthNameMatches && yearMatches
+          });
+          
+          // Only return true if both month name AND year match
+          return monthNameMatches && yearMatches;
         } catch (e) {
           console.error('Error filtering backlink by month:', e, backlink);
           return false;
@@ -372,33 +772,20 @@ export default function DeliverablePage() {
       });
     }
 
-    // Apply status filter if not 'all' - make it case insensitive
+    // Apply status filter if not 'all'
     if (statusFilter !== 'all') {
       filtered = filtered.filter(backlink => {
-        try {
-          const status = String(backlink['Portal Status'] || backlink.Status || '').toLowerCase();
-          return status === statusFilter.toLowerCase();
-        } catch (e) {
-          console.error('Error filtering backlink by status:', e, backlink);
-          return false;
-        }
+        const status = String(backlink.Status || backlink['Portal Status'] || '').toLowerCase();
+        return status === statusFilter.toLowerCase() ||
+              (statusFilter === 'live' && (status === 'live' || status.includes('complete')));
       });
     }
 
-    // Apply DR filter if not 'all' - handle the "50+", "60+", "70+" format
+    // Apply DR filter if not 'all'
     if (drFilter !== 'all') {
-      const minRating = parseInt(drFilter, 10);
-      console.log(`Applying DR filter with minimum rating: ${minRating}`);
-      
       filtered = filtered.filter(backlink => {
-        try {
-          const dr = Number(backlink.DomainRating || backlink['Domain Authority/Rating'] || backlink['DR ( API )'] || 0);
-          const passes = !isNaN(minRating) && dr >= minRating;
-          return passes;
-        } catch (e) {
-          console.error('Error filtering backlink by DR:', e, backlink);
-          return false;
-        }
+        const drValue = backlink['DR ( API )'] || backlink.DomainRating || backlink['Domain Authority/Rating'] || 0;
+        return parseInt(drValue) >= parseInt(drFilter);
       });
     }
 
@@ -406,6 +793,214 @@ export default function DeliverablePage() {
     filtered = sortItems(filtered, backlinkSort);
     
     return filtered;
+  };
+
+  // Helper function to apply filters to YouTube Scripts
+  const applyYoutubeScriptFilters = (data: any[]) => {
+    let filtered = data;
+    
+    console.log('YouTube Scripts data before filtering:', data);
+    console.log('YouTube Scripts status values:', data.map(script => script['Script Status for Deliverables']));
+    console.log('YouTube Scripts month values:', data.map(script => script['Target Month']));
+    console.log('Current YouTube Scripts status filter:', youtubeScriptStatusFilter);
+    console.log('Current month filter:', selectedMonth);
+    
+    // Apply month filter
+    if (selectedMonth && data.length > 0) {
+      // Parse the selected month to get standardized parts
+      const selectedMonthParts = selectedMonth.toLowerCase().split(' ');
+      const selectedMonthName = selectedMonthParts[0];
+      const selectedYear = selectedMonthParts.length > 1 ? selectedMonthParts[1] : new Date().getFullYear().toString();
+      
+      console.log('Filtering YouTube scripts with month parts:', { selectedMonthName, selectedYear, selectedMonth });
+      
+      filtered = filtered.filter(script => {
+        try {
+          // Handle different month formats
+          let scriptMonth = script['Target Month'];
+          
+          // Handle case where Month is an object with a name property
+          if (scriptMonth && typeof scriptMonth === 'object' && 'name' in scriptMonth) {
+            scriptMonth = scriptMonth.name;
+          } else if (scriptMonth && typeof scriptMonth === 'object' && 'value' in scriptMonth) {
+            scriptMonth = scriptMonth.value;
+          }
+          
+          // Handle null or undefined month
+          if (!scriptMonth) {
+            return false;
+          }
+          
+          // Convert to string for comparison and make case-insensitive
+          const scriptMonthStr = String(scriptMonth).toLowerCase();
+          
+          // 1. Exact match - this would be ideal
+          if (scriptMonthStr === selectedMonth.toLowerCase()) {
+            console.log(`Exact match for script "${script['Keyword Topic']}": ${scriptMonthStr} = ${selectedMonth.toLowerCase()}`);
+            return true;
+          }
+          
+          // 2. Parse the script month to extract month name and year
+          const scriptMonthParts = scriptMonthStr.split(' ');
+          const scriptMonthName = scriptMonthParts[0];
+          const scriptYear = scriptMonthParts.length > 1 ? scriptMonthParts[1] : '';
+          
+          // 3. Match both month name and year - enforce year matching
+          const monthNameMatches = scriptMonthName === selectedMonthName || 
+                                  scriptMonthName.includes(selectedMonthName) || 
+                                  selectedMonthName.includes(scriptMonthName);
+          const yearMatches = scriptYear === selectedYear;
+          
+          // Log for debugging
+          console.log('Script month check:', { 
+            keyword: script['Keyword Topic'],
+            scriptMonth: scriptMonthStr,
+            scriptMonthName,
+            scriptYear,
+            selectedMonthName,
+            selectedYear,
+            monthNameMatches,
+            yearMatches,
+            passes: monthNameMatches && yearMatches
+          });
+          
+          // Only return true if both month name AND year match
+          return monthNameMatches && yearMatches;
+        } catch (e) {
+          console.error('Error filtering YouTube script by month:', e, script);
+          return false;
+        }
+      });
+    }
+    
+    console.log('YouTube Scripts after month filtering:', filtered.length);
+
+    // Apply status filter if not 'all'
+    if (youtubeScriptStatusFilter !== 'all') {
+      filtered = filtered.filter(script => {
+        try {
+          // Get the status field value - use only Script Status for Deliverables
+          const status = String(script['Script Status for Deliverables'] || '').toLowerCase();
+          const filterStatus = youtubeScriptStatusFilter.toLowerCase();
+          
+          // Check for exact match or if the status contains the filter value
+          const passes = status === filterStatus || 
+                         status.includes(filterStatus) || 
+                         (filterStatus === 'idea' && status.includes('idea')) ||
+                         (filterStatus === 'review' && status.includes('review')) ||
+                         (filterStatus === 'draft' && status.includes('draft'));
+          
+          console.log('Script status check:', { 
+            id: script.id,
+            keyword: script['Keyword Topic'],
+            actual: status, 
+            filter: filterStatus, 
+            passes 
+          });
+          
+          return passes;
+        } catch (e) {
+          console.error('Error filtering YouTube script by status:', e, script);
+          return false;
+        }
+      });
+    }
+    
+    console.log('YouTube Scripts after status filtering:', filtered.length);
+    console.log('Final filtered YouTube Scripts:', filtered.map(script => ({
+      id: script.id,
+      keyword: script['Keyword Topic'],
+      month: script['Target Month'],
+      status: script['Script Status for Deliverables']
+    })));
+
+    // Apply sorting
+    filtered = sortItems(filtered, youtubeScriptSort);
+    
+    return filtered;
+  };
+
+  // Apply filters to Reddit Comments
+  const applyRedditCommentFilters = (data: RedditComment[]) => {
+    console.log('Applying Reddit comment filters...');
+    
+    // Filter by month if selected
+    let filtered = [...data];
+    
+    if (selectedMonth) {
+      console.log('Filtering by month:', selectedMonth);
+      // Use 'Publication Date' field for month filtering
+      filtered = filtered.filter(comment => {
+        // Try to get a date from 'Publication Date' or 'Date Posted' field
+        const publicationDate = comment['Publication Date'] || comment['Date Posted'];
+        
+        if (!publicationDate) {
+          console.log(`Comment ${comment.id} has no publication date, excluding from filter`);
+          return false;
+        }
+        
+        try {
+          // Parse the date - handle different format possibilities
+          let commentDate: Date;
+          if (typeof publicationDate === 'string') {
+            // Try to parse various date formats
+            if (publicationDate.includes('/')) {
+              // Format like MM/DD/YYYY or DD/MM/YYYY
+              const parts = publicationDate.split('/');
+              // Assume MM/DD/YYYY format
+              commentDate = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+            } else if (publicationDate.includes('-')) {
+              // ISO format YYYY-MM-DD
+              commentDate = new Date(publicationDate);
+            } else {
+              // Try direct parsing
+              commentDate = new Date(publicationDate);
+            }
+          } else if (typeof publicationDate === 'object' && publicationDate !== null && 
+                    Object.prototype.toString.call(publicationDate) === '[object Date]') {
+            commentDate = publicationDate as Date;
+          } else {
+            console.log(`Comment ${comment.id} has invalid date format: ${publicationDate}`);
+            return false;
+          }
+          
+          // If parsing worked, extract month and year
+          if (!isNaN(commentDate.getTime())) {
+            // Format as "Month YYYY" to match selectedMonth format
+            const commentMonthYear = `${commentDate.toLocaleString('default', { month: 'long' })} ${commentDate.getFullYear()}`;
+            console.log(`Comment ${comment.id} date: ${commentMonthYear}, selected: ${selectedMonth}`);
+            return commentMonthYear === selectedMonth;
+          }
+          
+          return false;
+        } catch (error) {
+          console.error(`Error parsing date for comment ${comment.id}:`, error);
+          return false;
+        }
+      });
+    }
+    
+    // Apply status filter if not set to 'all'
+    if (redditCommentStatusFilter !== 'all') {
+      console.log('Filtering by status:', redditCommentStatusFilter);
+      filtered = filtered.filter(comment => comment.Status?.toLowerCase() === redditCommentStatusFilter.toLowerCase());
+    }
+    
+    console.log(`After filtering, ${filtered.length} Reddit comments remain`);
+    
+    // Group comments by threadId
+    const grouped = filtered.reduce<GroupedRedditComments>((acc, comment) => {
+      const threadId = comment.threadId || 'unknown';
+      if (!acc[threadId]) {
+        acc[threadId] = [];
+      }
+      acc[threadId].push(comment);
+      return acc;
+    }, {});
+    
+    console.log(`Comments grouped into ${Object.keys(grouped).length} threads`);
+    
+    return grouped;
   };
 
   // Handle tab change
@@ -529,19 +1124,28 @@ export default function DeliverablePage() {
     console.log('Current briefs data length:', briefs.length);
     console.log('Current articles data length:', articles.length);
     console.log('Current backlinks data length:', backlinks.length);
+    console.log('Current YouTube scripts data length:', youtubeScripts.length);
+    console.log('Current Reddit comments data length:', redditComments.length);
     
     // Log filter states
     console.log('Brief status filter:', briefStatusFilter);
     console.log('Article status filter:', articleStatusFilter);
     console.log('Backlink status filter:', statusFilter);
+    console.log('YouTube Script status filter:', youtubeScriptStatusFilter);
+    console.log('Reddit Comment status filter:', redditCommentStatusFilter);
     console.log('DR filter:', drFilter);
 
     // Apply filters to each data type
     setFilteredBriefs(applyBriefFilters(filterDataByClient(briefs)));
     setFilteredArticles(applyArticleFilters(filterDataByClient(articles)));
     setFilteredBacklinks(applyBacklinkFilters(filterDataByClient(backlinks)));
+    setFilteredYoutubeScripts(applyYoutubeScriptFilters(filterDataByClient(youtubeScripts)));
+    setFilteredRedditComments(applyRedditCommentFilters(filterDataByClient(redditComments)));
     
-  }, [briefs, articles, backlinks, selectedMonth, briefStatusFilter, articleStatusFilter, statusFilter, drFilter, briefSort, articleSort, backlinkSort, clientId, filterDataByClient]);
+  }, [briefs, articles, backlinks, youtubeScripts, redditComments, selectedMonth, 
+      briefStatusFilter, articleStatusFilter, statusFilter, youtubeScriptStatusFilter, 
+      redditCommentStatusFilter, drFilter, briefSort, articleSort, backlinkSort, 
+      youtubeScriptSort, redditCommentSort, clientId, filterDataByClient]);
 
   // Note: Status change handlers have been removed as we're using table views instead of kanban boards
   // Status changes are not part of the deliverables page requirements
@@ -551,7 +1155,7 @@ export default function DeliverablePage() {
       {/* Fixed header container for summary cards and error messages */}
       <div className="bg-white flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-1" style={{ position: 'fixed', top: '64px', left: sidebarExpanded ? '256px' : '80px', right: '16px', paddingTop: '48px', paddingBottom: '16px', paddingLeft: '48px', paddingRight: '16px' }}>
         {/* Top-Level Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 max-w-full">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 max-w-full">
           {/* Briefs Approved Card - Purple Border for Briefs */}
           <div className="rounded-lg border-8 p-6 bg-purple-50 h-[104px] flex items-center shadow-sm border-purple-400">
             <div className="flex flex-col items-center text-center w-full">
@@ -616,6 +1220,34 @@ export default function DeliverablePage() {
               </span>
             </div>
           </div>
+          
+          {/* YouTube Scripts Card - Green Border for YouTube Scripts */}
+          <div className="rounded-lg border-8 p-6 bg-green-50 h-[104px] flex items-center shadow-sm border-green-400">
+            <div className="flex flex-col items-center text-center w-full">
+              <span className="text-lg font-bold mb-1 notification-text">
+                {filteredYoutubeScripts.length > 0
+                  ? Math.round((filteredYoutubeScripts.filter(script => 
+                      String(script['Script Status for Deliverables'] || '').toLowerCase().includes('approved')
+                    ).length / filteredYoutubeScripts.length) * 100)
+                  : 0}%
+              </span>
+              <span className="text-sm text-darkGray">Scripts Approved</span>
+            </div>
+          </div>
+
+          {/* Reddit Comments Card - Purple/Pink Border for Reddit Comments */}
+          <div className="rounded-lg border-8 p-6 bg-pink-50 h-[104px] flex items-center shadow-sm border-pink-400">
+            <div className="flex flex-col items-center text-center w-full">
+              <span className="text-lg font-bold mb-1 notification-text">
+                {Object.values(filteredRedditComments).flat().length > 0
+                  ? Math.round((Object.values(filteredRedditComments).flat().filter(comment => 
+                      String(comment.Status || '').toLowerCase() === 'posted'
+                    ).length / Object.values(filteredRedditComments).flat().length) * 100) + '%'
+                  : '0%'}
+              </span>
+              <span className="text-sm text-gray-500">Reddit Comments Posted</span>
+            </div>
+          </div>
         </div>
 
         {/* Error Messages */}
@@ -649,7 +1281,9 @@ export default function DeliverablePage() {
                   tabs={[
                     { id: 'briefs', label: 'Briefs', icon: <FileText size={18} /> },
                     { id: 'articles', label: 'Articles', icon: <BookOpen size={18} /> },
-                    { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> }
+                    { id: 'backlinks', label: 'Backlinks', icon: <Link2 size={18} /> },
+                    { id: 'youtubescripts', label: 'Youtube Scripts', icon: <Video size={18} /> },
+                    { id: 'redditcomments', label: 'Reddit Comments', icon: <MessageCircle size={18} /> }
                   ]}
                   activeTab={mainTab}
                   onTabChange={(tab) => handleTabChange(tab as MainTab)}
@@ -750,13 +1384,61 @@ export default function DeliverablePage() {
                   )}
                 </>
               )}
+
+              {mainTab === 'youtubescripts' && (
+                <>
+                  <select
+                    className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                    value={youtubeScriptStatusFilter}
+                    onChange={(e) => setYoutubeScriptStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="idea">Idea</option>
+                    <option value="script creation">Script Creation</option>
+                    <option value="review">In Review</option>
+                    <option value="awaiting client">Awaiting Client</option>
+                    <option value="approved">Approved</option>
+                  </select>
+                  {youtubeScriptStatusFilter !== 'all' && (
+                    <button
+                      onClick={() => setYoutubeScriptStatusFilter('all')}
+                      className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
+              )}
+
+              {mainTab === 'redditcomments' && (
+                <>
+                  <select
+                    className="px-3 py-2 text-sm border border-lightGray rounded-md bg-white"
+                    value={redditCommentStatusFilter}
+                    onChange={(e) => setRedditCommentStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="posted">Posted</option>
+                    <option value="proposed">Proposed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  {redditCommentStatusFilter !== 'all' && (
+                    <button
+                      onClick={() => setRedditCommentStatusFilter('all')}
+                      className="px-3 py-2 text-sm text-primary border border-primary rounded-md bg-white hover:bg-primary hover:text-white transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Spacer to push content below fixed header */}
-      <div style={{ height: '200px' }}></div>
+      <div style={{ height: '350px' }}></div>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -770,7 +1452,7 @@ export default function DeliverablePage() {
               <Table className="min-w-full divide-y divide-gray-200 bg-white">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px]">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[150px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -785,7 +1467,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -800,7 +1482,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -815,7 +1497,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -830,7 +1512,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -845,7 +1527,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px]">GDOC LINK</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px] min-w-[120px]">GDOC LINK</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-200">
@@ -904,7 +1586,7 @@ export default function DeliverablePage() {
               <Table className="min-w-full divide-y divide-gray-200 bg-white">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px]">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[150px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -919,7 +1601,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -934,7 +1616,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -949,7 +1631,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -964,7 +1646,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -979,7 +1661,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -994,8 +1676,8 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">GDOC LINK</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px]">ARTICLE URL</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">GDOC LINK</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px] min-w-[120px]">ARTICLE URL</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-200">
@@ -1074,7 +1756,7 @@ export default function DeliverablePage() {
               <Table className="min-w-full divide-y divide-gray-200 bg-white">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px]">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1089,7 +1771,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1104,7 +1786,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1119,7 +1801,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[140px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1134,7 +1816,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[140px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1149,7 +1831,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[80px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1164,13 +1846,13 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">TRAFFIC</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">Target URL</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">Traffic of Target URL</TableHead>
-                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider">RDs OF Target URL</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">ANCHOR TEXT</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">CLIENT TARGET URL</TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">TRAFFIC</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[140px]">TARGET URL</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[160px]">TRAFFIC OF TARGET URL</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[160px]">RDs OF TARGET URL</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[130px]">ANCHOR TEXT</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[160px]">CLIENT TARGET URL</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[160px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1185,7 +1867,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider">
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
                       <Button
                         variant="ghost"
                         onClick={() => {
@@ -1200,7 +1882,7 @@ export default function DeliverablePage() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px]">NOTES</TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px] min-w-[120px]">NOTES</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-200">
@@ -1312,9 +1994,435 @@ export default function DeliverablePage() {
               </Table>
             </div>
           )}
+
+          {mainTab === 'youtubescripts' && (
+            <div className="bg-white">
+              <Table className="min-w-full divide-y divide-gray-200 bg-white">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[150px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'Keyword Topic',
+                            direction: prev?.column === 'Keyword Topic' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        KEYWORD TOPIC
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'Video Title',
+                            direction: prev?.column === 'Video Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        VIDEO TITLE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[150px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'Script Title',
+                            direction: prev?.column === 'Script Title' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        SCRIPT TITLE
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'YouTube Scripter',
+                            direction: prev?.column === 'YouTube Scripter' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        SCRIPTER
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'Script Status for Deliverables',
+                            direction: prev?.column === 'Script Status for Deliverables' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        STATUS
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[120px]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setYoutubeScriptSort(prev => ({
+                            column: 'Target Month',
+                            direction: prev?.column === 'Target Month' && prev?.direction === 'asc' ? 'desc' : 'asc'
+                          }));
+                        }}
+                        className="p-0 h-8 text-base font-medium flex items-center"
+                      >
+                        MONTH
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-br-[12px] min-w-[120px]">SCRIPT LINK</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-200">
+                  {filteredYoutubeScripts.length > 0 ? (
+                    filteredYoutubeScripts.map((script) => (
+                      <TableRow key={script.id} className="hover:bg-gray-50 cursor-pointer">
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(script['Keyword Topic'] || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(script['Video Title'] || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(script['Script Title'] || '')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark">{String(getUserName(script['YouTube Scripter']))}</TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
+                            ${String(script['Script Status for Deliverables'] || '').toLowerCase().includes('approved') ? 'bg-green-100 text-green-800' :
+                            String(script['Script Status for Deliverables'] || '').toLowerCase().includes('review') ? 'bg-blue-200 text-blue-800' :
+                            String(script['Script Status for Deliverables'] || '').toLowerCase().includes('awaiting') ? 'bg-yellow-200 text-yellow-800' :
+                            String(script['Script Status for Deliverables'] || '').toLowerCase().includes('idea') ? 'bg-purple-200 text-purple-800' :
+                            'bg-gray-100 text-gray-800'}`}>
+                            {String(script['Script Status for Deliverables'] || 'Unknown')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium bg-indigo-100 text-indigo-800">
+                            {String(script['Target Month'] || '-')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-4 py-4">
+                          {script['Script (G-Doc URL)'] ? (
+                            <a
+                              href={ensureUrlProtocol(String(script['Script (G-Doc URL)']))}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-base text-primary hover:underline flex items-center"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              View
+                            </a>
+                          ) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="px-4 py-4 text-center text-gray-500">
+                        No YouTube scripts available for {selectedMonth}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {mainTab === 'redditcomments' && (
+            <div className="bg-white">
+              {/* <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight">Reddit Comments</h2>
+                  <p className="text-muted-foreground">
+                    Grouped by thread, shows which comments have been posted and upvoted
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">Status:</label>
+                  <select
+                    value={redditCommentStatusFilter}
+                    onChange={(e) => setRedditCommentStatusFilter(e.target.value)}
+                    className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm p-2"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="posted">Posted</option>
+                    <option value="proposed">Proposed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div> */}
+              
+              <Table className="min-w-full divide-y divide-gray-200 bg-white">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider rounded-bl-[12px] min-w-[60px]"></TableHead>
+                    <TableHead className="px-4 py-4 text-left text-base font-bold text-black uppercase tracking-wider min-w-[180px]">REDDIT THREAD</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider min-w-[100px]">COMMENTS</TableHead>
+                    <TableHead className="px-4 py-4 text-center text-base font-bold text-black uppercase tracking-wider rounded-br-[12px] min-w-[150px]">UPVOTES</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-200">
+                  {Object.keys(filteredRedditComments).length > 0 ? (
+                    Object.entries(filteredRedditComments).map(([threadId, comments]) => {
+                      // Get thread details from the first comment
+                      let threadTitle = comments[0]?.threadTitle || '';
+                      
+                      // Check for the dedicated Reddit Thread Name field first
+                      if (comments[0] && comments[0]['Reddit Thread Name']) {
+                        threadTitle = comments[0]['Reddit Thread Name'];
+                        console.log(`Using dedicated Reddit Thread Name field in UI: ${threadTitle}`);
+                      }
+                      // If the thread title is empty or still showing an ID format, try to extract a better title
+                      else if (!threadTitle || threadTitle === '(Empty)' || threadTitle.startsWith('Thread rec') || threadTitle === 'Reddit Discussion Thread') {
+                        // Try to get a better title from the comment data
+                        const firstComment = comments[0];
+                        
+                        // Create a map of thread IDs to thread records to help with lookups
+                        const threadMap = new Map<string, any>(redditThreads.map(thread => [thread.id, thread]));
+                        
+                        // Try to get thread title directly from 'Reddit Thread' or 'Reddit Thread (Relation)' field
+                        // This gives us access to the Airtable linked record format which includes the name
+                        const threadRecord = firstComment && (firstComment['Reddit Thread'] || firstComment['Reddit Thread (Relation)']);
+                        
+                        if (threadRecord) {
+                          // Use our helper function to extract the thread name from the linked record
+                          // Pass the thread map to help with title lookups
+                          const { id: extractedThreadId, value: extractedThreadName } = getLinkedRecordValue(threadRecord, threadMap);
+                          
+                          if (extractedThreadName) {
+                            threadTitle = extractedThreadName;
+                            console.log(`Using thread name from linked record helper: ${threadTitle}`);
+                          }
+                          // If we still don't have a title but have a thread ID, try to look it up directly
+                          else if (extractedThreadId && threadMap.has(extractedThreadId)) {
+                            const thread = threadMap.get(extractedThreadId) || {};
+                            if (thread) {
+                              // Extract title from the thread record
+                              threadTitle = (thread as any).Title || (thread as any).Name || (thread as any).Keyword || 
+                                        (typeof (thread as any)['Reddit Thread URL'] === 'string' ? 
+                                         (thread as any)['Reddit Thread URL'].split('/').pop() : 'Reddit Thread');
+                              console.log(`Found thread title from map for ${extractedThreadId}: ${threadTitle}`);
+                            }
+                          }
+                        }
+                        // Other fallbacks
+                        else if (firstComment && firstComment['Topic']) {
+                          // Fallback to Topic field
+                          threadTitle = firstComment['Topic'];
+                        } else {
+                          // Generic title as last resort
+                          threadTitle = 'Reddit Discussion';
+                        }
+                      }
+                      
+                      console.log(`Thread ${threadId} display title:`, threadTitle);
+                      
+                      return (
+                        <RedditThreadRow 
+                          key={threadId}
+                          threadId={threadId}
+                          threadTitle={threadTitle}
+                          comments={comments}
+                          threadMap={new Map(redditThreads.map(thread => [thread.id, thread]))}
+                        />
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-4 text-base text-gray-500">
+                        No Reddit comments available for {selectedMonth}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
       )}
     </main>
   );
 }
+
+// RedditThreadRow component to handle collapsible threads
+interface RedditThreadRowProps {
+  threadId: string;
+  threadTitle: string;
+  comments: RedditComment[];
+  threadMap?: Map<string, any>;
+}
+
+// RedditThreadRow component implementation
+const RedditThreadRow = ({ threadId, threadTitle, comments, threadMap }: RedditThreadRowProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Check if we have a dedicated Reddit Thread Name from the first comment
+  const firstComment = comments && comments.length > 0 ? comments[0] : null;
+  let displayTitle = threadTitle;
+  
+  // Check if we have any comments
+  const hasComments = Array.isArray(comments) && comments.length > 0;
+  
+  // Get the thread URL from the first comment if available
+  const threadUrl = firstComment?.threadUrl || firstComment?.['Reddit Thread URL'] || '';
+  
+  if (firstComment && firstComment['Reddit Thread Name']) {
+    displayTitle = firstComment['Reddit Thread Name'];
+  }
+  
+  // If we still have a generic or empty title, try to find a better one
+  if (!displayTitle || displayTitle === '(Empty)' || displayTitle === 'Reddit Discussion Thread') {
+    // Fallback to other fields if available
+    const thread = threadMap?.get(threadId);
+    if (thread) {
+      displayTitle = thread.Title || thread.Name || thread.Keyword || displayTitle;
+    }
+  }
+
+  return (
+    <React.Fragment>
+      {/* Thread Row (parent) */}
+      <TableRow 
+        className="hover:bg-gray-50 cursor-pointer border-t-2 border-indigo-200"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <TableCell className="px-4 py-4 text-center">
+          <button className={`p-1 rounded-full hover:bg-gray-200 ${!hasComments ? 'opacity-50' : ''}`}>
+            {isExpanded ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
+        </TableCell>
+        <TableCell className="px-4 py-4 font-medium">
+          {threadUrl ? (
+            <a 
+              href={ensureUrlProtocol(threadUrl)} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {displayTitle}
+            </a>
+          ) : (
+            displayTitle
+          )}
+        </TableCell>
+        <TableCell className="px-4 py-4 text-center">
+          {hasComments ? comments.length : 0}
+        </TableCell>
+        <TableCell className="px-4 py-4 text-center">
+          {/* Show a simpler status indicator - just Posted count */}
+          {hasComments && (() => {
+            // Count posted comments
+            const postedCount = comments.filter(comment => comment.Status === 'Posted').length;
+            
+            if (postedCount > 0) {
+              return (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Posted ({postedCount})
+                </span>
+              );
+            } else {
+              // Return empty for non-posted comments
+              return null;
+            }
+          })()}
+        </TableCell>
+      </TableRow>
+      
+      {/* Comment Rows (children) - only shown when expanded and there are comments */}
+      {isExpanded && hasComments && comments.map((comment, index) => {
+        // Get the upvotes for this individual comment
+        const upvotes = typeof comment['Current N° Of Upvotes'] === 'number' ? comment['Current N° Of Upvotes'] : 
+                       typeof comment['Current N° Of Upvotes'] === 'string' && !isNaN(Number(comment['Current N° Of Upvotes'])) ? 
+                       Number(comment['Current N° Of Upvotes']) :
+                       typeof comment.Votes === 'number' ? comment.Votes : 
+                       typeof comment.Votes === 'string' && !isNaN(Number(comment.Votes)) ? 
+                       Number(comment.Votes) : 0;
+        
+        return (
+          <TableRow key={`${threadId}-${index}`} className="bg-gray-50 hover:bg-gray-100">
+            <TableCell className="px-4 py-4"></TableCell>
+            <TableCell className="px-4 py-3 text-sm">
+              <div className="flex items-center">
+                <span className="mr-2 text-xs text-gray-500">Comment #{index + 1}</span>
+                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
+                  ${comment.Status === 'Posted' ? 'bg-green-100 text-green-800' :
+                  comment.Status === 'Proposed' ? 'bg-yellow-100 text-yellow-800' :
+                  comment.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                  'bg-gray-100 text-gray-800'}`}>
+                  {String(comment.Status || 'Unknown')}
+                </span>
+              </div>
+              <div className="mt-1 text-sm">
+                {comment.Status === 'Posted' 
+                  ? String(comment['Comment Text Proposition (External)'] || '') 
+                  : String(comment['Comment Text Proposition (Internal)'] || '')}
+              </div>
+            </TableCell>
+            <TableCell className="px-4 py-3 text-center text-sm">
+              {String(comment['Author Name (team pseudonym)'] || '-')}
+            </TableCell>
+            <TableCell className="px-4 py-3 text-center">
+              {/* Show upvotes for all comments */}
+              <span className="flex items-center justify-center">
+                <span className="mr-1">
+                  {upvotes >= 0 ? (
+                    <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd"></path>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                    </svg>
+                  )}
+                </span>
+                <span className={`font-medium ${upvotes >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {Math.abs(upvotes)}
+                </span>
+              </span>
+            </TableCell>
+          </TableRow>
+        );
+      })}
+      
+      {/* Show a message when there are no comments in an expanded thread */}
+      {isExpanded && !hasComments && (
+        <TableRow className="bg-gray-50">
+          <TableCell className="px-4 py-4"></TableCell>
+          <TableCell colSpan={3} className="px-4 py-3 text-sm text-gray-500 italic">
+            No comments in this thread yet.
+          </TableCell>
+        </TableRow>
+      )}
+    </React.Fragment>
+  );
+};
+
+// Gets the current month and year in the format "Month YYYY"
 

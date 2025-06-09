@@ -9,8 +9,14 @@ import {
   mockKPIMetrics,
   mockKeywordPerformance,
   mockMonthlyProjections,
-  mockClients
+  mockClients,
+  mockYouTube,
+  mockRedditThreads,
+  mockRedditComments
 } from '@/lib/mock-data';
+
+// Export the fetchYoutubeScripts function from youtube-api.ts
+export { fetchYoutubeScripts } from './youtube-api';
 
 // Check if we're in a browser environment
 const isBrowser = typeof window !== 'undefined';
@@ -1699,5 +1705,250 @@ export async function fetchAvailableMonths(signal?: AbortSignal) {
     }
 
     return fallbackMonths;
+  }
+}
+
+// Reddit API
+export async function fetchRedditThreads(month?: string) {
+  // Use mock data if explicitly enabled
+  if (shouldUseMockData()) {
+    console.log('Using mock Reddit threads data');
+    return mockRedditThreads;
+  }
+
+  try {
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for Reddit threads');
+      const { getRedditData } = await import('@/lib/airtable');
+
+      // Get current user from localStorage
+      const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+      console.log('Current user from localStorage:', currentUser);
+
+      // If user is logged in, pass user info to getRedditData
+      if (currentUser) {
+        try {
+          // Ensure Client is an array
+          const clientIds = Array.isArray(currentUser.Clients) ? currentUser.Clients :
+                          (currentUser.Clients ? [currentUser.Clients] : []);
+          console.log('Calling getRedditData with user ID:', currentUser.id, 'role:', currentUser.Role, 'clientIds:', clientIds, 'month:', month);
+          const threads = await getRedditData(currentUser.id, currentUser.Role, clientIds, month);
+          console.log('Received Reddit threads from Airtable:', threads.length);
+
+          // Log the first few threads to see what we're working with
+          if (threads.length > 0) {
+            console.log('First 3 Reddit threads from Airtable:', threads.slice(0, 3));
+          } else {
+            console.log('No Reddit threads returned from Airtable');
+          }
+
+          return threads;
+        } catch (airtableError: any) {
+          console.error('Error fetching Reddit threads from Airtable:', airtableError);
+
+          // Record the error timestamp
+          if (isBrowser) {
+            localStorage.setItem('api-error-timestamp', Date.now().toString());
+            localStorage.setItem('use-mock-data', 'true');
+          }
+
+          // Fall back to mock data
+          console.log('Falling back to mock Reddit threads data due to Airtable error');
+          return mockRedditThreads;
+        }
+      } else {
+        // If no user is logged in, return empty array
+        console.log('No user logged in, returning empty Reddit threads list');
+        return [];
+      }
+    }
+
+    // In production, always use the API routes
+    let url = '/api/reddit';
+
+    // Add month parameter to URL if provided
+    if (month) {
+      url += `?month=${encodeURIComponent(month)}`;
+    }
+
+    console.log('Fetching Reddit threads from:', url);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    // Get current user from localStorage
+    const currentUser = isBrowser ? JSON.parse(localStorage.getItem('scalerrs-user') || 'null') : null;
+
+    // Prepare headers with user information
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
+    };
+
+    if (currentUser) {
+      headers['x-user-id'] = currentUser.id || '';
+      headers['x-user-role'] = currentUser.Role || '';
+      
+      if (currentUser.Clients) {
+        headers['x-user-clients'] = JSON.stringify(
+          Array.isArray(currentUser.Clients) ? currentUser.Clients : [currentUser.Clients]
+        );
+      }
+      
+      // Add client record ID if available
+      if (currentUser.ClientRecordId) {
+        headers['x-client-record-id'] = currentUser.ClientRecordId;
+      }
+    }
+
+    const response = await fetch(url, {
+      headers,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Reddit threads data received:', data);
+
+    // Clear Airtable connection issues flag on successful API call
+    if (isNetlify() && isBrowser) {
+      console.log('Clearing airtable-connection-issues flag due to successful API call');
+      clearAirtableConnectionIssuesInternal();
+    }
+
+    return data.reddit || [];
+  } catch (error) {
+    console.error('Error fetching Reddit threads:', error);
+
+    // Set a flag in localStorage to indicate Airtable connection issues
+    if (isNetlify() && isBrowser) {
+      console.log('Setting airtable-connection-issues flag in localStorage');
+      localStorage.setItem('airtable-connection-issues', 'true');
+    }
+
+    // Fall back to mock data
+    console.log('Falling back to mock Reddit threads data');
+    return mockRedditThreads;
+  }
+}
+
+export async function fetchRedditComments() {
+  // Use mock data if explicitly enabled
+  if (shouldUseMockData()) {
+    console.log('Using mock Reddit comments data');
+    return mockRedditComments;
+  }
+
+  try {
+    // In development, use direct Airtable access
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Development mode: Using direct Airtable access for Reddit comments');
+      
+      // Import Airtable directly
+      const Airtable = await import('airtable');
+      
+      try {
+        // Get Airtable credentials from environment variables
+        const apiKey = process.env.AIRTABLE_API_KEY || process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
+        const baseId = process.env.AIRTABLE_BASE_ID || process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
+        
+        if (!apiKey || !baseId) {
+          console.error('Missing Airtable credentials');
+          return mockRedditComments;
+        }
+        
+        // Initialize Airtable
+        const airtable = new Airtable.default({ apiKey });
+        const base = airtable.base(baseId);
+        
+        console.log('Fetching Reddit comments from Airtable...');
+        const tableName = 'Reddit Comments';
+        
+        const records = await base(tableName).select().all();
+        console.log(`Successfully fetched ${records.length} Reddit comments from Airtable`);
+        
+        // Log a sample record to help debug
+        if (records.length > 0) {
+          const sampleRecord = records[0];
+          console.log('Sample Reddit comment record:', {
+            id: sampleRecord.id,
+            threadRelation: sampleRecord.fields['Reddit Thread']
+          });
+          
+          // Log the format of the thread relation to understand its structure
+          if (sampleRecord.fields['Reddit Thread']) {
+            console.log('Thread relation format:', typeof sampleRecord.fields['Reddit Thread']);
+            if (Array.isArray(sampleRecord.fields['Reddit Thread'])) {
+              console.log('Thread relation is an array of:', 
+                sampleRecord.fields['Reddit Thread'].length > 0 ? 
+                typeof sampleRecord.fields['Reddit Thread'][0] : 'empty array');
+              
+              // Log the first item if it exists
+              if (sampleRecord.fields['Reddit Thread'].length > 0) {
+                console.log('First thread relation item:', sampleRecord.fields['Reddit Thread'][0]);
+              }
+            }
+          }
+        }
+        
+        // Map the records to our expected format
+        const comments = records.map((record: any) => {
+          const fields = record.fields;
+          
+          // Preserve the complete Reddit Thread relation structure
+          const redditThreadRelation = fields['Reddit Thread'] || [];
+          
+          return {
+            id: record.id,
+            'Comment': fields['Comment'] || '',
+            'Status': fields['Status'] || '',
+            'Comment Text Proposition (Internal)': fields['Comment Text Proposition (Internal)'] || '',
+            'Comment Text Proposition (External)': fields['Comment Text Proposition (External)'] || '',
+            'Author Name (team pseudonym)': fields['Author Name (team pseudonym)'] || '',
+            'Votes': fields['Votes'] || '',
+            'Date Posted': fields['Date Posted'] || '',
+            'Reddit Thread (Relation)': redditThreadRelation,
+            // Include all original fields
+            ...fields
+          };
+        });
+        
+        return comments;
+      } catch (error) {
+        console.error('Error fetching Reddit comments from Airtable:', error);
+        return mockRedditComments;
+      }
+    }
+
+    // In production, use API routes
+    const url = '/api/reddit-comments';
+    console.log('Fetching Reddit comments from:', url);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('Reddit comments data received:', data);
+    
+    return data.comments || [];
+  } catch (error) {
+    console.error('Error fetching Reddit comments:', error);
+    return mockRedditComments;
   }
 }

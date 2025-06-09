@@ -3535,6 +3535,17 @@ export async function getYouTubeData(userId?: string | null, userRole?: string |
     // Debug: Log all Target Month values to see what we have
     if (records.length > 0) {
       console.log('All Target Month values found:', records.map((r: any) => r.fields['Target Month']).filter(Boolean));
+      
+      // Log Script Status for Deliverables values
+      console.log('All Script Status for Deliverables values:',
+        records.map((r: any) => ({
+          id: r.id,
+          'Script Status for Deliverables': r.fields['Script Status for Deliverables'],
+          'Keyword Topic': r.fields['Keyword Topic'],
+          'Target Month': r.fields['Target Month']
+        }))
+      );
+      
       console.log('All records preview:', records.map((r: any) => ({
         id: r.id,
         'Keyword Topic': r.fields['Keyword Topic'],
