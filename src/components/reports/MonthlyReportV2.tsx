@@ -11,6 +11,8 @@ import {
   AlertTriangle,
   Info,
   ChevronDown,
+  MessageCircle,
+  Youtube,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import KPIStrip from '@/components/reports/KPIStrip';
@@ -186,6 +188,8 @@ export default function MonthlyReportV2({ monthRecord, recentRecords }: MonthlyR
   const [contentMovers, setContentMovers] = useState<any[]>([]);
   const [competitorRows, setCompetitorRows] = useState<any[]>([]);
   const [deliverableRows, setDeliverableRows] = useState<any[]>([]);
+  const [youtubeVideos, setYoutubeVideos] = useState<any[]>([]);
+  const [redditThreads, setRedditThreads] = useState<any[]>([]);
 
   /* Fetch Content Movers (Keywords table) */
   useEffect(() => {
@@ -277,6 +281,66 @@ export default function MonthlyReportV2({ monthRecord, recentRecords }: MonthlyR
       }
     })();
   }, [fields]);
+
+  /* Fetch YouTube videos for the month */
+  useEffect(() => {
+    (async () => {
+      try {
+        const clientRecordID = localStorage.getItem('clientRecordID');
+        if (!clientRecordID) return;
+        
+        // Get the month string from fields
+        const monthStr = fields['Month'] || fields['Month Start'];
+        if (!monthStr) return;
+        
+        const formula = `AND({Clients} = '${clientRecordID}', {Target Month} = '${monthStr}')`;
+        const videos = await fetchFromAirtable<any>('Youtube Management', formula);
+        
+        const processedVideos = videos.map(r => ({
+          id: r.id,
+          title: r.fields['Video Title'] || r.fields['Script Title'] || r.fields['Keyword Topic'] || 'Untitled Video',
+          status: r.fields['YouTube Status'] || 'In Progress',
+          url: r.fields['YouTube URL'] || r.fields['Script (G-Doc URL)'] || '',
+          views: r.fields['Video Views'] || 0,
+          engagement: r.fields['Engagement Rate'] || 0,
+        }));
+        
+        setYoutubeVideos(processedVideos);
+      } catch (err) {
+        console.error('Error fetching YouTube data:', err);
+      }
+    })();
+  }, [fields, monthRecord]);
+
+  /* Fetch Reddit threads for the month */
+  useEffect(() => {
+    (async () => {
+      try {
+        const clientRecordID = localStorage.getItem('clientRecordID');
+        if (!clientRecordID) return;
+        
+        // Get the month string from fields
+        const monthStr = fields['Month'] || fields['Month Start'];
+        if (!monthStr) return;
+        
+        const formula = `AND({Clients} = '${clientRecordID}', {Month} = '${monthStr}')`;
+        const threads = await fetchFromAirtable<any>('Reddit Threads', formula);
+        
+        const processedThreads = threads.map(r => ({
+          id: r.id,
+          keyword: r.fields['Keyword'] || '',
+          threadUrl: r.fields['Reddit Thread URL'] || '',
+          status: r.fields['Reddit Thread Status (General)'] || 'Proposed',
+          traffic: r.fields['Thread SEO Traffic'] || 0,
+          trafficValue: r.fields['Thread SEO Traffic Value'] || 0,
+        }));
+        
+        setRedditThreads(processedThreads);
+      } catch (err) {
+        console.error('Error fetching Reddit data:', err);
+      }
+    })();
+  }, [fields, monthRecord]);
 
   return (
     <SectionRegistryProvider>
@@ -479,6 +543,100 @@ export default function MonthlyReportV2({ monthRecord, recentRecords }: MonthlyR
 
           {/* Key takeaways */}
           {renderRichText(fields['Key Takeaways (Content Movers)'] as string)}
+        </CollapsibleSection>
+        
+        {/* YouTube Summary */}
+        <CollapsibleSection title="YouTube Summary" icon={<Youtube className="h-5 w-5 text-[#9EA8FB]" />} defaultOpen={false}>
+          {youtubeVideos.length > 0 ? (
+            <div className="space-y-4">
+              <h5 className="text-base font-medium text-dark mb-2">Videos This Month</h5>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Link</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {youtubeVideos.map((video, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-900">{video.title}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{video.status}</td>
+                        <td className="px-6 py-4 text-sm text-blue-600">
+                          {video.url ? (
+                            <a href={video.url} target="_blank" rel="noopener noreferrer" className="underline">
+                              View
+                            </a>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{video.views ? video.views.toLocaleString() : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-sm text-gray-500 italic mt-2">Note: This is a placeholder section. YouTube KPIs and metrics will be defined and tracked in future updates.</p>
+            </div>
+          ) : (
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <Youtube className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-500 mb-1">No YouTube videos found for this month</p>
+              <p className="text-sm text-gray-400">This is a placeholder section. YouTube KPIs and metrics will be defined in future updates.</p>
+            </div>
+          )}
+        </CollapsibleSection>
+
+        {/* Reddit Wins */}
+        <CollapsibleSection title="Reddit Wins" icon={<MessageCircle className="h-5 w-5 text-[#9EA8FB]" />} defaultOpen={false}>
+          {redditThreads.length > 0 ? (
+            <div className="space-y-4">
+              <h5 className="text-base font-medium text-dark mb-2">Reddit Threads & SEO Impact</h5>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyword</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thread</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Traffic</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">$ Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {redditThreads.map((thread, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-900">{thread.keyword}</td>
+                        <td className="px-6 py-4 text-sm text-blue-600">
+                          {thread.threadUrl ? (
+                            <a href={thread.threadUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                              View Thread
+                            </a>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{thread.status}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">{thread.traffic ? thread.traffic.toLocaleString() : "—"}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500">${thread.trafficValue ? thread.trafficValue.toLocaleString() : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-sm text-gray-500 italic mt-2">Note: This is a placeholder section. Reddit KPIs and metrics will be defined and tracked in future updates.</p>
+            </div>
+          ) : (
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-500 mb-1">No Reddit threads found for this month</p>
+              <p className="text-sm text-gray-400">This is a placeholder section. Reddit KPIs and metrics will be defined in future updates.</p>
+            </div>
+          )}
         </CollapsibleSection>
 
         {/* Next Month Roadmap */}
