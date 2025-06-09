@@ -1264,8 +1264,8 @@ export default function DeliverablePage() {
         {/* Top-Level Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 max-w-full">
           {/* Briefs Approved Card - Purple Border for Briefs */}
-          <div className="rounded-lg border-8 p-6 bg-purple-50 h-[104px] flex items-center shadow-sm border-purple-400">
-            <div className="flex flex-col items-center text-center w-full">
+          <div className="rounded-lg border-8 p-4 bg-purple-50 min-h-[104px] flex items-center shadow-sm border-purple-400 overflow-hidden">
+            <div className="flex flex-col items-center text-center w-full min-w-0">
               <span className="text-lg font-bold mb-1 notification-text">
                 {filteredBriefs.length > 0
                   ? Math.round((filteredBriefs.filter(brief => 
@@ -1274,10 +1274,10 @@ export default function DeliverablePage() {
                     ).length / filteredBriefs.length) * 100)
                   : 0}%
               </span>
-              <span className="text-base font-medium">
+              <span className="text-base font-medium truncate w-full">
                 Briefs Delivered
               </span>
-              <span className="text-xs text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1 truncate w-full">
                 {filteredBriefs.filter(brief => 
                   String(brief.Status || '').toLowerCase() === 'brief approved' || 
                   String(brief.Status || '').toLowerCase() === 'approved'
@@ -1287,8 +1287,8 @@ export default function DeliverablePage() {
           </div>
 
           {/* Articles Live Card - Yellow Border for Articles */}
-          <div className="rounded-lg border-8 p-6 bg-yellow-50 h-[104px] flex items-center shadow-sm border-yellow-400">
-            <div className="flex flex-col items-center text-center w-full">
+          <div className="rounded-lg border-8 p-4 bg-yellow-50 min-h-[104px] flex items-center shadow-sm border-yellow-400 overflow-hidden">
+            <div className="flex flex-col items-center text-center w-full min-w-0">
               <span className="text-lg font-bold mb-1 notification-text">
                 {filteredArticles.length > 0
                   ? Math.round((filteredArticles.filter(article => 
@@ -1296,10 +1296,10 @@ export default function DeliverablePage() {
                     ).length / filteredArticles.length) * 100)
                   : 0}%
               </span>
-              <span className="text-base font-medium">
+              <span className="text-base font-medium truncate w-full">
                 Articles Live
               </span>
-              <span className="text-xs text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1 truncate w-full">
                 {filteredArticles.filter(article => 
                   String(article.Status || '').toLowerCase() === 'live'
                 ).length} of {filteredArticles.length} articles live
@@ -1308,8 +1308,8 @@ export default function DeliverablePage() {
           </div>
 
           {/* Backlinks Live Card - Pink Border for Backlinks */}
-          <div className="rounded-lg border-8 p-6 bg-pink-50 h-[104px] flex items-center shadow-sm border-pink-400">
-            <div className="flex flex-col items-center text-center w-full">
+          <div className="rounded-lg border-8 p-4 bg-pink-50 min-h-[104px] flex items-center shadow-sm border-pink-400 overflow-hidden">
+            <div className="flex flex-col items-center text-center w-full min-w-0">
               <span className="text-lg font-bold mb-1 notification-text">
                 {filteredBacklinks.length > 0
                   ? Math.round((filteredBacklinks.filter(backlink => 
@@ -1317,10 +1317,10 @@ export default function DeliverablePage() {
                     ).length / filteredBacklinks.length) * 100)
                   : 0}%
               </span>
-              <span className="text-base font-medium">
+              <span className="text-base font-medium truncate w-full">
                 Backlinks Live
               </span>
-              <span className="text-xs text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1 truncate w-full">
                 {filteredBacklinks.filter(backlink => 
                   String(backlink['Portal Status'] || backlink.Status || '').toLowerCase() === 'live'
                 ).length} of {filteredBacklinks.length} backlinks placed
@@ -1329,8 +1329,8 @@ export default function DeliverablePage() {
           </div>
           
           {/* YouTube Scripts Card - Green Border for YouTube Scripts */}
-          <div className="rounded-lg border-8 p-6 bg-green-50 h-[104px] flex items-center shadow-sm border-green-400">
-            <div className="flex flex-col items-center text-center w-full">
+          <div className="rounded-lg border-8 p-4 bg-green-50 min-h-[104px] flex items-center shadow-sm border-green-400 overflow-hidden">
+            <div className="flex flex-col items-center text-center w-full min-w-0">
               <span className="text-lg font-bold mb-1 notification-text">
                 {filteredYoutubeScripts.length > 0
                   ? Math.round((filteredYoutubeScripts.filter(script => 
@@ -1338,10 +1338,10 @@ export default function DeliverablePage() {
                     ).length / filteredYoutubeScripts.length) * 100)
                   : 0}%
               </span>
-              <span className="text-base font-medium">
+              <span className="text-base font-medium truncate w-full">
                 Scripts Approved
               </span>
-              <span className="text-xs text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1 truncate w-full">
                 {filteredYoutubeScripts.filter(script => 
                   String(script['Script Status for Deliverables'] || '').toLowerCase().includes('approved')
                 ).length} of {filteredYoutubeScripts.length} scripts approved
@@ -1350,8 +1350,8 @@ export default function DeliverablePage() {
           </div>
 
           {/* Reddit Comments Card - Unique color for Reddit Comments */}
-          <div className="rounded-lg border-8 p-6 bg-indigo-50 h-[104px] flex items-center shadow-sm border-indigo-400">
-            <div className="flex flex-col items-center text-center w-full">
+          <div className="rounded-lg border-8 p-4 bg-indigo-50 min-h-[104px] flex items-center shadow-sm border-indigo-400 overflow-hidden">
+            <div className="flex flex-col items-center text-center w-full min-w-0">
               <span className="text-lg font-bold mb-1 notification-text">
                 {Object.values(filteredRedditComments).flat().length > 0
                   ? Math.round((Object.values(filteredRedditComments).flat().filter(comment => 
@@ -1359,10 +1359,10 @@ export default function DeliverablePage() {
                     ).length / Object.values(filteredRedditComments).flat().length) * 100)
                   : 0}%
               </span>
-              <span className="text-base font-medium">
+              <span className="text-base font-medium truncate w-full">
                 Reddit Comments Posted
               </span>
-              <span className="text-xs text-mediumGray mt-1">
+              <span className="text-xs text-mediumGray mt-1 truncate w-full">
                 {Object.values(filteredRedditComments).flat().filter(comment => 
                   String(comment.Status || '').toLowerCase() === 'posted'
                 ).length} of {Object.values(filteredRedditComments).flat().length} comments posted
@@ -1809,8 +1809,16 @@ export default function DeliverablePage() {
                   {filteredArticles.length > 0 ? (
                     filteredArticles.map((article) => (
                       <TableRow key={article.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(article.Title || '')}</TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(getUserName(article.Writer || article['Content Writer']))}</TableCell>
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark max-w-xs">
+                          <div className="truncate" title={String(article.Title || '')}>
+                            {String(article.Title || '')}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark max-w-xs">
+                          <div className="truncate" title={String(getUserName(article.Writer || article['Content Writer']))}>
+                            {String(getUserName(article.Writer || article['Content Writer']))}
+                          </div>
+                        </TableCell>
                         <TableCell className="px-4 py-4 text-base text-dark">{String(article.WordCount || article['Word Count'] || article['Final Word Count'] || '-')}</TableCell>
                         <TableCell className="px-4 py-4">
                           {article.DueDate || article['Due Date'] ?
@@ -1832,33 +1840,35 @@ export default function DeliverablePage() {
                             {String(article.Month || '-')}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-4">
+                        <TableCell className="px-4 py-4 max-w-xs">
                           {article.DocumentLink || article['Document Link'] ? (
                             <a
                               href={ensureUrlProtocol(String(article.DocumentLink || article['Document Link']))}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-base text-primary hover:underline flex items-center"
+                              title={String(article.DocumentLink || article['Document Link'])}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
-                              View
+                              <span className="truncate">View</span>
                             </a>
                           ) : '-'}
                         </TableCell>
-                        <TableCell className="px-4 py-4">
+                        <TableCell className="px-4 py-4 max-w-xs">
                           {article.ArticleURL || article['Article URL'] || article['Target Page URL'] ? (
                             <a
                               href={ensureUrlProtocol(String(article.ArticleURL || article['Article URL'] || article['Target Page URL']))}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-base text-primary hover:underline flex items-center"
+                              title={String(article.ArticleURL || article['Article URL'] || article['Target Page URL'])}
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                               </svg>
-                              View
+                              <span className="truncate">View</span>
                             </a>
                           ) : '-'}
                         </TableCell>
@@ -2014,7 +2024,17 @@ export default function DeliverablePage() {
                   {filteredBacklinks.length > 0 ? (
                     filteredBacklinks.map((backlink) => (
                       <TableRow key={backlink.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(backlink.Name || '-')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark max-w-xs">
+                          <a 
+                            href={ensureUrlProtocol(String(backlink['Domain URL'] || backlink.Domain || ''))} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-primary hover:underline truncate block"
+                            title={String(backlink['Domain URL'] || backlink.Domain || 'Unknown Domain')}
+                          >
+                            {String(backlink['Domain URL'] || backlink.Domain || 'Unknown Domain')}
+                          </a>
+                        </TableCell>
                         <TableCell className="px-4 py-4">{String(backlink['Link Type'] || backlink.LinkType || 'Unknown Type')}</TableCell>
                         <TableCell className="px-4 py-4">
                           <span className={`px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-lg
@@ -2037,7 +2057,8 @@ export default function DeliverablePage() {
                             href={ensureUrlProtocol(String(backlink['Domain URL'] || backlink.Domain || ''))} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="text-primary hover:underline"
+                            className="text-primary hover:underline truncate block"
+                            title={String(backlink['Domain URL'] || backlink.Domain || 'Unknown Domain')}
                           >
                             {String(backlink['Domain URL'] || backlink.Domain || 'Unknown Domain')}
                           </a>
@@ -2054,13 +2075,14 @@ export default function DeliverablePage() {
                             {String(backlink['Domain Traffic ( API )'] || '-')}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-4">
+                        <TableCell className="px-4 py-4 max-w-xs">
                           {backlink["Backlink Page URL"] ? (
                             <a
                               href={ensureUrlProtocol(String(backlink["Backlink Page URL"]))}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-primary hover:underline"
+                              className="text-primary hover:underline truncate block"
+                              title={String(backlink["Backlink Page URL"])}
                             >
                               {String(backlink["Backlink Page URL"])}
                             </a>
@@ -2078,16 +2100,19 @@ export default function DeliverablePage() {
                             {String(backlink['N° RDs Of Referring Page ( API )'] || '-')}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-4">
-                          {String(backlink['Anchor Text'] || backlink.AnchorText || '-')}
+                        <TableCell className="px-4 py-4 max-w-xs">
+                          <div className="truncate" title={String(backlink['Anchor Text'] || backlink.AnchorText || '-')}>
+                            {String(backlink['Anchor Text'] || backlink.AnchorText || '-')}
+                          </div>
                         </TableCell>
-                        <TableCell className="px-4 py-4">
+                        <TableCell className="px-4 py-4 max-w-xs">
                           {backlink["Client Target Page URL"] ? (
                             <a
                               href={ensureUrlProtocol(String(backlink["Client Target Page URL"]))}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-primary hover:underline"
+                              className="text-primary hover:underline truncate block"
+                              title={String(backlink["Client Target Page URL"])}
                             >
                               {String(backlink["Client Target Page URL"])}
                             </a>
@@ -2105,7 +2130,11 @@ export default function DeliverablePage() {
                             {String(backlink.Month || selectedMonth)}
                           </span>
                         </TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(backlink.Notes || '—')}</TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark max-w-xs">
+                          <div className="truncate" title={String(backlink.Notes || '—')}>
+                            {String(backlink.Notes || '—')}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -2237,10 +2266,26 @@ export default function DeliverablePage() {
                   {filteredYoutubeScripts.length > 0 ? (
                     filteredYoutubeScripts.map((script) => (
                       <TableRow key={script.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="px-4 py-4 text-base font-medium text-dark">{String(script['Script Title'] || '')}</TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(script['Keyword Topic'] || '')}</TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(script['Video Title'] || '')}</TableCell>
-                        <TableCell className="px-4 py-4 text-base text-dark">{String(getUserName(script['YouTube Scripter']))}</TableCell>
+                        <TableCell className="px-4 py-4 text-base font-medium text-dark max-w-xs">
+                          <div className="truncate" title={String(script['Script Title'] || '')}>
+                            {String(script['Script Title'] || '')}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark max-w-xs">
+                          <div className="truncate" title={String(script['Keyword Topic'] || '')}>
+                            {String(script['Keyword Topic'] || '')}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark max-w-xs">
+                          <div className="truncate" title={String(script['Video Title'] || '')}>
+                            {String(script['Video Title'] || '')}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-4 text-base text-dark max-w-xs">
+                          <div className="truncate" title={String(getUserName(script['YouTube Scripter']))}>
+                            {String(getUserName(script['YouTube Scripter']))}
+                          </div>
+                        </TableCell>
                         <TableCell className="px-4 py-4">
                           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
                             ${String(script['Script Status'] || '').toLowerCase().includes('approved') ? 'bg-green-100 text-green-800' :
@@ -2463,19 +2508,22 @@ const RedditThreadRow = ({ threadId, threadTitle, comments, threadMap }: RedditT
           </button>
         </TableCell>
         <TableCell className="px-4 py-4 font-medium">
-          {threadUrl ? (
-            <a 
-              href={ensureUrlProtocol(threadUrl)} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-primary hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {displayTitle}
-            </a>
-          ) : (
-            displayTitle
-          )}
+          <div className="max-w-md truncate">
+            {threadUrl ? (
+              <a 
+                href={ensureUrlProtocol(threadUrl)} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+                title={displayTitle}
+              >
+                {displayTitle}
+              </a>
+            ) : (
+              <span title={displayTitle}>{displayTitle}</span>
+            )}
+          </div>
         </TableCell>
         <TableCell className="px-4 py-4 text-center">
           {hasComments ? comments.length : 0}
@@ -2524,10 +2572,12 @@ const RedditThreadRow = ({ threadId, threadTitle, comments, threadMap }: RedditT
                   {String(comment.Status || 'Unknown')}
                 </span>
               </div>
-              <div className="mt-1 text-sm">
-                {comment.Status === 'Posted' 
-                  ? String(comment['Comment Text Proposition (External)'] || '') 
-                  : String(comment['Comment Text Proposition (Internal)'] || '')}
+              <div className="mt-1 text-sm overflow-hidden text-ellipsis">
+                <div className="break-words whitespace-normal overflow-wrap-anywhere">
+                  {comment.Status === 'Posted' 
+                    ? String(comment['Comment Text Proposition (External)'] || '') 
+                    : String(comment['Comment Text Proposition (Internal)'] || '')}
+                </div>
               </div>
             </TableCell>
             <TableCell className="px-4 py-3 text-center text-sm">
