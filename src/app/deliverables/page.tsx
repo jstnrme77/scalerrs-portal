@@ -1031,6 +1031,10 @@ export default function DeliverablePage() {
   const applyRedditCommentFilters = (data: RedditComment[]) => {
     console.log('Applying Reddit comment filters...');
     
+    // Debug: Log unique status values in the data
+    const uniqueStatuses = new Set(data.map(comment => comment.Status));
+    console.log('Unique Reddit comment statuses in data:', Array.from(uniqueStatuses));
+    
     // Filter by month if selected
     let filtered = [...data];
     
@@ -1090,7 +1094,29 @@ export default function DeliverablePage() {
     // Apply status filter if not set to 'all'
     if (redditCommentStatusFilter !== 'all') {
       console.log('Filtering by status:', redditCommentStatusFilter);
-      filtered = filtered.filter(comment => comment.Status?.toLowerCase() === redditCommentStatusFilter.toLowerCase());
+      
+      // Debug: Log statuses before filtering
+      console.log('Sample statuses before filtering:', filtered.slice(0, 5).map(c => c.Status));
+      
+      // Use a more flexible matching approach
+      filtered = filtered.filter(comment => {
+        // First try an exact match
+        const exactMatch = comment.Status === redditCommentStatusFilter;
+        
+        // If no exact match, try a case-insensitive includes match
+        // This handles cases where the display name and actual value might differ slightly
+        const includesMatch = !exactMatch && 
+                             comment.Status && 
+                             comment.Status.toLowerCase().includes(redditCommentStatusFilter.toLowerCase().replace("Comment ", ""));
+        
+        const match = exactMatch || includesMatch;
+        
+        if (match) {
+          console.log(`Found matching comment with status "${comment.Status}" for filter "${redditCommentStatusFilter}"`);
+        }
+        
+        return match;
+      });
     }
     
     console.log(`After filtering, ${filtered.length} Reddit comments remain`);
@@ -1543,9 +1569,11 @@ export default function DeliverablePage() {
                     onChange={(e) => setRedditCommentStatusFilter(e.target.value)}
                   >
                     <option value="all">All Statuses</option>
-                    <option value="posted">Posted</option>
-                    <option value="proposed">Proposed</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="Comment Posted">Posted</option>
+                    <option value="Comment To Post (External)">To Post</option>
+                    <option value="Comment To Modify (External)">To Modify</option>
+                    <option value="Comment To Check (Scalerrs)">To Check</option>
+                    <option value="Comment in Up Voting (External)">In Up Voting</option>
                   </select>
                   {redditCommentStatusFilter !== 'all' && (
                     <button
@@ -2337,28 +2365,12 @@ export default function DeliverablePage() {
 
           {mainTab === 'redditcomments' && (
             <div className="bg-white">
-              {/* <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Reddit Comments</h2>
-                  <p className="text-muted-foreground">
-                    Grouped by thread, shows which comments have been posted and upvoted
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">Status:</label>
-                  <select
-                    value={redditCommentStatusFilter}
-                    onChange={(e) => setRedditCommentStatusFilter(e.target.value)}
-                    className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm p-2"
-                  >
-                    <option value="all">All Statuses</option>
-                    <option value="posted">Posted</option>
-                    <option value="proposed">Proposed</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-              </div> */}
+              <div className="mb-6 flex items-center">
+                <h2 className="text-2xl font-bold tracking-tight">Reddit Comments</h2>
+                <p className="ml-4 text-muted-foreground">
+                  Grouped by thread, shows which comments have been posted and upvoted
+                </p>
+              </div>
               
               <Table className="min-w-full divide-y divide-gray-200 bg-white">
                 <TableHeader>
@@ -2529,22 +2541,7 @@ const RedditThreadRow = ({ threadId, threadTitle, comments, threadMap }: RedditT
           {hasComments ? comments.length : 0}
         </TableCell>
         <TableCell className="px-4 py-4 text-center">
-          {/* Show a simpler status indicator - just Posted count */}
-          {hasComments && (() => {
-            // Count posted comments
-            const postedCount = comments.filter(comment => comment.Status === 'Posted').length;
-            
-            if (postedCount > 0) {
-              return (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Posted ({postedCount})
-                </span>
-              );
-            } else {
-              // Return empty for non-posted comments
-              return null;
-            }
-          })()}
+          {/* Leave this cell blank - no status indicator needed */}
         </TableCell>
       </TableRow>
       
@@ -2565,16 +2562,19 @@ const RedditThreadRow = ({ threadId, threadTitle, comments, threadMap }: RedditT
               <div className="flex items-center">
                 <span className="mr-2 text-xs text-gray-500">Comment #{index + 1}</span>
                 <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-lg
-                  ${comment.Status === 'Posted' ? 'bg-green-100 text-green-800' :
-                  comment.Status === 'Proposed' ? 'bg-yellow-100 text-yellow-800' :
-                  comment.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                  ${comment.Status === 'Comment Posted' || comment.Status?.includes('Posted') ? 'bg-green-100 text-green-800' :
+                  comment.Status === 'Comment To Post (External)' || comment.Status?.includes('To Post') ? 'bg-blue-100 text-blue-800' :
+                  comment.Status === 'Comment To Modify (External)' || comment.Status?.includes('Modify') ? 'bg-yellow-100 text-yellow-800' :
+                  comment.Status === 'Comment To Check (Scalerrs)' || comment.Status?.includes('Check') ? 'bg-red-100 text-red-800' :
+                  comment.Status === 'Comment in Up Voting (External)' || comment.Status?.includes('Voting') ? 'bg-purple-100 text-purple-800' :
                   'bg-gray-100 text-gray-800'}`}>
                   {String(comment.Status || 'Unknown')}
                 </span>
               </div>
               <div className="mt-1 text-sm overflow-hidden text-ellipsis">
                 <div className="break-words whitespace-normal overflow-wrap-anywhere">
-                  {comment.Status === 'Posted' 
+                  {(comment.Status === 'Comment Posted' || comment.Status?.includes('Posted') || 
+                    comment.Status === 'Comment in Up Voting (External)' || comment.Status?.includes('Voting'))
                     ? String(comment['Comment Text Proposition (External)'] || '') 
                     : String(comment['Comment Text Proposition (Internal)'] || '')}
                 </div>
