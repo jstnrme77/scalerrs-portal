@@ -2452,9 +2452,9 @@ export default function Approvals() {
       // Make sure we use the correct status value
       const airtableStatus = 'Approved';
       
-      // Clear cache before update to ensure fresh data after
-      console.log('Clearing cache before approval update');
-      clearApprovalsCache(); // Clear all types to be safe
+      // Clear all caches to ensure we get fresh data after the update
+      console.log('Clearing all caches before approval update');
+      await clearApprovalsCache(); // Clear ALL types to be safe
       
       // Call the API to update Airtable
       const result = await updateApprovalStatus(activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails', id, airtableStatus);
@@ -2480,10 +2480,38 @@ export default function Approvals() {
       });
       
       // Refresh data after a short delay to ensure we get the latest from Airtable
-      setTimeout(() => {
-        console.log('Refreshing all tabs data after approval update');
-        fetchAllTabsData(true); // Force refresh all tabs data
-      }, 1000);
+      console.log('Refreshing all tabs data after approval update');
+      
+      // Force immediate UI update
+      setItems(prev => {
+        const newItems = { ...prev };
+        const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === id);
+        
+        if (itemIndex !== -1) {
+          console.log(`Immediately updating UI for item ${id} from ${newItems[activeTab as keyof typeof items][itemIndex].status} to approved in the UI`);
+          newItems[activeTab as keyof typeof items][itemIndex] = {
+            ...newItems[activeTab as keyof typeof items][itemIndex],
+            status: 'approved', // Use approved for UI
+            dateApproved: formatDate(new Date().toISOString())
+          };
+        }
+        
+        return newItems;
+      });
+      
+      // Then fetch from server after a delay
+      setTimeout(async () => {
+        console.log('Fetching fresh data from server after approval update');
+        try {
+          // First clear all caches again to be sure
+          await clearApprovalsCache();
+          
+          // Then force a complete refresh of all data
+          await fetchAllTabsData(true); // Force refresh all tabs data
+        } catch (error) {
+          console.error('Error refreshing data after approval:', error);
+        }
+      }, 2000);
     } catch (error) {
       console.error('Error approving item:', error);
     }
@@ -2603,10 +2631,42 @@ export default function Approvals() {
     clearSelections();
     
     // Refresh data after a short delay to ensure we get the latest from Airtable
-    setTimeout(() => {
-      console.log('Refreshing all tabs data after bulk approval update');
-      fetchAllTabsData(true); // Force refresh all tabs data
-    }, 1000);
+    console.log('Refreshing all tabs data after bulk approval update');
+    
+    // Force immediate UI update (already done above, but let's keep this for completeness)
+    setItems(prev => {
+      const newItems = { ...prev };
+      
+      // Update all selected items in the UI
+      currentTabSelections.forEach(id => {
+        const itemIndex = newItems[activeTab as keyof typeof items].findIndex(item => item.id === id);
+        
+        if (itemIndex !== -1 && ['awaiting_approval', 'resubmitted', 'needs_revision'].includes(newItems[activeTab as keyof typeof items][itemIndex].status)) {
+          console.log(`Immediately updating UI for bulk item ${id} from ${newItems[activeTab as keyof typeof items][itemIndex].status} to approved in the UI`);
+          newItems[activeTab as keyof typeof items][itemIndex] = {
+            ...newItems[activeTab as keyof typeof items][itemIndex],
+            status: 'approved', // Use approved for UI
+            dateApproved: formatDate(new Date().toISOString())
+          };
+        }
+      });
+      
+      return newItems;
+    });
+    
+    // Then fetch from server after a delay
+    setTimeout(async () => {
+      console.log('Fetching fresh data from server after bulk approval update');
+      try {
+        // First clear all caches again to be sure
+        await clearApprovalsCache();
+        
+        // Then force a complete refresh of all data
+        await fetchAllTabsData(true); // Force refresh all tabs data
+      } catch (error) {
+        console.error('Error refreshing data after bulk approval:', error);
+      }
+    }, 2000);
   };
 
   const confirmRequestChanges = async (reason: string) => {
@@ -2617,9 +2677,9 @@ export default function Approvals() {
     const currentClient = clientId === null || clientId === 'all' ? 'all' : clientId;
     console.log(`${isBulkAction ? 'Bulk requesting' : 'Requesting'} changes with client filter: ${currentClient}`);
 
-    // Clear cache before update to ensure fresh data after
-    console.log('Clearing cache before requesting changes');
-    clearApprovalsCache(); // Clear all types to be safe
+    // Clear all caches to ensure we get fresh data after the update
+    console.log('Clearing all caches before requesting changes');
+    await clearApprovalsCache(); // Clear ALL types to be safe
 
     if (isBulkAction) {
       // Get the selected items for the current tab
@@ -2646,7 +2706,7 @@ export default function Approvals() {
       try {
         console.log(`Requesting changes for single item ${rejectionModal.itemId}`);
         const result = await updateApprovalStatus(
-          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks',
+          activeTab as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads',
           rejectionModal.itemId, 
           'Needs Revision', 
           reason
@@ -2703,10 +2763,21 @@ export default function Approvals() {
     setRejectionModal({ isOpen: false, itemId: '' });
     
     // Refresh data after a short delay to ensure we get the latest from Airtable
-    setTimeout(() => {
-      console.log('Refreshing all tabs data after requesting changes');
-      fetchAllTabsData(true); // Force refresh all tabs data
-    }, 1000);
+    console.log('Refreshing all tabs data after requesting changes');
+    
+    // Then fetch from server after a delay
+    setTimeout(async () => {
+      console.log('Fetching fresh data from server after requesting changes');
+      try {
+        // First clear all caches again to be sure
+        await clearApprovalsCache();
+        
+        // Then force a complete refresh of all data
+        await fetchAllTabsData(true); // Force refresh all tabs data
+      } catch (error) {
+        console.error('Error refreshing data after requesting changes:', error);
+      }
+    }, 2000);
   };
 
   return (

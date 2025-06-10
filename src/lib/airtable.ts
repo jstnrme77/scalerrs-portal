@@ -2100,13 +2100,16 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
         targetFieldName = 'Status';
         break;
       case 'youtubetopics':
+        // For YouTube topics, the approval field is "YouTube Status Approval"
         targetFieldName = 'YouTube Status Approval';
         break;
       case 'youtubethumbnails':
+        // For YouTube thumbnails, the approval field is "Thumbnail Approval"
         targetFieldName = 'Thumbnail Approval';
         break;
       case 'redditthreads':
-        targetFieldName = 'Reddit Thread Status Approval';
+        // For Reddit threads, the approval field is "Reddit Threads Status Approval"
+        targetFieldName = 'Reddit Threads Status Approval';
         break;
       default:
         console.error(`Invalid type "${type}" specified for target field name determination.`);
@@ -2130,6 +2133,7 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
     if (targetFieldName && airtableStatusValue) {
       updateObject[targetFieldName] = airtableStatusValue;
       console.log(`Will attempt to set Airtable field "${targetFieldName}" to "${airtableStatusValue}"`);
+      // Only update the single select approval field
     } else {
       // This case should ideally not be reached if type and status are valid
       console.warn(`Could not determine target field or Airtable status value for type '${type}' and UI status '${status}'.`);
@@ -2181,27 +2185,43 @@ export async function updateApprovalStatus(type: 'keywords' | 'briefs' | 'articl
     const updatedRecord = await base(tableName).update(itemId, updateObject);
     console.log(`Successfully updated ${type} in ${tableName} for item ${itemId}. Record ID: ${updatedRecord.id}`);
 
-    // Determine which field to primarily check for the status from the Airtable record for UI mapping
-    // For keywords, briefs, articles, the source of truth is 'Keyword/Content Status'.
-    let statusFieldToCheckInAirtable = 'Keyword/Content Status';
-    if (type === 'backlinks') {
-      // If backlinks use a direct field (e.g., 'Backlinks Approval') and not 'Keyword/Content Status'
-      statusFieldToCheckInAirtable = 'Backlinks Approval';
-    } else if (type === 'youtubetopics') {
-      statusFieldToCheckInAirtable = 'YouTube Status Approval';
-    } else if (type === 'youtubethumbnails') {
-      statusFieldToCheckInAirtable = 'Thumbnail Approval';
-    } else if (type === 'redditthreads') {
-      statusFieldToCheckInAirtable = 'Reddit Thread Status Approval';
-    } else if (type === 'quickwins') {
-      statusFieldToCheckInAirtable = 'Status';
+    // Always check the exact field that we're updating - no fallbacks
+    // This ensures we're only looking at the specific approval field for each content type
+    let statusFieldToCheckInAirtable = targetFieldName;
+    
+    console.log(`Will check status from field: "${statusFieldToCheckInAirtable}" for content type: ${type}`);
+    
+    // Verify the field exists in the updated record
+    if (!updatedRecord.fields[statusFieldToCheckInAirtable]) {
+      console.warn(`Warning: Field "${statusFieldToCheckInAirtable}" not found in updated record. Available fields:`, Object.keys(updatedRecord.fields));
     }
 
-    const returnedAirtableStatusValue = updatedRecord.fields[statusFieldToCheckInAirtable] || updatedRecord.fields['Approval Status'] || '';
-
+    // Get the exact status value from the field we updated - no fallbacks
+    const returnedAirtableStatusValue = updatedRecord.fields[statusFieldToCheckInAirtable] || '';
+    
+    // Enhanced logging for better debugging
+    console.log(`Airtable update complete. Field to check: ${statusFieldToCheckInAirtable}`);
+    console.log(`Returned Airtable status value: "${returnedAirtableStatusValue}"`);
+    console.log(`Fields returned from Airtable:`, JSON.stringify(updatedRecord.fields, null, 2));
+    
+    // If the status is "Approved", map it to "approved" for the UI
+    // If the status is "Needs Revision", map it to "revisions_needed" for the UI
+    // Otherwise, keep the original status value
+    let mappedStatus;
+    if (returnedAirtableStatusValue === 'Approved') {
+      mappedStatus = 'approved';
+    } else if (returnedAirtableStatusValue === 'Needs Revision') {
+      mappedStatus = 'revisions_needed';
+    } else {
+      // Use the standard mapping function for other values
+      mappedStatus = mapAirtableStatusToUIStatus(returnedAirtableStatusValue as string);
+    }
+    
+    console.log(`Mapped UI status: "${mappedStatus}"`);
+    
     return {
       id: updatedRecord.id,
-      status: mapAirtableStatusToUIStatus(returnedAirtableStatusValue as string) // Ensure mapAirtableStatusToUIStatus can handle these values
+      status: mappedStatus
     };
   } catch (error) {
     console.error(`Error updating ${type} approval status in Airtable for itemId ${itemId}:`, error);

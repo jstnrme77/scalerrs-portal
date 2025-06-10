@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate type
-    if (!['keywords', 'briefs', 'articles', 'backlinks'].includes(type)) {
+    if (!['keywords', 'briefs', 'articles', 'backlinks', 'quickwins', 'youtubetopics', 'youtubethumbnails', 'redditthreads'].includes(type)) {
       const response = NextResponse.json(
-        { error: 'Invalid type. Must be one of: keywords, briefs, articles, backlinks' },
+        { error: 'Invalid type. Must be one of: keywords, briefs, articles, backlinks, quickwins, youtubetopics, youtubethumbnails, redditthreads' },
         { status: 400 }
       );
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // Call the Airtable function to update the status
     const result = await updateApprovalStatus(
-      type as 'keywords' | 'briefs' | 'articles' | 'backlinks',
+      type as 'keywords' | 'briefs' | 'articles' | 'backlinks' | 'quickwins' | 'youtubetopics' | 'youtubethumbnails' | 'redditthreads',
       itemId,
       status,
       revisionReason

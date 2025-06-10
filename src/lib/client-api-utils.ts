@@ -603,7 +603,7 @@ export async function updateApprovalStatus(
   clearApprovalsCache(type);
 
   return fetchFromApi(
-    'api/update-approval',
+    'update-approval',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
