@@ -18,7 +18,9 @@ import {
   MessageSquare,
   FolderOpen,
   BarChart3,
-  CheckSquare
+  CheckSquare,
+  Youtube,
+  ArrowRight
 } from 'lucide-react';
 
 import {
@@ -34,6 +36,8 @@ export default function GetStartedPage() {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [roadmapModalOpen, setRoadmapModalOpen] = useState(false);
   const [checklistModalOpen, setChecklistModalOpen] = useState(false);
+  const [howWeWorkVideoModalOpen, setHowWeWorkVideoModalOpen] = useState(false);
+  const [redditVideoModalOpen, setRedditVideoModalOpen] = useState(false);
 
   // Checklist state
   const [checklist, setChecklist] = useState(checklistItems);
@@ -124,8 +128,10 @@ export default function GetStartedPage() {
     }
   ];
 
-  // Video URL for the walkthrough
-  const videoUrl = "https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0";
+  // Video URLs
+  const platformWalkthroughUrl = "https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0";
+  const howWeWorkVideoUrl = platformWalkthroughUrl; // Using the same video as a placeholder
+  const redditExplainerUrl = "https://www.loom.com/embed/4c4e3782582f4b25bbefa9c36b89e061"; // Using a placeholder Loom URL
 
   return (
     <div>
@@ -134,7 +140,7 @@ export default function GetStartedPage() {
         <h2 className="text-2xl font-bold text-[#12131C] mb-4">Welcome to Scalerrs Portal</h2>
         <div className="w-full max-w-3xl aspect-video rounded-xl overflow-hidden border-8 border-[#F5F5F9] shadow-md">
           <iframe
-            src={videoUrl}
+            src={platformWalkthroughUrl}
             className="w-full h-full border-0"
             title="Platform Walkthrough"
             allow="autoplay; fullscreen"
@@ -232,7 +238,7 @@ export default function GetStartedPage() {
       </div>
 
       {/* Second row of cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
         {/* Guides Section */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm get-started-card">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
@@ -276,7 +282,7 @@ export default function GetStartedPage() {
           </Button>
         </div>
 
-        {/* Onboarding Forms Section - Moved to second row */}
+        {/* Onboarding Forms Section */}
         <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
             <FileText className="h-6 w-6 text-[#9EA8FB]" />
@@ -299,13 +305,96 @@ export default function GetStartedPage() {
             Complete Forms
           </Button>
         </div>
+
+        {/* How We Work Video Section */}
+        <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+            <Youtube className="h-6 w-6 text-[#9EA8FB]" />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">How We Work</h2>
+          <p className="mb-6 text-base text-[#12131C]">Watch our explainer video to understand our process and methodology.</p>
+          <Button
+            variant="primary"
+            size="lg"
+            className="mt-auto get-started-btn"
+            onClick={() => setHowWeWorkVideoModalOpen(true)}
+          >
+            Watch Video
+          </Button>
+        </div>
+      </div>
+
+      {/* Third row of cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-6">
+        {/* Reddit Workflow Section */}
+        <div className="flex flex-col rounded-3xl border-8 border-[#F5F5F9] bg-white p-6 shadow-sm">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+            <MessageSquare className="h-6 w-6 text-[#9EA8FB]" />
+          </div>
+          <h2 className="mb-2 text-2xl font-bold text-[#12131C]">Reddit Workflow</h2>
+          <p className="mb-6 text-base text-[#12131C]">Learn how our Reddit engagement process works from keyword to comments.</p>
+          
+          {/* Reddit Flow Diagram - Simplified for card size */}
+          <div className="mb-6 flex flex-col space-y-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+                <span className="text-xs font-bold text-[#9EA8FB]">1</span>
+              </div>
+              <div className="ml-3">
+                <span className="text-sm font-medium">Keywords</span>
+                <p className="text-xs text-[#4F515E]">Research & selection</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="flex-shrink-0 h-8 w-8 flex items-center justify-center">
+                <div className="h-6 w-0.5 bg-[#9EA8FB]"></div>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+                <span className="text-xs font-bold text-[#9EA8FB]">2</span>
+              </div>
+              <div className="ml-3">
+                <span className="text-sm font-medium">Threads</span>
+                <p className="text-xs text-[#4F515E]">Creation & approval</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className="flex-shrink-0 h-8 w-8 flex items-center justify-center">
+                <div className="h-6 w-0.5 bg-[#9EA8FB]"></div>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <div className="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-[#9EA8FB]/20">
+                <span className="text-xs font-bold text-[#9EA8FB]">3</span>
+              </div>
+              <div className="ml-3">
+                <span className="text-sm font-medium">Comments</span>
+                <p className="text-xs text-[#4F515E]">Engagement & monitoring</p>
+              </div>
+            </div>
+          </div>
+          
+          <Button
+            variant="primary"
+            size="lg"
+            className="mt-auto get-started-btn"
+            onClick={() => setRedditVideoModalOpen(true)}
+          >
+            Watch Explainer
+          </Button>
+        </div>
       </div>
 
       {/* Modals */}
       <VideoModal
         isOpen={videoModalOpen}
         onClose={() => setVideoModalOpen(false)}
-        videoUrl="https://www.tella.tv/video/cm8yl8a5i00160bl7glvn57vg/embed?b=0&title=0&a=1&loop=0&t=0&muted=0&wt=0"
+        videoUrl={platformWalkthroughUrl}
         title="Platform Walkthrough"
       />
 
@@ -330,6 +419,22 @@ export default function GetStartedPage() {
         title="Onboarding Checklist"
         items={checklist}
         onItemToggle={handleChecklistItemToggle}
+      />
+
+      {/* How We Work Video Modal */}
+      <VideoModal
+        isOpen={howWeWorkVideoModalOpen}
+        onClose={() => setHowWeWorkVideoModalOpen(false)}
+        videoUrl={howWeWorkVideoUrl}
+        title="How We Work"
+      />
+
+      {/* Reddit Explainer Video Modal */}
+      <VideoModal
+        isOpen={redditVideoModalOpen}
+        onClose={() => setRedditVideoModalOpen(false)}
+        videoUrl={redditExplainerUrl}
+        title="Reddit Workflow Explainer"
       />
     </div>
   );
