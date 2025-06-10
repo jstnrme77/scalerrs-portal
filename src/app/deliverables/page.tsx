@@ -2365,13 +2365,6 @@ export default function DeliverablePage() {
 
           {mainTab === 'redditcomments' && (
             <div className="bg-white">
-              <div className="mb-6 flex items-center">
-                <h2 className="text-2xl font-bold tracking-tight">Reddit Comments</h2>
-                <p className="ml-4 text-muted-foreground">
-                  Grouped by thread, shows which comments have been posted and upvoted
-                </p>
-              </div>
-              
               <Table className="min-w-full divide-y divide-gray-200 bg-white">
                 <TableHeader>
                   <TableRow>
