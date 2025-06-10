@@ -20,8 +20,10 @@ export async function GET(req: NextRequest) {
     
     if (!clientId) return NextResponse.json({ error: 'Missing clientId' }, { status: 400 });
     
-    console.log('API route: Fetching KPI progress for client:', clientId);
-    console.log('API route: skipCache from query:', skipCache);
+    console.log('KPI Progress API: Fetching KPI progress for client:', clientId);
+    console.log('KPI Progress API: skipCache from query:', skipCache);
+    console.log('KPI Progress API: API Key exists:', !!AIRTABLE_API_KEY);
+    console.log('KPI Progress API: Base ID exists:', !!AIRTABLE_BASE_ID);
     
     // Generate cache key based on clientId
     const cacheKey = `kpi_progress_${clientId}`;
@@ -32,10 +34,10 @@ export async function GET(req: NextRequest) {
       const now = Date.now();
       
       if (now - cachedData.timestamp < CACHE_TTL) {
-        console.log(`API route: Using cached KPI progress (${Math.round((now - cachedData.timestamp) / 1000)}s old)`);
+        console.log(`KPI Progress API: Using cached KPI progress (${Math.round((now - cachedData.timestamp) / 1000)}s old)`);
         return NextResponse.json(cachedData.data);
       } else {
-        console.log('API route: Cached KPI progress expired, fetching fresh data');
+        console.log('KPI Progress API: Cached KPI progress expired, fetching fresh data');
       }
     }
 
@@ -43,6 +45,8 @@ export async function GET(req: NextRequest) {
     const year = now.getFullYear();
 
     // Fetch all months for this client and year
+    console.log(`KPI Progress API: Fetching data from ${TABLE_ID} for client ${clientId} and year ${year}`);
+    
     const records = await base(TABLE_ID)
       .select({
         filterByFormula: `AND(
@@ -52,6 +56,27 @@ export async function GET(req: NextRequest) {
         maxRecords: 100
       })
       .firstPage();
+      
+    console.log(`KPI Progress API: Found ${records.length} records for client ${clientId}`);
+    
+    if (records.length === 0) {
+      console.log('KPI Progress API: No records found for this client and year');
+      return NextResponse.json({ 
+        error: 'No data found for this client and year',
+        currentQuarterPercent: null,
+        annualPercent: null,
+        quarterLabel: '',
+        year,
+        trafficGrowth: null
+      });
+    }
+    
+    // If we have records, log the fields of the first record for debugging
+    if (records.length > 0) {
+      const firstRecord = records[0];
+      console.log('KPI Progress API: First record fields:', 
+        Object.keys(firstRecord.fields).join(', '));
+    }
 
     // Group by quarter
     const quarterMap: Record<string, QuarterData> = {};
@@ -76,6 +101,8 @@ export async function GET(req: NextRequest) {
       const actual = Number(rec.get('Organic Traffic (Actual)')) || 0;
       const quarter = rec.get('Quarter') as string || '';
       const monthStart = rec.get('Month Start') as string | null | undefined;
+      
+      console.log(`KPI Progress API: Processing record - Month: ${monthStart}, Quarter: ${quarter}, Projected: ${projected}, Actual: ${actual}`);
 
       annualProjected += projected;
       annualActual += actual;
@@ -91,12 +118,17 @@ export async function GET(req: NextRequest) {
         if (mDate.getFullYear() === now.getFullYear() && mDate.getMonth() === now.getMonth()) {
           currentMonthActual = actual;
           foundCurrent = true;
+          console.log(`KPI Progress API: Found current month data - Actual: ${actual}`);
         } else if (mDate.getFullYear() === now.getFullYear() && mDate.getMonth() === now.getMonth() - 1) {
           prevMonthActual = actual;
           foundPrev = true;
+          console.log(`KPI Progress API: Found previous month data - Actual: ${actual}`);
         }
       }
     }
+    
+    console.log('KPI Progress API: Quarter breakdown:', Object.keys(quarterMap).join(', '));
+    console.log(`KPI Progress API: Annual totals - Projected: ${annualProjected}, Actual: ${annualActual}`);
 
     // Find the current quarter by checking which quarter contains the current month
     for (const [q, data] of Object.entries(quarterMap)) {
@@ -108,6 +140,7 @@ export async function GET(req: NextRequest) {
         currentQuarter = q;
         currentQuarterProjected = data.projected;
         currentQuarterActual = data.actual;
+        console.log(`KPI Progress API: Found current quarter: ${q} - Projected: ${data.projected}, Actual: ${data.actual}`);
         break;
       }
     }
@@ -119,6 +152,11 @@ export async function GET(req: NextRequest) {
     let trafficGrowth = null;
     if (foundCurrent && foundPrev && prevMonthActual && prevMonthActual !== 0 && currentMonthActual !== null) {
       trafficGrowth = +(((currentMonthActual - prevMonthActual) / prevMonthActual) * 100).toFixed(1);
+      console.log(`KPI Progress API: Calculated traffic growth: ${trafficGrowth}%`);
+    } else {
+      console.log('KPI Progress API: Could not calculate traffic growth - missing data');
+      if (!foundCurrent) console.log('KPI Progress API: Current month data not found');
+      if (!foundPrev) console.log('KPI Progress API: Previous month data not found');
     }
 
     const result = {
@@ -129,6 +167,8 @@ export async function GET(req: NextRequest) {
       trafficGrowth
     };
     
+    console.log('KPI Progress API: Final result:', result);
+    
     // Cache the results
     progressCache[cacheKey] = {
       data: result,
@@ -137,7 +177,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Error fetching KPI progress:', error);
+    console.error('KPI Progress API: Error fetching KPI progress:', error);
     return NextResponse.json({ 
       error: 'Failed to fetch KPI progress',
       currentQuarterPercent: null,

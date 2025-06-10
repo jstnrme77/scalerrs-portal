@@ -12,18 +12,18 @@ const CACHE_TTL = 60 * 1000; // 1 minute cache TTL
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('API route: Fetching KPI metrics from Airtable');
-    console.log('API Key exists:', !!process.env.AIRTABLE_API_KEY);
-    console.log('Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
+    console.log('KPI Metrics API: Starting request');
+    console.log('KPI Metrics API: API Key exists:', !!process.env.AIRTABLE_API_KEY);
+    console.log('KPI Metrics API: Base ID exists:', !!process.env.AIRTABLE_BASE_ID);
 
     // Get clientId from query parameters
     const clientId = request.nextUrl.searchParams.get('clientId');
     const skipCache = request.nextUrl.searchParams.get('skipCache') === 'true';
     const month = request.nextUrl.searchParams.get('month');
     
-    console.log('API route: clientId from query:', clientId);
-    console.log('API route: month from query:', month);
-    console.log('API route: skipCache from query:', skipCache);
+    console.log('KPI Metrics API: clientId from query:', clientId);
+    console.log('KPI Metrics API: month from query:', month);
+    console.log('KPI Metrics API: skipCache from query:', skipCache);
 
     // Generate cache key based on parameters
     const cacheKey = `kpi_metrics_${clientId || 'all'}_${month || 'all'}`;
@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
       const now = Date.now();
       
       if (now - cachedData.timestamp < CACHE_TTL) {
-        console.log(`API route: Using cached KPI metrics (${Math.round((now - cachedData.timestamp) / 1000)}s old)`);
+        console.log(`KPI Metrics API: Using cached KPI metrics (${Math.round((now - cachedData.timestamp) / 1000)}s old)`);
         return NextResponse.json({ kpiMetrics: cachedData.data });
       } else {
-        console.log('API route: Cached KPI metrics expired, fetching fresh data');
+        console.log('KPI Metrics API: Cached KPI metrics expired, fetching fresh data');
       }
     }
 
@@ -45,23 +45,30 @@ export async function GET(request: NextRequest) {
     let kpiMetrics;
     
     if (clientId) {
+      console.log(`KPI Metrics API: Fetching metrics for client ${clientId} and month ${month || 'all'}`);
       kpiMetrics = await getKPIMetrics([clientId], month || null);
-      console.log(`API route: Fetched KPI metrics for client ${clientId}`);
+      console.log(`KPI Metrics API: Fetched ${kpiMetrics?.length || 0} KPI metrics for client ${clientId}`);
+      
+      if (kpiMetrics && kpiMetrics.length > 0) {
+        // Log structure of first record for debugging
+        const firstRecord = kpiMetrics[0];
+        console.log('KPI Metrics API: First record fields:', Object.keys(firstRecord.fields || {}).join(', '));
+      }
     } else {
-      console.log('API route: No clientId provided, fetching metrics for all clients');
+      console.log('KPI Metrics API: No clientId provided, fetching metrics for all clients');
       kpiMetrics = await getKPIMetrics(null, month || null);
     }
 
     if (!kpiMetrics || kpiMetrics.length === 0) {
-      console.log('API route: No KPI metrics found, using mock data');
+      console.log('KPI Metrics API: No KPI metrics found from Airtable');
       
       // Add a warning if clientId was provided but no data found
       if (clientId) {
-        console.warn(`API route: No KPI metrics found for client ${clientId}`);
+        console.warn(`KPI Metrics API: No KPI metrics found for client ${clientId}`);
       }
       
       return NextResponse.json({ 
-        kpiMetrics: mockKPIMetrics,
+        kpiMetrics: [],
         warning: clientId ? `No metrics found for client ID ${clientId}` : 'No metrics found'
       });
     }
@@ -72,13 +79,12 @@ export async function GET(request: NextRequest) {
       timestamp: Date.now()
     };
 
-    console.log(`API route: Found ${kpiMetrics.length} KPI metrics`);
+    console.log(`KPI Metrics API: Found ${kpiMetrics.length} KPI metrics`);
     return NextResponse.json({ kpiMetrics });
   } catch (error) {
-    console.error('Error fetching KPI metrics:', error);
-    console.log('API route: Error fetching KPI metrics, using mock data');
+    console.error('KPI Metrics API: Error fetching KPI metrics:', error);
     return NextResponse.json({ 
-      kpiMetrics: mockKPIMetrics,
+      kpiMetrics: [],
       error: 'Error fetching metrics from Airtable'
     });
   }

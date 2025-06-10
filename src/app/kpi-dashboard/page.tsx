@@ -527,6 +527,9 @@ function KpiDashboard() {
 
         const pctYoY = (cur: number, base: number) => (base ? +(((cur - base) / base) * 100).toFixed(1) : null);
 
+        // Log the yearly data for debugging
+        console.log('Yearly Data Debug - totalsByYear:', totalsByYear);
+
         setYearlyBreakdown({
           previousYear: {
             total: totalsByYear[prevYear]?.actual || 0,
@@ -565,6 +568,9 @@ function KpiDashboard() {
             qArr[qIdx].total += proj;
           }
         });
+
+        // Log the quarterly data for debugging
+        console.log('Quarterly Data Debug - qArr:', qArr);
 
         setQuarterRows(qArr);
       } catch (err) {
@@ -807,28 +813,63 @@ function KpiDashboard() {
       /* -------------------------------------------------------------- */
       try {
         const clientRecordID = clientId;
-        if (!clientRecordID) return;
+        console.log('Forecasting Debug - clientRecordID:', clientRecordID);
+        if (!clientRecordID) {
+          console.log('Forecasting Debug - No clientRecordID, returning early');
+          return;
+        }
 
         const all = await fetchClientsByMonth();
-        if (!all.length) return;
+        console.log('Forecasting Debug - fetchClientsByMonth results:', all.length);
+        if (!all.length) {
+          console.log('Forecasting Debug - No client data found, returning early');
+          return;
+        }
 
         const today = new Date();
         const monthIso = today.toISOString().slice(0, 7); // YYYY-MM
+        console.log('Forecasting Debug - Looking for month:', monthIso);
 
+        // Try to find the current month record
         const rec = all.find((r) => {
           const f = r.fields as any;
           const dStr = f['Month Start'] || f['Month'] || r.id;
           return dStr.slice(0, 7) === monthIso;
         });
 
-        if (rec) {
-          const f = rec.fields as any;
+        console.log('Forecasting Debug - Found current month record:', !!rec);
+        
+        // If no current month record, try to find the most recent month
+        let currentRec = rec;
+        if (!currentRec) {
+          console.log('Forecasting Debug - No current month record found, looking for most recent');
+          
+          // Sort by date descending to find most recent
+          const sorted = [...all].sort((a, b) => {
+            const aDate = new Date(a.fields['Month Start'] || a.fields['Month'] || a.id).getTime();
+            const bDate = new Date(b.fields['Month Start'] || b.fields['Month'] || b.id).getTime();
+            return bDate - aDate;
+          });
+          
+          currentRec = sorted[0]; // Most recent record
+          console.log('Forecasting Debug - Using most recent record instead:', 
+            currentRec ? new Date(currentRec.fields['Month Start'] || currentRec.fields['Month']).toISOString() : 'None found');
+        }
+
+        if (currentRec) {
+          const f = currentRec.fields as any;
+          console.log('Forecasting Debug - Month record fields:', Object.keys(f).join(', '));
 
           /* Monthly KPI targets + actuals */
           const trafficGoal = Number(f['Organic Traffic (Projected)'] ?? f['Clicks (Projected)'] ?? 0);
           const trafficActual = Number(f['Organic Traffic (Actual)'] ?? f['Clicks (Actual)'] ?? 0);
           const leadsGoal = Number(f['Leads Projected'] ?? f['Leads (Projected)'] ?? 0);
           const leadsActual = Number(f['Leads'] ?? 0);
+          
+          console.log('Forecasting Debug - Traffic goal:', trafficGoal);
+          console.log('Forecasting Debug - Traffic actual:', trafficActual);
+          console.log('Forecasting Debug - Leads goal:', leadsGoal);
+          console.log('Forecasting Debug - Leads actual:', leadsActual);
 
           /* Days + pacing */
           const daysPassed = today.getDate();
@@ -844,17 +885,51 @@ function KpiDashboard() {
           /* Deliverable counts – Activity Log */
           let deliverables: { category: string; count: number }[] = [];
           const clientPlusMonth = f['Client + Month'];
+          console.log('Forecasting Debug - Client + Month field:', clientPlusMonth);
+          
+          // Try different approaches to get deliverables if Client + Month is missing
           if (clientPlusMonth) {
             const formula = `{Client + Month} = '${clientPlusMonth}'`;
+            console.log('Forecasting Debug - Activity Log formula using Client + Month:', formula);
             const logs = await fetchFromAirtable<any>('Activity Log', formula);
+            console.log('Forecasting Debug - Activity Log results:', logs.length);
+            
             const counts: Record<string, number> = {};
             logs.forEach((r: any) => {
               const cat = (r.fields['Category'] as string) || 'Uncategorised';
               counts[cat] = (counts[cat] || 0) + 1;
             });
             deliverables = Object.entries(counts).map(([category, count]) => ({ category, count }));
+            console.log('Forecasting Debug - Deliverables calculated:', deliverables.length);
+          } else if (f['Client Record ID']) {
+            // Try using Client Record ID + Month as fallback
+            const monthDate = new Date(f['Month Start'] || f['Month']);
+            const monthStr = monthDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+            
+            console.log(`Forecasting Debug - Trying Activity Log lookup with Client ID: ${f['Client Record ID']} and Month: ${monthStr}`);
+            
+            // Try to find activities for this client in this month
+            const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).toISOString();
+            const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).toISOString();
+            
+            const formula = `AND({Client Record ID} = '${f['Client Record ID']}', IS_AFTER({Date}, '${startOfMonth}'), IS_BEFORE({Date}, '${endOfMonth}'))`;
+            console.log('Forecasting Debug - Activity Log formula using date range:', formula);
+            
+            const logs = await fetchFromAirtable<any>('Activity Log', formula);
+            console.log('Forecasting Debug - Activity Log results with date range:', logs.length);
+            
+            const counts: Record<string, number> = {};
+            logs.forEach((r: any) => {
+              const cat = (r.fields['Category'] as string) || 'Uncategorised';
+              counts[cat] = (counts[cat] || 0) + 1;
+            });
+            deliverables = Object.entries(counts).map(([category, count]) => ({ category, count }));
+            console.log('Forecasting Debug - Deliverables calculated with date range:', deliverables.length);
+          } else {
+            console.log('Forecasting Debug - No Client + Month field and no Client Record ID, cannot fetch deliverables');
           }
 
+          console.log('Forecasting Debug - Setting forecast standard data');
           setForecastStd({
             trafficGoal,
             trafficActual,
@@ -866,9 +941,11 @@ function KpiDashboard() {
             gapPct,
             deliverables,
           });
+        } else {
+          console.log('Forecasting Debug - No suitable record found for forecasting');
         }
       } catch (err) {
-        console.error(err);
+        console.error('Forecasting Debug - Error:', err);
       }
 
       /* -------------------------------------------------------------- */
@@ -1635,21 +1712,25 @@ function KpiDashboard() {
                         <div className="space-y-1">
                           <div className="flex justify-between">
                             <span className="text-sm">% of Gap to Close</span>
-                            {forecastStd && (
+                            {forecastStd ? (
                               <div className={`flex items-center ${forecastStd.gap > 0 ? 'text-rose-600' : 'text-green-600'}`}>
                                 {forecastStd.gap > 0 ? <ArrowUp className="h-4 w-4 mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
                                 <span className="text-sm font-medium">{Math.abs(forecastStd.gapPct).toFixed(1)}%</span>
                               </div>
+                            ) : (
+                              <div className="text-sm text-gray-500">No data available</div>
                             )}
                           </div>
                           <div className="flex justify-between">
                             <span className="text-sm">Estimated Shortfall</span>
-                            {forecastStd && (
+                            {forecastStd ? (
                               <span className={`text-sm font-medium ${forecastStd.gap > 0 ? 'text-rose-600' : 'text-green-600'}`}>
                                 {forecastStd.gap > 0
                                   ? `~${Math.round(Math.abs(forecastStd.gap)).toLocaleString()} visits below ${getPacingText()} target`
                                   : `Projected to exceed target by ~${Math.round(Math.abs(forecastStd.gap)).toLocaleString()} visits`}
                               </span>
+                            ) : (
+                              <span className="text-sm text-gray-500">No data available</span>
                             )}
                           </div>
                         </div>
